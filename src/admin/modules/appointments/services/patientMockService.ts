@@ -16,7 +16,7 @@ export const generateMockPatient = (id: number): Patient => {
     dob: faker.date.birthdate({ min: 18, max: 85, mode: 'age' }),
     age: faker.number.int({ min: 18, max: 85 }),
     address: faker.location.streetAddress(true),
-    whatsappNo: faker.phone.number(),
+    whatsappNo: faker.phone.number(), // Ensure this returns a string
     problem: faker.helpers.arrayElement([
       "Fever and headache",
       "Back pain",
@@ -32,7 +32,7 @@ export const generateMockPatient = (id: number): Patient => {
       lastname: faker.person.lastName(),
       email: faker.internet.email(),
       uid: faker.string.uuid(),
-      mobile: parseInt(faker.string.numeric(10)), // Convert to number
+      mobile: faker.phone.number(), // Change from parseInt to phone.number()
       desgination: faker.person.jobTitle(),
       specialization: faker.helpers.arrayElement(["Cardiology", "Neurology", "Dermatology", "Orthopedics"]),
       specializationList: [],
@@ -46,15 +46,15 @@ export const generateMockPatient = (id: number): Patient => {
         name: `Dr. ${faker.person.fullName()}`,
         username: faker.internet.userName(),
         email: faker.internet.email(),
-        phone: faker.phone.number(),
+        phone: faker.phone.number(), // Ensure this returns a string
         password: faker.internet.password(),
         branch: null,
         role: null,
         image: faker.image.avatar()
       }
     },
-    city,
-    branch: {
+    city, // Add city
+    branch: { // Add branch object
       id: faker.number.int({ min: 1, max: 5 }),
       name: `Branch ${faker.number.int({ min: 1, max: 5 })}`,
       code: `BR${faker.number.int({ min: 100, max: 999 })}`,
