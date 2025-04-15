@@ -15,17 +15,18 @@ export const DoctorMockService = {
 
       mockDoctors.push({
         id: i,
-        name: `Doctor ${i}`,
-        lastname: `Last${i}`,
         firstname: `First${i}`,
+        lastname: `Last${i}`,
         email: `doctor${i}@example.com`,
         uid: `DOC-${i}`,
-        mobile: 1234567890 + i,
+        phone: `+123456789${i}`,
         desgination: "Senior Physician",
         specialization: "General Medicine",
         specializationList: specializationList,
         qualification: "MD",
         joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
+        external: i % 3 === 0,
+        external_temp: null,
         user: {
           id: i,
           branch: {
@@ -59,8 +60,24 @@ export const DoctorMockService = {
           image: "",
         },
         status: i % 2 === 0 ? "Active" : "Inactive",
-        external: i % 3 === 0,
-        external_temp: null,
+        about: `About doctor ${i}`,
+        image: "",
+        city: `City ${i % 5 + 1}`,
+        pincode: `${100000 + i}`,
+        biography: `Biography of doctor ${i}`,
+        gender: i % 2,
+        verified: i % 2 === 0,
+        expYear: i % 20 + 1,
+        percentages: [],
+        serviceList: [],
+        branchList: [],
+        languageList: [],
+        district: null,
+        state: null,
+        country: null,
+        consultationFee: i * 100,
+        reviewCount: i % 50,
+        rating: (i % 5) + 1,
       });
     }
 
