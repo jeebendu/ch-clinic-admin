@@ -1,10 +1,10 @@
 
 import axios from 'axios';
 import { getEnvVariable } from '../utils/envUtils';
+import { getTenantId } from '../utils/tenantUtils';
 
 const BASE_URL = getEnvVariable('BASE_URL');
 const X_APP_TOKEN = getEnvVariable('X_APP_TOKEN');
-const DEFAULT_TENANT = getEnvVariable('DEFAULT_TENANT');
 
 const http = axios.create({
   baseURL: BASE_URL,
@@ -21,7 +21,7 @@ http.interceptors.request.use(
     config.headers['Accept'] = 'application/json';
     config.headers['ngrok-skip-browser-warning'] = '1';
     config.headers['X-App-Token'] = X_APP_TOKEN;
-    config.headers['tenant'] = DEFAULT_TENANT || 'demo';
+    config.headers['tenant'] = getTenantId();
 
     // Add token if available
     const token = localStorage.getItem('auth_token');
@@ -56,9 +56,13 @@ http.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized errors (expired token, etc.)
     if (error.response && error.response.status === 401) {
+      console.error('Unauthorized access: Token may have expired');
+      
       // Clear local storage
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
+      localStorage.removeItem('selectedClinic');
+      localStorage.removeItem('selectedBranch');
       
       // Redirect to login page if not already there
       if (window.location.pathname !== '/login') {

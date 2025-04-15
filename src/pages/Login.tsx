@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LockKeyhole, Mail, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useTenant } from "@/hooks/use-tenant";
-import { getTenantFileUrl } from "@/utils/tenantUtils";
+import { getTenantFileUrl, getTenantId } from "@/utils/tenantUtils";
 import http from "@/lib/JwtInterceptor";
 import { User } from "@/admin/modules/user/types/User";
 import { EncryptionService } from "@/utils/encryptionService";
@@ -31,10 +31,12 @@ const Login = () => {
       // Encrypt the password
       const encryptedPassword = EncryptionService.encrypt(password);
       
+      // Get tenant from tenant utils
+      const tenantId = getTenantId();
+      
       // Set tenant header
-      const defaultTenant = getEnvVariable('DEFAULT_TENANT');
       const headers = {
-        tenant: defaultTenant || 'demo'
+        tenant: tenantId
       };
 
       const response = await http.post('/api/v1/auth/signin', 
@@ -44,6 +46,10 @@ const Login = () => {
         },
         { headers }
       );
+      
+      if (!response.data) {
+        throw new Error("Invalid credentials");
+      }
       
       const userData = response.data as User;
       
