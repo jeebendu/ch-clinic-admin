@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { AppointmentQueryParams, fetchAppointmentsByDoctorId } from '../services/appointmentService';
+import { AppointmentQueryParams } from '../types/Appointment';
+import { fetchAppointmentsByDoctorId } from '../services/appointmentService';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAppointments = (initialParams: AppointmentQueryParams) => {

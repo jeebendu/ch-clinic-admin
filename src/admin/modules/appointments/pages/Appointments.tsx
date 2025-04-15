@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -58,7 +59,8 @@ const AppointmentsAdmin = () => {
     size: 10,
     doctorId: 1, // Replace with actual doctor ID when available
     searchTerm: null,
-    statuses: []
+    statuses: [],
+    branches: [] // Added to match the AppointmentQueryParams type
   } as AppointmentQueryParams);
 
   const handleFilterChange = (filterId: string, optionId: string) => {
@@ -71,7 +73,10 @@ const AppointmentsAdmin = () => {
       }
   
       // Update the filters using the updateFilters function
-      updateFilters(newFilters);
+      updateFilters({
+        ...newFilters,
+        branches: newFilters.branches?.map(Number) || [] // Convert branch IDs to numbers
+      });
   
       return newFilters;
     });
@@ -91,7 +96,8 @@ const AppointmentsAdmin = () => {
       size: 10,
       doctorId: 1,
       searchTerm: null,
-      statuses: []
+      statuses: [],
+      branches: [] // Added to match the AppointmentQueryParams type
     } as AppointmentQueryParams);
   };
 

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,7 @@ interface AppointmentSidebarProps {
 }
 
 const AppointmentSidebar = ({ onClose, appointments }: AppointmentSidebarProps) => {
-  const getAppointmentTypeLabel = (type?: Appointment['appointmentType']) => {
+  const getAppointmentTypeLabel = (type?: string) => {
     if (!type) return "Visit";
     switch (type) {
       case "direct-visit": return "Direct Visit";
@@ -56,7 +57,7 @@ const AppointmentSidebar = ({ onClose, appointments }: AppointmentSidebarProps) 
         <div className="space-y-4">
           {appointments.length === 0 ? (
             <div className="text-center p-8">
-              <CalendarIcon className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+              <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-3" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No appointments</h3>
               <p className="text-gray-500">You don't have any upcoming appointments.</p>
             </div>

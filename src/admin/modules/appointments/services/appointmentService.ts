@@ -1,3 +1,4 @@
+
 import http from "@/lib/JwtInterceptor";
 import { isProduction } from "@/utils/envUtils";
 import { AppointmentQueryParams } from "../types/Appointment";
