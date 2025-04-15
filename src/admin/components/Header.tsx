@@ -16,6 +16,8 @@ import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import ClinicBranchFilter from "./ClinicBranchFilter";
+import { useTenant } from "@/hooks/use-tenant";
+import { getTenantFileUrl } from "@/utils/tenantUtils";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -31,6 +33,7 @@ const Header = ({
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { tenant } = useTenant();
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -53,6 +56,9 @@ const Header = ({
     }
   };
 
+  // Get logo URL
+  const logoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
+
   return (
     <header className="admin-header h-14 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 bg-white shadow-sm">
       <div className="flex items-center gap-4">
@@ -64,6 +70,18 @@ const Header = ({
         >
           <Menu className="h-5 w-5" />
         </Button>
+        
+        {/* Tenant Logo */}
+        {logoUrl && (
+          <div className="hidden md:flex items-center">
+            <img 
+              src={logoUrl} 
+              alt={tenant?.title || 'Clinic Logo'} 
+              className="h-8 w-auto mr-2"
+            />
+            <span className="font-medium text-gray-800">{tenant?.title}</span>
+          </div>
+        )}
         
         {/* Add the ClinicBranchFilter here */}
         {!isMobile && <ClinicBranchFilter className="ml-4" />}

@@ -11,8 +11,11 @@ export const getTenantId = (): string => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     
-    // Check if running locally
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    // Check if running locally or on specific domains
+    if (hostname === 'localhost' || 
+        hostname === '127.0.0.1' || 
+        hostname.endsWith('lovable.app') || 
+        hostname.endsWith('clinichub.care')) {
       return defaultTenant;
     }
     
@@ -25,4 +28,12 @@ export const getTenantId = (): string => {
   
   // Return default if subdomain not found
   return defaultTenant;
+};
+
+/**
+ * Gets the file URL for tenant assets
+ */
+export const getTenantFileUrl = (fileName: string, type: 'logo' | 'favicon' | 'banner'): string => {
+  if (!fileName) return '';
+  return `${getEnvVariable('BASE_URL')}/tenants/public/download?fileName=${fileName}&type=${type}`;
 };
