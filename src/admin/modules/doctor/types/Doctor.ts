@@ -35,6 +35,7 @@ export interface Doctor {
   consultationFee: any;
   reviewCount: number;
   rating: number;
+  status: string;
 }
 
 

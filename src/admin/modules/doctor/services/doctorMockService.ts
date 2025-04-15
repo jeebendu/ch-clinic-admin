@@ -21,12 +21,10 @@ export const DoctorMockService = {
         uid: `DOC-${i}`,
         phone: `+123456789${i}`,
         desgination: "Senior Physician",
-        specialization: "General Medicine",
         specializationList: specializationList,
         qualification: "MD",
         joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
         external: i % 3 === 0,
-        external_temp: null,
         user: {
           id: i,
           branch: {
