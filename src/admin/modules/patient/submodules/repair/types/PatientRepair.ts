@@ -1,5 +1,5 @@
+import { Patient } from "../../../types/Patient";
 
-import { Patient } from "@/admin/modules/patients/types/Patient";
 
 export interface PatientRepair {
   id: number;

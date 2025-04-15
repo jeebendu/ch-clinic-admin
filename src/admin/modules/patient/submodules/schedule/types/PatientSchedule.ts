@@ -1,6 +1,6 @@
+import { Doctor } from "@/admin/modules/doctor/types/Doctor";
+import { Patient } from "../../../types/Patient";
 
-import { Patient } from "@/admin/modules/patients/types/Patient";
-import { Doctor } from "@/admin/modules/doctor/submodules/doctor/types/Doctor";
 
 export interface PatientSchedule {
   id: number;

@@ -1,4 +1,4 @@
-import { State } from "@/admin/types/state";
+import { State } from "../../types/Address";
 
 /**
  * Generate mock states data for development

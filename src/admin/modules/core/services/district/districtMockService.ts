@@ -1,6 +1,4 @@
-import { District } from "@/admin/types/district";
-import { State } from "@/admin/types/state";
-import { Country } from "@/admin/types/country";
+import { Country, District, State } from "../../types/Address";
 
 /**
  * Generate mock districts data for development

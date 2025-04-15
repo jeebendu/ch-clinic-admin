@@ -1,4 +1,5 @@
-import { Country } from "@/admin/types/country";
+import { Country } from "../../types/Address";
+
 
 /**
  * Generate mock countries data for development
