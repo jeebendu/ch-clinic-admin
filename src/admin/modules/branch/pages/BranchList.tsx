@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 
 const BranchList = () => {
   const navigate = useNavigate();
@@ -32,6 +34,7 @@ const BranchList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
+  const [showFilter, setShowFilter] = useState(false);
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [branchToDelete, setBranchToDelete] = useState<number | null>(null);
@@ -39,8 +42,36 @@ const BranchList = () => {
   const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
+  // Define filter options
+  const [filters, setFilters] = useState<FilterOption[]>([
+    {
+      id: 'status',
+      label: 'Status',
+      options: [
+        { id: 'active', label: 'Active' },
+        { id: 'inactive', label: 'Inactive' }
+      ]
+    },
+    {
+      id: 'location',
+      label: 'Location',
+      options: [
+        { id: 'central', label: 'Central' },
+        { id: 'east', label: 'East' },
+        { id: 'west', label: 'West' },
+        { id: 'north', label: 'North' },
+        { id: 'south', label: 'South' }
+      ]
+    }
+  ]);
+  
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+    status: [],
+    location: []
+  });
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['branches', page, size, searchTerm],
+    queryKey: ['branches', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
       const response = await BranchService.list();
       console.log("Branch API response (direct):", response);
@@ -51,6 +82,30 @@ const BranchList = () => {
   // Extract branches from the response
   const branches = Array.isArray(data) ? data : [];
   console.log("Extracted branches:", branches);
+
+  // Filter branches based on search term and filters
+  const filteredBranches = branches.filter(branch => {
+    // Filter by search term
+    if (searchTerm && !branch.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !branch.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !branch.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // Filter by status
+    if (selectedFilters.status.length > 0) {
+      const statusMatch = selectedFilters.status.includes(branch.active ? 'active' : 'inactive');
+      if (!statusMatch) return false;
+    }
+
+    // Filter by location
+    if (selectedFilters.location.length > 0) {
+      const locationMatch = selectedFilters.location.includes(branch.location.toLowerCase());
+      if (!locationMatch) return false;
+    }
+
+    return true;
+  });
 
   useEffect(() => {
     setViewMode(isMobile ? 'list' : 'grid');
@@ -102,6 +157,30 @@ const BranchList = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleFilterChange = (filterId: string, optionId: string) => {
+    setSelectedFilters(prev => {
+      const newFilters = {...prev};
+      
+      if (newFilters[filterId].includes(optionId)) {
+        // Remove filter if already selected
+        newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
+      } else {
+        // Add filter if not already selected
+        newFilters[filterId] = [...newFilters[filterId], optionId];
+      }
+      
+      return newFilters;
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedFilters({
+      status: [],
+      location: []
+    });
+    setSearchTerm("");
   };
 
   const renderForm = () => {
@@ -164,8 +243,8 @@ const BranchList = () => {
     );
   };
 
-  const totalElements = branches.length || 0;
-  const loadedElements = branches.length || 0;
+  const totalElements = filteredBranches.length || 0;
+  const loadedElements = filteredBranches.length || 0;
 
   return (
     <AdminLayout>
@@ -180,7 +259,20 @@ const BranchList = () => {
           onRefreshClick={() => refetch()}
           loadedElements={loadedElements}
           totalElements={totalElements}
+          onFilterToggle={() => setShowFilter(!showFilter)}
+          showFilter={showFilter}
         />
+
+        {showFilter && (
+          <FilterCard 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            filters={filters}
+            selectedFilters={selectedFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+          />
+        )}
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
@@ -194,13 +286,13 @@ const BranchList = () => {
           <div>
             {viewMode === 'grid' ? (
               <BranchTable 
-                branches={branches} 
+                branches={filteredBranches} 
                 onDelete={handleDeleteBranch}
                 onEdit={handleEditBranch}
               />
             ) : (
               <BranchCardList 
-                branches={branches} 
+                branches={filteredBranches} 
                 onDelete={handleDeleteBranch}
                 onEdit={handleEditBranch}
               />

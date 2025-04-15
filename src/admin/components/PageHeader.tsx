@@ -48,7 +48,7 @@ export const PageHeader = ({
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
           {loadedElements !== undefined && totalElements !== undefined && (
             <p className="text-sm text-muted-foreground">
-              Showing {loadedElements} of {totalElements} patients
+              Showing {loadedElements} of {totalElements} items
             </p>
           )}
         </div>

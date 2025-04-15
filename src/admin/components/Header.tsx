@@ -10,6 +10,7 @@ import {
   LogOut, 
   Settings, 
   UserCircle,
+  Image
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -71,17 +72,20 @@ const Header = ({
           <Menu className="h-5 w-5" />
         </Button>
         
-        {/* Tenant Logo */}
-        {logoUrl && (
-          <div className="hidden md:flex items-center">
+        {/* Tenant Logo - Conditional rendering */}
+        <div className="hidden md:flex items-center">
+          {logoUrl ? (
             <img 
               src={logoUrl} 
               alt={tenant?.title || 'Clinic Logo'} 
               className="h-8 w-auto mr-2"
             />
-            <span className="font-medium text-gray-800">{tenant?.title}</span>
-          </div>
-        )}
+          ) : (
+            <div className="h-8 w-8 bg-gray-200 rounded-md flex items-center justify-center mr-2">
+              <Image className="h-5 w-5 text-gray-500" />
+            </div>
+          )}
+        </div>
         
         {/* Add the ClinicBranchFilter here */}
         {!isMobile && <ClinicBranchFilter className="ml-4" />}
