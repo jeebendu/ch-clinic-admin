@@ -37,7 +37,7 @@ export const DoctorMockService = {
             district: null,
             country: null,
             city: `City ${i % 3 + 1}`,
-            mapUrl: "",
+            mapurl: "",  // Changed from mapUrl
             pincode: 12345,
             image: "",
             latitude: 0,
