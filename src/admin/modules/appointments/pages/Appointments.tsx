@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +9,7 @@ import InfiniteAppointmentList from "../components/InfiniteAppointmentList";
 import AppointmentCalendar from "../components/AppointmentCalendar";
 import { Doctor } from "../types/Doctor";
 import { fetchDoctorDetailsById } from "../services/DoctorService";
+import { AppointmentQueryParams } from "../services/appointmentService";
 
 const AppointmentsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,12 +57,9 @@ const AppointmentsAdmin = () => {
     page: 0,
     size: 10,
     doctorId: 1, // Replace with actual doctor ID when available
-    branches:[],
     searchTerm: null,
-    statuses:[]
-  });
-
-
+    statuses: []
+  } as AppointmentQueryParams);
 
   const handleFilterChange = (filterId: string, optionId: string) => {
     setSelectedFilters(prev => {
@@ -93,10 +90,9 @@ const AppointmentsAdmin = () => {
       page: 0,
       size: 10,
       doctorId: 1,
-      branches:[],
       searchTerm: null,
-      statuses:[]
-    });
+      statuses: []
+    } as AppointmentQueryParams);
   };
 
   const handleAppointmentClick = (appointment: any) => {

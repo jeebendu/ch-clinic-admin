@@ -1,3 +1,4 @@
+
 import { Patient } from "@/admin/types/patient";
 
 /**
@@ -11,7 +12,7 @@ const generateMockPatients = (): Patient[] => {
       id: i,
       uid: `UID-${i}`,
       gender: i % 2 === 0 ? "Male" : "Female",
-      dob: new Date(1990 + (i % 30), i % 12, i % 28 + 1),
+      dob: new Date(1990 + (i % 30), i % 12, i % 28 + 1).toISOString(),
       age: 30 + (i % 10),
       address: `Address ${i}`,
       whatsappNo: `+123456789${i}`,
@@ -115,10 +116,13 @@ const generateMockPatients = (): Patient[] => {
 
 const mockPatients = generateMockPatients();
 
-export const PatientMockService = {
+const patientMockService = {
   list: () => Promise.resolve(mockPatients),
 
   getById: (id: number) =>
+    Promise.resolve(mockPatients.find((patient) => patient.id === id)),
+
+  getMockPatientById: (id: number) =>
     Promise.resolve(mockPatients.find((patient) => patient.id === id)),
 
   search: (searchTerm: string) =>
@@ -150,3 +154,5 @@ export const PatientMockService = {
     return Promise.resolve(false);
   },
 };
+
+export default patientMockService;

@@ -1,16 +1,33 @@
 
-import { Doctor } from "../../doctor/types/Doctor";
-import { Branch } from "../../shared/types/Branch";
-
 export interface Slot {
   id: number;
-  doctor?: Doctor;
-  branch?: Branch;
-  startTime?: string;
-  endTime?: string; 
+  startTime: string;
+  endTime: string;
+  status: string;
+  doctor?: any | null;
+  branch?: {
+    id: number;
+    name: string;
+    code: string;
+    location: string;
+    active: boolean;
+    state: any | null;
+    district: any | null;
+    country: any | null;
+    city: string;
+    mapUrl: string;
+    pincode: number;
+    image: string;
+    latitude: number;
+    longitude: number;
+  } | null;
   availableSlots: number;
-  date?: Date;
-  duration?: number;
-  slotType?: string;
-  status?: string;
+  date: Date;
+  duration: number;
+  slotType: string;
+  doctorId?: number;
+  branchId?: number;
+  capacity?: number;
+  isRecurring?: boolean;
+  recurringDays?: string[];
 }

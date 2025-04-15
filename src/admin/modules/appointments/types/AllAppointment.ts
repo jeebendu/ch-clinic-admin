@@ -3,6 +3,8 @@ export interface AllAppointment {
   id: number;
   isAccept: boolean;
   status: string;
+  appointmentDate: Date;
+  appointmentType?: string;
   patient: {
     id: number;
     uid: string;
@@ -13,6 +15,15 @@ export interface AllAppointment {
     whatsappNo?: string;
     firstname: string;
     lastname: string;
+    city?: string; 
+    district?: {
+      id: number;
+      name: string;
+    } | null;
+    state?: {
+      id: number;
+      name: string;
+    } | null;
     user: {
       id: number;
       name: string;
@@ -72,7 +83,11 @@ export interface AllAppointment {
   familyMember: any | null;
   doctorClinic: {
     id: number;
-    doctor: any | null;
+    doctor: {
+      id?: number;
+      firstname?: string;
+      lastname?: string;
+    } | null;
     clinic: {
       id: number;
       uid: string;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   ChevronLeft,
@@ -7,7 +6,7 @@ import {
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Appointment } from '../types/appointment';
+import { Appointment } from '../types/Appointment';
 
 interface AppointmentCalendarProps {
   appointments: Appointment[];

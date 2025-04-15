@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { AllAppointment } from '../types/Appointment';
+import { AllAppointment } from '../types/AllAppointment';
+import { Calendar, Clock, Mail, Phone, MapPin, X } from 'lucide-react';
 
 interface AppointmentSidebarProps {
   onClose: () => void;

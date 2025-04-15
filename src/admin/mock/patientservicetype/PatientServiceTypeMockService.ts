@@ -13,14 +13,14 @@ export const PatientServiceTypeMockService = {
       const mockEnquiryServiceType: EnquiryServiceType = {
         id: i,
         name: `Service Type ${i}`,
-        price: Math.floor(Math.random() * 1000) + 100, // Random price between 100 and 1100
+        price: Math.floor(Math.random() * 1000) + 100 // Random price between 100 and 1100
       };
 
       const mockPatient: Patient = {
         id: i,
         uid: `UID${i}`,
         gender: i % 2 === 0 ? "Male" : "Female",
-        dob: new Date(1990, i % 12, (i % 28) + 1),
+        dob: new Date(1990, i % 12, (i % 28) + 1).toISOString(),
         age: 2025 - 1990,
         address: `Address ${i}`,
         firstname: `FirstName${i}`,
@@ -35,7 +35,7 @@ export const PatientServiceTypeMockService = {
           specialization: "General",
           specializationList: [],
           qualification: "MBBS",
-          joiningDate: new Date(2020, i % 12, (i % 28) + 1),
+          joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
           user: {
             id: i,
             branch: {
@@ -59,8 +59,8 @@ export const PatientServiceTypeMockService = {
             email: `user${i}@example.com`,
             phone: `+123456789${i}`,
             password: `password${i}`,
-            effectiveTo: new Date(2025, i % 12, (i % 28) + 1),
-            effectiveFrom: new Date(2024, i % 12, (i % 28) + 1),
+            effectiveTo: new Date(2025, i % 12, (i % 28) + 1).toISOString(),
+            effectiveFrom: new Date(2024, i % 12, (i % 28) + 1).toISOString(),
             role: {
               id: 1,
               name: "Admin",
@@ -95,8 +95,8 @@ export const PatientServiceTypeMockService = {
           email: `user${i}@example.com`,
           phone: `+123456789${i}`,
           password: `password${i}`,
-          effectiveTo: new Date(2025, i % 12, (i % 28) + 1),
-          effectiveFrom: new Date(2024, i % 12, (i % 28) + 1),
+          effectiveTo: new Date(2025, i % 12, (i % 28) + 1).toISOString(),
+          effectiveFrom: new Date(2024, i % 12, (i % 28) + 1).toISOString(),
           role: {
             id: 1,
             name: "Admin",

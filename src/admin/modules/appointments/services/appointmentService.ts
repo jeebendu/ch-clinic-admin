@@ -17,7 +17,27 @@ export interface AppointmentQueryParams {
   fromDate?: string;
   toDate?: string;
   searchTerm?: string | null;
+  branches?: number[];
 }
+
+export const fetchAppointmentsByDoctorId = async (params: AppointmentQueryParams) => {
+  // Import dynamically to avoid circular dependencies
+  const { getMockAppointments } = await import('@/admin/mock/appartment/appartmentMockService');
+  return getMockAppointments(params);
+};
+
+export const getAppointmentById = async (id: string | number) => {
+  // Mock implementation
+  const { getMockAppointments } = await import('@/admin/mock/appartment/appartmentMockService');
+  const response = await getMockAppointments({});
+  const appointment = response.data.content.find((app: any) => app.id === Number(id));
+  return { data: appointment };
+};
+
+export const updateAppointmentStatus = async (id: number, status: string) => {
+  // Mock implementation
+  return Promise.resolve({ success: true });
+};
 
 // Export for use in mock services
 export { AppointmentQueryParams };

@@ -1,4 +1,3 @@
-
 import { AppointmentQueryParams } from "@/admin/modules/appointments/services/appointmentService";
 import { AllAppointment } from "@/admin/modules/appointments/types/AllAppointment";
 import { addDays, subDays } from "date-fns";
@@ -7,7 +6,7 @@ import { addDays, subDays } from "date-fns";
  * Generate mock appointments data for development
  */
 export const getMockAppointments = (params: AppointmentQueryParams) => {
-  const { page = 0, size = 10, statuses, fromDate, toDate, searchTerm } = params;
+  const { page = 0, size = 10, statuses, fromDate, toDate, searchTerm, branches = [] } = params;
   
   // Generate mock data
   const mockAppointments: AllAppointment[] = [];
@@ -144,6 +143,13 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
     filteredAppointments = filteredAppointments.filter(app => 
       app.patient.firstname.toLowerCase().includes(term) || 
       app.patient.lastname.toLowerCase().includes(term)
+    );
+  }
+  
+  // Apply branch filter
+  if (branches.length > 0) {
+    filteredAppointments = filteredAppointments.filter(app => 
+      branches.includes(app.slot.branch.id)
     );
   }
   
