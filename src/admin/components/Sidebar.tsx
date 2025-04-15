@@ -1,257 +1,236 @@
+
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  LayoutDashboard,
-  Calendar,
+  BarChart2,
   Users,
-  Activity,
-  Box,
   FileText,
+  User,
+  Calendar,
+  MessageSquare,
   Settings,
-  CreditCard,
-  Receipt,
-  Layers,
-  BarChart3,
-  Package,
-  ShoppingCart,
-  UserCog,
   LogOut,
+  ChevronRight,
+  Home,
+  Menu,
+  X,
 } from "lucide-react";
-import { Patient } from "@/admin/modules/patients/types/Patient";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/authContext";
 
-export const useAuth = () => {
-  return {
-    user: { name: 'Admin User', image: '' },
-    logout: () => console.log('Logout clicked')
-  };
-};
-
-export interface SidebarProps {
-  isCollapsed?: boolean;
-  toggleSidebar?: () => void;
-  onClose?: () => void;
-  collapsed?: boolean;
+// Define the props interface for Sidebar
+interface SidebarProps {
+  collapsed: boolean;
+  onClose: () => void;
 }
 
-const sidebarVariants = {
-  expanded: { width: 200 },
-  collapsed: { width: 65 },
-};
+const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
+  const { logout } = useAuth();
+  const [activeMenu, setActiveMenu] = useState("");
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
-const SidebarItem = ({
-  icon: Icon,
-  label,
-  to,
-  isCollapsed,
-}: {
-  icon: React.ComponentType;
-  label: string;
-  to: string;
-  isCollapsed: boolean;
-}) => {
-  const location = useLocation();
-  const isActive = location.pathname.startsWith(to);
+  const toggleMenu = (menuName: string) => {
+    if (expandedMenus.includes(menuName)) {
+      setExpandedMenus(expandedMenus.filter((name) => name !== menuName));
+    } else {
+      setExpandedMenus([...expandedMenus, menuName]);
+    }
+    setActiveMenu(menuName);
+  };
 
-  return (
-    <Link to={to}>
-      <motion.div
-        className={`group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground ${
-          isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground"
-        }`}
-        data-active={isActive}
-        style={{ paddingLeft: isCollapsed ? 15 : 20 }}
+  const isMenuExpanded = (menuName: string) => {
+    return expandedMenus.includes(menuName);
+  };
+
+  const menuItems = [
+    {
+      name: "Dashboard",
+      icon: <Home className="h-5 w-5" />,
+      path: "/admin/dashboard",
+    },
+    {
+      name: "Patients",
+      icon: <Users className="h-5 w-5" />,
+      path: "/admin/patients",
+      submenu: [
+        { name: "All Patients", path: "/admin/patients" },
+        { name: "Add Patient", path: "/admin/patients/add" },
+        { name: "Patient Categories", path: "/admin/patient-categories" },
+      ],
+    },
+    {
+      name: "Appointments",
+      icon: <Calendar className="h-5 w-5" />,
+      path: "/admin/appointments",
+      submenu: [
+        { name: "All Appointments", path: "/admin/appointments" },
+        { name: "Calendar View", path: "/admin/appointments/calendar" },
+        { name: "Add Appointment", path: "/admin/appointments/add" },
+      ],
+    },
+    {
+      name: "Doctors",
+      icon: <User className="h-5 w-5" />,
+      path: "/admin/doctors",
+      submenu: [
+        { name: "All Doctors", path: "/admin/doctors" },
+        { name: "Add Doctor", path: "/admin/doctors/add" },
+        { name: "Specializations", path: "/admin/specializations" },
+      ],
+    },
+    {
+      name: "Reports",
+      icon: <FileText className="h-5 w-5" />,
+      path: "/admin/reports",
+      submenu: [
+        { name: "Financial", path: "/admin/reports/financial" },
+        { name: "Patient", path: "/admin/reports/patient" },
+        { name: "Appointment", path: "/admin/reports/appointment" },
+      ],
+    },
+    {
+      name: "Billing",
+      icon: <BarChart2 className="h-5 w-5" />,
+      path: "/admin/billing",
+      submenu: [
+        { name: "Invoices", path: "/admin/billing/invoices" },
+        { name: "Payments", path: "/admin/billing/payments" },
+        { name: "Bills", path: "/admin/billing/bills" },
+      ],
+    },
+    {
+      name: "Messages",
+      icon: <MessageSquare className="h-5 w-5" />,
+      path: "/admin/messages",
+    },
+    {
+      name: "Settings",
+      icon: <Settings className="h-5 w-5" />,
+      path: "/admin/settings",
+      submenu: [
+        { name: "General", path: "/admin/settings/general" },
+        { name: "User Management", path: "/admin/settings/users" },
+        { name: "Departments", path: "/admin/settings/departments" },
+      ],
+    },
+  ];
+
+  // Mobile sidebar header
+  const MobileSidebarHeader = () => (
+    <div className="flex items-center justify-between px-4 py-3 border-b md:hidden">
+      <div className="font-semibold text-lg">Medical Admin</div>
+      <button
+        onClick={onClose}
+        className="p-1 rounded-full hover:bg-gray-200 transition-colors"
       >
-        <Icon className="h-4 w-4" />
-        {!isCollapsed && (
-          <motion.span
-            variants={{
-              expanded: { opacity: 1, x: 0 },
-              collapsed: { opacity: 0, x: -20 },
-            }}
-            transition={{ duration: 0.2 }}
-          >
-            {label}
-          </motion.span>
-        )}
-      </motion.div>
-    </Link>
-  );
-};
-
-const CollapsibleList = ({
-  icon: Icon,
-  label,
-  children,
-  isCollapsed,
-}: {
-  icon: React.ComponentType;
-  label: string;
-  children: React.ReactNode;
-  isCollapsed: boolean;
-}) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-
-  return (
-    <div className="flex flex-col">
-      <motion.button
-        className="group relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-        onClick={() => setIsExpanded(!isExpanded)}
-        style={{ paddingLeft: isCollapsed ? 15 : 20 }}
-      >
-        <Icon className="h-4 w-4" />
-        {!isCollapsed && (
-          <motion.span
-            variants={{
-              expanded: { opacity: 1, x: 0 },
-              collapsed: { opacity: 0, x: -20 },
-            }}
-            transition={{ duration: 0.2 }}
-          >
-            {label}
-          </motion.span>
-        )}
-      </motion.button>
-      <motion.div
-        variants={{
-          collapsed: { height: 0 },
-          expanded: { height: "auto" },
-        }}
-        initial="collapsed"
-        animate={isExpanded ? "expanded" : "collapsed"}
-        exit="collapsed"
-        style={{ overflow: "hidden" }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-      >
-        {children}
-      </motion.div>
+        <X className="h-6 w-6" />
+      </button>
     </div>
   );
-};
 
-const Sidebar = ({ onClose, collapsed = false }: SidebarProps) => {
-  const { user, logout } = useAuth();
-  const isCollapsed = collapsed;
+  // Desktop sidebar header
+  const DesktopSidebarHeader = () => (
+    <div
+      className={`px-4 py-5 flex items-center justify-center border-b ${
+        collapsed ? "mb-4" : ""
+      }`}
+    >
+      {!collapsed ? (
+        <div className="font-bold text-xl">Medical Admin</div>
+      ) : (
+        <Menu className="h-6 w-6" />
+      )}
+    </div>
+  );
+
+  // Animation variants for submenu
+  const submenuVariants = {
+    open: {
+      height: "auto",
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+      },
+    },
+    closed: {
+      height: 0,
+      opacity: 0,
+      transition: {
+        duration: 0.2,
+      },
+    },
+  };
 
   return (
-    <motion.div
-      className="flex flex-col border-r bg-secondary text-secondary-foreground"
-      variants={sidebarVariants}
-      animate={isCollapsed ? "collapsed" : "expanded"}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-    >
-      <ScrollArea className="flex-1 space-y-2 p-2">
-        <div className="flex items-center justify-center py-2">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.image || ""} alt={user?.name || "User Avatar"} />
-            <AvatarFallback>{user?.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-          </Avatar>
-          {!isCollapsed && (
-            <motion.span
-              variants={{
-                expanded: { opacity: 1, x: 0 },
-                collapsed: { opacity: 0, x: -20 },
-              }}
-              transition={{ duration: 0.2 }}
-              className="ml-2 font-bold"
-            >
-              {user?.name}
-            </motion.span>
-          )}
-        </div>
-        <Separator />
-        <SidebarItem
-          icon={LayoutDashboard}
-          label="Dashboard"
-          to="/admin/dashboard"
-          isCollapsed={isCollapsed}
-        />
-        <SidebarItem
-          icon={Calendar}
-          label="Appointments"
-          to="/admin/appointments"
-          isCollapsed={isCollapsed}
-        />
-        <SidebarItem icon={Users} label="Patients" to="/admin/patients" isCollapsed={isCollapsed} />
-        <SidebarItem icon={UserCog} label="Users" to="/admin/users" isCollapsed={isCollapsed} />
-        <SidebarItem icon={Activity} label="Activity" to="/admin/activity" isCollapsed={isCollapsed} />
-        <CollapsibleList icon={Box} label="Catalog" isCollapsed={isCollapsed}>
-          <SidebarItem
-            icon={FileText}
-            label="Category"
-            to="/admin/catalog/category"
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            icon={FileText}
-            label="Product"
-            to="/admin/catalog/product"
-            isCollapsed={isCollapsed}
-          />
-        </CollapsibleList>
-        <CollapsibleList icon={Layers} label="Core" isCollapsed={isCollapsed}>
-          <SidebarItem icon={FileText} label="Branch" to="/admin/branch" isCollapsed={isCollapsed} />
-          <SidebarItem icon={FileText} label="Source" to="/admin/core/source" isCollapsed={isCollapsed} />
-          <SidebarItem icon={FileText} label="Status" to="/admin/core/status" isCollapsed={isCollapsed} />
-          <SidebarItem icon={FileText} label="Relation" to="/admin/core/relation" isCollapsed={isCollapsed} />
-        </CollapsibleList>
-        <CollapsibleList icon={ShoppingCart} label="Sales" isCollapsed={isCollapsed}>
-          <SidebarItem icon={FileText} label="Invoice" to="/admin/sales/invoice" isCollapsed={isCollapsed} />
-          <SidebarItem icon={FileText} label="Orders" to="/admin/sales/orders" isCollapsed={isCollapsed} />
-        </CollapsibleList>
-        <CollapsibleList icon={Package} label="Purchase" isCollapsed={isCollapsed}>
-          <SidebarItem
-            icon={FileText}
-            label="Purchase Orders"
-            to="/admin/purchase/purchase-orders"
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            icon={FileText}
-            label="Supplier"
-            to="/admin/purchase/supplier"
-            isCollapsed={isCollapsed}
-          />
-        </CollapsibleList>
-        <CollapsibleList icon={CreditCard} label="Payment" isCollapsed={isCollapsed}>
-          <SidebarItem
-            icon={FileText}
-            label="Transactions"
-            to="/admin/payment/transactions"
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            icon={FileText}
-            label="Payment Types"
-            to="/admin/payment/payment-types"
-            isCollapsed={isCollapsed}
-          />
-        </CollapsibleList>
-        <CollapsibleList icon={BarChart3} label="Expense" isCollapsed={isCollapsed}>
-          <SidebarItem icon={FileText} label="Expense List" to="/admin/expense/list" isCollapsed={isCollapsed} />
-        </CollapsibleList>
-        <CollapsibleList icon={Settings} label="Config" isCollapsed={isCollapsed}>
-          <SidebarItem icon={FileText} label="Couriers" to="/admin/config/couriers" isCollapsed={isCollapsed} />
-           <SidebarItem icon={FileText} label="Repair Company" to="/admin/config/repair-company" isCollapsed={isCollapsed} />
-          <SidebarItem icon={FileText} label="Sequence" to="/admin/config/sequence" isCollapsed={isCollapsed} />
-        </CollapsibleList>
-      </ScrollArea>
-      <Separator />
-      <div className="p-3">
-        <Button
-          variant="outline"
-          className="w-full justify-start"
-          onClick={logout}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          {!isCollapsed && <span>Logout</span>}
-        </Button>
+    <div className="flex flex-col h-full">
+      <MobileSidebarHeader />
+      <DesktopSidebarHeader />
+
+      <div className="overflow-y-auto flex-1 pt-2">
+        <nav className="px-2">
+          <ul className="space-y-1">
+            {menuItems.map((item) => (
+              <li key={item.name}>
+                <div
+                  className={`flex items-center justify-between px-4 py-2.5 rounded-md cursor-pointer transition-colors ${
+                    activeMenu === item.name
+                      ? "bg-primary text-white"
+                      : "hover:bg-gray-100"
+                  }`}
+                  onClick={() => toggleMenu(item.name)}
+                >
+                  <div className="flex items-center">
+                    {item.icon}
+                    {!collapsed && (
+                      <span className="ml-3 text-sm font-medium">{item.name}</span>
+                    )}
+                  </div>
+                  {!collapsed && item.submenu && (
+                    <ChevronRight
+                      className={`h-4 w-4 transition-transform ${
+                        isMenuExpanded(item.name) ? "rotate-90" : ""
+                      }`}
+                    />
+                  )}
+                </div>
+
+                {item.submenu && !collapsed && (
+                  <motion.ul
+                    variants={submenuVariants}
+                    initial="closed"
+                    animate={isMenuExpanded(item.name) ? "open" : "closed"}
+                    className="overflow-hidden ml-4"
+                  >
+                    {item.submenu.map((subItem) => (
+                      <li key={subItem.name}>
+                        <a
+                          href={subItem.path}
+                          className="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100"
+                        >
+                          <span className="h-1.5 w-1.5 bg-gray-400 rounded-full mr-3"></span>
+                          {subItem.name}
+                        </a>
+                      </li>
+                    ))}
+                  </motion.ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
-    </motion.div>
+
+      <div className="mt-auto border-t p-4">
+        <button
+          onClick={logout}
+          className="flex items-center w-full px-4 py-2 rounded-md hover:bg-gray-100 transition-colors"
+        >
+          <LogOut className="h-5 w-5 text-red-500" />
+          {!collapsed && (
+            <span className="ml-3 text-sm font-medium">Logout</span>
+          )}
+        </button>
+      </div>
+    </div>
   );
 };
 

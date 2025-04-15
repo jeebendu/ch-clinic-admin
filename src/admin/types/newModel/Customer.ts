@@ -1,5 +1,4 @@
 
-// Move this to modules/customers/types directory later
 export interface Customer {
   id: number;
   firstName: string;

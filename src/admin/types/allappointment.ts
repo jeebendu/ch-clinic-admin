@@ -1,23 +1,17 @@
 
 export interface Slot {
-  id?: number;
-  date?: Date;
-  startTime?: string;
-  endTime?: string;
-  doctorId?: number;
-  branchId?: number;
-  capacity?: number;
-  isRecurring?: boolean;
-  recurringDays?: string[];
+  id: number;
+  start: string;
+  end: string;
+  status: string;
 }
 
-export interface AppointmentQueryParams {
-  doctorId?: number;
-  patientId?: number;
-  branchId?: number;
-  status?: string;
-  startDate?: string;
-  endDate?: string;
-  pageSize?: number;
-  pageNumber?: number;
+export interface AllAppointment {
+  id: number;
+  patientName: string;
+  doctorName: string;
+  date: string;
+  time: string;
+  status: string;
+  slot?: Slot;
 }
