@@ -27,19 +27,6 @@ export interface Appointment {
   doctorClinic: DoctorClinic;
 }
 
-export interface AllAppointment {
-  id: number;
-  isAccept: boolean;
-  status: string;
-  appointmentDate: Date;
-  appointmentType?: string;
-  patient: Patient;
-  doctor: Doctor;
-  slot: Slot;
-  familyMember: FamilyMember | null;
-  doctorClinic: DoctorClinic;
-}
-
 export interface PaginatedAppointmentResponse {
   content: Appointment[];
   pageable: {

@@ -1,5 +1,5 @@
 
-import { Doctor } from "../../doctor/types/Doctor";
+import { Doctor } from "../../../types/Doctor";
 
 export interface DoctorReport {
   id: number;

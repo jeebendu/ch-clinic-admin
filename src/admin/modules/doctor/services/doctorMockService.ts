@@ -1,6 +1,6 @@
 
 import { Doctor } from "../types/Doctor";
-import { Specialization } from "../types/Doctor";
+import { Specialization } from "../submodules/specialization/types/Specialization";
 
 export const DoctorMockService = {
   generateMockDoctors: (): Doctor[] => {

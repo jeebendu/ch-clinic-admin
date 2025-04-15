@@ -1,6 +1,10 @@
 
-import { Doctor } from "../../doctor/types/Doctor";
-import { EnquiryServiceType } from "@/admin/types/newModel/EnquiryServiceType";
+import { Doctor } from "../../../types/Doctor";
+
+export interface EnquiryServiceType {
+  id: number;
+  name: string;
+}
 
 export interface DoctorPercentage {
   id: number;

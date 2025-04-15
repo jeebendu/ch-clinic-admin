@@ -1,6 +1,6 @@
 
-import { Doctor } from "../../doctor/types/Doctor";
-import { Branch } from "@/admin/modules/shared/types/Branch";
+import { Doctor } from "../../../types/Doctor";
+import { Branch } from "@/admin/modules/branch/types/Branch";
 
 export interface DoctorAvailability {
   id: number;

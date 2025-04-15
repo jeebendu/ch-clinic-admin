@@ -17,16 +17,20 @@ export const useAppointments = (initialParams: AppointmentQueryParams) => {
     setError(null);
     try {
       const response = await fetchAppointmentsByDoctorId(params);
-      const newAppointments = response.data.content;
+      // Handle both production (Axios) and mock responses
+      const content = 'data' in response ? response.data.content : response.content;
+      const totalElements = 'data' in response ? response.data.totalElements : response.totalElements;
+      const pageSize = 'data' in response ? response.data.size : response.size;
+      const pageNumber = 'data' in response ? response.data.number : response.number;
       
       if (append) {
-        setAppointments(prev => [...prev, ...newAppointments]);
+        setAppointments(prev => [...prev, ...content]);
       } else {
-        setAppointments(newAppointments);
+        setAppointments(content);
       }
       
       // Check if there are more appointments to load
-      setHasMore(response.data.totalElements > (params.page + 1) * params.size);
+      setHasMore(totalElements > (pageNumber + 1) * pageSize);
       
     } catch (err: any) {
       setError(err.message || 'Failed to fetch appointments');
