@@ -8,7 +8,9 @@ const X_APP_TOKEN = getEnvVariable('X_APP_TOKEN');
 const http = axios.create({
   baseURL: BASE_URL,
   timeout: 0,
-  allowAbsoluteUrls: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // Request interceptor
@@ -24,6 +26,7 @@ http.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     // Add selected clinic and branch to headers if available
     const selectedClinic = localStorage.getItem('selectedClinic');
     const selectedBranch = localStorage.getItem('selectedBranch');
@@ -35,6 +38,7 @@ http.interceptors.request.use(
     if (selectedBranch) {
       config.headers['X-Branch-ID'] = selectedBranch;
     }
+    
     return config;
   },
   (error) => {
@@ -48,6 +52,18 @@ http.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Handle 401 Unauthorized errors (expired token, etc.)
+    if (error.response && error.response.status === 401) {
+      // Clear local storage
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      
+      // Redirect to login page if not already there
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    
     return Promise.reject(error);
   }
 );

@@ -8,9 +8,11 @@ import { LockKeyhole, Mail, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useTenant } from "@/hooks/use-tenant";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
+import http from "@/lib/JwtInterceptor";
+import { User } from "@/admin/modules/user/types/User";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,25 +20,37 @@ const Login = () => {
   const { toast } = useToast();
   const { tenant, isLoading: isTenantLoading } = useTenant();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // In a real app, you would validate credentials with a backend
-    // For demo purposes, we'll use a simple check
-    setTimeout(() => {
-      if (email === "admin@clinic.com" && password === "password") {
-        toast({
-          title: "Login successful",
-          description: `Welcome to ${tenant?.title || 'Clinic Management System'}`,
-        });
-        navigate("/admin");
-      } else {
-        setError("Invalid email or password");
-      }
+    try {
+      const response = await http.post('/api/v1/auth/signin', {
+        username,
+        password
+      });
+      
+      const userData = response.data as User;
+      
+      // Store user data and token in localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('auth_token', userData.token);
+      
+      // Show success toast
+      toast({
+        title: "Login successful",
+        description: `Welcome ${userData.name}`,
+      });
+      
+      // Redirect to admin dashboard
+      navigate("/admin");
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError(err.response?.data?.message || "Invalid username or password");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   // Get logo URL
@@ -104,10 +118,10 @@ const Login = () => {
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      type="email"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      type="text"
+                      placeholder="Username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       className="pl-10"
                       required
                     />
@@ -142,7 +156,7 @@ const Login = () => {
                 <span className="hover:text-brand-primary cursor-pointer">Forgot password?</span>
               </div>
               <div className="text-xs text-gray-400 text-center w-full">
-                Demo access: admin@clinic.com / password
+                Demo access: jeebendu / password
               </div>
             </CardFooter>
           </Card>
