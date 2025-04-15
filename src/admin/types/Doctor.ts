@@ -60,4 +60,4 @@ export interface Education {
 }
 
 // Re-export User to fix the import issue
-export { User } from "./User";
+export type { User } from "./User";

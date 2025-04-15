@@ -1,6 +1,5 @@
-
 import { PatientReport } from "./PatientReport";
-import { Patient } from "@/admin/types/patient";
+import { Patient } from "@/admin/types/Patient";
 
 /**
  * Generate mock PatientReport data for development

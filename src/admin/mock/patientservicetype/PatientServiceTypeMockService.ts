@@ -1,7 +1,6 @@
-
 import { PatientServiceType } from "./PatientServiceType";
 import { EnquiryServiceType } from "@/admin/types/doctor";
-import { Patient } from "@/admin/types/patient";
+import { Patient } from "@/admin/types/Patient";
 
 /**
  * Mock service for PatientServiceType

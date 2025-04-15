@@ -1,6 +1,5 @@
-
-import { Doctor } from "../doctor";
-import { Patient } from "../patient";
+import { Doctor } from "../Doctor";
+import { Patient } from "../Patient";
 
 export interface Dental {
 

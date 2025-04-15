@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Phone, Mail, Calendar, Activity } from 'lucide-react';
 import { format } from 'date-fns';
-import { Patient } from '@/admin/types/patient';
+import { Patient } from '@/admin/types/Patient';
 
 interface PatientGridProps {
   patients: Patient[];

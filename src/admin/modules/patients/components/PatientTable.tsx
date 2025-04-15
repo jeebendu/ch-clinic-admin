@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Table, 
@@ -13,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, MoreHorizontal } from 'lucide-react';
-import { Patient } from '@/admin/types/patient';
+import { Patient } from "@/admin/types/Patient";
 
 interface PatientTableProps {
   patients: Patient[];

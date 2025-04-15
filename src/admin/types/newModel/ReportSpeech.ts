@@ -1,4 +1,4 @@
-import { Patient } from "../patient";
+import { Patient } from "../Patient";
 
 
 export interface ReportSpeech {

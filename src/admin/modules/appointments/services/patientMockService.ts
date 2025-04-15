@@ -1,5 +1,5 @@
 
-import { Patient } from "../../../types/Patient";
+import { Patient } from "@/admin/types/Patient";
 import { faker } from "@faker-js/faker";
 
 // Generate a mock patient with random but realistic data

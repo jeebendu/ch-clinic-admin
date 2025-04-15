@@ -1,4 +1,5 @@
-import { Patient } from "@/admin/types/patient";
+
+import { Patient } from "@/admin/types/Patient";
 
 /**
  * Generate mock patients data for development

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Calendar, 
@@ -18,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
-import { Patient } from '@/admin/types/patient';
+import { Patient } from '@/admin/types/Patient';
 
 interface PatientSidebarProps {
   patient: Patient | null;

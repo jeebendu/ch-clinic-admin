@@ -1,5 +1,5 @@
 import { EnquiryServiceType } from "@/admin/types/doctor";
-import { Patient } from "@/admin/types/patient";
+import { Patient } from "@/admin/types/Patient";
 
 export interface PatientServiceType {
     id:number;
