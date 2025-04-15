@@ -38,7 +38,7 @@ const FormField: React.FC<FormFieldProps> = ({
               {...field} 
               type={type}
               disabled={disabled}
-              className="border-clinic-primary/20 focus-visible:ring-clinic-primary"
+              className="border-brand-primary/20 focus-visible:ring-brand-primary"
             />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}

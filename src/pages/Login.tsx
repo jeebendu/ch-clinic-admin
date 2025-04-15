@@ -37,14 +37,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-clinic-light to-white p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-brand-light to-white p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-clinic-dark">Clinic Management System</h1>
+          <h1 className="text-3xl font-bold text-brand-dark">Clinic Management System</h1>
           <p className="text-gray-600 mt-2">Access your clinic dashboard</p>
         </div>
 
-        <Card className="w-full shadow-lg border-clinic-accent">
+        <Card className="w-full shadow-lg border-brand-light">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Login</CardTitle>
             <CardDescription className="text-center">
@@ -90,7 +90,7 @@ const Login = () => {
             
               <Button 
                 type="submit" 
-                className="w-full bg-clinic-primary hover:bg-clinic-dark"
+                className="w-full bg-brand-primary hover:bg-brand-secondary"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Login"}
@@ -99,7 +99,7 @@ const Login = () => {
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
             <div className="text-sm text-gray-500 text-center w-full">
-              <span className="hover:text-clinic-primary cursor-pointer">Forgot password?</span>
+              <span className="hover:text-brand-primary cursor-pointer">Forgot password?</span>
             </div>
             <div className="text-xs text-gray-400 text-center w-full">
               Demo access: admin@clinic.com / password

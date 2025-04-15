@@ -43,7 +43,7 @@
 }
 
 .filter-input-icon {
-  color: var(--primary, #3b82f6);
+  color: var(--primary, #9b87f5);
   flex-shrink: 0;
 }
 
@@ -84,7 +84,7 @@
 
 .filter-select:hover {
   background-color: #f3f4f6;
-  color: var(--primary, #3b82f6);
+  color: var(--primary, #9b87f5);
 }
 
 .filter-select-label {
@@ -127,11 +127,70 @@
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
 }
 
-/* Inherit primary colors from the default theme but allow overrides */
+/* Global brand color styles */
 :root {
-  --admin-primary: var(--primary, #3b82f6);
-  --admin-primary-hover: var(--primary-hover, #2563eb);
+  --brand-primary: #9b87f5;
+  --brand-secondary: #7E69AB;
+  --brand-tertiary: #6E59A5;
+  --brand-dark: #1A1F2C;
+  --brand-light: #D6BCFA;
+  
+  --admin-primary: var(--brand-primary);
+  --admin-primary-hover: var(--brand-secondary);
   --admin-primary-text: var(--primary-text, #ffffff);
+}
+
+/* Card styles with brand colors */
+.card {
+  border-color: var(--brand-light);
+  box-shadow: 0 4px 6px -1px rgba(155, 135, 245, 0.1), 0 2px 4px -1px rgba(155, 135, 245, 0.06);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--brand-primary);
+  box-shadow: 0 10px 15px -3px rgba(155, 135, 245, 0.1), 0 4px 6px -2px rgba(155, 135, 245, 0.05);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  color: var(--brand-primary);
+  border-bottom: 1px solid var(--brand-light);
+}
+
+.badge {
+  background-color: var(--brand-light);
+  color: var(--brand-primary);
+}
+
+.action-button {
+  color: var(--brand-primary);
+}
+
+.action-button:hover {
+  background-color: var(--brand-light);
+}
+
+.delete-button {
+  color: var(--destructive, #ef4444);
+}
+
+.delete-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.table th {
+  background-color: var(--brand-light);
+  color: var(--brand-dark);
+}
+
+.form-field input:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(155, 135, 245, 0.2);
+}
+
+.form-field label {
+  color: var(--brand-dark);
 }
 
 /* Rounded sidebar */
@@ -235,11 +294,11 @@
 }
 
 .calendar-date.today {
-  background-color: rgba(59, 130, 246, 0.05);
+  background-color: rgba(155, 135, 245, 0.05);
 }
 
 .calendar-date.today .calendar-date-number {
-  color: #3b82f6;
+  color: var(--brand-primary);
   font-weight: 600;
 }
 

@@ -63,12 +63,19 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				brand: {
+					primary: '#9b87f5',
+					secondary: '#7E69AB',
+					tertiary: '#6E59A5',
+					dark: '#1A1F2C',
+					light: '#D6BCFA'
+				},
 				clinic: {
-					primary: '#1E88E5',
-					secondary: '#4CAF50',
-					accent: '#E3F2FD',
-					light: '#F5F9FF',
-					dark: '#1565C0'
+					primary: '#9b87f5',
+					secondary: '#7E69AB',
+					accent: '#D6BCFA',
+					light: '#F5F4FF',
+					dark: '#1A1F2C'
 				}
 			},
 			borderRadius: {

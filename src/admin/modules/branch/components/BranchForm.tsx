@@ -109,10 +109,10 @@ const BranchForm: React.FC<BranchFormProps> = ({ branch, onSuccess }) => {
         </div>
         
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" type="button" onClick={onSuccess} className="border-clinic-primary/20 text-clinic-primary hover:bg-clinic-primary/10">
+          <Button variant="outline" type="button" onClick={onSuccess} className="border-brand-primary/20 text-brand-primary hover:bg-brand-primary/10">
             Cancel
           </Button>
-          <Button type="submit" className="bg-clinic-primary hover:bg-clinic-dark">
+          <Button type="submit" className="bg-brand-primary hover:bg-brand-secondary">
             {isEditing ? "Update" : "Add"} Branch
           </Button>
         </div>
