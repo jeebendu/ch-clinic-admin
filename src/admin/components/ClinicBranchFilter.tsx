@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { 
   Building, 
@@ -51,7 +50,7 @@ const mockClinics: Clinic[] = [
 ];
 
 // Create country object to use in state and district objects
-const mockCountry: Country = { id: 1, name: "Country 1" };
+const mockCountry: Country = { id: 1, name: "Country 1", code: "C1", status: true };
 
 interface ClinicBranchFilterProps {
   className?: string;

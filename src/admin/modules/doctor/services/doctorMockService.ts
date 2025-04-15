@@ -25,7 +25,7 @@ export const DoctorMockService = {
         specialization: "General Medicine",
         specializationList: specializationList,
         qualification: "MD",
-        joiningDate: new Date(2020, i % 12, (i % 28) + 1),
+        joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
         user: {
           id: i,
           branch: {

@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { SlotCreationDialog } from "../components/SlotCreationDialog";
-import { Slot } from "../types/Appointment";
-
+import { Slot } from "../types/Slot";
 
 const Schedule = () => {
   const [isSlotDialogOpen, setIsSlotDialogOpen] = useState(false);

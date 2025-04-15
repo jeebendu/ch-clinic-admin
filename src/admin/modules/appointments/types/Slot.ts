@@ -2,7 +2,6 @@
 import { Branch } from "../../branch/types/Branch";
 import { Doctor } from "../../doctor/types/Doctor";
 
-
 export interface Slot {
     id: number;
     doctor?: Doctor;
