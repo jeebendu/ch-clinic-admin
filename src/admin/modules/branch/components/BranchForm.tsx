@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,8 +7,8 @@ import { Branch } from "../types/Branch";
 import BranchService from "../services/branchService";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
+import FormField from "@/admin/components/FormField";
 
 interface BranchFormProps {
   branch?: Branch;
@@ -22,7 +23,6 @@ const formSchema = z.object({
   city: z.string().min(1, "City is required"),
   pincode: z.string().min(1, "Pincode is required"),
   active: z.boolean().optional(),
-  // We'll keep the form simple for now, but you can add more fields as needed
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -80,79 +80,39 @@ const BranchForm: React.FC<BranchFormProps> = ({ branch, onSuccess }) => {
           <FormField
             control={form.control}
             name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Branch Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter branch name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Branch Name"
           />
           
           <FormField
             control={form.control}
             name="code"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Branch Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter branch code" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Branch Code"
           />
           
           <FormField
             control={form.control}
             name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Location</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter location" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Location"
           />
           
           <FormField
             control={form.control}
             name="city"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>City</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter city" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="City"
           />
           
           <FormField
             control={form.control}
             name="pincode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Pincode</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter pincode" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Pincode"
           />
         </div>
         
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" type="button" onClick={onSuccess}>
+          <Button variant="outline" type="button" onClick={onSuccess} className="border-clinic-primary/20 text-clinic-primary hover:bg-clinic-primary/10">
             Cancel
           </Button>
-          <Button type="submit">
+          <Button type="submit" className="bg-clinic-primary hover:bg-clinic-dark">
             {isEditing ? "Update" : "Add"} Branch
           </Button>
         </div>

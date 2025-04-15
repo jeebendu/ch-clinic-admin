@@ -13,7 +13,6 @@ import BranchForm from "../components/BranchForm";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 
 const BranchList = () => {
@@ -56,6 +55,7 @@ const BranchList = () => {
       toast({
         title: "Branch deleted",
         description: "Branch has been successfully deleted.",
+        className: "bg-clinic-primary text-white"
       });
       refetch();
     } catch (error) {
@@ -72,8 +72,8 @@ const BranchList = () => {
       return (
         <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
           <DrawerContent className="h-[85%]">
-            <DrawerHeader>
-              <DrawerTitle>Add New Branch</DrawerTitle>
+            <DrawerHeader className="border-b border-clinic-accent">
+              <DrawerTitle className="text-clinic-primary">Add New Branch</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
               <BranchForm onSuccess={handleCloseForm} />
@@ -86,8 +86,8 @@ const BranchList = () => {
     return (
       <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Add New Branch</DialogTitle>
+          <DialogHeader className="border-b border-clinic-accent pb-4">
+            <DialogTitle className="text-clinic-primary">Add New Branch</DialogTitle>
             <DialogDescription>Add a new branch to your clinic network.</DialogDescription>
           </DialogHeader>
           <BranchForm onSuccess={handleCloseForm} />
