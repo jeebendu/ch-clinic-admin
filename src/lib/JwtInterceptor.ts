@@ -4,6 +4,7 @@ import { getEnvVariable } from '../utils/envUtils';
 
 const BASE_URL = getEnvVariable('BASE_URL');
 const X_APP_TOKEN = getEnvVariable('X_APP_TOKEN');
+const DEFAULT_TENANT = getEnvVariable('DEFAULT_TENANT');
 
 const http = axios.create({
   baseURL: BASE_URL,
@@ -20,6 +21,7 @@ http.interceptors.request.use(
     config.headers['Accept'] = 'application/json';
     config.headers['ngrok-skip-browser-warning'] = '1';
     config.headers['X-App-Token'] = X_APP_TOKEN;
+    config.headers['tenant'] = DEFAULT_TENANT || 'demo';
 
     // Add token if available
     const token = localStorage.getItem('auth_token');

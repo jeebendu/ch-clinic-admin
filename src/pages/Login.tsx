@@ -10,6 +10,8 @@ import { useTenant } from "@/hooks/use-tenant";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
 import http from "@/lib/JwtInterceptor";
 import { User } from "@/admin/modules/user/types/User";
+import { EncryptionService } from "@/utils/encryptionService";
+import { getEnvVariable } from "@/utils/envUtils";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -26,10 +28,22 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await http.post('/api/v1/auth/signin', {
-        username,
-        password
-      });
+      // Encrypt the password
+      const encryptedPassword = EncryptionService.encrypt(password);
+      
+      // Set tenant header
+      const defaultTenant = getEnvVariable('DEFAULT_TENANT');
+      const headers = {
+        tenant: defaultTenant || 'demo'
+      };
+
+      const response = await http.post('/api/v1/auth/signin', 
+        {
+          username,
+          password: encryptedPassword
+        },
+        { headers }
+      );
       
       const userData = response.data as User;
       
