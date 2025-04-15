@@ -14,7 +14,6 @@ export const getTenantId = (): string => {
     // Check if running locally or on specific domains
     if (hostname === 'localhost' || 
         hostname === '127.0.0.1' || 
-        hostname.endsWith('lovable.app') || 
         hostname.endsWith('clinichub.care')) {
       return defaultTenant;
     }

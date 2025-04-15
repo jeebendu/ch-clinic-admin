@@ -11,7 +11,6 @@ export interface Branch {
   district: District | null;
   city: string;
   country:Country | null;
-  mapUrl?: string;
   mapurl?: string;
   pincode: number;
   image?: string;
