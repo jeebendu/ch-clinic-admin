@@ -1,6 +1,4 @@
-import { Branch } from "@/admin/types/branch";
-
-
+import { Branch } from "@/admin/types/Branch";
 
 export interface User {
   id: number;
@@ -15,7 +13,6 @@ export interface User {
   role: Role;
   image:string;
 }
-
 
 export interface Role {
   id: number;

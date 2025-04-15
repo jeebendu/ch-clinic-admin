@@ -62,4 +62,4 @@ import { getAppointmentById, updateAppointmentStatus } from "../services/appoint
 import { getMockPatientById } from "../services/patientMockService";
 import { Medicines, Prescription } from "@/admin/types/newModel/Prescription";
 
-// ... keep existing code (rest of the file unchanged)
+export default ProcessAppointment;

@@ -1,7 +1,7 @@
-import { Doctor } from "../doctor";
+
+import { Doctor } from "../Doctor";
 
 export interface ScheduleCount {
-    
     doctor: Doctor;
     referralCounts:RefCount;
 }
@@ -11,9 +11,7 @@ export interface RefCount {
     createdTime: Date;
 }
 
-
 export interface filterSchedule {
-    
     year:number;
     month:number;  
 }

@@ -1,6 +1,6 @@
 
 import { DoctorSpecialization } from "./DoctorSpecialization";
-import { Doctor } from "@/admin/types/doctor";
+import { Doctor } from "@/admin/types/Doctor";
 import { Specialization } from "@/admin/types/specialization";
 
 /**

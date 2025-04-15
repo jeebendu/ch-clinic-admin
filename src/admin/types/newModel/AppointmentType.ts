@@ -1,9 +1,7 @@
-
-import { Country } from "../country";
-import { District } from "../district";
-import { Doctor } from "../doctor";
-import { State } from "./state";
-
+import { Country } from "../Address";
+import { District } from "../Address";
+import { Doctor } from "../Doctor";
+import { State } from "../Address";
 
 export interface AppoinmentRequest {
 
@@ -25,7 +23,6 @@ export interface AppoinmentRequest {
     appointmentType:appointmentType;
     visitType:visitType;
     // status
-
     
 }
 

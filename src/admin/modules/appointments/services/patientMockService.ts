@@ -82,7 +82,7 @@ export const generateMockPatient = (id: number): Patient => {
       name: `${firstName} ${lastName}`,
       username: faker.internet.userName(),
       email: faker.internet.email({ firstName, lastName }),
-      phone: phoneNumber,  // Using string phone number here
+      phone: phoneNumber,
       password: faker.internet.password(),
       branch: null,
       role: null,  

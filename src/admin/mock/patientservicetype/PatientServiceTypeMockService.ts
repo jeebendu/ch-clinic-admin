@@ -1,5 +1,6 @@
+
 import { PatientServiceType } from "./PatientServiceType";
-import { EnquiryServiceType } from "@/admin/types/doctor";
+import { EnquiryServiceType } from "@/admin/types/Doctor";
 import { Patient } from "@/admin/types/Patient";
 
 /**

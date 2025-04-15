@@ -1,11 +1,10 @@
-
 import { AppointmentRequest } from "@/admin/mock/appointment-request/appointmentRequest";
-import { Country } from "@/admin/types/country";
-import { State } from "@/admin/types/state";
-import { District } from "@/admin/types/district";
-import { Branch } from "@/admin/types/branch";
+import { Country } from "@/admin/types/Address";
+import { State } from "@/admin/types/Address";
+import { District } from "@/admin/types/Address";
+import { Branch } from "@/admin/types/Branch";
 import { Role } from "@/admin/types/User";
-import { User } from "@/admin/types/doctor";
+import { User } from "@/admin/types/Doctor";
 
 /**
  * Generate mock appointment requests data for development

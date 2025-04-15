@@ -1,6 +1,5 @@
-
 import { DoctorPercentage } from "./DoctorPercentage";
-import { Doctor, EnquiryServiceType } from "@/admin/types/doctor";
+import { Doctor, EnquiryServiceType } from "@/admin/types/Doctor";
 
 /**
  * Mock service for DoctorPercentage

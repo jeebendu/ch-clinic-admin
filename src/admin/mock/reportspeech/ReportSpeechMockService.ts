@@ -1,6 +1,6 @@
-
 import { ReportSpeech } from "./ReportSpeech";
-import { Patient } from "@/admin/types/patient";
+import { format } from "date-fns";
+import { Patient } from "@/admin/types/Patient";
 
 /**
  * Mock service for ReportSpeech
