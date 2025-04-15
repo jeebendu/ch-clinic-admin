@@ -1,13 +1,13 @@
 
 import { AppointmentQueryParams } from "@/admin/modules/appointments/services/appointmentService";
-import { AllAppointment } from "@/admin/types/allappointment";
+import { AllAppointment } from "@/admin/modules/appointments/types/AllAppointment";
 import { addDays, subDays } from "date-fns";
 
 /**
  * Generate mock appointments data for development
  */
 export const getMockAppointments = (params: AppointmentQueryParams) => {
-  const { page, size, statuses, fromDate, toDate, searchTerm } = params;
+  const { page = 0, size = 10, statuses, fromDate, toDate, searchTerm } = params;
   
   // Generate mock data
   const mockAppointments: AllAppointment[] = [];
@@ -18,8 +18,6 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
     const appointmentDate = addDays(subDays(today, 15), i);
     const statusOptions = ["UPCOMING", "COMPLETED", "CANCELLED", "IN_PROGRESS"];
     const status = statusOptions[Math.floor(Math.random() * statusOptions.length)];
-    const patientNames = ["John Doe", "Jane Smith", "Alice Johnson", "Bob Brown", "Charlie Davis"];
-    const patientName = patientNames[Math.floor(Math.random() * patientNames.length)];
     
     const mockAppointment: AllAppointment = {
       id: i + 1,
@@ -33,16 +31,16 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
         age: 30 + (i % 30),
         address: `Address ${i}`,
         whatsappNo: `+919876${543210 + i}`,
-        firstname: patientName.split(' ')[0],
-        lastname: patientName.split(' ')[1],
+        firstname: `Patient${i}`,
+        lastname: `LastName${i}`,
         user: {
           id: 100 + i,
-          name: patientName,
-          email: `${patientName.split(' ')[0].toLowerCase()}@example.com`,
+          name: `Patient${i} LastName${i}`,
+          email: `patient${i}@example.com`,
           phone: `+919876${543210 + i}`,
-          branch:null,
-          username:null,
-          password:null,
+          branch: null,
+          username: null,
+          password: null,
           role: null,
           image: null
         },
@@ -163,89 +161,4 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
       last: startIndex + size >= filteredAppointments.length
     }
   });
-};
-
-/**
- * Mock function to get a single appointment by ID
- */
-export const getMockAppointmentById = async (id: string | number): Promise<AllAppointment> => {
-  const mockAppointment: AllAppointment = {
-    id: typeof id === 'string' ? parseInt(id) : id,
-    isAccept: true,
-    status: "UPCOMING",
-    patient: {
-      id: 101,
-      uid: "PT1001",
-      gender: "Male",
-      dob: new Date("1985-05-15"),
-      age: 38,
-      address: "123 Main Street",
-      whatsappNo: "+919876543210",
-      firstname: "John",
-      lastname: "Doe",
-      user: {
-        id: 101,
-        name: "John Doe",
-        email: "john@example.com",
-        phone: "+919876543210",
-        branch: null,
-        username: null,
-        password: null,
-        role: null,
-        image: null,
-      },
-      refDoctor: null
-    },
-    doctor: {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      email: "sarah@clinic.com",
-      uid: "DR1001",
-      mobile: 1234567890,
-      desgination: "Cardiologist",
-      specialization: "Cardiology",
-      specializationList: [],
-      qualification: "MD",
-      joiningDate: new Date("2018-01-01"),
-      user: null,
-      status: "ACTIVE",
-      external: false,
-      external_temp: null
-    },
-    slot: {
-      id: 201,
-      startTime: "10:00 AM",
-      endTime: "10:30 AM",
-      status: "BOOKED",
-      availableSlots: 0,
-      date: new Date(),
-      duration: 30,
-      slotType: "REGULAR"
-    },
-    familyMember: null,
-    doctorClinic: {
-      id: 1,
-      doctor: null,
-      clinic: {
-        id: 1,
-        uid: "CL1001",
-        name: "Main Clinic",
-        email: "main@clinic.com",
-        contact: "+1 123 456 7890",
-        address: "123 Main St",
-        plan: {
-          features: {
-            id: 1,
-            module: {
-              id: 1,
-              name: "Appointments"
-            },
-            print: true
-          }
-        }
-      }
-    }
-  };
-  
-  return mockAppointment;
 };

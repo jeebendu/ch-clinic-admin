@@ -1,4 +1,4 @@
-
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -22,8 +22,14 @@ import { Patient } from "@/admin/modules/patients/types/Patient";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/lib/authContext";
 import { Button } from "@/components/ui/button";
+
+export const useAuth = () => {
+  return {
+    user: { name: 'Admin User', image: '' },
+    logout: () => console.log('Logout clicked')
+  };
+};
 
 export interface SidebarProps {
   isCollapsed?: boolean;
@@ -236,18 +242,14 @@ const Sidebar = ({ onClose, collapsed = false }: SidebarProps) => {
       </ScrollArea>
       <Separator />
       <div className="p-3">
-        <Link to="/">
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => {
-              logout();
-            }}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            {!isCollapsed && <span>Logout</span>}
-          </Button>
-        </Link>
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          onClick={logout}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          {!isCollapsed && <span>Logout</span>}
+        </Button>
       </div>
     </motion.div>
   );

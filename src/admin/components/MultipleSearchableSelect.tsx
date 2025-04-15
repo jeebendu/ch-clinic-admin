@@ -1,11 +1,22 @@
 
-import React, { useState, useEffect } from "react";
-import { Command, CommandEmpty, CommandInput, CommandItem, CommandList, CommandGroup } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import * as React from "react";
+import { Check, X } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 interface Option {
   label: string;
@@ -14,85 +25,57 @@ interface Option {
 
 interface MultipleSearchableSelectProps {
   options: Option[];
-  onChange: (values: string[]) => void;
-  values?: string[];
   placeholder?: string;
-  className?: string;
+  onChange: (values: string[]) => void;
+  defaultValues?: string[];
+  disabled?: boolean;
 }
 
 export const MultipleSearchableSelect = ({
   options,
-  onChange,
-  values = [],
   placeholder = "Select options",
-  className,
+  onChange,
+  defaultValues = [],
+  disabled = false,
 }: MultipleSearchableSelectProps) => {
-  const [open, setOpen] = useState(false);
-  const [selectedValues, setSelectedValues] = useState<string[]>(values);
-  
-  useEffect(() => {
-    setSelectedValues(values);
-  }, [values]);
+  const [open, setOpen] = React.useState(false);
+  const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValues);
 
-  const handleSelect = (currentValue: string) => {
-    let updatedValues: string[];
-    
-    if (selectedValues.includes(currentValue)) {
-      updatedValues = selectedValues.filter(v => v !== currentValue);
-    } else {
-      updatedValues = [...selectedValues, currentValue];
-    }
+  const handleSelect = (value: string) => {
+    const updatedValues = selectedValues.includes(value)
+      ? selectedValues.filter((v) => v !== value)
+      : [...selectedValues, value];
     
     setSelectedValues(updatedValues);
     onChange(updatedValues);
   };
 
-  const removeValue = (valueToRemove: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const updatedValues = selectedValues.filter(v => v !== valueToRemove);
+  const removeValue = (value: string) => {
+    const updatedValues = selectedValues.filter((v) => v !== value);
     setSelectedValues(updatedValues);
     onChange(updatedValues);
-  };
-
-  const getSelectedLabels = () => {
-    return selectedValues.map(value => {
-      const option = options.find(opt => opt.value === value);
-      return option ? option.label : value;
-    });
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn("w-full min-h-10 h-auto justify-between flex-wrap", className)}
-        >
-          <div className="flex flex-wrap gap-1 mr-2">
-            {selectedValues.length === 0 ? (
-              <span className="text-muted-foreground">{placeholder}</span>
-            ) : (
-              getSelectedLabels().map((label, index) => (
-                <Badge variant="secondary" key={selectedValues[index]} className="mr-1 mb-1">
-                  {label}
-                  <X
-                    className="ml-1 h-3 w-3 cursor-pointer"
-                    onClick={(e) => removeValue(selectedValues[index], e)}
-                  />
-                </Badge>
-              ))
-            )}
-          </div>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-auto" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
-          <CommandInput placeholder={`Search ${placeholder.toLowerCase()}...`} />
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandList>
+    <div className="w-full">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
+            disabled={disabled}
+            onClick={() => setOpen(!open)}
+          >
+            {selectedValues.length > 0 ? `${selectedValues.length} selected` : placeholder}
+            <div className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" align="start">
+          <Command>
+            <CommandInput placeholder={`Search ${placeholder.toLowerCase()}...`} />
+            <CommandEmpty>No option found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
@@ -100,28 +83,47 @@ export const MultipleSearchableSelect = ({
                   value={option.value}
                   onSelect={() => handleSelect(option.value)}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <div
                       className={cn(
-                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                        "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                         selectedValues.includes(option.value)
                           ? "bg-primary text-primary-foreground"
-                          : "opacity-50"
+                          : "opacity-50 [&_svg]:invisible"
                       )}
                     >
-                      {selectedValues.includes(option.value) && (
-                        <Check className="h-3 w-3" />
-                      )}
+                      <Check className="h-3 w-3" />
                     </div>
-                    {option.label}
+                    <span>{option.label}</span>
                   </div>
                 </CommandItem>
               ))}
             </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {selectedValues.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {selectedValues.map((value) => {
+            const option = options.find((o) => o.value === value);
+            return option ? (
+              <Badge key={value} variant="secondary" className="mr-1 mb-1">
+                {option.label}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-1 h-4 w-4 p-0"
+                  onClick={() => removeValue(value)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            ) : null;
+          })}
+        </div>
+      )}
+    </div>
   );
 };
 

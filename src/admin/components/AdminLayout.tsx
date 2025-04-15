@@ -14,6 +14,7 @@ type AdminLayoutProps = {
   showAddButton?: boolean;
   onAddButtonClick?: () => void;
 };
+
 // Use both named export and default export for backward compatibility
 export const AdminLayout = ({ 
   children, 
