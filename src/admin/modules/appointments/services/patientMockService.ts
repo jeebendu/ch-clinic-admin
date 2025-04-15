@@ -49,7 +49,7 @@ export const generateMockPatient = (id: number): Patient => {
         name: `Dr. ${faker.person.fullName()}`,
         username: faker.internet.userName(),
         email: faker.internet.email(),
-        phone: faker.phone.number(), // Now using string here as expected
+        phone: faker.phone.number(), // Using string for phone
         password: faker.internet.password(),
         branch: null,
         role: null,
@@ -84,7 +84,7 @@ export const generateMockPatient = (id: number): Patient => {
       name: `${firstName} ${lastName}`,
       username: faker.internet.userName(),
       email: faker.internet.email({ firstName, lastName }),
-      phone: faker.phone.number(), // Using string here as expected
+      phone: faker.phone.number(), // Using string for phone
       password: faker.internet.password(),
       branch: null,
       role: null,  

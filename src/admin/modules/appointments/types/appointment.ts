@@ -1,7 +1,6 @@
-
 import { Doctor } from "./Doctor";
-import { Patient } from "@/admin/types/patient";
-import { Branch } from "@/admin/types/branch";
+import { Patient } from "@/admin/types/Patient";
+import { Branch } from "@/admin/types/Branch";
 
 export type AppointmentType = "direct-visit" | "video-call" | "audio-call";
 export type AppointmentStatus = "upcoming" | "completed" | "cancelled" | "new";

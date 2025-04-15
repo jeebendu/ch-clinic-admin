@@ -1,6 +1,6 @@
 
-import { Doctor } from "./doctor";
-import { Patient } from "./patient";
+import { Doctor } from "./Doctor";
+import { Patient } from "./Patient";
 import { Clinic} from "./clinic";
 import { State } from "./state";
 import { District } from "./district";
