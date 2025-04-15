@@ -1,29 +1,13 @@
-import { Doctor } from "./Doctor";
-import { Patient } from "@/admin/types/Patient";
-import { Branch } from "@/admin/types/Branch";
+
+import { Slot } from "@/models/appointment/Slot";
+import { Doctor } from "@/models/doctor/Doctor";
+import { DoctorClinic } from "@/models/doctorClinic/DoctorClinic";
+import { FamilyMember, Patient } from "@/models/patient/Patient";
+import { Branch } from "@/models/shared/Branch";
 
 export type AppointmentType = "direct-visit" | "video-call" | "audio-call";
 export type AppointmentStatus = "upcoming" | "completed" | "cancelled" | "new";
 export type VisitType = "new" | "follow-up" | "emergency" | "routine";
-
-export interface Slot {
-  id: number;
-  startTime: string;
-  endTime: string;
-  status: string;
-  branch?: Branch;
-  doctor?: Doctor;
-  date: Date;
-  availableSlots: number;
-  duration: number;
-  slotType: string;
-}
-
-export interface DoctorClinic {
-  id: number;
-  doctor: Doctor;
-  clinic: any;
-}
 
 export interface Appointment {
   id: number;
@@ -33,7 +17,7 @@ export interface Appointment {
   patient: Patient;
   doctor: Doctor;
   slot: Slot;
-  familyMember: any;
+  familyMember: FamilyMember;
   doctorClinic: DoctorClinic;
   appointmentType?: AppointmentType;
   vitalSigns?: {

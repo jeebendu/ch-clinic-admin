@@ -1,5 +1,5 @@
 import { DoctorPercentage } from "./DoctorPercentage";
-import { Doctor, EnquiryServiceType } from "@/admin/types/Doctor";
+import { Doctor, EnquiryServiceType } from "@/admin/types/doctor";
 
 /**
  * Mock service for DoctorPercentage
@@ -12,8 +12,6 @@ export const DoctorPercentageMockService = {
       const mockDoctor: Doctor = {
         id: i,
         name: `Doctor ${i}`,
-        firstname: `First${i}`,
-        lastname: `Last${i}`,
         email: `doctor${i}@example.com`,
         uid: `DOC${i}`,
         mobile: 1234567890 + i,

@@ -1,8 +1,7 @@
-
-import { Country } from "@/admin/types/Address";
-import { District } from "@/admin/types/Address";
-import { Doctor } from "@/admin/types/Doctor";
-import { State } from "@/admin/types/Address";
+import { Country } from "@/admin/types/country";
+import { District } from "@/admin/types/district";
+import { Doctor } from "@/admin/types/doctor";
+import { State } from "@/admin/types/state";
 
 export interface AppointmentRequest {
     id: number;

@@ -1,5 +1,5 @@
+import { Doctor, EnquiryServiceType } from "@/admin/types/doctor";
 
-import { Doctor, EnquiryServiceType } from "@/admin/types/Doctor";
 
 export interface DoctorPercentage {
     id: number;

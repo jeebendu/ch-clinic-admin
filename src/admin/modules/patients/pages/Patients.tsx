@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -7,7 +8,7 @@ import PatientSidebar from "../components/PatientSidebar";
 import PageHeader from "@/admin/components/PageHeader";
 import PatientTable from "../components/PatientTable";
 import PatientGrid from "../components/PatientGrid";
-import { Patient } from "@/admin/types/Patient";
+import { Patient } from "@/admin/types/patient";
 
 const PatientsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");

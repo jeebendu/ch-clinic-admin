@@ -28,8 +28,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Doctor } from "../types/Doctor";
-import { Branch } from "../types/Branch";
+import { Doctor } from "../types/doctor";
+import { Branch } from "../types/branch";
 import { Slot } from "../types/allappointment";
 import { TimePicker } from "./TimePicker";
 

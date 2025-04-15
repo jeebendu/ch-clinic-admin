@@ -1,4 +1,4 @@
-import { Patient } from "../Patient";
+import { Patient } from "../patient";
 import { Courier } from "./Courier";
 import { PaymentType } from "./PaymentType";
 import { Product } from "./Product";

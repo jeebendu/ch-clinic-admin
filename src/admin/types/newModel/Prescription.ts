@@ -1,7 +1,6 @@
-import { Doctor } from "../Doctor";
-import { Patient } from "../Patient";
+import { Doctor } from "../doctor";
+import { Patient } from "../patient";
 import { appointmentType, visitType } from "./AppointmentType";
-
 export interface Prescription {
 
     id: number;

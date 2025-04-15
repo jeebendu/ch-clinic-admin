@@ -1,4 +1,5 @@
-import { Patient } from "@/admin/types/Patient";
+import { Patient } from "@/admin/types/patient";
+
 
 export interface ReportSpeech {
     id: number;

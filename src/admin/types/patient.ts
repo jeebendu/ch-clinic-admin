@@ -1,10 +1,10 @@
 
-import { Branch } from "./Branch";
-import { Country } from "./Address";
-import { District } from "./Address";
-import { Doctor } from "./Doctor";
-import { User } from "./User";
-import { State } from "./Address";
+import { Branch } from "./branch";
+import { Country } from "./country";
+import { District } from "./district";
+import { Doctor, User } from "./doctor";
+import { State } from "./state";
+
 
 export interface Patient {
   id: number;

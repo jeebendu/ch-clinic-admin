@@ -29,14 +29,13 @@ const App = () => (
           {/* Login route */}
           <Route path="/login" element={<Login />} />
           
-          {/* Admin routes */}
-          <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/appointments" element={<AppointmentsAdmin />} />
-          <Route path="/admin/appointments/process/:appointmentId" element={<ProcessAppointment />} />
-          <Route path="/admin/patients" element={<PatientsAdmin />} />
-          <Route path="/admin/schedule" element={<Schedule />} />
-          <Route path="/admin/doctor-availability" element={<DoctorAvailability />} />
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/appointments" element={<AppointmentsAdmin />} />
+              <Route path="/admin/appointments/process/:appointmentId" element={<ProcessAppointment />} />
+              <Route path="/admin/patients" element={<PatientsAdmin />} />
+              <Route path="/admin/schedule" element={<Schedule />} />
+              <Route path="/admin/doctor-availability" element={<DoctorAvailability />} />
+              <Route path="/admin/:section" element={<Dashboard />} />
           
           {/* 404 route */}
           <Route path="*" element={<NotFound />} />

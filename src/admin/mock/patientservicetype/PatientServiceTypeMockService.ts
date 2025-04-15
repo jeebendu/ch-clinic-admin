@@ -1,7 +1,6 @@
-
 import { PatientServiceType } from "./PatientServiceType";
-import { EnquiryServiceType } from "@/admin/types/Doctor";
-import { Patient } from "@/admin/types/Patient";
+import { EnquiryServiceType } from "@/admin/types/doctor";
+import { Patient } from "@/admin/types/patient";
 
 /**
  * Mock service for PatientServiceType
@@ -26,28 +25,9 @@ export const PatientServiceTypeMockService = {
         address: `Address ${i}`,
         firstname: `FirstName${i}`,
         lastname: `LastName${i}`,
-        city: `City ${i}`, // Added city property
-        branch: { // Added branch property
-          id: 1,
-          name: "Branch 1",
-          code: "BR1",
-          location: "Location 1",
-          active: true,
-          state: null,
-          district: null,
-          country: null,
-          city: "City 1",
-          mapUrl: "",
-          pincode: 12345,
-          image: "",
-          latitude: 0,
-          longitude: 0
-        },
         refDoctor: {
           id: i,
           name: `Doctor ${i}`,
-          firstname: `DrFirst${i}`, // Added firstname
-          lastname: `DrLast${i}`, // Added lastname
           email: `doctor${i}@example.com`,
           uid: `DOC${i}`,
           mobile: 1234567890 + i,

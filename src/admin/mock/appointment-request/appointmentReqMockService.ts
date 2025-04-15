@@ -1,10 +1,10 @@
 import { AppointmentRequest } from "@/admin/mock/appointment-request/appointmentRequest";
-import { Country } from "@/admin/types/Address";
-import { State } from "@/admin/types/Address";
-import { District } from "@/admin/types/Address";
-import { Branch } from "@/admin/types/Branch";
+import { Country } from "@/admin/types/country";
+import { State } from "@/admin/types/state";
+import { District } from "@/admin/types/district";
+import { Branch } from "@/admin/types/branch";
 import { Role } from "@/admin/types/User";
-import { User } from "@/admin/types/Doctor";
+import { User } from "@/admin/types/doctor";
 
 /**
  * Generate mock appointment requests data for development
@@ -80,13 +80,10 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             image: `image${i % 10 + 1}.png`,
         };
 
-        const firstName = `FirstName ${i + 1}`;
-        const lastName = `LastName ${i + 1}`;
-
         const mockAppointment: AppointmentRequest = {
             id: i + 1,
-            firstName: firstName,
-            lastName: lastName,
+            firstName: `FirstName ${i + 1}`,
+            lastName: `LastName ${i + 1}`,
             email: `user${i + 1}@example.com`,
             phone: 1234567890 + i,
             dob: new Date(1990, i % 12, (i % 28) + 1),
@@ -101,8 +98,6 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             doctor: {
                 id: i % 10 + 1,
                 name: `Doctor ${i % 10 + 1}`,
-                firstname: `First${i % 10 + 1}`,
-                lastname: `Last${i % 10 + 1}`,
                 email: `doctor${i % 10 + 1}@example.com`,
                 uid: `UID-${i % 10 + 1}`,
                 mobile: 9876543210 + i,

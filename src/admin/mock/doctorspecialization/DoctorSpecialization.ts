@@ -1,5 +1,4 @@
-
-import { Doctor } from "@/admin/types/Doctor";
+import { Doctor } from "@/admin/types/doctor";
 import { Specialization } from "@/admin/types/specialization";
 
 export interface DoctorSpecialization {

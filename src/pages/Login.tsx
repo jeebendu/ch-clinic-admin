@@ -28,7 +28,7 @@ const Login = () => {
           title: "Login successful",
           description: "Welcome to Clinic Management System",
         });
-        navigate("/admin");
+        navigate("/admin/dashboard");
       } else {
         setError("Invalid email or password");
       }

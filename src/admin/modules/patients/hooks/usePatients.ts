@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { PatientQueryParams, fetchPatients } from '../services/patientService';
 import { useToast } from '@/hooks/use-toast';
-import { Patient } from '@/admin/types/Patient';
+import { Patient } from '@/admin/types/patient';
 
 export const usePatients = (initialParams: PatientQueryParams) => {
   const [patients, setPatients] = useState<Patient[]>([]);
