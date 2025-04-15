@@ -75,7 +75,6 @@ const generatePatient = (): Patient => {
     uid: `DR-${faker.string.alphanumeric(6).toUpperCase()}`,
     firstname: 'John',
     lastname: 'Smith',
-    // Removed 'name' property as it does not exist in the 'Doctor' type
     email: 'drsmith@example.com',
     phone: faker.phone.number({ style: 'national' }),
     desgination: 'Senior Physician',
@@ -101,7 +100,8 @@ const generatePatient = (): Patient => {
     country: undefined,
     consultationFee: undefined,
     reviewCount: 0,
-    rating: 0
+    rating: 0,
+    status: 'Active'
   };
 
   const mockBranch: Branch = {

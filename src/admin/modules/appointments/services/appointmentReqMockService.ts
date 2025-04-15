@@ -66,7 +66,8 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             country: undefined,
             consultationFee: undefined,
             reviewCount: 0,
-            rating: 0
+            rating: 0,
+            status: i % 2 === 0 ? "Active" : "Inactive" // Added missing status property
         };
 
         const mockAppointment: AppointmentRequest = {
