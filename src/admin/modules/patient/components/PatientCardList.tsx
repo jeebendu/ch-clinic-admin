@@ -12,9 +12,39 @@ interface PatientCardListProps {
   onDelete: (id: number) => void;
   onEdit?: (patient: Patient) => void;
   onView?: (patient: Patient) => void;
+  loading?: boolean;
+  onPatientClick?: (patient: Patient) => void;
 }
 
-const PatientCardList = ({ patients, onDelete, onEdit, onView }: PatientCardListProps) => {
+const PatientCardList = ({ patients, onDelete, onEdit, onView, loading, onPatientClick }: PatientCardListProps) => {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array(6).fill(0).map((_, index) => (
+          <Card key={`skeleton-${index}`} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full w-10 h-10 animate-pulse bg-gray-200"></div>
+                <div className="space-y-2">
+                  <div className="h-4 w-24 animate-pulse bg-gray-200 rounded"></div>
+                  <div className="h-3 w-16 animate-pulse bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pb-2 space-y-2">
+              <div className="h-3 w-full animate-pulse bg-gray-200 rounded"></div>
+              <div className="h-3 w-3/4 animate-pulse bg-gray-200 rounded"></div>
+              <div className="h-3 w-1/2 animate-pulse bg-gray-200 rounded"></div>
+            </CardContent>
+            <CardFooter className="flex justify-end space-x-2 pt-2 border-t">
+              <div className="h-4 w-20 animate-pulse bg-gray-200 rounded"></div>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {patients.length === 0 ? (
@@ -32,7 +62,11 @@ const PatientCardList = ({ patients, onDelete, onEdit, onView }: PatientCardList
             .substring(0, 2);
           
           return (
-            <Card key={patient.id} className="overflow-hidden">
+            <Card 
+              key={patient.id} 
+              className={`overflow-hidden ${onPatientClick ? "cursor-pointer" : ""}`}
+              onClick={onPatientClick ? () => onPatientClick(patient) : undefined}
+            >
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 border border-primary/20">
@@ -70,7 +104,10 @@ const PatientCardList = ({ patients, onDelete, onEdit, onView }: PatientCardList
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => onView(patient)} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onView(patient);
+                    }} 
                     className="text-teal-500 hover:text-teal-700 hover:bg-teal-50"
                   >
                     <Eye className="h-4 w-4 mr-1" />
@@ -81,7 +118,10 @@ const PatientCardList = ({ patients, onDelete, onEdit, onView }: PatientCardList
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => onEdit(patient)} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(patient);
+                    }} 
                     className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
                   >
                     <Edit className="h-4 w-4 mr-1" />
@@ -91,7 +131,10 @@ const PatientCardList = ({ patients, onDelete, onEdit, onView }: PatientCardList
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => onDelete(patient.id || 0)} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(patient.id || 0);
+                  }} 
                   className="text-red-500 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash className="h-4 w-4 mr-1" />

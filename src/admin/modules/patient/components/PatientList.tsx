@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PatientService from "../services/patientService";
 import { Patient } from "../types/Patient";
@@ -123,11 +123,13 @@ const PatientList = () => {
               <PatientTable 
                 patients={patients} 
                 onDelete={handleDeletePatient}
+                loading={isLoading}
               />
             ) : (
               <PatientCardList 
                 patients={patients} 
                 onDelete={handleDeletePatient}
+                loading={isLoading}
               />
             )}
           </div>

@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { PatientQueryParams, fetchPatients } from '../services/patientService';
+import PatientService from '../services/patientService';
+import { PatientQueryParams } from '../services/patientService';
 import { useToast } from '@/hooks/use-toast';
 import { Patient } from '../types/Patient';
 
@@ -18,8 +19,8 @@ export const usePatients = (initialParams: PatientQueryParams) => {
     setError(null);
     
     try {
-      const response = await fetchPatients(params);
-      const newPatients = response.data.content;
+      const response = await PatientService.list(params.page, params.size, params.searchTerm || '');
+      const newPatients = response.content || (Array.isArray(response) ? response : []);
       
       if (append) {
         setPatients(prev => [...prev, ...newPatients]);
@@ -28,10 +29,10 @@ export const usePatients = (initialParams: PatientQueryParams) => {
       }
       
       // Set total number of elements
-      setTotalElements(response.data.totalElements);
+      setTotalElements(response.totalElements || newPatients.length);
       
       // Check if there are more patients to load
-      setHasMore(response.data.totalElements > (params.page + 1) * params.size);
+      setHasMore(response.totalElements > (params.page + 1) * params.size);
       
     } catch (err: any) {
       setError(err.message || 'Failed to fetch patients');

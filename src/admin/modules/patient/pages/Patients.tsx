@@ -9,6 +9,7 @@ import PageHeader from "@/admin/components/PageHeader";
 import PatientTable from "../components/PatientTable";
 import PatientGrid from "../components/PatientGrid";
 import { Patient } from "../types/Patient";
+
 const PatientsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
@@ -173,6 +174,8 @@ const PatientsAdmin = () => {
         showFilter={showFilters}
         loadedElements={loadedElements}
         totalElements={totalElements}
+        onSearchChange={handleSearchChange}
+        searchValue={searchTerm}
       />
 
       {showFilters && (
@@ -195,8 +198,9 @@ const PatientsAdmin = () => {
         {viewMode === 'list' ? (
           <PatientTable 
             patients={patients}
-            loading={loading}
+            onDelete={(id) => console.log('Delete patient:', id)}
             onPatientClick={handlePatientClick}
+            loading={loading}
           />
         ) : (
           <PatientGrid 

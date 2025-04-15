@@ -5,6 +5,40 @@ import { getEnvVariable } from "@/utils/envUtils";
 
 const apiUrl = getEnvVariable('API_URL');
 
+export interface PatientQueryParams {
+  page: number;
+  size: number;
+  searchTerm?: string;
+  gender?: string[];
+  ageGroup?: string[];
+  lastVisit?: string[];
+  insuranceProvider?: string[];
+}
+
+export const fetchPatients = async (params: PatientQueryParams) => {
+  try {
+    const tenantId = getTenantId();
+    const response = await http.get(`${apiUrl}/v1/patient/list`, {
+      params: {
+        page: params.page,
+        size: params.size,
+        search: params.searchTerm,
+        gender: params.gender?.join(','),
+        ageGroup: params.ageGroup?.join(','),
+        lastVisit: params.lastVisit?.join(','),
+        insuranceProvider: params.insuranceProvider?.join(','),
+      },
+      headers: {
+        'X-TENANT-ID': tenantId
+      }
+    });
+    return response;
+  } catch (error) {
+    console.error("Error fetching patients:", error);
+    throw error;
+  }
+};
+
 const PatientService = {
   list: async (page = 0, size = 10, searchTerm = "") => {
     try {

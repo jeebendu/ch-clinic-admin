@@ -1,12 +1,13 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Grid, List, Plus, RefreshCw, Filter } from "lucide-react";
+import { Grid, List, Plus, RefreshCw, Filter, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 interface PageHeaderProps {
   title: string;
-  description?: string; // Add the description prop
+  description?: string;
   onViewModeToggle?: () => void;
   viewMode?: 'list' | 'calendar' | 'grid';
   showAddButton?: boolean;
@@ -18,11 +19,13 @@ interface PageHeaderProps {
   additionalActions?: React.ReactNode;
   loadedElements?: number;
   totalElements?: number;
+  onSearchChange?: (value: string) => void;
+  searchValue?: string;
 }
 
 export const PageHeader = ({ 
   title,
-  description, // Destructure the description prop
+  description,
   onViewModeToggle,
   viewMode = 'list',
   showAddButton = false,
@@ -34,6 +37,8 @@ export const PageHeader = ({
   additionalActions,
   loadedElements,
   totalElements,
+  onSearchChange,
+  searchValue = "",
 }: PageHeaderProps) => {
   return (
     <div className="sticky-header-page">
@@ -47,7 +52,20 @@ export const PageHeader = ({
             </p>
           )}
         </div>
-        <div className="flex items-center space-x-2 w-full sm:w-auto">
+        
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {onSearchChange && (
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search..."
+                value={searchValue}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="pl-8 h-9 w-full"
+              />
+            </div>
+          )}
+          
           <div className="flex space-x-2">
             {onViewModeToggle && (
               <Button 
