@@ -5,13 +5,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
-import AdminLayout from "./layouts/AdminLayout";
-import Dashboard from "./pages/admin/Dashboard";
-import Patients from "./pages/admin/Patients";
-import Appointments from "./pages/admin/Appointments";
-import Records from "./pages/admin/Records";
-import Settings from "./pages/admin/Settings";
+
 import NotFound from "./pages/NotFound";
+import Dashboard from "./admin/pages/Dashboard";
+import AppointmentsAdmin from "./admin/modules/appointments/pages/Appointments";
+import PatientsAdmin from "./admin/modules/patients/pages/Patients";
+import Schedule from "./admin/pages/Schedule";
+import DoctorAvailability from "./admin/pages/DoctorAvailability";
+import ProcessAppointment from "./admin/modules/appointments/pages/ProcessAppointment";
 
 const queryClient = new QueryClient();
 
@@ -28,16 +29,13 @@ const App = () => (
           {/* Login route */}
           <Route path="/login" element={<Login />} />
           
-          {/* Admin routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="patients" element={<Patients />} />
-            <Route path="appointments" element={<Appointments />} />
-            <Route path="records" element={<Records />} />
-            <Route path="settings" element={<Settings />} />
-            {/* Redirect /admin to /admin/dashboard */}
-            <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          </Route>
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/appointments" element={<AppointmentsAdmin />} />
+              <Route path="/admin/appointments/process/:appointmentId" element={<ProcessAppointment />} />
+              <Route path="/admin/patients" element={<PatientsAdmin />} />
+              <Route path="/admin/schedule" element={<Schedule />} />
+              <Route path="/admin/doctor-availability" element={<DoctorAvailability />} />
+              <Route path="/admin/:section" element={<Dashboard />} />
           
           {/* 404 route */}
           <Route path="*" element={<NotFound />} />
