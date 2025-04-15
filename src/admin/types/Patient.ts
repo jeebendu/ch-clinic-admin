@@ -2,7 +2,8 @@
 import { Branch } from "./Branch";
 import { Country } from "./Address";
 import { District } from "./Address";
-import { Doctor, User } from "./Doctor";
+import { Doctor } from "./Doctor";
+import { User } from "./User";
 import { State } from "./Address";
 
 export interface Patient {

@@ -58,3 +58,6 @@ export interface Education {
   institution: string;
   year: string;
 }
+
+// Re-export User to fix the import issue
+export { User } from "./User";
