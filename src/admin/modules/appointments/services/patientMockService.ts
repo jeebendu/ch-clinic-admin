@@ -9,6 +9,8 @@ export const generateMockPatient = (id: number): Patient => {
   const lastName = faker.person.lastName();
   const city = faker.location.city();
   const phoneNumber = faker.phone.number();
+  // Generate a number for mobile since Doctor type expects a number
+  const mobileNumber = faker.number.int({ min: 1000000000, max: 9999999999 });
   
   return {
     id,
@@ -33,7 +35,7 @@ export const generateMockPatient = (id: number): Patient => {
       lastname: faker.person.lastName(),
       email: faker.internet.email(),
       uid: faker.string.uuid(),
-      mobile: phoneNumber,
+      mobile: mobileNumber, // Using number here as the Doctor type expects a number
       desgination: faker.person.jobTitle(),
       specialization: faker.helpers.arrayElement(["Cardiology", "Neurology", "Dermatology", "Orthopedics"]),
       specializationList: [],
@@ -47,7 +49,7 @@ export const generateMockPatient = (id: number): Patient => {
         name: `Dr. ${faker.person.fullName()}`,
         username: faker.internet.userName(),
         email: faker.internet.email(),
-        phone: phoneNumber,
+        phone: phoneNumber, // Using string here as the User type expects a string
         password: faker.internet.password(),
         branch: null,
         role: null,
@@ -82,7 +84,7 @@ export const generateMockPatient = (id: number): Patient => {
       name: `${firstName} ${lastName}`,
       username: faker.internet.userName(),
       email: faker.internet.email({ firstName, lastName }),
-      phone: phoneNumber,
+      phone: phoneNumber, // Using string here as the User type expects a string
       password: faker.internet.password(),
       branch: null,
       role: null,  
