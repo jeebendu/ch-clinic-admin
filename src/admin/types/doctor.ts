@@ -1,9 +1,7 @@
-import { Role } from "@/models/user/User";
+
 import { Specialization } from "./specialization";
 import { Branch } from "./branch";
-
-
-
+import { Role } from "./User";
 
 export interface Doctor {
     id: number;
@@ -23,6 +21,7 @@ export interface Doctor {
     external: boolean;
     external_temp: any;
 }
+
 export interface User{
   id: number;
   branch: Branch;
@@ -34,14 +33,13 @@ export interface User{
   effectiveTo?: Date;
   effectiveFrom?: Date;
   role: Role;
-  image:String;
+  image: string;
 }
 
 export interface SearchForm {
     value: String;
     doctorType?: any;
     specialization: any;
-
 }
 
 export interface SearchReport {
@@ -54,5 +52,4 @@ export interface EnquiryServiceType {
     id: number;
     name: string;
     price:number
-    
 }

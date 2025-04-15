@@ -1,8 +1,28 @@
-import { Specialization, DoctorService, Language, Education } from "@/models/doctor/Doctor";
-import { District, State, Country } from "@/models/shared/Address";
-import { Branch } from "@/models/shared/Branch";
-import { User } from "@/models/user/User";
-import { Clinic } from "@/services/appointmentService";
+
+import { Branch } from "@/admin/types/branch";
+import { User } from "@/admin/types/User";
+
+export interface Specialization {
+  id: number;
+  name: string;
+}
+
+export interface DoctorService {
+  id: number;
+  name: string;
+}
+
+export interface Language {
+  id: number;
+  name: string;
+}
+
+export interface Education {
+  id: number;
+  degree: string;
+  institution: string;
+  year: string;
+}
 
 export interface Doctor {
   id: number;
@@ -11,7 +31,7 @@ export interface Doctor {
   lastname: string;
   external: boolean;
   desgination: string;
-  expYear: number;
+  expYear?: number;
   email: string;
   phone: string;
   qualification: string;
@@ -23,20 +43,27 @@ export interface Doctor {
   biography: string;
   gender: number;
   verified: boolean;
-  percentages: any[]; // Adjust type if percentages have a specific structure
+  percentages: any[];
   specializationList: Specialization[];
   serviceList: DoctorService[];
   branchList: Branch[];
   languageList: Language[];
   user: User;
-  district: District;
-  state: State;
-  country: Country;
-  education?: Education[]; // Added as optional
+  district: any;
+  state: any;
+  country: any;
+  education?: Education[];
 
   //temp
   consultationFee: any;
   reviewCount: number;
   rating: number;
-  clinics: Clinic[]; // Array of Clinic objects
+  clinics: Clinic[];
+}
+
+export interface Clinic {
+  id: number;
+  name: string;
+  address: string;
+  contact: string;
 }

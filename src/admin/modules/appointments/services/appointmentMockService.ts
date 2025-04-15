@@ -20,6 +20,8 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
     const status = statusOptions[Math.floor(Math.random() * statusOptions.length)];
     const patientNames = ["John Doe", "Jane Smith", "Alice Johnson", "Bob Brown", "Charlie Davis"];
     const patientName = patientNames[Math.floor(Math.random() * patientNames.length)];
+    const firstName = patientName.split(' ')[0];
+    const lastName = patientName.split(' ')[1];
     
     const mockAppointment: AllAppointment = {
       id: i + 1,
@@ -33,23 +35,43 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
         age: 30 + (i % 30),
         address: `Address ${i}`,
         whatsappNo: `+919876${543210 + i}`,
-        firstname: patientName.split(' ')[0],
-        lastname: patientName.split(' ')[1],
+        firstname: firstName,
+        lastname: lastName,
+        city: `City ${i % 5}`,
+        branch: {
+          id: i % 3 + 1,
+          name: `Branch ${i % 3 + 1}`,
+          code: `BR${i % 3 + 1}`,
+          location: `Location ${i % 3 + 1}`,
+          active: true,
+          state: null,
+          district: null,
+          country: null,
+          city: `City ${i % 3 + 1}`,
+          mapUrl: "",
+          pincode: 12345,
+          image: "",
+          latitude: 0,
+          longitude: 0
+        },
         user: {
           id: 100 + i,
           name: patientName,
-          email: `${patientName.split(' ')[0].toLowerCase()}@example.com`,
+          email: `${firstName.toLowerCase()}@example.com`,
           phone: `+919876${543210 + i}`,
-          branch:null,
-          username:null,
-          password:null,
+          branch: null,
+          username: null,
+          password: null,
           role: null,
+          image: ""
         },
         refDoctor: null
       },
       doctor: {
         id: 1,
         name: "Gregory House",
+        firstname: "Gregory",
+        lastname: "House",
         email: "house@clinic.com",
         uid: `DR${1000 + i}`,
         mobile: 1234567890,
@@ -182,6 +204,23 @@ export const getMockAppointmentById = async (id: string | number): Promise<AllAp
       whatsappNo: "+919876543210",
       firstname: "John",
       lastname: "Doe",
+      city: "New York",
+      branch: {
+        id: 1,
+        name: "Main Branch",
+        code: "MB001",
+        location: "Main Street",
+        active: true,
+        state: null,
+        district: null,
+        country: null,
+        city: "New York",
+        mapUrl: "",
+        pincode: 10001,
+        image: "",
+        latitude: 0,
+        longitude: 0
+      },
       user: {
         id: 101,
         name: "John Doe",
@@ -191,12 +230,15 @@ export const getMockAppointmentById = async (id: string | number): Promise<AllAp
         username: null,
         password: null,
         role: null,
+        image: ""
       },
       refDoctor: null
     },
     doctor: {
       id: 1,
       name: "Dr. Sarah Johnson",
+      firstname: "Sarah",
+      lastname: "Johnson",
       email: "sarah@clinic.com",
       uid: "DR1001",
       mobile: 1234567890,

@@ -7,6 +7,7 @@ export const generateMockPatient = (id: number): Patient => {
   const gender = faker.person.sex() as "Male" | "Female";
   const firstName = faker.person.firstName(gender.toLowerCase() as "male" | "female");
   const lastName = faker.person.lastName();
+  const city = faker.location.city();
   
   return {
     id,
@@ -27,9 +28,11 @@ export const generateMockPatient = (id: number): Patient => {
     refDoctor: {
       id: faker.number.int({ min: 1, max: 100 }),
       name: `Dr. ${faker.person.fullName()}`,
+      firstname: faker.person.firstName(),
+      lastname: faker.person.lastName(),
       email: faker.internet.email(),
       uid: faker.string.uuid(),
-      mobile: faker.number.int({ min: 9000000000, max: 9999999999 }), // Fixed: Using number generator instead of phone parser
+      mobile: faker.number.int({ min: 9000000000, max: 9999999999 }),
       desgination: faker.person.jobTitle(),
       specialization: faker.helpers.arrayElement(["Cardiology", "Neurology", "Dermatology", "Orthopedics"]),
       specializationList: [],
@@ -47,8 +50,25 @@ export const generateMockPatient = (id: number): Patient => {
         password: faker.internet.password(),
         branch: null,
         role: null,
-        image:null
+        image: faker.image.avatar()
       }
+    },
+    city,
+    branch: {
+      id: faker.number.int({ min: 1, max: 5 }),
+      name: `Branch ${faker.number.int({ min: 1, max: 5 })}`,
+      code: `BR${faker.number.int({ min: 100, max: 999 })}`,
+      location: faker.location.streetAddress(),
+      active: true,
+      state: null,
+      district: null,
+      country: null,
+      city,
+      mapUrl: "",
+      pincode: faker.number.int({ min: 100000, max: 999999 }),
+      image: "",
+      latitude: parseFloat(faker.location.latitude()),
+      longitude: parseFloat(faker.location.longitude())
     },
     consDoctorId: faker.number.int({ min: 1, max: 50 }),
     remark: faker.helpers.maybe(() => faker.lorem.paragraph(), { probability: 0.7 }),
@@ -65,7 +85,7 @@ export const generateMockPatient = (id: number): Patient => {
       password: faker.internet.password(),
       branch: null,
       role: null,  
-      image:null
+      image: faker.helpers.maybe(() => faker.image.avatar(), { probability: 0.7 })
     },
     photoUrl: faker.helpers.maybe(() => faker.image.avatar(), { probability: 0.3 }),
     insuranceProvider: faker.helpers.maybe(() => faker.company.name(), { probability: 0.6 }),
