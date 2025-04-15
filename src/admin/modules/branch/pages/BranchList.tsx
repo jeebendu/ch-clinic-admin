@@ -14,6 +14,16 @@ import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 
 const BranchList = () => {
   const navigate = useNavigate();
@@ -24,6 +34,10 @@ const BranchList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
+  
+  // Add state for delete confirmation
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<number | null>(null);
 
   // Use mock data for development
   const { data, isLoading, error, refetch } = useQuery({
@@ -49,15 +63,26 @@ const BranchList = () => {
     refetch();
   };
 
-  const handleDeleteBranch = async (id: number) => {
+  // Updated to show confirmation dialog
+  const handleDeleteBranch = (id: number) => {
+    setBranchToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  // Actual delete operation after confirmation
+  const confirmDelete = async () => {
+    if (branchToDelete === null) return;
+    
     try {
-      await BranchService.deleteById(id);
+      await BranchService.deleteById(branchToDelete);
       toast({
         title: "Branch deleted",
         description: "Branch has been successfully deleted.",
         className: "bg-clinic-primary text-white"
       });
       refetch();
+      setDeleteDialogOpen(false);
+      setBranchToDelete(null);
     } catch (error) {
       toast({
         title: "Error",
@@ -141,6 +166,25 @@ const BranchList = () => {
       </div>
       
       {renderForm()}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the branch
+              and remove all associated data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setBranchToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };
