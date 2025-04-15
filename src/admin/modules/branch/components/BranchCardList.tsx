@@ -1,77 +1,67 @@
 
 import React from "react";
 import { Branch } from "../types/Branch";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MapPin, Building2 } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Edit, MapPin, Trash } from "lucide-react";
 
 interface BranchCardListProps {
   branches: Branch[];
   onDelete: (id: number) => void;
+  onEdit: (branch: Branch) => void;
 }
 
-const BranchCardList: React.FC<BranchCardListProps> = ({ branches, onDelete }) => {
-  if (branches.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        No branches found
-      </div>
-    );
-  }
-
+const BranchCardList = ({ branches, onDelete, onEdit }: BranchCardListProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {branches.map((branch) => (
-        <Card key={branch.id} className="overflow-hidden">
-          <div className="bg-primary/10 p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-semibold flex items-center">
-                  <Building2 className="h-5 w-5 mr-2 text-primary" />
-                  {branch.name}
-                </h3>
-                <p className="text-sm text-muted-foreground">{branch.code}</p>
-              </div>
-              {branch.active !== undefined && (
-                <span className={`px-2 py-1 text-xs rounded-full ${branch.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+      {branches.length === 0 ? (
+        <div className="col-span-full flex justify-center items-center p-8 bg-white rounded-lg border">
+          <p className="text-muted-foreground">No branches found</p>
+        </div>
+      ) : (
+        branches.map((branch) => (
+          <Card key={branch.id} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex justify-between items-center">
+                <span className="text-lg">{branch.name}</span>
+                <span className={`px-2 py-1 text-xs rounded-full ${branch.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                   {branch.active ? 'Active' : 'Inactive'}
                 </span>
-              )}
-            </div>
-          </div>
-          <CardContent className="p-4">
-            <div className="space-y-2">
-              <div className="flex items-start">
-                <MapPin className="h-4 w-4 text-muted-foreground mt-1 mr-2" />
+              </CardTitle>
+              <div className="text-sm text-muted-foreground">Code: {branch.code}</div>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <div className="flex items-start gap-2 text-sm">
+                <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm">{branch.location}</p>
-                  <p className="text-sm">
-                    {branch.city}
-                    {branch.state && `, ${branch.state.name}`}
-                    {branch.country && `, ${branch.country.name}`}
-                  </p>
-                  <p className="text-sm">Pincode: {branch.pincode}</p>
+                  <p>{branch.location}</p>
+                  <p>{branch.city}, {branch.pincode}</p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between p-4 pt-0 border-t">
-            <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => onDelete(branch.id)}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+            </CardContent>
+            <CardFooter className="flex justify-end space-x-2 pt-2 border-t">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onEdit(branch)} 
+                className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onDelete(branch.id || 0)} 
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
+            </CardFooter>
+          </Card>
+        ))
+      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -35,17 +34,17 @@ const BranchList = () => {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   
-  // Add state for delete confirmation
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [branchToDelete, setBranchToDelete] = useState<number | null>(null);
+  
+  const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
-  // Use mock data for development
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['branches', page, size, searchTerm],
     queryFn: () => getMockBranches(page, size, searchTerm),
   });
 
-  // Update view mode based on device
   useEffect(() => {
     setViewMode(isMobile ? 'list' : 'grid');
   }, [isMobile]);
@@ -55,21 +54,27 @@ const BranchList = () => {
   };
 
   const handleAddBranch = () => {
+    setBranchToEdit(null);
     setIsAddFormOpen(true);
   };
 
   const handleCloseForm = () => {
     setIsAddFormOpen(false);
+    setIsEditFormOpen(false);
+    setBranchToEdit(null);
     refetch();
   };
 
-  // Updated to show confirmation dialog
+  const handleEditBranch = (branch: Branch) => {
+    setBranchToEdit(branch);
+    setIsEditFormOpen(true);
+  };
+
   const handleDeleteBranch = (id: number) => {
     setBranchToDelete(id);
     setDeleteDialogOpen(true);
   };
 
-  // Actual delete operation after confirmation
   const confirmDelete = async () => {
     if (branchToDelete === null) return;
     
@@ -121,7 +126,37 @@ const BranchList = () => {
     );
   };
 
-  // Calculate stats for display
+  const renderEditForm = () => {
+    if (!branchToEdit) return null;
+    
+    if (isMobile) {
+      return (
+        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
+          <DrawerContent className="h-[85%]">
+            <DrawerHeader className="border-b border-clinic-accent">
+              <DrawerTitle className="text-clinic-primary">Edit Branch</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-4">
+              <BranchForm branch={branchToEdit} onSuccess={handleCloseForm} />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      );
+    } 
+    
+    return (
+      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="border-b border-clinic-accent pb-4">
+            <DialogTitle className="text-clinic-primary">Edit Branch</DialogTitle>
+            <DialogDescription>Update branch information.</DialogDescription>
+          </DialogHeader>
+          <BranchForm branch={branchToEdit} onSuccess={handleCloseForm} />
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   const totalElements = data?.data?.totalElements || 0;
   const loadedElements = data?.data?.content?.length || 0;
 
@@ -154,11 +189,13 @@ const BranchList = () => {
               <BranchTable 
                 branches={data?.data?.content || []} 
                 onDelete={handleDeleteBranch}
+                onEdit={handleEditBranch}
               />
             ) : (
               <BranchCardList 
                 branches={data?.data?.content || []} 
                 onDelete={handleDeleteBranch}
+                onEdit={handleEditBranch}
               />
             )}
           </div>
@@ -166,8 +203,8 @@ const BranchList = () => {
       </div>
       
       {renderForm()}
+      {renderEditForm()}
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
