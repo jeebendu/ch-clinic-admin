@@ -132,8 +132,10 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
                     onClick={() => handlePatientSelect(patient)}
                   >
                     <div>
-                      <p className="font-medium">{patient.firstName} {patient.lastName}</p>
-                      <p className="text-sm text-muted-foreground">{patient.mobile || patient.phone}</p>
+                      <p className="font-medium">{patient.firstname} {patient.lastname}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {patient.user && patient.user.phone ? patient.user.phone : "No phone number"}
+                      </p>
                     </div>
                     <Button variant="ghost" size="sm">
                       Select
@@ -210,7 +212,7 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
           <div className="border rounded-md p-4">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <h3 className="font-medium text-lg">{selectedPatient.firstName} {selectedPatient.lastName}</h3>
+                <h3 className="font-medium text-lg">{selectedPatient.firstname} {selectedPatient.lastname}</h3>
                 <p className="text-sm text-muted-foreground">ID: {selectedPatient.id}</p>
               </div>
               <Button 
@@ -224,11 +226,11 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <p className="text-muted-foreground">Phone</p>
-                <p>{selectedPatient.phone || selectedPatient.mobile || "N/A"}</p>
+                <p>{selectedPatient.user && selectedPatient.user.phone ? selectedPatient.user.phone : "N/A"}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Email</p>
-                <p>{selectedPatient.email || "N/A"}</p>
+                <p>{selectedPatient.user && selectedPatient.user.email ? selectedPatient.user.email : "N/A"}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Gender</p>
