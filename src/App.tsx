@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import AdminRoutes from "./admin/AdminRoutes";
+import "./admin/styles/admin.css";
 
 const queryClient = new QueryClient();
 

@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker';
 
+import { faker } from '@faker-js/faker';
 import { Patient } from '@/admin/types/patient';
 
 // Function to generate a random date within the last year
@@ -27,21 +27,23 @@ const getRandomVisits = (): { date: Date; reason: string }[] => {
   return visits.sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort visits by date
 };
 
-const generatePatient = (): Patient => {
+const generatePatient = (): any => {
   const genderOptions = ['Male', 'Female', 'Other'];
   const insuranceOptions = ['Medicare', 'BlueCross', 'Aetna', 'UnitedHealth', 'Cigna', 'none'];
 
-  const firstName = faker.person.firstName();
-  const lastName = faker.person.lastName();
+  const firstname = faker.person.firstName();
+  const lastname = faker.person.lastName();
   const dob = faker.date.birthdate({ min: 18, max: 100, mode: 'age' });
   const visits = getRandomVisits();
 
-  const patient: Patient = {
+  const patient = {
     id: faker.number.int(),
-    firstName: firstName,
-    lastName: lastName,
-    email: faker.internet.email({ firstName, lastName }),
-    phoneNumber: faker.phone.number().toString(),
+    firstname,
+    lastname,
+    user: {
+      email: faker.internet.email({ firstName: firstname, lastName: lastname }),
+      phone: faker.phone.number(),
+    },
     gender: genderOptions[Math.floor(Math.random() * genderOptions.length)],
     dob: dob,
     address: faker.location.streetAddress(),
@@ -50,7 +52,7 @@ const generatePatient = (): Patient => {
     zipCode: faker.location.zipCode(),
     insuranceProvider: insuranceOptions[Math.floor(Math.random() * insuranceOptions.length)],
     policyNumber: faker.string.alphanumeric(10),
-    emergencyContact: faker.phone.number().toString(),
+    emergencyContact: faker.phone.number(),
     emergencyContactName: faker.person.fullName(),
     primaryCarePhysician: faker.person.fullName(),
     medicalHistory: faker.lorem.paragraph(),
@@ -58,17 +60,79 @@ const generatePatient = (): Patient => {
     medications: faker.lorem.words(10),
     notes: faker.lorem.paragraph(),
     visits: visits,
-    image: faker.image.avatar(),
+    photoUrl: faker.image.avatar(),
     status: faker.datatype.boolean(),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
+    createdTime: faker.date.past(),
+    // Required fields for Patient type
+    branch: {
+      id: 1,
+      name: "Main Branch",
+      code: "MB-001",
+      location: "Downtown",
+      active: true,
+      city: "New York",
+      pincode: 10001,
+      image: "",
+      latitude: 40.7128,
+      longitude: -74.0060,
+    },
+    // Additional required fields
+    uid: faker.string.uuid(),
+    age: faker.number.int({ min: 18, max: 80 }),
+    fullName: `${firstname} ${lastname}`,
+    lastVisit: faker.date.recent().toISOString(),
+    refDoctor: {
+      id: 1,
+      name: "Dr. Smith",
+      email: "drsmith@example.com",
+      uid: "DOC-001",
+      mobile: 1234567890,
+      desgination: "Senior Physician",
+      specialization: "General Medicine",
+      specializationList: [],
+      qualification: "MD",
+      joiningDate: faker.date.past(),
+      user: {
+        id: 1,
+        name: "Dr. Smith",
+        username: "drsmith",
+        email: "drsmith@example.com",
+        phone: "1234567890",
+        password: "password",
+        branch: {
+          id: 1,
+          name: "Main Branch",
+          code: "MB-001",
+          location: "Downtown",
+          active: true,
+          city: "New York",
+          pincode: 10001,
+          image: "",
+          latitude: 40.7128,
+          longitude: -74.0060,
+        },
+        role: {
+          id: 2,
+          name: "Doctor",
+          permissions: [],
+        },
+        effectiveFrom: faker.date.past(),
+        effectiveTo: faker.date.future(),
+        image: "",
+      },
+      status: "Active",
+      external: false,
+      external_temp: null,
+      firstname: "John",
+      lastname: "Smith"
+    }
   };
   return patient;
 };
 
 // Generate multiple patients
-export const generatePatients = (count: number): Patient[] => {
-  const patients: Patient[] = [];
+const generatePatients = (count: number): any[] => {
+  const patients = [];
   for (let i = 0; i < count; i++) {
     patients.push(generatePatient());
   }
@@ -77,7 +141,7 @@ export const generatePatients = (count: number): Patient[] => {
 
 // Mock API service
 const patientMockService = {
-  getPatients: async (page: number, size: number): Promise<{ content: Patient[]; totalElements: number; totalPages: number; }> => {
+  getPatients: async (page: number, size: number): Promise<{ content: any[]; totalElements: number; totalPages: number; }> => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -90,19 +154,31 @@ const patientMockService = {
 
     return { content, totalElements, totalPages };
   },
-  searchPatients: async (searchTerm: string): Promise<Patient[]> => {
+  
+  searchPatients: async (searchTerm: string): Promise<any[]> => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
     const allPatients = generatePatients(20); // Generate a smaller set for search
     const searchTermLower = searchTerm.toLowerCase();
     const content = allPatients.filter(patient =>
-      patient.firstName.toLowerCase().includes(searchTermLower) ||
-      patient.lastName.toLowerCase().includes(searchTermLower) ||
-      patient.email.toLowerCase().includes(searchTermLower)
+      patient.firstname.toLowerCase().includes(searchTermLower) ||
+      patient.lastname.toLowerCase().includes(searchTermLower) ||
+      patient.user.email.toLowerCase().includes(searchTermLower)
     );
 
     return content;
+  },
+  
+  getMockPatientById: async (id: number): Promise<any> => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Generate a random patient and assign the requested ID
+    const patient = generatePatient();
+    patient.id = id;
+    
+    return patient;
   }
 };
 

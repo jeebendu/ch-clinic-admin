@@ -1,3 +1,4 @@
+
 import { Branch } from "./Branch";
 import { User } from "./User";
 
@@ -19,28 +20,26 @@ export interface Doctor {
     bio: string;
     profilePicture: string;
     branchList: Branch[];
-    user:User;
+    user: User;
     // Timings
     availableTimings: string[];
     // Add any other relevant doctor properties here
-  }
+}
   
-  export type DoctorAvailability = {
-    id: number;
-    doctorId: number;
-    dayOfWeek: string;
-    startTime: string;
-    endTime: string;
-    breakStartTime?: string;
-    breakEndTime?: string;
-  };
+export type DoctorAvailability = {
+  id: number;
+  doctorId: number;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  breakStartTime?: string;
+  breakEndTime?: string;
+};
   
-  export type DoctorLeave = {
-    id: number;
-    doctorId: number;
-    startDate: string;
-    endDate: string;
-    reason: string;
-  };
-
-export type { Doctor };
+export type DoctorLeave = {
+  id: number;
+  doctorId: number;
+  startDate: string;
+  endDate: string;
+  reason: string;
+};
