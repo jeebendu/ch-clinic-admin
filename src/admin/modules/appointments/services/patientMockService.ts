@@ -8,6 +8,7 @@ export const generateMockPatient = (id: number): Patient => {
   const firstName = faker.person.firstName(gender.toLowerCase() as "male" | "female");
   const lastName = faker.person.lastName();
   const city = faker.location.city();
+  const phoneNumber = faker.phone.number();
   
   return {
     id,
@@ -16,7 +17,7 @@ export const generateMockPatient = (id: number): Patient => {
     dob: faker.date.birthdate({ min: 18, max: 85, mode: 'age' }),
     age: faker.number.int({ min: 18, max: 85 }),
     address: faker.location.streetAddress(true),
-    whatsappNo: faker.phone.number(), 
+    whatsappNo: phoneNumber, 
     problem: faker.helpers.arrayElement([
       "Fever and headache",
       "Back pain",
@@ -32,8 +33,7 @@ export const generateMockPatient = (id: number): Patient => {
       lastname: faker.person.lastName(),
       email: faker.internet.email(),
       uid: faker.string.uuid(),
-      // Convert mobile to a number since Doctor type expects a number
-      mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
+      mobile: phoneNumber,
       desgination: faker.person.jobTitle(),
       specialization: faker.helpers.arrayElement(["Cardiology", "Neurology", "Dermatology", "Orthopedics"]),
       specializationList: [],
@@ -47,7 +47,7 @@ export const generateMockPatient = (id: number): Patient => {
         name: `Dr. ${faker.person.fullName()}`,
         username: faker.internet.userName(),
         email: faker.internet.email(),
-        phone: faker.phone.number(),
+        phone: phoneNumber,
         password: faker.internet.password(),
         branch: null,
         role: null,
@@ -82,7 +82,7 @@ export const generateMockPatient = (id: number): Patient => {
       name: `${firstName} ${lastName}`,
       username: faker.internet.userName(),
       email: faker.internet.email({ firstName, lastName }),
-      phone: faker.phone.number(),
+      phone: phoneNumber,
       password: faker.internet.password(),
       branch: null,
       role: null,  
