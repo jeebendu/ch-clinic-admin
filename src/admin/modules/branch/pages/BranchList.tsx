@@ -20,7 +20,7 @@ const BranchList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<'list' | 'table'>(isMobile ? 'list' : 'table');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(isMobile ? 'list' : 'grid');
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
@@ -34,11 +34,11 @@ const BranchList = () => {
 
   // Update view mode based on device
   useEffect(() => {
-    setViewMode(isMobile ? 'list' : 'table');
+    setViewMode(isMobile ? 'list' : 'grid');
   }, [isMobile]);
 
   const toggleViewMode = () => {
-    setViewMode(viewMode === 'list' ? 'table' : 'list');
+    setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
   const handleAddBranch = () => {
@@ -125,7 +125,7 @@ const BranchList = () => {
           </div>
         ) : (
           <div>
-            {viewMode === 'table' ? (
+            {viewMode === 'grid' ? (
               <BranchTable 
                 branches={data?.data?.content || []} 
                 onDelete={handleDeleteBranch}
