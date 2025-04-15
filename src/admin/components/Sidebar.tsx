@@ -21,20 +21,22 @@ import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
+import { generateColorPalette, updateCSSVariables } from "@/utils/themeUtils";
 
 interface SidebarProps {
   onClose?: () => void;
   collapsed?: boolean;
 }
 
-// Define which routes are accessible by which roles
 // Define the UserRole type
 type UserRole = "admin" | "doctor" | "staff";
 
 const roleAccess: Record<string, UserRole[]> = {
   "/admin": ["admin", "doctor", "staff"],
+  "/admin/dashboard/admin": ["admin"],
+  "/admin/dashboard/doctor": ["doctor", "admin"],
+  "/admin/dashboard/staff": ["staff", "admin"],
   "/admin/appointments": ["admin", "doctor", "staff"],
   "/admin/patients": ["admin", "doctor", "staff"],
   "/admin/schedule": ["admin", "doctor", "staff"],
@@ -50,9 +52,21 @@ const roleAccess: Record<string, UserRole[]> = {
 const navItems = [
   { 
     icon: <Home className="h-5 w-5" />, 
-    label: "Dashboard", 
-    href: "/admin", 
-    roles: ["admin", "doctor", "staff"] 
+    label: "Admin Dashboard", 
+    href: "/admin/dashboard/admin", 
+    roles: ["admin"] 
+  },
+  { 
+    icon: <Home className="h-5 w-5" />, 
+    label: "Doctor Dashboard", 
+    href: "/admin/dashboard/doctor", 
+    roles: ["doctor", "admin"] 
+  },
+  { 
+    icon: <Home className="h-5 w-5" />, 
+    label: "Staff Dashboard", 
+    href: "/admin/dashboard/staff", 
+    roles: ["staff", "admin"] 
   },
   { 
     icon: <Calendar className="h-5 w-5" />, 
@@ -110,120 +124,6 @@ const navItems = [
   },
 ];
 
-// Function to generate complementary colors
-const generateColorPalette = (mainColor: string) => {
-  // Convert hex to RGB
-  const r = parseInt(mainColor.slice(1, 3), 16);
-  const g = parseInt(mainColor.slice(3, 5), 16);
-  const b = parseInt(mainColor.slice(5, 7), 16);
-  
-  // Generate secondary color (slightly darker)
-  const darkenPercent = 0.15;
-  const secondaryR = Math.max(0, Math.floor(r * (1 - darkenPercent)));
-  const secondaryG = Math.max(0, Math.floor(g * (1 - darkenPercent)));
-  const secondaryB = Math.max(0, Math.floor(b * (1 - darkenPercent)));
-  
-  // Generate tertiary color (even darker)
-  const darkerPercent = 0.25;
-  const tertiaryR = Math.max(0, Math.floor(r * (1 - darkerPercent)));
-  const tertiaryG = Math.max(0, Math.floor(g * (1 - darkerPercent)));
-  const tertiaryB = Math.max(0, Math.floor(b * (1 - darkerPercent)));
-  
-  // Generate light color (much lighter)
-  const lightenPercent = 0.7;
-  const lightR = Math.min(255, Math.floor(r + (255 - r) * lightenPercent));
-  const lightG = Math.min(255, Math.floor(g + (255 - g) * lightenPercent));
-  const lightB = Math.min(255, Math.floor(b + (255 - b) * lightenPercent));
-  
-  // Convert back to hex
-  const secondaryColor = `#${secondaryR.toString(16).padStart(2, '0')}${secondaryG.toString(16).padStart(2, '0')}${secondaryB.toString(16).padStart(2, '0')}`;
-  const tertiaryColor = `#${tertiaryR.toString(16).padStart(2, '0')}${tertiaryG.toString(16).padStart(2, '0')}${tertiaryB.toString(16).padStart(2, '0')}`;
-  const lightColor = `#${lightR.toString(16).padStart(2, '0')}${lightG.toString(16).padStart(2, '0')}${lightB.toString(16).padStart(2, '0')}`;
-  
-  return {
-    primary: mainColor,
-    secondary: secondaryColor,
-    tertiary: tertiaryColor,
-    light: lightColor,
-    dark: "#1A1F2C", // Keep dark color constant
-  };
-};
-
-// Function to update CSS variables
-const updateCSSVariables = (colors: ReturnType<typeof generateColorPalette>) => {
-  // Get the HSL values for the primary color
-  const primaryRgb = hexToRgb(colors.primary);
-  const primaryHsl = rgbToHsl(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  
-  // Update CSS variables for the theme
-  const root = document.documentElement;
-  root.style.setProperty('--primary', `${Math.round(primaryHsl.h)} ${Math.round(primaryHsl.s)}% ${Math.round(primaryHsl.l)}%`);
-  root.style.setProperty('--ring', `${Math.round(primaryHsl.h)} ${Math.round(primaryHsl.s)}% ${Math.round(primaryHsl.l)}%`);
-  root.style.setProperty('--sidebar-primary', `${Math.round(primaryHsl.h)} ${Math.round(primaryHsl.s)}% ${Math.round(primaryHsl.l)}%`);
-  root.style.setProperty('--sidebar-ring', `${Math.round(primaryHsl.h)} ${Math.round(primaryHsl.s)}% ${Math.round(primaryHsl.l)}%`);
-  
-  // Update --brand-primary and related vars in :root
-  root.style.setProperty('--brand-primary', colors.primary);
-  root.style.setProperty('--brand-secondary', colors.secondary);
-  root.style.setProperty('--brand-tertiary', colors.tertiary);
-  root.style.setProperty('--brand-light', colors.light);
-  
-  // Also update clinic colors
-  root.style.setProperty('--clinic-primary', colors.primary);
-  root.style.setProperty('--clinic-secondary', colors.secondary);
-  root.style.setProperty('--clinic-accent', colors.light);
-  root.style.setProperty('--clinic-light', lightenColor(colors.light));
-};
-
-// Helper function to convert hex to RGB
-const hexToRgb = (hex: string) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : { r: 0, g: 0, b: 0 };
-};
-
-// Helper function to convert RGB to HSL
-const rgbToHsl = (r: number, g: number, b: number) => {
-  r /= 255;
-  g /= 255;
-  b /= 255;
-  
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0, s = 0, l = (max + min) / 2;
-
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
-    }
-    h /= 6;
-  }
-
-  return { 
-    h: h * 360, 
-    s: s * 100, 
-    l: l * 100 
-  };
-};
-
-// Helper function to further lighten a color
-const lightenColor = (hexColor: string) => {
-  const rgb = hexToRgb(hexColor);
-  const lightenPercent = 0.5;
-  const lightR = Math.min(255, Math.floor(rgb.r + (255 - rgb.r) * lightenPercent));
-  const lightG = Math.min(255, Math.floor(rgb.g + (255 - rgb.g) * lightenPercent));
-  const lightB = Math.min(255, Math.floor(rgb.b + (255 - rgb.b) * lightenPercent));
-  
-  return `#${lightR.toString(16).padStart(2, '0')}${lightG.toString(16).padStart(2, '0')}${lightB.toString(16).padStart(2, '0')}`;
-};
-
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   // TODO: In a real app, get this from auth context
   const userRole: UserRole = "admin";
@@ -270,10 +170,10 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
 
   return (
     <aside className={cn(
-      "bg-white backdrop-blur-md h-full transition-all duration-300",
+      "bg-sidebar text-sidebar-foreground h-full transition-all duration-300",
       collapsed ? "w-[70px]" : "w-64"
     )}>
-      <div className="p-4 flex items-center justify-between h-16">
+      <div className="p-4 flex items-center justify-between h-16 border-b border-sidebar-border">
         {!collapsed ? (
           <div className="flex items-center">
             <img 
@@ -295,7 +195,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="md:hidden"
+          className="md:hidden text-sidebar-foreground"
         >
           <X className="h-5 w-5" />
         </Button>
@@ -303,7 +203,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
 
       <div className="px-4 py-2">
         {!collapsed && (
-          <div className="text-xs font-semibold uppercase text-gray-500 mb-2 tracking-wider">
+          <div className="text-xs font-semibold uppercase text-sidebar-foreground/70 mb-2 tracking-wider">
             Main Menu
           </div>
         )}
@@ -315,8 +215,8 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
             key={item.label}
             to={item.href}
             className={({ isActive }) => cn(
-              "flex items-center px-4 py-3 text-gray-600 hover:bg-[#00b8ab]/10",
-              isActive && "bg-[#00b8ab]/10 text-[#00b8ab] border-l-4 border-[#00b8ab]",
+              "flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+              isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-l-4 border-sidebar-primary",
               !isActive && "border-l-4 border-transparent",
               collapsed && "justify-center"
             )}
@@ -328,7 +228,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
           >
             <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
             {!collapsed && <span>{item.label}</span>}
-            {!collapsed && (item.label === "Appointments" || item.label === "Doctors" || item.label === "Patients") && (
+            {!collapsed && (item.label.includes("Dashboard") || item.label === "Appointments" || item.label === "Doctors" || item.label === "Patients") && (
               <span className="ml-auto">
                 <PanelLeft className="h-4 w-4 rotate-180" />
               </span>
@@ -337,12 +237,12 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
         ))}
       </nav>
 
-      <div className="p-4 mt-auto">
+      <div className="p-4 mt-auto border-t border-sidebar-border">
         {!collapsed ? (
           <div className="space-y-4">
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full flex gap-2 bg-slate-50">
+                <Button variant="outline" className="w-full flex gap-2 bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground">
                   <Palette className="h-4 w-4" />
                   <span>Change Theme</span>
                 </Button>
@@ -390,22 +290,22 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                   </div>
                 </div>
                 <div className="flex justify-end">
-                  <Button type="button" onClick={applyTheme} style={{ backgroundColor: themeColor }}>
+                  <Button type="button" onClick={applyTheme} className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
                     Apply Theme
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
             
-            <div className="bg-[#00b8ab]/10 rounded-lg p-3 text-sm">
-              <p className="text-[#00b8ab] font-medium">Need Help?</p>
-              <p className="text-gray-600 text-xs mt-1">Contact support for assistance</p>
+            <div className="bg-sidebar-accent rounded-lg p-3 text-sm">
+              <p className="text-sidebar-primary font-medium">Need Help?</p>
+              <p className="text-sidebar-foreground text-xs mt-1">Contact support for assistance</p>
             </div>
           </div>
         ) : (
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon" className="w-full h-10 flex justify-center">
+              <Button variant="outline" size="icon" className="w-full h-10 flex justify-center bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground">
                 <Palette className="h-4 w-4" />
               </Button>
             </DialogTrigger>
@@ -452,7 +352,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button type="button" onClick={applyTheme} style={{ backgroundColor: themeColor }}>
+                <Button type="button" onClick={applyTheme} className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
                   Apply Theme
                 </Button>
               </div>
