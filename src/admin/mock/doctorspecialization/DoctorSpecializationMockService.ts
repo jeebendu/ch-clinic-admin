@@ -1,3 +1,4 @@
+
 import { DoctorSpecialization } from "./DoctorSpecialization";
 import { Doctor } from "@/admin/types/doctor";
 import { Specialization } from "@/admin/types/specialization";
@@ -13,6 +14,8 @@ export const DoctorSpecializationMockService = {
       const mockDoctor: Doctor = {
         id: i,
         name: `Doctor ${i}`,
+        firstname: `First${i}`,
+        lastname: `Last${i}`,
         email: `doctor${i}@example.com`,
         uid: `DOC${i}`,
         mobile: 1234567890 + i,

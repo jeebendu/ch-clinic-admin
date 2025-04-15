@@ -19,6 +19,8 @@ const generateMockPatients = (): Patient[] => {
       refDoctor: {
         id: i,
         name: `Doctor ${i}`,
+        firstname: `Doctor${i}First`,
+        lastname: `Doctor${i}Last`,
         email: `doctor${i}@example.com`,
         uid: `DOC-UID-${i}`,
         mobile: 1234567890 + i,
@@ -68,6 +70,23 @@ const generateMockPatients = (): Patient[] => {
       pastRemark: `Past Remark ${i}`,
       firstname: `Firstname ${i}`,
       lastname: `Lastname ${i}`,
+      city: `City ${i}`,
+      branch: {
+        id: i % 5 + 1,
+        name: `Branch ${i % 5 + 1}`,
+        code: `BR${i % 5 + 1}`,
+        location: `Location ${i % 5 + 1}`,
+        active: true,
+        state: null,
+        district: null,
+        country: null,
+        city: `City ${i % 5 + 1}`,
+        mapUrl: "",
+        pincode: 12345,
+        image: "",
+        latitude: 0,
+        longitude: 0
+      },
       createdTime: new Date(),
       user: {
         id: i,

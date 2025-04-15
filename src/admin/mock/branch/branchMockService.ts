@@ -1,4 +1,5 @@
-import { Branch } from "@/admin/mock/branch/branch";
+
+import { Branch } from "@/admin/types/branch";
 import { Country } from "@/admin/types/country";
 import { State } from "@/admin/types/state";
 import { District } from "@/admin/types/district";
@@ -35,13 +36,17 @@ export const getMockBranches = (page: number, size: number, searchTerm?: string)
       id: i + 1,
       name: `Branch ${i + 1}`,
       location: `Location ${i + 1}`,
-      mapurl: `https://maps.example.com/branch${i + 1}`,
+      mapUrl: `https://maps.example.com/branch${i + 1}`, // Fixed mapurl to mapUrl
       pincode: 10000 + i,
       code: `BR${i + 1}`,
       country: mockCountry,
       state: mockState,
       district: mockDistrict,
       city: `City ${i + 1}`,
+      active: true,
+      image: "",
+      latitude: 0,
+      longitude: 0
     };
 
     mockBranches.push(mockBranch);
@@ -103,13 +108,17 @@ export const getMockBranchById = async (id: number): Promise<Branch> => {
     id: id,
     name: `Branch ${id}`,
     location: `Location ${id}`,
-    mapurl: `https://maps.example.com/branch${id}`,
+    mapUrl: `https://maps.example.com/branch${id}`, // Fixed mapurl to mapUrl
     pincode: 10000 + id,
     code: `BR${id}`,
     country: mockCountry,
     state: mockState,
     district: mockDistrict,
     city: `City ${id}`,
+    active: true,
+    image: "",
+    latitude: 0,
+    longitude: 0
   };
 
   return Promise.resolve(mockBranch);

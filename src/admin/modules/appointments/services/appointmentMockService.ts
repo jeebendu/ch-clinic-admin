@@ -25,7 +25,6 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
     
     const mockAppointment: AllAppointment = {
       id: i + 1,
-      isAccept: true,
       status: status,
       patient: {
         id: 100 + i,
@@ -192,7 +191,6 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
 export const getMockAppointmentById = async (id: string | number): Promise<AllAppointment> => {
   const mockAppointment: AllAppointment = {
     id: typeof id === 'string' ? parseInt(id) : id,
-    isAccept: true,
     status: "UPCOMING",
     patient: {
       id: 101,

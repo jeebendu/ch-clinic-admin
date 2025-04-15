@@ -1,3 +1,4 @@
+
 import { Doctor } from "@/admin/types/doctor";
 import { Specialization } from "@/admin/types/specialization";
 
@@ -14,9 +15,14 @@ export const DoctorMockService = {
         name: `Specialization ${index + 1}`,
       }));
 
+      const firstName = `First${i}`;
+      const lastName = `Last${i}`;
+      
       const mockDoctor: Doctor = {
         id: i,
         name: `Doctor ${i}`,
+        firstname: firstName,
+        lastname: lastName,
         email: `doctor${i}@example.com`,
         uid: `DOC${i}`,
         mobile: 1234567890 + i,

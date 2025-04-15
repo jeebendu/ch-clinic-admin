@@ -1,3 +1,4 @@
+
 import { AppointmentRequest } from "@/admin/mock/appointment-request/appointmentRequest";
 import { Country } from "@/admin/types/country";
 import { State } from "@/admin/types/state";
@@ -80,10 +81,13 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             image: `image${i % 10 + 1}.png`,
         };
 
+        const firstName = `FirstName ${i + 1}`;
+        const lastName = `LastName ${i + 1}`;
+
         const mockAppointment: AppointmentRequest = {
             id: i + 1,
-            firstName: `FirstName ${i + 1}`,
-            lastName: `LastName ${i + 1}`,
+            firstName: firstName,
+            lastName: lastName,
             email: `user${i + 1}@example.com`,
             phone: 1234567890 + i,
             dob: new Date(1990, i % 12, (i % 28) + 1),
@@ -98,6 +102,8 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             doctor: {
                 id: i % 10 + 1,
                 name: `Doctor ${i % 10 + 1}`,
+                firstname: `First${i % 10 + 1}`,
+                lastname: `Last${i % 10 + 1}`,
                 email: `doctor${i % 10 + 1}@example.com`,
                 uid: `UID-${i % 10 + 1}`,
                 mobile: 9876543210 + i,

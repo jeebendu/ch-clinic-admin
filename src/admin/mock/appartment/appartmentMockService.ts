@@ -23,7 +23,6 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
     
     const mockAppointment: AllAppointment = {
       id: i + 1,
-      isAccept: true,
       status: status,
       patient: {
         id: 100 + i,
@@ -35,14 +34,31 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
         whatsappNo: `+919876${543210 + i}`,
         firstname: patientName.split(' ')[0],
         lastname: patientName.split(' ')[1],
+        city: `City ${i % 5}`, // Added city
+        branch: { // Added branch
+          id: i % 3 + 1,
+          name: `Branch ${i % 3 + 1}`,
+          code: `BR${i % 3 + 1}`,
+          location: `Location ${i % 3 + 1}`,
+          active: true,
+          state: null,
+          district: null,
+          country: null,
+          city: `City ${i % 3 + 1}`,
+          mapUrl: "",
+          pincode: 12345,
+          image: "",
+          latitude: 0,
+          longitude: 0
+        },
         user: {
           id: 100 + i,
           name: patientName,
           email: `${patientName.split(' ')[0].toLowerCase()}@example.com`,
           phone: `+919876${543210 + i}`,
-          branch:null,
-          username:null,
-          password:null,
+          branch: null,
+          username: null,
+          password: null,
           role: null,
           image: null
         },
@@ -51,6 +67,8 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
       doctor: {
         id: 1,
         name: "Gregory House",
+        firstname: "Gregory", // Added firstname
+        lastname: "House", // Added lastname
         email: "house@clinic.com",
         uid: `DR${1000 + i}`,
         mobile: 1234567890,
@@ -171,7 +189,6 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
 export const getMockAppointmentById = async (id: string | number): Promise<AllAppointment> => {
   const mockAppointment: AllAppointment = {
     id: typeof id === 'string' ? parseInt(id) : id,
-    isAccept: true,
     status: "UPCOMING",
     patient: {
       id: 101,
@@ -183,6 +200,23 @@ export const getMockAppointmentById = async (id: string | number): Promise<AllAp
       whatsappNo: "+919876543210",
       firstname: "John",
       lastname: "Doe",
+      city: "New York", // Added city
+      branch: { // Added branch
+        id: 1,
+        name: "Main Branch",
+        code: "MB001",
+        location: "Main Street",
+        active: true,
+        state: null,
+        district: null,
+        country: null,
+        city: "New York",
+        mapUrl: "",
+        pincode: 10001,
+        image: "",
+        latitude: 0,
+        longitude: 0
+      },
       user: {
         id: 101,
         name: "John Doe",
@@ -192,13 +226,15 @@ export const getMockAppointmentById = async (id: string | number): Promise<AllAp
         username: null,
         password: null,
         role: null,
-        image: null,
+        image: null
       },
       refDoctor: null
     },
     doctor: {
       id: 1,
       name: "Dr. Sarah Johnson",
+      firstname: "Sarah", // Added firstname
+      lastname: "Johnson", // Added lastname
       email: "sarah@clinic.com",
       uid: "DR1001",
       mobile: 1234567890,

@@ -32,7 +32,7 @@ export const generateMockPatient = (id: number): Patient => {
       lastname: faker.person.lastName(),
       email: faker.internet.email(),
       uid: faker.string.uuid(),
-      mobile: faker.number.int({ min: 9000000000, max: 9999999999 }),
+      mobile: parseInt(faker.string.numeric(10)), // Convert to number
       desgination: faker.person.jobTitle(),
       specialization: faker.helpers.arrayElement(["Cardiology", "Neurology", "Dermatology", "Orthopedics"]),
       specializationList: [],

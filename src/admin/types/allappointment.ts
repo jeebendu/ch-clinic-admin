@@ -1,3 +1,4 @@
+
 import { Doctor } from "./doctor";
 import { Patient } from "./patient";
 import { Clinic} from "./clinic";
@@ -6,11 +7,8 @@ import { District } from "./district";
 import { Country } from "./country";
 
 export interface AllAppointment {
-
   id: number;
-  appointmentDate: Date;
   status: string;
-  branch: Branch;
   patient: Patient;
   doctor: Doctor;
   slot: Slot;
@@ -62,15 +60,14 @@ export interface Branch{
     image: string;
     latitude: number;
     longitude: number;
-
 }
 
 
 export interface StatusUpdate {
 status:String;
 }
+
 export interface SearchAppointment {
-    
     status:String;
     date:Date;
 }
