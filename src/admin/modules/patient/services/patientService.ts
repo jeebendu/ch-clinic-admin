@@ -1,53 +1,61 @@
 
-import { Patient } from '../types/Patient';
-import { AxiosResponse } from 'axios';
 import http from "@/lib/JwtInterceptor";
-import patientMockService from './patientMockService';
+import { getTenantId } from "@/utils/tenantUtils";
+import { getEnvVariable } from "@/utils/envUtils";
 
-export interface PatientQueryParams {
-  page: number;
-  size: number;
-  searchTerm?: string;
-  sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
-  gender?: string[];
-  ageGroup?: string[];
-  lastVisit?: string[];
-  insuranceProvider?: string[];
-}
+const apiUrl = getEnvVariable('API_URL');
 
-export interface PatientResponse {
-  content: Patient[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-}
+const PatientService = {
+  list: async (page = 0, size = 10, searchTerm = "") => {
+    try {
+      const tenantId = getTenantId();
+      const response = await http.get(`${apiUrl}/v1/patient/list`, {
+        params: {
+          page,
+          size,
+          search: searchTerm,
+        },
+        headers: {
+          'X-TENANT-ID': tenantId
+        }
+      });
+      console.log("Raw Patient API response:", response);
+      return response.data; // Return just the data part of the response
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+      throw error;
+    }
+  },
 
-export const fetchPatients = async (params: PatientQueryParams): Promise<AxiosResponse<PatientResponse>> => {
-  // Use mock service instead of actual API call for now
-  const response = await patientMockService.getPatients(params.page, params.size);
-  return {
-    data: response,
-    status: 200,
-    statusText: "OK",
-    headers: {},
-    config: { headers: {} } as any
-  };
+  getById: async (id: number) => {
+    try {
+      const response = await http.get(`${apiUrl}/v1/patient/id/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching patient with ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  deleteById: async (id: number) => {
+    try {
+      const response = await http.get(`${apiUrl}/v1/patient/delete/id/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting patient with ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  saveOrUpdate: async (patient: any) => {
+    try {
+      const response = await http.post(`${apiUrl}/v1/patient/saveOrUpdate`, patient);
+      return response.data;
+    } catch (error) {
+      console.error("Error saving/updating patient:", error);
+      throw error;
+    }
+  }
 };
 
-export const fetchPatientById = async (id: number): Promise<AxiosResponse<Patient>> => {
-  // Use mock service instead of actual API call for now
-  const patient = await patientMockService.getMockPatientById(id);
-  return {
-    data: patient,
-    status: 200,
-    statusText: "OK",
-    headers: {},
-    config: { headers: {} } as any
-  };
-};
-
-export const fetchAllPatients = async (patient: any) => {
-  return await http.get(`/v1/patient/list`, patient);
-};
+export default PatientService;
