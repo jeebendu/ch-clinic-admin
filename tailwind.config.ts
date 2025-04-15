@@ -64,17 +64,17 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				brand: {
-					primary: '#9b87f5',
-					secondary: '#7E69AB',
-					tertiary: '#6E59A5',
+					primary: '#00b8ab',
+					secondary: '#009b90',
+					tertiary: '#008a80',
 					dark: '#1A1F2C',
-					light: '#D6BCFA'
+					light: '#b3e8e5'
 				},
 				clinic: {
-					primary: '#9b87f5',
-					secondary: '#7E69AB',
-					accent: '#D6BCFA',
-					light: '#F5F4FF',
+					primary: '#00b8ab',
+					secondary: '#009b90',
+					accent: '#b3e8e5',
+					light: '#e6f7f6',
 					dark: '#1A1F2C'
 				}
 			},

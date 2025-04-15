@@ -1,3 +1,4 @@
+
 /* Admin-specific styles */
 .admin-container {
   background-color: var(--admin-background, #f9fafb);
@@ -43,7 +44,7 @@
 }
 
 .filter-input-icon {
-  color: var(--primary, #9b87f5);
+  color: var(--primary, #00b8ab);
   flex-shrink: 0;
 }
 
@@ -84,7 +85,7 @@
 
 .filter-select:hover {
   background-color: #f3f4f6;
-  color: var(--primary, #9b87f5);
+  color: var(--primary, #00b8ab);
 }
 
 .filter-select-label {
@@ -129,11 +130,11 @@
 
 /* Global brand color styles */
 :root {
-  --brand-primary: #9b87f5;
-  --brand-secondary: #7E69AB;
-  --brand-tertiary: #6E59A5;
+  --brand-primary: #00b8ab;
+  --brand-secondary: #009b90;
+  --brand-tertiary: #008a80;
   --brand-dark: #1A1F2C;
-  --brand-light: #D6BCFA;
+  --brand-light: #b3e8e5;
   
   --admin-primary: var(--brand-primary);
   --admin-primary-hover: var(--brand-secondary);
@@ -143,13 +144,13 @@
 /* Card styles with brand colors */
 .card {
   border-color: var(--brand-light);
-  box-shadow: 0 4px 6px -1px rgba(155, 135, 245, 0.1), 0 2px 4px -1px rgba(155, 135, 245, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 184, 171, 0.1), 0 2px 4px -1px rgba(0, 184, 171, 0.06);
   transition: all 0.2s ease;
 }
 
 .card:hover {
   border-color: var(--brand-primary);
-  box-shadow: 0 10px 15px -3px rgba(155, 135, 245, 0.1), 0 4px 6px -2px rgba(155, 135, 245, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 184, 171, 0.1), 0 4px 6px -2px rgba(0, 184, 171, 0.05);
   transform: translateY(-2px);
 }
 
@@ -186,7 +187,7 @@
 
 .form-field input:focus {
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 2px rgba(155, 135, 245, 0.2);
+  box-shadow: 0 0 0 2px rgba(0, 184, 171, 0.2);
 }
 
 .form-field label {

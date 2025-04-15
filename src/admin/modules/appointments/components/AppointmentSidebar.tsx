@@ -113,7 +113,7 @@ const AppointmentSidebar = ({ onClose, appointments }: AppointmentSidebarProps) 
                   <Button size="sm" variant="outline" className="rounded-full h-8">
                     View
                   </Button>
-                  <Button size="sm" className="rounded-full h-8 bg-primary hover:bg-primary/90">
+                  <Button size="sm" className="rounded-full h-8 bg-brand-primary hover:bg-brand-secondary">
                     Start
                   </Button>
                 </div>
