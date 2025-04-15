@@ -1,10 +1,4 @@
-
-import React from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,265 +6,257 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Doctor } from "../types/doctor";
-import { Branch } from "../types/branch";
-import { Slot } from "../types/allappointment";
-import { TimePicker } from "./TimePicker";
-
-const slotFormSchema = z.object({
-  startTime: z.string().min(1, "Start time is required"),
-  endTime: z.string().min(1, "End time is required"),
-  availableSlots: z.coerce.number().min(1, "At least 1 slot must be available"),
-  date: z.date({ required_error: "Date is required" }),
-  duration: z.coerce.number().min(5, "Duration must be at least 5 minutes"),
-  slotType: z.string().min(1, "Slot type is required"),
-  status: z.string().default("available"),
-});
-
-type SlotFormValues = z.infer<typeof slotFormSchema>;
+import { SearchableSelect } from "./SearchableSelect";
+import { format, parse } from "date-fns";
+import { Doctor } from "@/admin/modules/doctors/types/Doctor";
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import { AllAppointment } from "@/admin/modules/appointments/types/AllAppointment";
 
 interface SlotCreationDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (slot: Partial<Slot>) => void;
-  doctor?: Doctor;
-  branch?: Branch;
+  setOpen: (open: boolean) => void;
+  doctors: Doctor[];
+  branches: Branch[];
+  selectedDate: Date | undefined;
+  setSelectedDate: (date: Date | undefined) => void;
+  onSlotCreate: (slot: any) => void;
+  appointments: AllAppointment[];
 }
 
-export function SlotCreationDialog({
+const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
   open,
-  onOpenChange,
-  onSave,
-  doctor,
-  branch,
-}: SlotCreationDialogProps) {
-  const form = useForm<SlotFormValues>({
-    resolver: zodResolver(slotFormSchema),
-    defaultValues: {
-      startTime: "09:00 AM",
-      endTime: "09:30 AM",
-      availableSlots: 2,
-      duration: 30,
-      slotType: "Regular",
-      status: "available",
-    },
-  });
+  setOpen,
+  doctors,
+  branches,
+  selectedDate,
+  setSelectedDate,
+  onSlotCreate,
+  appointments,
+}) => {
+  const [slotType, setSlotType] = useState("regular");
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [capacity, setCapacity] = useState("");
+  const [recurringDays, setRecurringDays] = useState<string[]>([]);
 
-  function onSubmit(data: SlotFormValues) {
-    const slot: Partial<Slot> = {
-      ...data,
-      doctor,
-      branch,
-      id: Date.now(), // Temporary ID for new slots
+  const handleCreateSlot = () => {
+    if (!selectedDoctor || !selectedBranch || !startTime || !endTime) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    const newSlot = {
+      slotType: slotType,
+      isRecurring: isRecurring,
+      selectedDoctor: selectedDoctor,
+      selectedBranch: selectedBranch,
+      startTime: startTime,
+      endTime: endTime,
+      capacity: capacity,
+      recurringDays: recurringDays,
+      selectedDate: selectedDate,
     };
-    onSave(slot);
-    form.reset();
-    onOpenChange(false);
-  }
 
-  const slotTypes = ["Regular", "Emergency", "Follow-up", "Consultation"];
-  const statusOptions = ["available", "booked", "cancelled"];
+    onSlotCreate(newSlot);
+    setOpen(false);
+  };
+
+  const handleDayToggle = (day: string) => {
+    if (recurringDays.includes(day)) {
+      setRecurringDays(recurringDays.filter((d) => d !== day));
+    } else {
+      setRecurringDays([...recurringDays, day]);
+    }
+  };
+
+  useEffect(() => {
+    if (doctors.length > 0) {
+      setSelectedDoctor(doctors[0]);
+    }
+    if (branches.length > 0) {
+      setSelectedBranch(branches[0]);
+    }
+  }, [doctors, branches]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Time Slot</DialogTitle>
+          <DialogTitle>Create Appointment Slot</DialogTitle>
           <DialogDescription>
-            Add a new appointment slot to your schedule
+            Create a new appointment slot for booking.
           </DialogDescription>
         </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="availableSlots"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Available Slots</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={1}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="startTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Time</FormLabel>
-                    <FormControl>
-                      <TimePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="endTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Time</FormLabel>
-                    <FormControl>
-                      <TimePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="duration"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Duration (minutes)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={5}
-                        step={5}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="slotType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Slot Type</FormLabel>
-                    <FormControl>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        {...field}
-                      >
-                        {slotTypes.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <select
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      {...field}
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Create Slot</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        <div className="grid gap-4 py-4">
+          <Tabs defaultValue="regular" className="w-[400px]">
+            <TabsList>
+              <TabsTrigger value="regular" onClick={() => setSlotType("regular")}>
+                Regular
+              </TabsTrigger>
+              <TabsTrigger value="recurring" onClick={() => setSlotType("recurring")}>
+                Recurring
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="regular">
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="doctor">Doctor</Label>
+                  <SearchableSelect
+                    options={doctors.map((doctor) => ({
+                      label: doctor.name,
+                      value: doctor.id.toString(),
+                    }))}
+                    onChange={(value: string) => {
+                      const doctor = doctors.find(
+                        (doctor) => doctor.id.toString() === value
+                      );
+                      setSelectedDoctor(doctor || null);
+                    }}
+                    placeholder="Select a doctor"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="branch">Branch</Label>
+                  <SearchableSelect
+                    options={branches.map((branch) => ({
+                      label: branch.name,
+                      value: branch.id.toString(),
+                    }))}
+                    onChange={(value: string) => {
+                      const branch = branches.find(
+                        (branch) => branch.id.toString() === value
+                      );
+                      setSelectedBranch(branch || null);
+                    }}
+                    placeholder="Select a branch"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="start-time">Start Time</Label>
+                  <Input
+                    id="start-time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    placeholder="Enter start time"
+                    type="time"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-time">End Time</Label>
+                  <Input
+                    id="end-time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    placeholder="Enter end time"
+                    type="time"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="capacity">Capacity</Label>
+                  <Input
+                    id="capacity"
+                    value={capacity}
+                    onChange={(e) => setCapacity(e.target.value)}
+                    placeholder="Enter capacity"
+                    type="number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="recurring">
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label>Recurring Days</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                      (day) => (
+                        <Button
+                          key={day}
+                          variant={recurringDays.includes(day) ? "default" : "outline"}
+                          onClick={() => handleDayToggle(day)}
+                        >
+                          {day}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="start-time">Start Time</Label>
+                  <Input
+                    id="start-time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    placeholder="Enter start time"
+                    type="time"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-time">End Time</Label>
+                  <Input
+                    id="end-time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    placeholder="Enter end time"
+                    type="time"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="capacity">Capacity</Label>
+                  <Input
+                    id="capacity"
+                    value={capacity}
+                    onChange={(e) => setCapacity(e.target.value)}
+                    placeholder="Enter capacity"
+                    type="number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="date">Start Date</Label>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+        <DialogFooter>
+          <Button type="submit" onClick={handleCreateSlot}>
+            Create slot
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default SlotCreationDialog;

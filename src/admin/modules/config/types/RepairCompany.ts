@@ -16,6 +16,4 @@ export interface RepairCompany {
   shipEmail?: string;
   shipPhone?: string;
   shipAccountNo?: string;
-  contact?: string;
-  address?: string;
 }

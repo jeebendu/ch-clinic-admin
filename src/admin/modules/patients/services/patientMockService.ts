@@ -1,8 +1,8 @@
 
 import { faker } from '@faker-js/faker';
 import { Patient } from '../types/Patient';
-import { Branch } from '../../shared/types/Branch';
-import { Doctor } from '../../doctor/types/Doctor';
+import { Branch } from '../../branch/types/Branch';
+import { Doctor } from '../../doctors/types/Doctor';
 import { User } from '../../users/types/User';
 
 // Function to generate a random date within the last year

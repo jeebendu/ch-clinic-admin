@@ -1,9 +1,9 @@
 
 export interface FileType {
-  id: string;
+  id: number;
   name: string;
-  type: "file" | "folder";
-  modified: string;
-  owner: string;
-  size: string;
+  url: string;
+  size?: number;
+  type?: string;
+  lastModified?: Date;
 }

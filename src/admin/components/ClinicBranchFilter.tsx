@@ -1,39 +1,28 @@
-
-import React, { useEffect, useState } from "react";
-import { 
-  Building, 
-  ChevronDown, 
-  Store,
-  X
-} from "lucide-react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription
-} from "@/components/ui/dialog";
+import React, { useState, useEffect } from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Clinic } from "@/admin/types/clinic";
-import { Branch } from "@/admin/types/branch";
-import { Country } from "@/admin/types/country";
-import { State } from "@/admin/types/state";
-import { District } from "@/admin/types/district";
-import { featureList, Module, Plan } from "@/admin/types/role";
+import { searchClinics } from "@/admin/services/clinicService";
+import { fetchBranches } from "@/admin/services/branchService";
+import { getCountries } from "@/admin/services/countryService";
+import { getStatesByCountryId } from "@/admin/services/stateService";
+import { getDistrictByStateId } from "@/admin/services/districtService";
+import { SearchableSelect } from "./SearchableSelect";
+import { MultipleSearchableSelect } from "./MultipleSearchableSelect";
+import { getRoles } from "@/admin/services/roleService";
+import { Clinic } from "@/admin/modules/core/types/Clinic";
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import { Country } from "@/admin/modules/core/types/Country";
+import { State } from "@/admin/modules/core/types/State";
+import { District } from "@/admin/modules/core/types/District";
+import { Role } from "@/admin/modules/users/types/User";
 
 // Mock data - In a real application, you would fetch these from an API
 const mockModule: Module = { id: 1, name: "Basic Module" };

@@ -1,48 +1,46 @@
 
-import { Branch } from "../../shared/types/Branch";
-
-export interface User {
-  id: number;
-  branch: Branch;
-  name: string;
-  username: string;
-  email: string;
-  phone: string;
-  password: string;
-  effectiveTo?: Date;
-  effectiveFrom?: Date;
-  role: Role;
-  image: string;
-}
-
 export interface Role {
   id: number;
   name: string;
-  permissions: Permission[];
+  permissions: {
+    id: number;
+    module: {
+      id: number;
+      name: string;
+      code?: string;
+    };
+    read: boolean;
+    write: boolean;
+    upload: boolean;
+    print: boolean;
+  }[];
 }
 
-export interface Permission {
+export interface User {
   id: number;
-  module: Module;
-  read: boolean;
-  write: boolean;
-  upload: boolean;
-  print: boolean;
-  approve?: boolean;
-}
-
-export interface Module {
-  id: number;
+  branch: {
+    id: number;
+    name: string;
+    code: string;
+    location: string;
+    active?: boolean;
+    state: any;
+    district: any;
+    country: any;
+    city: string;
+    mapUrl?: string;
+    pincode: number;
+    image?: string;
+    latitude?: number;
+    longitude?: number;
+  } | null;
   name: string;
-  code: string;
-  description?: string;
-}
-
-export interface AuthUser {
-  email: string | null;
-  reason: "login";
-  tenant: "dev";
-  otp: string | null;
-  authToken: string | null;
-  phone: string | null;
+  username: string | null;
+  email: string;
+  phone: string;
+  password: string | null;
+  effectiveTo?: Date | null;
+  effectiveFrom?: Date | null;
+  role?: Role | null;
+  image?: string | null;
 }

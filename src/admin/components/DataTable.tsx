@@ -1,133 +1,109 @@
-
-import React from "react";
-import { 
+import React, { useState } from "react";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getSortedRowModel,
+  SortingState,
+  getFilteredRowModel,
+} from "@tanstack/react-table";
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow 
+  TableRow,
 } from "@/components/ui/table";
-import { FileType } from "@/admin/types/file";
-import { Button } from "@/components/ui/button";
-import { ChevronUp, ChevronDown, MoreHorizontal, File, Folder } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { cn } from "@/lib/utils";
+import { FileType } from "@/admin/modules/core/types/File";
 
-interface DataTableProps {
-  data: FileType[];
-  onSort: (column: string) => void;
-  sortColumn: string;
-  sortDirection: "asc" | "desc";
+interface DataTableProps<TData, TValue> {
+  columns: any[];
+  data: TData[];
+  onRowClick?: (row: TData) => void;
+  enableSorting?: boolean;
 }
 
-const DataTable = ({
+const DataTable = <TData extends object, TValue>({
+  columns,
   data,
-  onSort,
-  sortColumn,
-  sortDirection,
-}: DataTableProps) => {
-  const renderSortIcon = (column: string) => {
-    if (sortColumn !== column) return null;
-    return sortDirection === "asc" ? (
-      <ChevronUp className="ml-1 h-4 w-4" />
-    ) : (
-      <ChevronDown className="ml-1 h-4 w-4" />
-    );
-  };
+  onRowClick,
+  enableSorting = true,
+}: DataTableProps<TData, TValue>) => {
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const handleSort = (column: string) => {
-    onSort(column);
-  };
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+    },
+  });
 
   return (
-    <div className="rounded-md border bg-white overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader className="bg-gray-50">
-            <TableRow className="border-b hover:bg-transparent">
-              <TableHead className="w-[400px]">
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("name")}
-                  className="flex items-center font-semibold text-xs uppercase tracking-wide"
-                >
-                  Name
-                  {renderSortIcon("name")}
-                </Button>
-              </TableHead>
-              <TableHead className="w-[150px]">
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("modified")}
-                  className="flex items-center font-semibold text-xs uppercase tracking-wide"
-                >
-                  Modified
-                  {renderSortIcon("modified")}
-                </Button>
-              </TableHead>
-              <TableHead className="w-[150px]">
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("owner")}
-                  className="flex items-center font-semibold text-xs uppercase tracking-wide"
-                >
-                  Owner
-                  {renderSortIcon("owner")}
-                </Button>
-              </TableHead>
-              <TableHead className="w-[100px]">
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("size")}
-                  className="flex items-center font-semibold text-xs uppercase tracking-wide"
-                >
-                  Size
-                  {renderSortIcon("size")}
-                </Button>
-              </TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="max-h-[calc(100vh-240px)] overflow-y-auto">
-            {data.map((file) => (
-              <TableRow
-                key={file.id}
-                className="border-b hover:bg-blue-50 cursor-pointer"
-              >
-                <TableCell className="py-3">
-                  <div className="flex items-center">
-                    <span className="mr-3 text-blue-500">
-                      {file.type === "folder" ? (
-                        <Folder className="h-5 w-5" />
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id} className="w-[200px]">
+                    {header.isPlaceholder
+                      ? null
+                      : (enableSorting ? (
+                        <div className="cursor-pointer" onClick={header.column.getToggleSortingHandler()}>
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          {{
+                            ascending: " 🔼",
+                            descending: " 🔽",
+                          }[header.column.getIsSorted() as string] ?? null}
+                        </div>
                       ) : (
-                        <File className="h-5 w-5" />
-                      )}
-                    </span>
-                    <span className="font-medium">{file.name}</span>
-                  </div>
+                        <div>
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </div>
+                      ))}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              data-state={row.getIsSelected() && "selected"}
+              onClick={() => onRowClick && onRowClick(row.original)}
+              className={onRowClick ? "cursor-pointer" : ""}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id} className="w-[200px]">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
-                <TableCell className="text-sm text-gray-600">
-                  {formatDistanceToNow(new Date(file.modified), {
-                    addSuffix: true,
-                  })}
-                </TableCell>
-                <TableCell className="text-sm text-gray-600">
-                  {file.owner}
-                </TableCell>
-                <TableCell className="text-sm text-gray-600">
-                  {file.size}
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableRow>
+          ))}
+          {data.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 };
