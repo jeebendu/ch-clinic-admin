@@ -1,7 +1,7 @@
 
-import { State } from "./State";
-import { District } from "./District";
 import { Country } from "./Country";
+import { District } from "./District";
+import { State } from "./State";
 
 export interface Branch {
   id: number;

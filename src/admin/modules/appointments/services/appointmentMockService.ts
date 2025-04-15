@@ -1,292 +1,432 @@
+import { AllAppointment, Appointment } from "../types/Appointment";
+import { Patient } from "../../patients/types/Patient";
+import { Doctor } from "../../doctor/types/Doctor";
+import { Slot } from "../types/Slot";
+import { Branch } from "../../shared/types/Branch";
+import { DoctorClinic } from "../types/DoctorClinic";
+import { User } from "../../users/types/User";
 
-import { AllAppointment } from "../types/Appointment";
-import { Branch } from "@/admin/modules/shared/types/Branch";
-import { format, addDays, subDays } from "date-fns";
-
-const generateMockAppointments = (): AllAppointment[] => {
-  return Array.from({ length: 20 }, (_, i) => {
-    const today = new Date();
-    const date = i % 3 === 0 
-      ? addDays(today, Math.floor(i / 3)) 
-      : i % 3 === 1 
-        ? subDays(today, Math.floor(i / 3)) 
-        : today;
-        
-    return {
-      id: 1000 + i,
-      isAccept: true,
-      appointmentDate: date,
-      status: i % 4 === 0 ? "COMPLETED" : i % 4 === 1 ? "UPCOMING" : i % 4 === 2 ? "CANCELLED" : "IN_PROGRESS",
-      patient: {
-        id: 100 + i,
-        uid: `PT${100 + i}`,
-        gender: i % 2 === 0 ? "MALE" : "FEMALE",
-        dob: new Date(1980 + i, 0, 1),
-        age: 40 - i,
-        address: `${123 + i} Main St, Anytown`,
-        whatsappNo: `555-${100 + i}`,
-        firstname: `Patient`,
-        lastname: `${i + 1}`,
-        user: {
-          id: 200 + i,
-          name: `Patient ${i + 1}`,
-          email: `patient${i + 1}@example.com`,
-          phone: `555-${100 + i}`,
-          username: `patient${i + 1}`,
-          password: "password",
-          role: {
-            id: 3,
-            name: "PATIENT",
-            permissions: []
-          },
-          image: null,
+const mockAppointments: AllAppointment[] = [
+  {
+    id: 1,
+    appointmentDate: new Date(),
+    status: "upcoming",
+    branch: {
+      id: 1,
+      name: "Main Branch",
+      code: "MB-001",
+      location: "Downtown",
+      active: true,
+      state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+      district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+      country: { id: 1, name: "United States", code: "US" },
+      city: "New York",
+      mapUrl: "",
+      pincode: 10001,
+      image: "",
+      latitude: 40.7128,
+      longitude: -74.0060,
+    },
+    patient: {
+      id: 1,
+      uid: "PT-001",
+      gender: "Male",
+      dob: new Date(),
+      city: "New York",
+      age: 30,
+      address: "123 Main St",
+      firstname: "John",
+      lastname: "Doe",
+      user: {
+        id: 1,
+        name: "John Doe",
+        username: "johndoe",
+        email: "john.doe@example.com",
+        phone: "123-456-7890",
+        password: "password",
+        branch: {
+          id: 1,
+          name: "Main Branch",
+          code: "MB-001",
+          location: "Downtown",
+          active: true,
+          state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+          district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+          country: { id: 1, name: "United States", code: "US" },
+          city: "New York",
+          mapUrl: "",
+          pincode: 10001,
+          image: "",
+          latitude: 40.7128,
+          longitude: -74.0060,
         },
-        refDoctor: null,
-        city: "Anytown",
-        branch: null
-      },
-      doctor: {
-        id: 300 + i,
-        name: `Dr. Smith ${i}`,
-        lastname: "Smith",
-        firstname: `Doctor ${i}`,
-        email: `dr.smith${i}@example.com`,
-        uid: `DR${300 + i}`,
-        mobile: 5551234567,
-        desgination: "Senior Physician",
-        specialization: i % 3 === 0 ? "Cardiology" : i % 3 === 1 ? "Neurology" : "General Medicine",
-        specializationList: [],
-        qualification: "MD",
-        joiningDate: new Date(2010, 0, 1),
-        user: {
-          id: 400 + i,
-          name: `Dr. Smith ${i}`,
-          email: `dr.smith${i}@example.com`,
-          phone: "555-987-6543",
-          username: `drsmith${i}`,
-          password: "password",
-          role: {
-            id: 2,
-            name: "DOCTOR",
-            permissions: []
-          },
-          image: null,
-        },
-        status: "ACTIVE",
-        external: true,
-        external_temp: null
-      },
-      slot: {
-        id: 500 + i,
-        startTime: `${9 + (i % 8)}:00`,
-        endTime: `${10 + (i % 8)}:00`,
-        availableSlots: 1,
-        date: date,
-        duration: 30,
-        slotType: "REGULAR",
-        status: "BOOKED"
-      },
-      familyMember: null,
-      doctorClinic: {
-        id: 600 + i,
-        doctor: {
-          id: 300 + i,
-          name: `Dr. Smith ${i}`,
-          lastname: "Smith",
-          firstname: `Doctor ${i}`,
-          email: `dr.smith${i}@example.com`,
-          uid: `DR${300 + i}`,
-          mobile: 5551234567,
-          desgination: "Senior Physician",
-          specialization: i % 3 === 0 ? "Cardiology" : i % 3 === 1 ? "Neurology" : "General Medicine",
-          specializationList: [],
-          qualification: "MD",
-          joiningDate: new Date(2010, 0, 1),
-          user: {
-            id: 400 + i,
-            name: `Dr. Smith ${i}`,
-            email: `dr.smith${i}@example.com`,
-            phone: "555-987-6543",
-            username: `drsmith${i}`,
-            password: "password",
-            role: {
-              id: 2,
-              name: "DOCTOR",
-              permissions: []
-            },
-            image: null,
-          },
-          status: "ACTIVE",
-          external: true,
-          external_temp: null
-        },
-        clinic: {
-          id: 700 + i,
-          uid: `CL${700 + i}`,
-          name: `Clinic ${i}`,
-          email: `clinic${i}@example.com`,
-          contact: `555-${700 + i}`,
-          address: `${456 + i} Health St, Anytown`,
-          plan: {
-            features: {
-              id: 1,
-              module: {
-                id: 1,
-                name: "APPOINTMENTS"
-              },
-              print: true
-            }
-          }
-        }
+        role: { id: 1, name: "Admin", permissions: [] },
+        image: ""
       },
       branch: {
         id: 1,
         name: "Main Branch",
-        code: "MB1",
+        code: "MB-001",
         location: "Downtown",
         active: true,
-        state: {
-          id: 1,
-          name: "California",
-          country: {
-            id: 1,
-            name: "United States",
-            code: "US"
-          }
-        },
-        district: {
-          id: 1,
-          name: "Los Angeles",
-          state: {
-            id: 1,
-            name: "California",
-            country: {
-              id: 1,
-              name: "United States",
-              code: "US"
-            }
-          }
-        },
-        country: {
-          id: 1,
-          name: "United States",
-          code: "US"
-        },
-        city: "Los Angeles",
-        mapUrl: "https://maps.example.com/main-branch",
-        pincode: 90001,
-        image: "branch1.jpg",
-        latitude: 34.0522,
-        longitude: -118.2437
-      }
-    };
-  });
-};
-
-const mockAppointments = generateMockAppointments();
-
-const appointmentMockService = {
-  getAllAppointments: async () => {
-    return {
-      data: mockAppointments,
-      status: 200,
-      statusText: "OK",
-    };
-  },
-  
-  getAppointmentById: async (id: string) => {
-    const appointment = mockAppointments.find(a => a.id === parseInt(id));
-    
-    if (!appointment) {
-      throw new Error("Appointment not found");
-    }
-    
-    return {
-      data: appointment,
-      status: 200,
-      statusText: "OK",
-    };
-  },
-  
-  updateAppointmentStatus: async (id: string, status: string) => {
-    const appointmentIndex = mockAppointments.findIndex(a => a.id === parseInt(id));
-    
-    if (appointmentIndex === -1) {
-      throw new Error("Appointment not found");
-    }
-    
-    mockAppointments[appointmentIndex].status = status;
-    
-    return {
-      data: mockAppointments[appointmentIndex],
-      status: 200,
-      statusText: "OK",
-    };
-  },
-  
-  getPaginatedAppointments: async (filters: any) => {
-    const { page = 0, size = 10, doctorId, branches, statuses, searchTerm } = filters;
-    
-    let filtered = [...mockAppointments];
-    
-    if (doctorId) {
-      filtered = filtered.filter(a => a.doctor.id === doctorId);
-    }
-    
-    if (branches && branches.length > 0) {
-      filtered = filtered.filter(a => branches.includes(a.branch?.id));
-    }
-    
-    if (statuses && statuses.length > 0) {
-      filtered = filtered.filter(a => statuses.includes(a.status));
-    }
-    
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(a => 
-        a.patient.firstname.toLowerCase().includes(term) ||
-        a.patient.lastname.toLowerCase().includes(term) ||
-        a.doctor.name.toLowerCase().includes(term)
-      );
-    }
-    
-    const start = page * size;
-    const end = start + size;
-    const paginatedItems = filtered.slice(start, end);
-    
-    return {
-      data: {
-        content: paginatedItems,
-        pageable: {
-          pageNumber: page,
-          pageSize: size,
-          sort: {
-            empty: true,
-            sorted: false,
-            unsorted: true,
-          },
-          offset: start,
-          paged: true,
-          unpaged: false,
-        },
-        totalPages: Math.ceil(filtered.length / size),
-        totalElements: filtered.length,
-        last: end >= filtered.length,
-        size: size,
-        number: page,
-        sort: {
-          empty: true,
-          sorted: false,
-          unsorted: true,
-        },
-        numberOfElements: paginatedItems.length,
-        first: page === 0,
-        empty: paginatedItems.length === 0,
+        state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+        district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+        country: { id: 1, name: "United States", code: "US" },
+        city: "New York",
+        mapUrl: "",
+        pincode: 10001,
+        image: "",
+        latitude: 40.7128,
+        longitude: -74.0060,
       },
-      status: 200,
-      statusText: "OK",
-    };
+      refDoctor: {
+        id: 1,
+        uid: "DR-001",
+        firstname: "John",
+        lastname: "Smith",
+        email: "john.smith@example.com",
+        desgination: "Cardiologist",
+        specializationList: [],
+        qualification: "MD",
+        joiningDate: new Date(),
+        user: {
+          id: 1,
+          name: "John Smith",
+          username: "johnsmith",
+          email: "john.smith@example.com",
+          phone: "123-456-7890",
+          password: "password",
+          branch: {
+            id: 1,
+            name: "Main Branch",
+            code: "MB-001",
+            location: "Downtown",
+            active: true,
+            state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+            district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+            country: { id: 1, name: "United States", code: "US" },
+            city: "New York",
+            mapUrl: "",
+            pincode: 10001,
+            image: "",
+            latitude: 40.7128,
+            longitude: -74.0060,
+          },
+          role: { id: 1, name: "Admin", permissions: [] },
+          image: ""
+        },
+        external: false,
+        external_temp: null
+      }
+    },
+    doctor: {
+      id: 1,
+      uid: "DR-001",
+      firstname: "John",
+      lastname: "Smith",
+      email: "john.smith@example.com",
+      desgination: "Cardiologist",
+      specializationList: [],
+      qualification: "MD",
+      joiningDate: new Date(),
+      user: {
+        id: 1,
+        name: "John Smith",
+        username: "johnsmith",
+        email: "john.smith@example.com",
+        phone: "123-456-7890",
+        password: "password",
+        branch: {
+          id: 1,
+          name: "Main Branch",
+          code: "MB-001",
+          location: "Downtown",
+          active: true,
+          state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+          district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+          country: { id: 1, name: "United States", code: "US" },
+          city: "New York",
+          mapUrl: "",
+          pincode: 10001,
+          image: "",
+          latitude: 40.7128,
+          longitude: -74.0060,
+        },
+        role: { id: 1, name: "Admin", permissions: [] },
+        image: ""
+      },
+      external: false,
+      external_temp: null
+    },
+    slot: { id: 1, availableSlots: 2 },
+    familyMember: { id: "1", name: "Jane Doe", age: 28, gender: "Female", phone: "987-654-3210", relationship: "Wife" },
+    doctorClinic: {
+      id: 1,
+      doctor: {
+        id: 1,
+        uid: "DR-001",
+        firstname: "John",
+        lastname: "Smith",
+        email: "john.smith@example.com",
+        desgination: "Cardiologist",
+        specializationList: [],
+        qualification: "MD",
+        joiningDate: new Date(),
+        user: {
+          id: 1,
+          name: "John Smith",
+          username: "johnsmith",
+          email: "john.smith@example.com",
+          phone: "123-456-7890",
+          password: "password",
+          branch: {
+            id: 1,
+            name: "Main Branch",
+            code: "MB-001",
+            location: "Downtown",
+            active: true,
+            state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+            district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+            country: { id: 1, name: "United States", code: "US" },
+            city: "New York",
+            mapUrl: "",
+            pincode: 10001,
+            image: "",
+            latitude: 40.7128,
+            longitude: -74.0060,
+          },
+          role: { id: 1, name: "Admin", permissions: [] },
+          image: ""
+        },
+        external: false,
+        external_temp: null
+      },
+      clinic: {
+        id: 1,
+        uid: "CL-001",
+        name: "Main Clinic",
+        email: "main.clinic@example.com",
+        contact: "123-456-7890",
+        address: "123 Main St",
+        plan: { features: { id: 1, module: { id: 1, name: "Cardiology" }, print: true } }
+      }
+    },
+    isAccept: true
   },
+  {
+    id: 2,
+    appointmentDate: new Date(),
+    status: "completed",
+    branch: {
+      id: 1,
+      name: "Main Branch",
+      code: "MB-001",
+      location: "Downtown",
+      active: true,
+      state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+      district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+      country: { id: 1, name: "United States", code: "US" },
+      city: "New York",
+      mapUrl: "",
+      pincode: 10001,
+      image: "",
+      latitude: 40.7128,
+      longitude: -74.0060,
+    },
+    patient: {
+      id: 2,
+      uid: "PT-002",
+      gender: "Female",
+      dob: new Date(),
+      city: "Los Angeles",
+      age: 40,
+      address: "456 Elm St",
+      firstname: "Jane",
+      lastname: "Smith",
+      user: {
+        id: 2,
+        name: "Jane Smith",
+        username: "janesmith",
+        email: "jane.smith@example.com",
+        phone: "987-654-3210",
+        password: "password",
+        branch: {
+          id: 1,
+          name: "Main Branch",
+          code: "MB-001",
+          location: "Downtown",
+          active: true,
+          state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+          district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+          country: { id: 1, name: "United States", code: "US" },
+          city: "New York",
+          mapUrl: "",
+          pincode: 10001,
+          image: "",
+          latitude: 40.7128,
+          longitude: -74.0060,
+        },
+        role: { id: 1, name: "Admin", permissions: [] },
+        image: ""
+      },
+      branch: {
+        id: 1,
+        name: "Main Branch",
+        code: "MB-001",
+        location: "Downtown",
+        active: true,
+        state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+        district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+        country: { id: 1, name: "United States", code: "US" },
+        city: "New York",
+        mapUrl: "",
+        pincode: 10001,
+        image: "",
+        latitude: 40.7128,
+        longitude: -74.0060,
+      },
+      refDoctor: {
+        id: 1,
+        uid: "DR-001",
+        firstname: "John",
+        lastname: "Smith",
+        email: "john.smith@example.com",
+        desgination: "Cardiologist",
+        specializationList: [],
+        qualification: "MD",
+        joiningDate: new Date(),
+        user: {
+          id: 1,
+          name: "John Smith",
+          username: "johnsmith",
+          email: "john.smith@example.com",
+          phone: "123-456-7890",
+          password: "password",
+          branch: {
+            id: 1,
+            name: "Main Branch",
+            code: "MB-001",
+            location: "Downtown",
+            active: true,
+            state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+            district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+            country: { id: 1, name: "United States", code: "US" },
+            city: "New York",
+            mapUrl: "",
+            pincode: 10001,
+            image: "",
+            latitude: 40.7128,
+            longitude: -74.0060,
+          },
+          role: { id: 1, name: "Admin", permissions: [] },
+          image: ""
+        },
+        external: false,
+        external_temp: null
+      }
+    },
+    doctor: {
+      id: 1,
+      uid: "DR-001",
+      firstname: "John",
+      lastname: "Smith",
+      email: "john.smith@example.com",
+      desgination: "Cardiologist",
+      specializationList: [],
+      qualification: "MD",
+      joiningDate: new Date(),
+      user: {
+        id: 1,
+        name: "John Smith",
+        username: "johnsmith",
+        email: "john.smith@example.com",
+        phone: "123-456-7890",
+        password: "password",
+        branch: {
+          id: 1,
+          name: "Main Branch",
+          code: "MB-001",
+          location: "Downtown",
+          active: true,
+          state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+          district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+          country: { id: 1, name: "United States", code: "US" },
+          city: "New York",
+          mapUrl: "",
+          pincode: 10001,
+          image: "",
+          latitude: 40.7128,
+          longitude: -74.0060,
+        },
+        role: { id: 1, name: "Admin", permissions: [] },
+        image: ""
+      },
+      external: false,
+      external_temp: null
+    },
+    slot: { id: 2, availableSlots: 0 },
+    familyMember: { id: "2", name: "Tom Smith", age: 10, gender: "Male", phone: "987-654-3210", relationship: "Son" },
+    doctorClinic: {
+      id: 1,
+      doctor: {
+        id: 1,
+        uid: "DR-001",
+        firstname: "John",
+        lastname: "Smith",
+        email: "john.smith@example.com",
+        desgination: "Cardiologist",
+        specializationList: [],
+        qualification: "MD",
+        joiningDate: new Date(),
+        user: {
+          id: 1,
+          name: "John Smith",
+          username: "johnsmith",
+          email: "john.smith@example.com",
+          phone: "123-456-7890",
+          password: "password",
+          branch: {
+            id: 1,
+            name: "Main Branch",
+            code: "MB-001",
+            location: "Downtown",
+            active: true,
+            state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+            district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+            country: { id: 1, name: "United States", code: "US" },
+            city: "New York",
+            mapUrl: "",
+            pincode: 10001,
+            image: "",
+            latitude: 40.7128,
+            longitude: -74.0060,
+          },
+          role: { id: 1, name: "Admin", permissions: [] },
+          image: ""
+        },
+        external: false,
+        external_temp: null
+      },
+      clinic: {
+        id: 1,
+        uid: "CL-001",
+        name: "Main Clinic",
+        email: "main.clinic@example.com",
+        contact: "123-456-7890",
+        address: "123 Main St",
+        plan: { features: { id: 1, module: { id: 1, name: "Cardiology" }, print: true } }
+      }
+    },
+    isAccept: true
+  },
+];
+
+export const findAllAppointments = () => {
+  return mockAppointments;
 };
 
-export default appointmentMockService;
+export const findAppointmentById = (id: number) => {
+  return mockAppointments.find((appointment) => appointment.id === id);
+};
+
+export default { findAllAppointments, findAppointmentById };

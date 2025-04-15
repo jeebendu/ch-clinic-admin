@@ -1,10 +1,10 @@
 
-import { Branch } from "@/admin/modules/shared/types/Branch";
-import { Country } from "@/admin/modules/shared/types/Country";
-import { District } from "@/admin/modules/shared/types/District";
-import { State } from "@/admin/modules/shared/types/State";
-import { Doctor } from "@/admin/modules/doctors/types/Doctor";
-import { User } from "@/admin/modules/users/types/User";
+import { Branch } from "../../shared/types/Branch";
+import { Country } from "../../shared/types/Country";
+import { District } from "../../shared/types/District";
+import { State } from "../../shared/types/State";
+import { Doctor } from "../../doctor/types/Doctor";
+import { User } from "../../users/types/User";
 
 export interface Patient {
   id: number;
@@ -46,4 +46,8 @@ export interface FamilyMember {
   age: number;
   gender: string;
   phone: string;
+}
+
+export interface SearchPatient {
+  inputValue: String;
 }

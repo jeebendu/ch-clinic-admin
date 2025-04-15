@@ -1,19 +1,19 @@
-
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { X, Calendar, Clock, Mail, MapPin, Phone, Calendar as CalendarIcon } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { Appointment, AppointmentStatus, AppointmentType } from '../types/appointment';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { AllAppointment } from '../types/Appointment';
 
 interface AppointmentSidebarProps {
   onClose: () => void;
-  appointments: Appointment[];
+  appointments: AllAppointment[];
 }
 
 const AppointmentSidebar = ({ onClose, appointments }: AppointmentSidebarProps) => {
-  const getAppointmentTypeLabel = (type?: AppointmentType) => {
+  const getAppointmentTypeLabel = (type?: AllAppointment['appointmentType']) => {
     if (!type) return "Visit";
     switch (type) {
       case "direct-visit": return "Direct Visit";
@@ -23,7 +23,7 @@ const AppointmentSidebar = ({ onClose, appointments }: AppointmentSidebarProps) 
     }
   };
 
-  const getStatusBadgeStyle = (status: AppointmentStatus) => {
+  const getStatusBadgeStyle = (status: AllAppointment['status']) => {
     switch (status) {
       case "upcoming": return "bg-blue-100 text-blue-800";
       case "completed": return "bg-green-100 text-green-800";
@@ -65,7 +65,7 @@ const AppointmentSidebar = ({ onClose, appointments }: AppointmentSidebarProps) 
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge className={getStatusBadgeStyle(appointment.status as AppointmentStatus)}>
+                      <Badge className={getStatusBadgeStyle(appointment.status)}>
                         {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                       </Badge>
                       <Badge variant="outline" className="rounded-full">

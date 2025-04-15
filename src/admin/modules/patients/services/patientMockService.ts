@@ -1,6 +1,9 @@
 
 import { faker } from '@faker-js/faker';
 import { Patient } from '../types/Patient';
+import { Branch } from '../../shared/types/Branch';
+import { Doctor } from '../../doctor/types/Doctor';
+import { User } from '../../users/types/User';
 
 // Function to generate a random date within the last year
 const getRandomDate = (): Date => {
@@ -27,7 +30,7 @@ const getRandomVisits = (): { date: Date; reason: string }[] => {
   return visits.sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort visits by date
 };
 
-const generatePatient = (): any => {
+const generatePatient = (): Patient => {
   const genderOptions = ['Male', 'Female', 'Other'];
   const insuranceOptions = ['Medicare', 'BlueCross', 'Aetna', 'UnitedHealth', 'Cigna', 'none'];
 
@@ -36,102 +39,133 @@ const generatePatient = (): any => {
   const dob = faker.date.birthdate({ min: 18, max: 100, mode: 'age' });
   const visits = getRandomVisits();
 
-  const patient = {
+  const mockUser: User = {
     id: faker.number.int(),
-    firstname,
-    lastname,
-    user: {
-      email: faker.internet.email({ firstName: firstname, lastName: lastname }),
-      phone: faker.phone.number(),
-    },
-    gender: genderOptions[Math.floor(Math.random() * genderOptions.length)],
-    dob: dob,
-    address: faker.location.streetAddress(),
-    city: faker.location.city(),
-    state: faker.location.state(),
-    zipCode: faker.location.zipCode(),
-    insuranceProvider: insuranceOptions[Math.floor(Math.random() * insuranceOptions.length)],
-    policyNumber: faker.string.alphanumeric(10),
-    emergencyContact: faker.phone.number(),
-    emergencyContactName: faker.person.fullName(),
-    primaryCarePhysician: faker.person.fullName(),
-    medicalHistory: faker.lorem.paragraph(),
-    allergies: faker.lorem.words(15),
-    medications: faker.lorem.words(10),
-    notes: faker.lorem.paragraph(),
-    visits: visits,
-    photoUrl: faker.image.avatar(),
-    status: faker.datatype.boolean(),
-    createdTime: faker.date.past(),
-    // Required fields for Patient type
+    name: `${firstname} ${lastname}`,
+    username: faker.internet.userName({ firstName: firstname, lastName: lastname }),
+    email: faker.internet.email({ firstName: firstname, lastName: lastname }),
+    phone: faker.phone.number(),
+    password: 'password',
     branch: {
       id: 1,
       name: "Main Branch",
       code: "MB-001",
       location: "Downtown",
       active: true,
+      country: { id: 1, name: "United States", code: "US" },
+      state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+      district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
       city: "New York",
+      mapUrl: "",
       pincode: 10001,
       image: "",
       latitude: 40.7128,
       longitude: -74.0060,
     },
-    // Additional required fields
-    uid: faker.string.uuid(),
-    age: faker.number.int({ min: 18, max: 80 }),
-    fullName: `${firstname} ${lastname}`,
-    lastVisit: faker.date.recent().toISOString(),
-    refDoctor: {
-      id: 1,
-      name: "Dr. Smith",
-      email: "drsmith@example.com",
-      uid: "DOC-001",
-      mobile: 1234567890,
-      desgination: "Senior Physician",
-      specialization: "General Medicine",
-      specializationList: [],
-      qualification: "MD",
-      joiningDate: faker.date.past(),
-      firstname: "John",
-      lastname: "Smith",
-      user: {
-        id: 1,
-        name: "Dr. Smith",
-        username: "drsmith",
-        email: "drsmith@example.com",
-        phone: "1234567890",
-        password: "password",
-        branch: {
-          id: 1,
-          name: "Main Branch",
-          code: "MB-001",
-          location: "Downtown",
-          active: true,
-          city: "New York",
-          pincode: 10001,
-          image: "",
-          latitude: 40.7128,
-          longitude: -74.0060,
-        },
-        role: {
-          id: 2,
-          name: "Doctor",
-          permissions: [],
-        },
-        effectiveFrom: faker.date.past(),
-        effectiveTo: faker.date.future(),
-        image: "",
-      },
-      status: "Active",
-      external: false,
-      external_temp: null
-    }
+    role: {
+      id: 3,
+      name: "Patient",
+      permissions: []
+    },
+    effectiveFrom: faker.date.past(),
+    image: faker.image.avatar()
   };
+
+  const mockDoctor: Doctor = {
+    id: faker.number.int(),
+    uid: `DR-${faker.string.alphanumeric(6).toUpperCase()}`,
+    firstname: "John",
+    lastname: "Smith",
+    name: "Dr. John Smith",
+    email: "drsmith@example.com",
+    mobile: parseInt(faker.phone.number('##########')),
+    desgination: "Senior Physician",
+    specialization: "General Medicine",
+    specializationList: [{ id: 1, name: "General Medicine" }],
+    qualification: "MD",
+    joiningDate: faker.date.past(),
+    user: {
+      id: faker.number.int(),
+      name: "Dr. John Smith",
+      username: "drsmith",
+      email: "drsmith@example.com",
+      phone: faker.phone.number(),
+      password: "password",
+      branch: {
+        id: 1,
+        name: "Main Branch",
+        code: "MB-001",
+        location: "Downtown",
+        active: true,
+        country: { id: 1, name: "United States", code: "US" },
+        state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+        district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+        city: "New York",
+        mapUrl: "",
+        pincode: 10001,
+        image: "",
+        latitude: 40.7128,
+        longitude: -74.0060,
+      },
+      role: {
+        id: 2,
+        name: "Doctor",
+        permissions: []
+      },
+      effectiveFrom: faker.date.past(),
+      image: faker.image.avatar()
+    },
+    status: "Active",
+    external: false,
+    external_temp: null
+  };
+
+  const mockBranch: Branch = {
+    id: 1,
+    name: "Main Branch",
+    code: "MB-001",
+    location: "Downtown",
+    active: true,
+    country: { id: 1, name: "United States", code: "US" },
+    state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } },
+    district: { id: 1, name: "Manhattan", state: { id: 1, name: "New York", country: { id: 1, name: "United States", code: "US" } } },
+    city: "New York",
+    mapUrl: "",
+    pincode: 10001,
+    image: "",
+    latitude: 40.7128,
+    longitude: -74.0060,
+  };
+
+  const patient: Patient = {
+    id: faker.number.int(),
+    uid: `PT-${faker.string.alphanumeric(6).toUpperCase()}`,
+    gender: genderOptions[Math.floor(Math.random() * genderOptions.length)],
+    dob: dob,
+    city: faker.location.city(),
+    age: faker.number.int({ min: 18, max: 80 }),
+    address: faker.location.streetAddress(),
+    whatsappNo: faker.phone.number(),
+    problem: faker.lorem.sentence(),
+    refDoctor: mockDoctor,
+    firstname: firstname,
+    lastname: lastname,
+    createdTime: faker.date.past(),
+    user: mockUser,
+    photoUrl: faker.image.avatar(),
+    insuranceProvider: insuranceOptions[Math.floor(Math.random() * insuranceOptions.length)],
+    insurancePolicyNumber: faker.string.alphanumeric(10),
+    fullName: `${firstname} ${lastname}`,
+    lastVisit: visits.length > 0 ? visits[visits.length - 1].date.toISOString() : undefined,
+    medicalHistory: faker.lorem.paragraph(),
+    branch: mockBranch
+  };
+
   return patient;
 };
 
 // Generate multiple patients
-const generatePatients = (count: number): any[] => {
+const generatePatients = (count: number): Patient[] => {
   const patients = [];
   for (let i = 0; i < count; i++) {
     patients.push(generatePatient());
@@ -141,7 +175,7 @@ const generatePatients = (count: number): any[] => {
 
 // Mock API service
 const patientMockService = {
-  getPatients: async (page: number, size: number): Promise<{ content: any[]; totalElements: number; totalPages: number; }> => {
+  getPatients: async (page: number, size: number): Promise<{ content: Patient[]; totalElements: number; totalPages: number; size: number; number: number }> => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -152,10 +186,10 @@ const patientMockService = {
     const totalElements = allPatients.length;
     const totalPages = Math.ceil(totalElements / size);
 
-    return { content, totalElements, totalPages };
+    return { content, totalElements, totalPages, size, number: page };
   },
   
-  searchPatients: async (searchTerm: string): Promise<any[]> => {
+  searchPatients: async (searchTerm: string): Promise<Patient[]> => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -170,7 +204,7 @@ const patientMockService = {
     return content;
   },
   
-  getMockPatientById: async (id: number): Promise<any> => {
+  getMockPatientById: async (id: number): Promise<Patient> => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
     

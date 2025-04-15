@@ -1,5 +1,5 @@
 
-import { PaymentType } from "@/admin/modules/payment/submodules/payment-type/types/PaymentType";
+import { PaymentType } from "../../payment/types/PaymentType";
 
 export interface Expense {
   id: number;

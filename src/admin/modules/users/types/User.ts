@@ -1,5 +1,5 @@
 
-import { Branch } from "@/admin/modules/shared/types/Branch";
+import { Branch } from "../../shared/types/Branch";
 
 export interface User {
   id: number;
@@ -28,12 +28,14 @@ export interface Permission {
   write: boolean;
   upload: boolean;
   print: boolean;
+  approve?: boolean;
 }
 
 export interface Module {
   id: number;
   name: string;
   code: string;
+  description?: string;
 }
 
 export interface AuthUser {

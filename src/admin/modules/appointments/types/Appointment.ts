@@ -1,8 +1,9 @@
 
-import { Doctor } from "@/admin/modules/doctors/types/Doctor";
-import { Patient, FamilyMember } from "@/admin/modules/patients/types/Patient";
-import { Branch } from "@/admin/modules/shared/types/Branch";
-import { Clinic } from "@/admin/modules/clinics/types/Clinic";
+import { Slot } from "./Slot";
+import { Doctor } from "../../doctor/types/Doctor";
+import { DoctorClinic } from "./DoctorClinic";
+import { FamilyMember, Patient } from "../../patients/types/Patient";
+import { Branch } from "../../shared/types/Branch";
 
 export type AppointmentType = "direct-visit" | "video-call" | "audio-call";
 export type AppointmentStatus = "upcoming" | "completed" | "cancelled" | "new";
@@ -28,25 +29,6 @@ export interface Appointment {
     weight?: string;
     bmi?: string;
   };
-}
-
-export interface Slot {
-  id: number;
-  doctor?: Doctor;
-  branch?: Branch;
-  startTime?: string;
-  endTime?: string; 
-  availableSlots: number;
-  date?: Date;
-  duration?: number;
-  slotType?: string;
-  status?: string;
-}
-
-export interface DoctorClinic {
-  id: number;
-  doctor: Doctor;
-  clinic: Clinic;
 }
 
 export interface PaginatedAppointmentResponse {
@@ -111,5 +93,29 @@ export interface StatusUpdate {
 
 export interface SearchAppointment {
   status: string;
+  date: Date;
+}
+
+export interface AppointmentRequest {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: number;
+  dob: Date;
+  gender: number;
+  district: District;
+  state: State;
+  country: Country;
+  city: string;
+  appointmentDate: string;
+  isAccept: boolean;
+  isReject: boolean;
+  doctor: Doctor;
+  appointmentType: { id: number; name: string };
+  visitType: { id: number; name: string };
+}
+
+export interface SearchRequest {
   date: Date;
 }

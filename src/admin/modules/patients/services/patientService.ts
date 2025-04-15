@@ -2,6 +2,7 @@
 import { Patient } from '../types/Patient';
 import { AxiosResponse } from 'axios';
 import http from "@/lib/JwtInterceptor";
+import patientMockService from './patientMockService';
 
 export interface PatientQueryParams {
   page: number;
@@ -24,11 +25,27 @@ export interface PatientResponse {
 }
 
 export const fetchPatients = async (params: PatientQueryParams): Promise<AxiosResponse<PatientResponse>> => {
-  return await http.post(`/v1/appointments/patients/doctor/1`, params);
+  // Use mock service instead of actual API call for now
+  const response = await patientMockService.getPatients(params.page, params.size);
+  return {
+    data: response,
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    config: { headers: {} } as any
+  };
 };
 
 export const fetchPatientById = async (id: number): Promise<AxiosResponse<Patient>> => {
-  return await http.get(`/v1/patient/id/${id}`);
+  // Use mock service instead of actual API call for now
+  const patient = await patientMockService.getMockPatientById(id);
+  return {
+    data: patient,
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    config: { headers: {} } as any
+  };
 };
 
 export const fetchAllPatients = async (patient: any) => {
