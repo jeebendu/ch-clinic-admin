@@ -1,6 +1,6 @@
 
-import { Branch } from "@/admin/types/branch";
 import { User } from "@/admin/types/User";
+import { Branch } from "@/admin/types/Branch";
 
 export interface Specialization {
   id: number;

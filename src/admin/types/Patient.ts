@@ -1,10 +1,9 @@
 
-import { Doctor } from "./Doctor";
-import { User } from "./User";
 import { Branch } from "./Branch";
 import { Country } from "./Address";
-import { State } from "./Address";
 import { District } from "./Address";
+import { Doctor, User } from "./Doctor";
+import { State } from "./Address";
 
 export interface Patient {
   id: number;
@@ -25,12 +24,13 @@ export interface Patient {
   createdTime?: Date;
   user: User;
   photoUrl?: string;
-  branch: Branch;
   insuranceProvider?: string;
   insurancePolicyNumber?: string;
-  fullName?: string;
+  fullName?: string; // Added this property
   lastVisit?: string;
   medicalHistory?: string;
+
+  branch: Branch;
   alternativeContact?: string;
   country?: Country;
   state?: State;

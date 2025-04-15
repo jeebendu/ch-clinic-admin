@@ -1,7 +1,8 @@
+
 export interface Country {
-    id:number;
-    name?:string;
-    code?:string;
-    iso?:string;
-    status?:boolean;
+    id: number;
+    name: string;
+    code: string;
+    iso: string;
+    status: boolean;
 }

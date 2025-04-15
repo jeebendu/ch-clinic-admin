@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { 
   Building, 
@@ -30,9 +29,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Clinic } from "@/admin/types/clinic";
 import { Branch } from "@/admin/types/Branch";
-import { Country } from "@/admin/types/Address";
-import { State } from "@/admin/types/Address";
-import { District } from "@/admin/types/Address";
+import { Country, State, District } from "@/admin/types/Address";
 import { featureList, Module, Plan } from "@/admin/types/role";
 
 // Mock data - In a real application, you would fetch these from an API
@@ -53,7 +50,13 @@ const mockClinics: Clinic[] = [
 ];
 
 // Create country object to use in state and district objects
-const mockCountry: Country = { id: 1, name: "Country 1" };
+const mockCountry: Country = { 
+  id: 1, 
+  name: "Country 1", 
+  code: "C1", 
+  iso: "C1", 
+  status: true 
+};
 
 interface ClinicBranchFilterProps {
   className?: string;

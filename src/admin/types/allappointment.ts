@@ -1,10 +1,9 @@
-
 import { Doctor } from "./Doctor";
 import { Patient } from "./Patient";
 import { Clinic} from "./clinic";
-import { State } from "./state";
-import { District } from "./district";
-import { Country } from "./country";
+import { State } from "./Address";
+import { District } from "./Address";
+import { Country } from "./Address";
 
 export interface AllAppointment {
   id: number;

@@ -1,4 +1,5 @@
-import { Patient } from '@/admin/types/patient';
+
+import { Patient } from '@/admin/types/Patient';
 import { AxiosResponse } from 'axios';
 import http from "@/lib/JwtInterceptor";
 
