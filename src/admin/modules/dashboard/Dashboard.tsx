@@ -14,7 +14,10 @@ const Dashboard = () => {
   
   return (
     <AdminLayout>
-      {/* This is the default dashboard, it will redirect */}
+      <div>
+        {/* This is the default dashboard, it will redirect */}
+        Redirecting to admin dashboard...
+      </div>
     </AdminLayout>
   );
 };
