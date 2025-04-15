@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
 import BranchService from "../services/branchService";
-import { getMockBranches } from "../services/branchMockService";
 import { Branch } from "../types/Branch";
 import BranchTable from "../components/BranchTable";
 import BranchCardList from "../components/BranchCardList";
@@ -42,7 +41,7 @@ const BranchList = () => {
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['branches', page, size, searchTerm],
-    queryFn: () => getMockBranches(page, size, searchTerm),
+    queryFn: () => BranchService.list(),
   });
 
   useEffect(() => {

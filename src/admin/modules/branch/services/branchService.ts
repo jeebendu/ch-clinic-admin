@@ -4,7 +4,7 @@ import { getEnvVariable } from "@/utils/envUtils";
 
 const apiUrl = getEnvVariable('API_URL');
 
-const BranchService = {
+export const BranchService = {
   list: () => {
     return http.get(`${apiUrl}/v1/branch/list`);
   },
