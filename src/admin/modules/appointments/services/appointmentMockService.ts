@@ -1,5 +1,5 @@
 
-import { AllAppointment } from "@/admin/types/allappointment";
+import { AllAppointment } from "../types/Appointment";
 import { addDays, subDays } from "date-fns";
 import { AppointmentQueryParams } from "./appointmentService";
 
@@ -40,12 +40,15 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
           name: patientName,
           email: `${patientName.split(' ')[0].toLowerCase()}@example.com`,
           phone: `+919876${543210 + i}`,
-          branch:null,
-          username:null,
-          password:null,
+          branch: null,
+          username: null,
+          password: null,
           role: null,
+          image: "", // Added missing property
         },
-        refDoctor: null
+        refDoctor: null,
+        city: "City", // Added missing property
+        branch: null  // Added missing property
       },
       doctor: {
         id: 1,
@@ -61,7 +64,9 @@ export const getMockAppointments = (params: AppointmentQueryParams) => {
         user: null,
         status: "ACTIVE",
         external: false,
-        external_temp: null
+        external_temp: null,
+        firstname: "Gregory", // Added missing property
+        lastname: "House"     // Added missing property
       },
       slot: {
         id: 200 + i,
@@ -191,8 +196,11 @@ export const getMockAppointmentById = async (id: string | number): Promise<AllAp
         username: null,
         password: null,
         role: null,
+        image: "", // Added missing property
       },
-      refDoctor: null
+      refDoctor: null,
+      city: "New York", // Added missing property
+      branch: null // Added missing property
     },
     doctor: {
       id: 1,
@@ -208,7 +216,9 @@ export const getMockAppointmentById = async (id: string | number): Promise<AllAp
       user: null,
       status: "ACTIVE",
       external: false,
-      external_temp: null
+      external_temp: null,
+      firstname: "Sarah", // Added missing property
+      lastname: "Johnson" // Added missing property
     },
     slot: {
       id: 201,

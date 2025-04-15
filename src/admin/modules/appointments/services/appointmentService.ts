@@ -1,6 +1,6 @@
 
 import http from "@/lib/JwtInterceptor";
-import { AllAppointment } from "@/admin/types/allappointment";
+import { AllAppointment } from "../types/Appointment";
 import { format } from "date-fns";
 import { isProduction } from "@/utils/envUtils";
 import { getMockAppointments, getMockAppointmentById } from "./appointmentMockService";
