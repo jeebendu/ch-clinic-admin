@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,12 +55,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { AllAppointment } from "@/admin/types/allappointment";
-import { Patient } from "@/admin/types/patient";
+import { AllAppointment, LabTest, Medicines } from "../types/Appointment";
+import { Patient } from "@/admin/modules/patients/types/Patient";
 import { getAppointmentById, updateAppointmentStatus } from "../services/appointmentService";
-// Import from patientMockService needs to be updated
 import patientMockService from "../services/patientMockService";
-import { Medicines, Prescription } from "@/admin/types/newModel/Prescription";
 
 const consultationSchema = z.object({
   vitals: z.object({
@@ -101,11 +98,6 @@ const consultationSchema = z.object({
     notes: z.string().optional(),
   }).optional(),
 });
-
-type LabTest = {
-  name: string;
-  instructions: string;
-};
 
 const medicationSchema = z.object({
   name: z.string().min(1, "Medication name is required"),
@@ -203,11 +195,10 @@ const ProcessAppointment = () => {
   }, [appointmentId]);
 
   useEffect(() => {
-    if (appointment?.patientId) {
+    if (appointment?.patient?.id) {
       const fetchPatient = async () => {
         try {
-          // Use the mock service to fetch patient data
-          const patientData = await patientMockService.getMockPatientById(appointment.patientId);
+          const patientData = await patientMockService.getMockPatientById(appointment.patient.id);
           setPatient(patientData);
         } catch (error) {
           console.error("Failed to fetch patient:", error);
@@ -238,7 +229,15 @@ const ProcessAppointment = () => {
   };
 
   const handleSaveMedication = (values: MedicationFormValues) => {
-    setMedications([...medications, values]);
+    const newMedication: Medicines = {
+      name: values.name,
+      dosage: values.dosage,
+      frequency: values.frequency,
+      duration: values.duration,
+      timings: values.timings,
+      instruction: values.instruction
+    };
+    setMedications([...medications, newMedication]);
     setIsAddMedicationDialogOpen(false);
     medicationForm.reset();
     toast.success("Medication added successfully!");
@@ -261,7 +260,11 @@ const ProcessAppointment = () => {
   };
 
   const handleSaveLabTest = (values: LabTestFormValues) => {
-    setLabTests([...labTests, values]);
+    const newLabTest: LabTest = {
+      name: values.name,
+      instructions: values.instructions || ""
+    };
+    setLabTests([...labTests, newLabTest]);
     setIsAddLabTestDialogOpen(false);
     labTestForm.reset();
     toast.success("Lab test added successfully!");

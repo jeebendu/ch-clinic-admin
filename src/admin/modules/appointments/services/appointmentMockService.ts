@@ -1,259 +1,292 @@
 
 import { AllAppointment } from "../types/Appointment";
-import { addDays, subDays } from "date-fns";
-import { AppointmentQueryParams } from "./appointmentService";
+import { Branch } from "@/admin/modules/shared/types/Branch";
+import { format, addDays, subDays } from "date-fns";
 
-/**
- * Generate mock appointments data for development
- */
-export const getMockAppointments = (params: AppointmentQueryParams) => {
-  const { page, size, statuses, fromDate, toDate, searchTerm } = params;
-  
-  // Generate mock data
-  const mockAppointments: AllAppointment[] = [];
-  const today = new Date();
-  
-  // Generate 100 appointments
-  for (let i = 0; i < 100; i++) {
-    const appointmentDate = addDays(subDays(today, 15), i);
-    const statusOptions = ["UPCOMING", "COMPLETED", "CANCELLED", "IN_PROGRESS"];
-    const status = statusOptions[Math.floor(Math.random() * statusOptions.length)];
-    const patientNames = ["John Doe", "Jane Smith", "Alice Johnson", "Bob Brown", "Charlie Davis"];
-    const patientName = patientNames[Math.floor(Math.random() * patientNames.length)];
-    
-    const mockAppointment: AllAppointment = {
-      id: i + 1,
+const generateMockAppointments = (): AllAppointment[] => {
+  return Array.from({ length: 20 }, (_, i) => {
+    const today = new Date();
+    const date = i % 3 === 0 
+      ? addDays(today, Math.floor(i / 3)) 
+      : i % 3 === 1 
+        ? subDays(today, Math.floor(i / 3)) 
+        : today;
+        
+    return {
+      id: 1000 + i,
       isAccept: true,
-      status: status,
+      appointmentDate: date,
+      status: i % 4 === 0 ? "COMPLETED" : i % 4 === 1 ? "UPCOMING" : i % 4 === 2 ? "CANCELLED" : "IN_PROGRESS",
       patient: {
         id: 100 + i,
-        uid: `PT${1000 + i}`,
-        gender: i % 2 === 0 ? 'Male' : 'Female',
-        dob: new Date(1980 + (i % 30), i % 12, (i % 28) + 1),
-        age: 30 + (i % 30),
-        address: `Address ${i}`,
-        whatsappNo: `+919876${543210 + i}`,
-        firstname: patientName.split(' ')[0],
-        lastname: patientName.split(' ')[1],
+        uid: `PT${100 + i}`,
+        gender: i % 2 === 0 ? "MALE" : "FEMALE",
+        dob: new Date(1980 + i, 0, 1),
+        age: 40 - i,
+        address: `${123 + i} Main St, Anytown`,
+        whatsappNo: `555-${100 + i}`,
+        firstname: `Patient`,
+        lastname: `${i + 1}`,
         user: {
-          id: 100 + i,
-          name: patientName,
-          email: `${patientName.split(' ')[0].toLowerCase()}@example.com`,
-          phone: `+919876${543210 + i}`,
-          branch: null,
-          username: null,
-          password: null,
-          role: null,
-          image: "", // Added missing property
+          id: 200 + i,
+          name: `Patient ${i + 1}`,
+          email: `patient${i + 1}@example.com`,
+          phone: `555-${100 + i}`,
+          username: `patient${i + 1}`,
+          password: "password",
+          role: {
+            id: 3,
+            name: "PATIENT",
+            permissions: []
+          },
+          image: null,
         },
         refDoctor: null,
-        city: "City", // Added missing property
-        branch: null  // Added missing property
+        city: "Anytown",
+        branch: null
       },
       doctor: {
-        id: 1,
-        name: "Gregory House",
-        email: "house@clinic.com",
-        uid: `DR${1000 + i}`,
-        mobile: 1234567890,
-        desgination: "Chief of Diagnostic Medicine",
-        specialization: "Diagnostic Medicine",
+        id: 300 + i,
+        name: `Dr. Smith ${i}`,
+        lastname: "Smith",
+        firstname: `Doctor ${i}`,
+        email: `dr.smith${i}@example.com`,
+        uid: `DR${300 + i}`,
+        mobile: 5551234567,
+        desgination: "Senior Physician",
+        specialization: i % 3 === 0 ? "Cardiology" : i % 3 === 1 ? "Neurology" : "General Medicine",
         specializationList: [],
         qualification: "MD",
-        joiningDate: new Date("2020-01-01"),
-        user: null,
+        joiningDate: new Date(2010, 0, 1),
+        user: {
+          id: 400 + i,
+          name: `Dr. Smith ${i}`,
+          email: `dr.smith${i}@example.com`,
+          phone: "555-987-6543",
+          username: `drsmith${i}`,
+          password: "password",
+          role: {
+            id: 2,
+            name: "DOCTOR",
+            permissions: []
+          },
+          image: null,
+        },
         status: "ACTIVE",
-        external: false,
-        external_temp: null,
-        firstname: "Gregory", // Added missing property
-        lastname: "House"     // Added missing property
+        external: true,
+        external_temp: null
       },
       slot: {
-        id: 200 + i,
-        startTime: "17:01:28",
-        endTime: "17:11:28",
-        status: "AVAILABLE",
-        doctor: null,
-        branch: {
-          id: 1,
-          name: `Branch ${i % 3 + 1}`,
-          code: `BR${i % 3 + 1}`,
-          location: `Location ${i % 3 + 1}`,
-          active: true,
-          state: null,
-          district: null,
-          country: null,
-          city: `City ${i % 3 + 1}`,
-          mapUrl: "",
-          pincode: 12345,
-          image: "",
-          latitude: 0,
-          longitude: 0
-        },
-        availableSlots: 5,
-        date: appointmentDate,
+        id: 500 + i,
+        startTime: `${9 + (i % 8)}:00`,
+        endTime: `${10 + (i % 8)}:00`,
+        availableSlots: 1,
+        date: date,
         duration: 30,
-        slotType: "REGULAR"
+        slotType: "REGULAR",
+        status: "BOOKED"
       },
       familyMember: null,
       doctorClinic: {
-        id: 1,
-        doctor: null,
+        id: 600 + i,
+        doctor: {
+          id: 300 + i,
+          name: `Dr. Smith ${i}`,
+          lastname: "Smith",
+          firstname: `Doctor ${i}`,
+          email: `dr.smith${i}@example.com`,
+          uid: `DR${300 + i}`,
+          mobile: 5551234567,
+          desgination: "Senior Physician",
+          specialization: i % 3 === 0 ? "Cardiology" : i % 3 === 1 ? "Neurology" : "General Medicine",
+          specializationList: [],
+          qualification: "MD",
+          joiningDate: new Date(2010, 0, 1),
+          user: {
+            id: 400 + i,
+            name: `Dr. Smith ${i}`,
+            email: `dr.smith${i}@example.com`,
+            phone: "555-987-6543",
+            username: `drsmith${i}`,
+            password: "password",
+            role: {
+              id: 2,
+              name: "DOCTOR",
+              permissions: []
+            },
+            image: null,
+          },
+          status: "ACTIVE",
+          external: true,
+          external_temp: null
+        },
         clinic: {
-          id: 1,
-          uid: `CL${1000 + i}`,
-          name: "Main Clinic",
-          email: "main@clinic.com",
-          contact: "+1 123 456 7890",
-          address: "123 Main St",
+          id: 700 + i,
+          uid: `CL${700 + i}`,
+          name: `Clinic ${i}`,
+          email: `clinic${i}@example.com`,
+          contact: `555-${700 + i}`,
+          address: `${456 + i} Health St, Anytown`,
           plan: {
             features: {
               id: 1,
               module: {
                 id: 1,
-                name: "Appointments"
+                name: "APPOINTMENTS"
               },
               print: true
             }
           }
         }
+      },
+      branch: {
+        id: 1,
+        name: "Main Branch",
+        code: "MB1",
+        location: "Downtown",
+        active: true,
+        state: {
+          id: 1,
+          name: "California",
+          country: {
+            id: 1,
+            name: "United States",
+            code: "US"
+          }
+        },
+        district: {
+          id: 1,
+          name: "Los Angeles",
+          state: {
+            id: 1,
+            name: "California",
+            country: {
+              id: 1,
+              name: "United States",
+              code: "US"
+            }
+          }
+        },
+        country: {
+          id: 1,
+          name: "United States",
+          code: "US"
+        },
+        city: "Los Angeles",
+        mapUrl: "https://maps.example.com/main-branch",
+        pincode: 90001,
+        image: "branch1.jpg",
+        latitude: 34.0522,
+        longitude: -118.2437
       }
     };
-    
-    mockAppointments.push(mockAppointment);
-  }
-  
-  // Apply filters
-  let filteredAppointments = [...mockAppointments];
-  
-  // Apply status filter
-  if (statuses && statuses.length > 0) {
-    filteredAppointments = filteredAppointments.filter(app => 
-      statuses.includes(app.status)
-    );
-  }
-  
-  // Apply date range filter
-  if (fromDate && toDate) {
-    const fromDateObj = new Date(fromDate);
-    const toDateObj = new Date(toDate);
-    
-    filteredAppointments = filteredAppointments.filter(app => {
-      const appDate = new Date(app.slot.date);
-      return appDate >= fromDateObj && appDate <= toDateObj;
-    });
-  }
-  
-  // Apply search term filter
-  if (searchTerm) {
-    const term = searchTerm.toString().toLowerCase();
-    filteredAppointments = filteredAppointments.filter(app => 
-      app.patient.firstname.toLowerCase().includes(term) || 
-      app.patient.lastname.toLowerCase().includes(term)
-    );
-  }
-  
-  // Paginate
-  const startIndex = page * size;
-  const paginatedAppointments = filteredAppointments.slice(startIndex, startIndex + size);
-  
-  return Promise.resolve({
-    data: {
-      content: paginatedAppointments,
-      totalElements: filteredAppointments.length,
-      totalPages: Math.ceil(filteredAppointments.length / size),
-      size: size,
-      number: page,
-      last: startIndex + size >= filteredAppointments.length
-    }
   });
 };
 
-/**
- * Mock function to get a single appointment by ID
- */
-export const getMockAppointmentById = async (id: string | number): Promise<AllAppointment> => {
-  const mockAppointment: AllAppointment = {
-    id: typeof id === 'string' ? parseInt(id) : id,
-    isAccept: true,
-    status: "UPCOMING",
-    patient: {
-      id: 101,
-      uid: "PT1001",
-      gender: "Male",
-      dob: new Date("1985-05-15"),
-      age: 38,
-      address: "123 Main Street",
-      whatsappNo: "+919876543210",
-      firstname: "John",
-      lastname: "Doe",
-      user: {
-        id: 101,
-        name: "John Doe",
-        email: "john@example.com",
-        phone: "+919876543210",
-        branch: null,
-        username: null,
-        password: null,
-        role: null,
-        image: "", // Added missing property
-      },
-      refDoctor: null,
-      city: "New York", // Added missing property
-      branch: null // Added missing property
-    },
-    doctor: {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      email: "sarah@clinic.com",
-      uid: "DR1001",
-      mobile: 1234567890,
-      desgination: "Cardiologist",
-      specialization: "Cardiology",
-      specializationList: [],
-      qualification: "MD",
-      joiningDate: new Date("2018-01-01"),
-      user: null,
-      status: "ACTIVE",
-      external: false,
-      external_temp: null,
-      firstname: "Sarah", // Added missing property
-      lastname: "Johnson" // Added missing property
-    },
-    slot: {
-      id: 201,
-      startTime: "10:00 AM",
-      endTime: "10:30 AM",
-      status: "BOOKED",
-      availableSlots: 0,
-      date: new Date(),
-      duration: 30,
-      slotType: "REGULAR"
-    },
-    familyMember: null,
-    doctorClinic: {
-      id: 1,
-      doctor: null,
-      clinic: {
-        id: 1,
-        uid: "CL1001",
-        name: "Main Clinic",
-        email: "main@clinic.com",
-        contact: "+1 123 456 7890",
-        address: "123 Main St",
-        plan: {
-          features: {
-            id: 1,
-            module: {
-              id: 1,
-              name: "Appointments"
-            },
-            print: true
-          }
-        }
-      }
-    }
-  };
+const mockAppointments = generateMockAppointments();
+
+const appointmentMockService = {
+  getAllAppointments: async () => {
+    return {
+      data: mockAppointments,
+      status: 200,
+      statusText: "OK",
+    };
+  },
   
-  return mockAppointment;
+  getAppointmentById: async (id: string) => {
+    const appointment = mockAppointments.find(a => a.id === parseInt(id));
+    
+    if (!appointment) {
+      throw new Error("Appointment not found");
+    }
+    
+    return {
+      data: appointment,
+      status: 200,
+      statusText: "OK",
+    };
+  },
+  
+  updateAppointmentStatus: async (id: string, status: string) => {
+    const appointmentIndex = mockAppointments.findIndex(a => a.id === parseInt(id));
+    
+    if (appointmentIndex === -1) {
+      throw new Error("Appointment not found");
+    }
+    
+    mockAppointments[appointmentIndex].status = status;
+    
+    return {
+      data: mockAppointments[appointmentIndex],
+      status: 200,
+      statusText: "OK",
+    };
+  },
+  
+  getPaginatedAppointments: async (filters: any) => {
+    const { page = 0, size = 10, doctorId, branches, statuses, searchTerm } = filters;
+    
+    let filtered = [...mockAppointments];
+    
+    if (doctorId) {
+      filtered = filtered.filter(a => a.doctor.id === doctorId);
+    }
+    
+    if (branches && branches.length > 0) {
+      filtered = filtered.filter(a => branches.includes(a.branch?.id));
+    }
+    
+    if (statuses && statuses.length > 0) {
+      filtered = filtered.filter(a => statuses.includes(a.status));
+    }
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(a => 
+        a.patient.firstname.toLowerCase().includes(term) ||
+        a.patient.lastname.toLowerCase().includes(term) ||
+        a.doctor.name.toLowerCase().includes(term)
+      );
+    }
+    
+    const start = page * size;
+    const end = start + size;
+    const paginatedItems = filtered.slice(start, end);
+    
+    return {
+      data: {
+        content: paginatedItems,
+        pageable: {
+          pageNumber: page,
+          pageSize: size,
+          sort: {
+            empty: true,
+            sorted: false,
+            unsorted: true,
+          },
+          offset: start,
+          paged: true,
+          unpaged: false,
+        },
+        totalPages: Math.ceil(filtered.length / size),
+        totalElements: filtered.length,
+        last: end >= filtered.length,
+        size: size,
+        number: page,
+        sort: {
+          empty: true,
+          sorted: false,
+          unsorted: true,
+        },
+        numberOfElements: paginatedItems.length,
+        first: page === 0,
+        empty: paginatedItems.length === 0,
+      },
+      status: 200,
+      statusText: "OK",
+    };
+  },
 };
+
+export default appointmentMockService;
