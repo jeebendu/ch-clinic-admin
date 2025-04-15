@@ -1,87 +1,109 @@
+import { faker } from '@faker-js/faker';
 
-import { Patient } from "../../../types/patient";
-import { faker } from "@faker-js/faker";
+import { Patient } from '@/admin/types/patient';
 
-// Generate a mock patient with random but realistic data
-export const generateMockPatient = (id: number): Patient => {
-  const gender = faker.person.sex() as "Male" | "Female";
-  const firstName = faker.person.firstName(gender.toLowerCase() as "male" | "female");
+// Function to generate a random date within the last year
+const getRandomDate = (): Date => {
+  const now = new Date();
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(now.getFullYear() - 1);
+
+  const randomTime = oneYearAgo.getTime() + Math.random() * (now.getTime() - oneYearAgo.getTime());
+  return new Date(randomTime);
+};
+
+// Function to generate a random number of visits in the last year
+const getRandomVisits = (): { date: Date; reason: string }[] => {
+  const numberOfVisits = Math.floor(Math.random() * 5); // Generates 0 to 4 visits
+  const visits: { date: Date; reason: string }[] = [];
+
+  for (let i = 0; i < numberOfVisits; i++) {
+    visits.push({
+      date: getRandomDate(),
+      reason: faker.lorem.sentence()
+    });
+  }
+
+  return visits.sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort visits by date
+};
+
+const generatePatient = (): Patient => {
+  const genderOptions = ['Male', 'Female', 'Other'];
+  const insuranceOptions = ['Medicare', 'BlueCross', 'Aetna', 'UnitedHealth', 'Cigna', 'none'];
+
+  const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
-  
-  return {
-    id,
-    uid: faker.string.uuid(),
-    gender,
-    dob: faker.date.birthdate({ min: 18, max: 85, mode: 'age' }),
-    age: faker.number.int({ min: 18, max: 85 }),
-    address: faker.location.streetAddress(true),
-    whatsappNo: faker.phone.number(),
-    problem: faker.helpers.arrayElement([
-      "Fever and headache",
-      "Back pain",
-      "Sore throat",
-      "Stomach pain",
-      "Allergic reaction",
-      "Regular check-up"
-    ]),
-    refDoctor: {
-      id: faker.number.int({ min: 1, max: 100 }),
-      name: `Dr. ${faker.person.fullName()}`,
-      email: faker.internet.email(),
-      uid: faker.string.uuid(),
-      mobile: faker.number.int({ min: 9000000000, max: 9999999999 }), // Fixed: Using number generator instead of phone parser
-      desgination: faker.person.jobTitle(),
-      specialization: faker.helpers.arrayElement(["Cardiology", "Neurology", "Dermatology", "Orthopedics"]),
-      specializationList: [],
-      qualification: faker.helpers.arrayElement(["MBBS", "MD", "MS", "DM"]),
-      joiningDate: faker.date.past(),
-      status: "Active",
-      external: faker.datatype.boolean(),
-      external_temp: null,
-      user: {
-        id: faker.number.int({ min: 1, max: 1000 }),
-        name: `Dr. ${faker.person.fullName()}`,
-        username: faker.internet.userName(),
-        email: faker.internet.email(),
-        phone: faker.phone.number(),
-        password: faker.internet.password(),
-        branch: null,
-        role: null,
-        image:null
-      }
-    },
-    consDoctorId: faker.number.int({ min: 1, max: 50 }),
-    remark: faker.helpers.maybe(() => faker.lorem.paragraph(), { probability: 0.7 }),
-    pastRemark: faker.helpers.maybe(() => faker.lorem.paragraphs(2), { probability: 0.5 }),
-    firstname: firstName,
-    lastname: lastName,
-    createdTime: faker.date.recent(),
-    user: {
-      id: faker.number.int({ min: 1, max: 1000 }),
-      name: `${firstName} ${lastName}`,
-      username: faker.internet.userName(),
-      email: faker.internet.email({ firstName, lastName }),
-      phone: faker.phone.number(),
-      password: faker.internet.password(),
-      branch: null,
-      role: null,  
-      image:null
-    },
-    photoUrl: faker.helpers.maybe(() => faker.image.avatar(), { probability: 0.3 }),
-    insuranceProvider: faker.helpers.maybe(() => faker.company.name(), { probability: 0.6 }),
-    insurancePolicyNumber: faker.helpers.maybe(() => faker.finance.accountNumber(), { probability: 0.6 }),
-    fullName: `${firstName} ${lastName}`,
-    lastVisit: faker.helpers.maybe(() => faker.date.recent().toISOString().split('T')[0], { probability: 0.5 }),
-    medicalHistory: faker.helpers.maybe(() => faker.lorem.paragraphs(3), { probability: 0.6 })
+  const dob = faker.date.birthdate({ min: 18, max: 100, mode: 'age' });
+  const visits = getRandomVisits();
+
+  const patient: Patient = {
+    id: faker.number.int(),
+    firstName: firstName,
+    lastName: lastName,
+    email: faker.internet.email({ firstName, lastName }),
+    phoneNumber: faker.phone.number().toString(),
+    gender: genderOptions[Math.floor(Math.random() * genderOptions.length)],
+    dob: dob,
+    address: faker.location.streetAddress(),
+    city: faker.location.city(),
+    state: faker.location.state(),
+    zipCode: faker.location.zipCode(),
+    insuranceProvider: insuranceOptions[Math.floor(Math.random() * insuranceOptions.length)],
+    policyNumber: faker.string.alphanumeric(10),
+    emergencyContact: faker.phone.number().toString(),
+    emergencyContactName: faker.person.fullName(),
+    primaryCarePhysician: faker.person.fullName(),
+    medicalHistory: faker.lorem.paragraph(),
+    allergies: faker.lorem.words(15),
+    medications: faker.lorem.words(10),
+    notes: faker.lorem.paragraph(),
+    visits: visits,
+    image: faker.image.avatar(),
+    status: faker.datatype.boolean(),
+    createdAt: faker.date.past(),
+    updatedAt: faker.date.recent(),
   };
+  return patient;
 };
 
-// Function to get a patient by ID
-export const getMockPatientById = (id: number): Patient => {
-  return generateMockPatient(id);
+// Generate multiple patients
+export const generatePatients = (count: number): Patient[] => {
+  const patients: Patient[] = [];
+  for (let i = 0; i < count; i++) {
+    patients.push(generatePatient());
+  }
+  return patients;
 };
 
-// Generate a list of mock patients
-export const getMockPatients = (count: number = 10): Patient[] => {
-  return Array.from({ length: count }, (_, index) => generateMockPatient(index + 1));
+// Mock API service
+const patientMockService = {
+  getPatients: async (page: number, size: number): Promise<{ content: Patient[]; totalElements: number; totalPages: number; }> => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const allPatients = generatePatients(100); // Generate a larger set of patients
+    const start = page * size;
+    const end = start + size;
+    const content = allPatients.slice(start, end);
+    const totalElements = allPatients.length;
+    const totalPages = Math.ceil(totalElements / size);
+
+    return { content, totalElements, totalPages };
+  },
+  searchPatients: async (searchTerm: string): Promise<Patient[]> => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const allPatients = generatePatients(20); // Generate a smaller set for search
+    const searchTermLower = searchTerm.toLowerCase();
+    const content = allPatients.filter(patient =>
+      patient.firstName.toLowerCase().includes(searchTermLower) ||
+      patient.lastName.toLowerCase().includes(searchTermLower) ||
+      patient.email.toLowerCase().includes(searchTermLower)
+    );
+
+    return content;
+  }
 };
+
+export default patientMockService;
