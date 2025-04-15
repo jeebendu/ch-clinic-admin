@@ -1,5 +1,4 @@
-
-import { fetchAllSpecializations, fetchLanguageList } from "@/services/SpecializationService";
+import { fetchAllSpecializations, fetchLanguageList } from "@/admin/services/SpecializationService";
 
 // Common function to fetch specializations
 export const fetchSpecializations = async () => {

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,14 +11,13 @@ import {
   X
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { UserRole } from "../types/patient";
+import { UserRole } from "../types/Patient";
 
 interface SidebarProps {
   onClose?: () => void;
   collapsed?: boolean;
 }
 
-// Define which routes are accessible by which roles
 const roleAccess: Record<string, UserRole[]> = {
   "/admin": ["admin", "doctor", "staff"],
   "/admin/appointments": ["admin", "doctor", "staff"],
@@ -29,7 +27,6 @@ const roleAccess: Record<string, UserRole[]> = {
   "/admin/settings": ["admin"],
 };
 
-// Simpler navigation items list with role access
 const navItems = [
   { icon: <Home className="h-5 w-5" />, label: "Dashboard", href: "/admin", roles: ["admin", "doctor", "staff"] },
   { icon: <Calendar className="h-5 w-5" />, label: "Appointments", href: "/admin/appointments", roles: ["admin", "doctor", "staff"] },
@@ -40,10 +37,8 @@ const navItems = [
 ];
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
-  // TODO: In a real app, get this from auth context
   const userRole: UserRole = "admin";
 
-  // Filter nav items based on user role
   const filteredNavItems = navItems.filter(item => 
     item.roles.includes(userRole)
   );

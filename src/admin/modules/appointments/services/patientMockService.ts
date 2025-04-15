@@ -1,5 +1,5 @@
 
-import { Patient } from "../../../types/patient";
+import { Patient } from "../../../types/Patient";
 import { faker } from "@faker-js/faker";
 
 // Generate a mock patient with random but realistic data
@@ -49,7 +49,7 @@ export const generateMockPatient = (id: number): Patient => {
         name: `Dr. ${faker.person.fullName()}`,
         username: faker.internet.userName(),
         email: faker.internet.email(),
-        phone: phoneNumber, // Using string here as the User type expects a string
+        phone: faker.phone.number(), // Now using string here as expected
         password: faker.internet.password(),
         branch: null,
         role: null,
@@ -84,7 +84,7 @@ export const generateMockPatient = (id: number): Patient => {
       name: `${firstName} ${lastName}`,
       username: faker.internet.userName(),
       email: faker.internet.email({ firstName, lastName }),
-      phone: phoneNumber, // Using string here as the User type expects a string
+      phone: faker.phone.number(), // Using string here as expected
       password: faker.internet.password(),
       branch: null,
       role: null,  

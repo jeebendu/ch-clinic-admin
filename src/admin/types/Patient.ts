@@ -1,6 +1,10 @@
 
 import { Doctor } from "./Doctor";
 import { User } from "./User";
+import { Branch } from "./Branch";
+import { Country } from "./Address";
+import { State } from "./Address";
+import { District } from "./Address";
 
 export interface Patient {
   id: number;
@@ -21,17 +25,19 @@ export interface Patient {
   createdTime?: Date;
   user: User;
   photoUrl?: string;
-  branch: any;
+  branch: Branch;
   insuranceProvider?: string;
   insurancePolicyNumber?: string;
   fullName?: string;
   lastVisit?: string;
   medicalHistory?: string;
   alternativeContact?: string;
-  country?: any;
-  state?: any;
-  district?: any;
+  country?: Country;
+  state?: State;
+  district?: District;
 }
+
+export type UserRole = "admin" | "doctor" | "staff";
 
 export interface FamilyMember {
   id: string;
