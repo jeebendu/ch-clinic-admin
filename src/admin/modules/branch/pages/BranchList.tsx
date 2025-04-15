@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -41,8 +42,16 @@ const BranchList = () => {
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['branches', page, size, searchTerm],
-    queryFn: () => BranchService.list(),
+    queryFn: async () => {
+      const response = await BranchService.list();
+      console.log("Branch API response:", response);
+      return response;
+    },
   });
+
+  // Extract branches from the response
+  const branches = data?.data?.content || [];
+  console.log("Extracted branches:", branches);
 
   useEffect(() => {
     setViewMode(isMobile ? 'list' : 'grid');
@@ -157,7 +166,7 @@ const BranchList = () => {
   };
 
   const totalElements = data?.data?.totalElements || 0;
-  const loadedElements = data?.data?.content?.length || 0;
+  const loadedElements = branches.length || 0;
 
   return (
     <AdminLayout>
@@ -186,13 +195,13 @@ const BranchList = () => {
           <div>
             {viewMode === 'grid' ? (
               <BranchTable 
-                branches={data?.data?.content || []} 
+                branches={branches} 
                 onDelete={handleDeleteBranch}
                 onEdit={handleEditBranch}
               />
             ) : (
               <BranchCardList 
-                branches={data?.data?.content || []} 
+                branches={branches} 
                 onDelete={handleDeleteBranch}
                 onEdit={handleEditBranch}
               />

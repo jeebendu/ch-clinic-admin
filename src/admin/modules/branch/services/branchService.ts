@@ -5,8 +5,14 @@ import { getEnvVariable } from "@/utils/envUtils";
 const apiUrl = getEnvVariable('API_URL');
 
 export const BranchService = {
-  list: () => {
-    return http.get(`${apiUrl}/v1/branch/list`);
+  list: async () => {
+    try {
+      const response = await http.get(`${apiUrl}/v1/branch/list`);
+      return response;
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+      throw error;
+    }
   },
 
   deleteById: (id: number) => {
