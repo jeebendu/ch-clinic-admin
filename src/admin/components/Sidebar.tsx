@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { 
@@ -15,7 +14,8 @@ import {
   UserCog,
   PanelLeft,
   X,
-  Palette
+  Palette,
+  UserPlus
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { generateColorPalette, updateCSSVariables } from "@/utils/themeUtils";
+import AuthService from "@/services/authService";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -30,23 +31,7 @@ interface SidebarProps {
 }
 
 // Define the UserRole type
-type UserRole = "admin" | "doctor" | "staff";
-
-const roleAccess: Record<string, UserRole[]> = {
-  "/admin": ["admin", "doctor", "staff"],
-  "/admin/dashboard/admin": ["admin"],
-  "/admin/dashboard/doctor": ["doctor", "admin"],
-  "/admin/dashboard/staff": ["staff", "admin"],
-  "/admin/appointments": ["admin", "doctor", "staff"],
-  "/admin/patients": ["admin", "doctor", "staff"],
-  "/admin/schedule": ["admin", "doctor", "staff"],
-  "/admin/doctor-availability": ["admin", "doctor", "staff"],
-  "/admin/doctor": ["admin"],
-  "/admin/branch": ["admin"],
-  "/admin/customer": ["admin"],
-  "/admin/users": ["admin"],
-  "/admin/settings": ["admin"],
-};
+type UserRole = "Admin" | "Doctor" | "Staff";
 
 // Expanded navigation items list with all modules
 const navItems = [
@@ -54,79 +39,86 @@ const navItems = [
     icon: <Home className="h-5 w-5" />, 
     label: "Admin Dashboard", 
     href: "/admin/dashboard/admin", 
-    roles: ["admin"] 
+    roles: ["Admin"] 
   },
   { 
     icon: <Home className="h-5 w-5" />, 
     label: "Doctor Dashboard", 
     href: "/admin/dashboard/doctor", 
-    roles: ["doctor", "admin"] 
+    roles: ["Doctor", "Admin"] 
   },
   { 
     icon: <Home className="h-5 w-5" />, 
     label: "Staff Dashboard", 
     href: "/admin/dashboard/staff", 
-    roles: ["staff", "admin"] 
+    roles: ["Staff", "Admin"] 
   },
   { 
     icon: <Calendar className="h-5 w-5" />, 
     label: "Appointments", 
     href: "/admin/appointments", 
-    roles: ["admin", "doctor", "staff"] 
+    roles: ["Admin", "Doctor", "Staff"] 
   },
   { 
     icon: <Users className="h-5 w-5" />, 
     label: "Patients", 
     href: "/admin/patients", 
-    roles: ["admin", "doctor", "staff"] 
+    roles: ["Admin", "Doctor", "Staff"] 
   },
   { 
     icon: <Clock className="h-5 w-5" />, 
     label: "Schedule", 
     href: "/admin/schedule", 
-    roles: ["admin", "doctor", "staff"] 
+    roles: ["Admin", "Doctor", "Staff"] 
   },
   { 
     icon: <CalendarDays className="h-5 w-5" />, 
     label: "Availability & Leaves", 
     href: "/admin/doctor-availability", 
-    roles: ["admin", "doctor", "staff"] 
+    roles: ["Admin", "Doctor"] 
   },
   { 
     icon: <UserCircle className="h-5 w-5" />, 
     label: "Doctors", 
     href: "/admin/doctor", 
-    roles: ["admin"] 
+    roles: ["Admin"] 
   },
   { 
     icon: <Building2 className="h-5 w-5" />, 
     label: "Branches", 
     href: "/admin/branch", 
-    roles: ["admin"] 
+    roles: ["Admin"] 
   },
   { 
     icon: <UserCog className="h-5 w-5" />, 
     label: "Customers", 
     href: "/admin/customer", 
-    roles: ["admin"] 
+    roles: ["Admin"] 
   },
   { 
     icon: <FileBox className="h-5 w-5" />, 
     label: "Users", 
     href: "/admin/users", 
-    roles: ["admin"] 
+    roles: ["Admin"] 
   },
   { 
     icon: <Settings className="h-5 w-5" />, 
     label: "Settings", 
     href: "/admin/settings", 
-    roles: ["admin"] 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <UserPlus className="h-5 w-5" />, 
+    label: "Quick Patient Form", 
+    href: "/admin/dashboard/staff", 
+    roles: ["Staff"], 
+    onClick: () => document.dispatchEvent(new CustomEvent('open-quick-form'))
   },
 ];
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
-  // TODO: In a real app, get this from auth context
-  const userRole: UserRole = "admin";
+  // Get user role from auth service
+  const userRole: UserRole = AuthService.getUserRole() as UserRole;
   const [themeColor, setThemeColor] = useState("#00b8ab");
   const { toast } = useToast();
 
@@ -134,6 +126,19 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   const filteredNavItems = navItems.filter(item => 
     item.roles.includes(userRole)
   );
+
+  // Add event listener for quick form
+  useEffect(() => {
+    const handleQuickForm = () => {
+      // This event will be caught by the StaffDashboard component
+      // We're using this approach to avoid passing state across components
+    };
+    
+    document.addEventListener('open-quick-form', handleQuickForm);
+    return () => {
+      document.removeEventListener('open-quick-form', handleQuickForm);
+    };
+  }, []);
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
@@ -221,6 +226,11 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
               collapsed && "justify-center"
             )}
             onClick={(e) => {
+              if (item.onClick) {
+                e.preventDefault();
+                item.onClick();
+              }
+              
               if (window.innerWidth < 768 && onClose) {
                 onClose();
               }

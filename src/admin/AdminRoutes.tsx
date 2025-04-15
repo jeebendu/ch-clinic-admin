@@ -8,7 +8,7 @@ import BranchRoutes from "./modules/branch/routes/BranchRoutes";
 import CustomerRoutes from "./modules/customer/routes/CustomerRoutes";
 import DoctorRoutes from "./modules/doctor/DoctorRoutes";
 import UserRoutes from "./modules/user/UserRoutes";
-
+import CoreRoutes from "./modules/core/routes/CoreRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -21,6 +21,7 @@ const AdminRoutes = () => {
       <Route path="/customer/*" element={<CustomerRoutes />} />
       <Route path="/doctor/*" element={<DoctorRoutes />} />
       <Route path="/users/*" element={<UserRoutes />} />
+      <Route path="/core/*" element={<CoreRoutes />} />
       <Route path="/:section" element={<DashboardRoutes />} />
     </Routes>
   );

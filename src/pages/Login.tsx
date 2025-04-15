@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,8 +37,23 @@ const Login = () => {
         description: `Welcome ${userData.name}`,
       });
       
-      // Redirect to admin dashboard
-      navigate("/admin");
+      // Redirect based on user role
+      const userRole = userData.role || 'Staff';
+      
+      switch(userRole) {
+        case 'Admin':
+          navigate("/admin/dashboard/admin");
+          break;
+        case 'Doctor':
+          navigate("/admin/dashboard/doctor");
+          break;
+        case 'Staff':
+          navigate("/admin/dashboard/staff");
+          break;
+        default:
+          // Default to admin dashboard
+          navigate("/admin");
+      }
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.response?.data?.message || "Invalid username or password");
@@ -81,13 +95,11 @@ const Login = () => {
     setForgotPasswordOpen(false);
   };
 
-  // Get logo URL
   const logoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
   const bannerUrl = tenant?.bannerHome ? getTenantFileUrl(tenant.bannerHome, 'banner') : '';
 
   return (
     <div className="min-h-screen flex flex-row">
-      {/* Banner Section - Left 50% */}
       <div className="hidden md:block md:w-1/2 bg-brand-light">
         {bannerUrl ? (
           <div 
@@ -109,7 +121,6 @@ const Login = () => {
         )}
       </div>
 
-      {/* Login Form - Right 50% */}
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center bg-white p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
@@ -240,7 +251,12 @@ const Login = () => {
                 </Dialog>
               </div>
               <div className="text-xs text-gray-400 text-center w-full">
-                Demo access: jeebendu / password
+                <div>Demo access: Use the following credentials</div>
+                <div className="mt-1 font-medium">
+                  Admin: admin / password<br />
+                  Doctor: doctor / password<br />
+                  Staff: staff / password
+                </div>
               </div>
             </CardFooter>
           </Card>

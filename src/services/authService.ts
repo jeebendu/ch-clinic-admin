@@ -36,6 +36,7 @@ const AuthService = {
         // Store user data and token in localStorage
         localStorage.setItem('user', JSON.stringify(response.data));
         localStorage.setItem('auth_token', response.data.token);
+        localStorage.setItem('user_role', response.data.role || 'Staff'); // Store role
       }
       
       return response.data as User;
@@ -87,6 +88,26 @@ const AuthService = {
       return JSON.parse(userStr) as User;
     }
     return null;
+  },
+
+  /**
+   * Get the current user role
+   */
+  getUserRole: (): string => {
+    return localStorage.getItem('user_role') || 'Staff';
+  },
+
+  /**
+   * Check if user has specific role
+   */
+  hasRole: (role: string | string[]): boolean => {
+    const userRole = AuthService.getUserRole();
+    
+    if (Array.isArray(role)) {
+      return role.includes(userRole);
+    }
+    
+    return userRole === role;
   },
 
   /**

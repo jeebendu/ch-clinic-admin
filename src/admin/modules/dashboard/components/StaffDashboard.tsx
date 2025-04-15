@@ -1,8 +1,13 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, Users, FileText, Phone, MessageSquare } from "lucide-react";
+import { Calendar, Clock, Users, FileText, Phone, MessageSquare, UserPlus, Search } from "lucide-react";
 import { PageHeader } from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import QuickPatientForm from "./QuickPatientForm";
+import { useRoleAccess } from "@/hooks/use-role-access";
 
 const statsData = [
   {
@@ -51,13 +56,48 @@ const recentCalls = [
 ];
 
 const StaffDashboard = () => {
+  // Use the role access hook to ensure only Staff can access this page
+  useRoleAccess(['Staff', 'Admin']);
+  
+  const [quickFormOpen, setQuickFormOpen] = useState(false);
+  
   return (
     <AdminLayout>
       <div className="space-y-6">
         <PageHeader 
           title="Staff Dashboard" 
           description="Reception and administrative overview"
+          showAddButton
+          addButtonLabel="Quick Patient Form"
+          onAddButtonClick={() => setQuickFormOpen(true)}
         />
+        
+        {/* Quick Action Buttons */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Button 
+            className="bg-primary hover:bg-primary/90 text-white"
+            onClick={() => setQuickFormOpen(true)}
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Quick Patient & Appointment
+          </Button>
+          
+          <Button 
+            variant="outline"
+            onClick={() => window.location.href = '/admin/patients'}
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Find Patient
+          </Button>
+          
+          <Button 
+            variant="outline"
+            onClick={() => window.location.href = '/admin/appointments'}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Manage Appointments
+          </Button>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {statsData.map((stat, index) => (
@@ -144,6 +184,13 @@ const StaffDashboard = () => {
           </Card>
         </div>
       </div>
+      
+      {/* Quick Patient Form Dialog */}
+      <Dialog open={quickFormOpen} onOpenChange={setQuickFormOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <QuickPatientForm onFormClose={() => setQuickFormOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
