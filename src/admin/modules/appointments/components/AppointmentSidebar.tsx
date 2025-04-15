@@ -5,16 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { AllAppointment } from '../types/AllAppointment';
+import { Appointment } from '../types/Appointment';
 import { Calendar, Clock, Mail, Phone, MapPin, X } from 'lucide-react';
 
 interface AppointmentSidebarProps {
   onClose: () => void;
-  appointments: AllAppointment[];
+  appointments: Appointment[];
 }
 
 const AppointmentSidebar = ({ onClose, appointments }: AppointmentSidebarProps) => {
-  const getAppointmentTypeLabel = (type?: AllAppointment['appointmentType']) => {
+  const getAppointmentTypeLabel = (type?: Appointment['appointmentType']) => {
     if (!type) return "Visit";
     switch (type) {
       case "direct-visit": return "Direct Visit";
@@ -24,7 +24,7 @@ const AppointmentSidebar = ({ onClose, appointments }: AppointmentSidebarProps) 
     }
   };
 
-  const getStatusBadgeStyle = (status: AllAppointment['status']) => {
+  const getStatusBadgeStyle = (status: Appointment['status']) => {
     switch (status) {
       case "upcoming": return "bg-blue-100 text-blue-800";
       case "completed": return "bg-green-100 text-green-800";

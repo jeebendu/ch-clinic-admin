@@ -1,84 +1,53 @@
 
-import React, { useState, useEffect } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { searchClinics } from "@/admin/services/clinicService";
-import { fetchBranches } from "@/admin/services/branchService";
-import { getCountries } from "@/admin/services/countryService";
-import { getStatesByCountryId } from "@/admin/services/stateService";
-import { getDistrictByStateId } from "@/admin/services/districtService";
-import { SearchableSelect } from "./SearchableSelect";
-import { MultipleSearchableSelect } from "./MultipleSearchableSelect";
-import { getRoles } from "@/admin/services/roleService";
-import { Clinic } from "@/admin/modules/clinics/types/Clinic";
-import { Branch } from "@/admin/modules/branch/types/Branch";
-import { Country } from "@/admin/modules/core/types/Country";
-import { State } from "@/admin/modules/core/types/State";
-import { District } from "@/admin/modules/core/types/District";
-import { Role } from "@/admin/modules/users/types/User";
+import React, { useEffect, useState } from "react";
 import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from "@/components/ui/popover";
+  Building, 
+  ChevronDown, 
+  Store,
+  X
+} from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogDescription 
+  DialogDescription
 } from "@/components/ui/dialog";
-import { 
-  Command, 
-  CommandEmpty, 
-  CommandGroup, 
-  CommandInput, 
-  CommandItem, 
-  CommandList 
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
 } from "@/components/ui/command";
-import { Building, ChevronDown, Store } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Module } from "../modules/core/types/Module";
+import { Clinic, featureList, Plan } from "../modules/clinics/types/Clinic";
+import { Country, District, State } from "../modules/core/types/Address";
+import { Branch } from "../modules/branch/types/Branch";
 
 // Mock data - In a real application, you would fetch these from an API
+const mockModule: Module = { id: 1, name: "Basic Module" };
+const mockFeatureList: featureList = { 
+  id: 1, 
+  module: mockModule, 
+  print: true 
+};
+
+const mockPlan: Plan = {
+  features: mockFeatureList
+};
+
 const mockClinics: Clinic[] = [
-  { 
-    id: 1, 
-    uid: "c1", 
-    name: "Main Clinic", 
-    email: "main@example.com", 
-    contact: "1234567890", 
-    address: "123 Main St", 
-    plan: {
-      features: {
-        id: 1,
-        module: { id: 1, name: "Basic Module" },
-        print: true
-      }
-    }
-  },
-  { 
-    id: 2, 
-    uid: "c2", 
-    name: "Downtown Clinic", 
-    email: "downtown@example.com", 
-    contact: "1234567891", 
-    address: "456 Downtown",
-    plan: {
-      features: {
-        id: 1,
-        module: { id: 1, name: "Basic Module" },
-        print: true
-      }
-    }
-  },
+  { id: 1, uid: "c1", name: "Main Clinic", email: "main@example.com", contact: "1234567890", address: "123 Main St", plan: mockPlan },
+  { id: 2, uid: "c2", name: "Downtown Clinic", email: "downtown@example.com", contact: "1234567891", address: "456 Downtown", plan: mockPlan },
 ];
 
 // Create country object to use in state and district objects

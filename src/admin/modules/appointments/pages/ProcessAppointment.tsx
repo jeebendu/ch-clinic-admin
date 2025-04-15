@@ -55,10 +55,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { AllAppointment, LabTest, Medicines } from "../types/Appointment";
-import { Patient } from "@/admin/modules/patients/types/Patient";
 import { getAppointmentById, updateAppointmentStatus } from "../services/appointmentService";
 import patientMockService from "../services/patientMockService";
+import { Appointment } from "../types/Appointment";
+import { Patient } from "../../patient/types/Patient";
+import { LabTest, Medicines } from "../../patient/types/Prescription";
 
 const consultationSchema = z.object({
   vitals: z.object({
@@ -120,7 +121,7 @@ type LabTestFormValues = z.infer<typeof labTestSchema>;
 const ProcessAppointment = () => {
   const { appointmentId } = useParams<{ appointmentId: string }>();
   const navigate = useNavigate();
-  const [appointment, setAppointment] = useState<AllAppointment | null>(null);
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [patient, setPatient] = useState<Patient | null>(null);
   const [isAddMedicationDialogOpen, setIsAddMedicationDialogOpen] = useState(false);
   const [isAddLabTestDialogOpen, setIsAddLabTestDialogOpen] = useState(false);

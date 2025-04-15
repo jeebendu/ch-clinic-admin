@@ -33,10 +33,3 @@ export interface Diagnosis {
   followUpDate?: string;
 }
 
-export interface Appointment {
-  id: string;
-  patientId: string;
-  scheduledDate: string;
-  staffId: string;
-  status: "scheduled" | "completed" | "cancelled";
-}

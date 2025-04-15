@@ -1,6 +1,5 @@
 
 import { faker } from '@faker-js/faker';
-import { Patient } from '@/admin/types/patient';
 
 // Function to generate a random date within the last year
 const getRandomDate = (): Date => {

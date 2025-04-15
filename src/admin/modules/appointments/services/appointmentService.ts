@@ -1,43 +1,75 @@
+import http from "@/lib/JwtInterceptor";
+import { isProduction } from "@/utils/envUtils";
+import { AppointmentQueryParams } from "../types/Appointment";
+import appointmentMockService from "./appointmentMockService";
 
-import { Slot } from "@/admin/types/allappointment";
-
-export interface AppointmentQueryParams {
-  doctorId?: number;
-  patientId?: number;
-  branchId?: number;
-  status?: string;
-  startDate?: string;
-  endDate?: string;
-  pageSize?: number;
-  pageNumber?: number;
-  // Additional fields needed for appointmentMockService
-  page?: number;
-  size?: number;
-  statuses?: string[];
-  fromDate?: string;
-  toDate?: string;
-  searchTerm?: string | null;
-  branches?: number[];
-}
-
+/**
+ * Fetches appointments by doctor ID with pagination support
+ */
 export const fetchAppointmentsByDoctorId = async (params: AppointmentQueryParams) => {
-  // Import dynamically to avoid circular dependencies
-  const { getMockAppointments } = await import('@/admin/mock/appartment/appartmentMockService');
-  return getMockAppointments(params);
+  const { doctorId, page, size, status, fromDate, toDate, branches, statuses, searchTerm } = params;
+
+  if (isProduction()) {
+    let url = `v1/appointments/doctor/${doctorId}?page=${page}&size=${size}`;
+
+    if (status) url += `&status=${status}`;
+    if (fromDate) url += `&fromDate=${fromDate}`;
+    if (toDate) url += `&toDate=${toDate}`;
+
+    const filter = {
+      branches,
+      statuses,
+      searchTerm,
+    };
+
+    return await http.post(url, filter);
+  } else {
+    // Generate mock data
+    return appointmentMockService.getMockAppointments(params);
+  }
 };
 
-export const getAppointmentById = async (id: string | number) => {
-  // Mock implementation
-  const { getMockAppointments } = await import('@/admin/mock/appartment/appartmentMockService');
-  const response = await getMockAppointments({});
-  const appointment = response.data.content.find((app: any) => app.id === Number(id));
-  return { data: appointment };
+/**
+ * Fetches all appointments with pagination support
+ */
+export const fetchAllAppointments = async (params: AppointmentQueryParams) => {
+  const { page, size, status, fromDate, toDate } = params;
+
+  if (isProduction()) {
+    let url = `v1/appointments?page=${page}&size=${size}`;
+
+    if (status) url += `&status=${status}`;
+    if (fromDate) url += `&fromDate=${fromDate}`;
+    if (toDate) url += `&toDate=${toDate}`;
+
+    return await http.get(url);
+  } else {
+    // Generate mock data
+    return appointmentMockService.getMockAppointments(params);
+  }
 };
 
-export const updateAppointmentStatus = async (id: number, status: string) => {
-  // Mock implementation
-  return Promise.resolve({ success: true });
+/**
+ * Updates an appointment's status
+ */
+export const updateAppointmentStatus = async (appointmentId: number, status: string) => {
+  if (isProduction()) {
+    return await http.put(`v1/appointments/${appointmentId}/status`, { status });
+  } else {
+    // Mock success response
+    return Promise.resolve({ data: { success: true } });
+  }
 };
 
-// Export for use in mock services
-export { AppointmentQueryParams };
+/**
+ * Fetch a single appointment by ID
+ */
+export const getAppointmentById = async (appointmentId: string | number) => {
+  if (isProduction()) {
+    return await http.get(`/v1/appointments/id/${appointmentId}`);
+  } else {
+    // Mock data for a single appointment
+    const mockAppointment = appointmentMockService.getMockAppointmentById(appointmentId);
+    return Promise.resolve({ data: mockAppointment });
+  }
+};

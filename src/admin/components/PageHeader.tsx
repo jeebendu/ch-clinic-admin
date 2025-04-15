@@ -15,6 +15,8 @@ interface PageHeaderProps {
   onFilterToggle?: () => void;
   showFilter?: boolean;
   additionalActions?: React.ReactNode;
+  loadedElements?: number; // Add loadedElements prop
+  totalElements?: number; // Add totalElements prop
 }
 
 const PageHeader = ({
@@ -27,13 +29,20 @@ const PageHeader = ({
   onRefreshClick,
   onFilterToggle,
   showFilter,
-  additionalActions
+  additionalActions,
+  loadedElements, // Destructure loadedElements
+  totalElements, // Destructure totalElements
 }: PageHeaderProps) => {
   return (
     <div className="sticky-header-page">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 py-1">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-semibold">{title}</h1>
+          {loadedElements !== undefined && totalElements !== undefined && (
+          <p className="text-sm text-muted-foreground">
+            Showing {loadedElements} of {totalElements} patients
+          </p>
+        )}
         </div>
         <div className="flex items-center space-x-2 w-full sm:w-auto">
           <div className="flex space-x-2">

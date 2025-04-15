@@ -1,15 +1,12 @@
 
 import { Route, Routes } from "react-router-dom";
-import Dashboard from "@/admin/pages/Dashboard";
-import Schedule from "@/admin/pages/Schedule";
-import DoctorAvailability from "@/admin/pages/DoctorAvailability";
+import Dashboard from "../Dashboard";
+
 
 const DashboardRoutes = () => {
   return (
     <Routes>
-      <Route index element={<Dashboard />} />
-      <Route path="/schedule" element={<Schedule />} />
-      <Route path="/doctor-availability" element={<DoctorAvailability />} />
+      <Route path="/" element={<Dashboard/>} />
     </Routes>
   );
 };

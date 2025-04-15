@@ -1,11 +1,7 @@
-
 import { AppointmentRequest } from "../types/AppointmentRequest";
-import { Country } from "../../core/types/Country";
-import { State } from "../../core/types/State";
-import { District } from "../../core/types/District";
-import { Branch } from "../../branch/types/Branch";
-import { Role, User } from "../../users/types/User";
-import { Doctor } from "../../doctors/types/Doctor";
+import { Country, District, State } from "../../core/types/Address";
+import { Doctor } from "../../doctor/types/Doctor";
+
 
 /**
  * Generate mock appointment requests data for development
@@ -35,50 +31,42 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             state: mockState,
         };
 
-        const mockBranch: Branch = {
-            id: i % 5 + 1,
-            name: `Branch ${i % 5 + 1}`,
-            code: `BR${i % 5 + 1}`,
-            location: `Location ${i % 5 + 1}`,
-            active: true,
-            state: mockState,
-            district: mockDistrict,
-            country: mockCountry,
-            city: `City ${i % 5 + 1}`,
-            mapUrl: `https://maps.example.com/${i % 5 + 1}`,
-            pincode: 123456 + i,
-            image: `branch${i % 5 + 1}.png`,
-            latitude: 12.34 + i,
-            longitude: 56.78 + i,
-        };
-
-        const mockRole: Role = {
-            id: i % 3 + 1,
-            name: `Role ${i % 3 + 1}`,
-            permissions: [
+        const mockDoctor: Doctor = {
+            id: i % 10 + 1,
+            firstname: `Doctor ${i % 10 + 1}`,
+            email: `doctor${i % 10 + 1}@example.com`,
+            uid: `UID-${i % 10 + 1}`,
+            phone: (9876543210 + i).toString(), // Ensure mobile is a string
+            desgination: `Designation ${i % 5 + 1}`, // Corrected to match the property name in 'Doctor'
+            specializationList: [
                 {
-                    id: i % 10 + 1,
-                    module: { id: i % 5 + 1, name: `Module ${i % 5 + 1}`, code: `MOD${i % 5 + 1}` },
-                    read: true,
-                    write: i % 2 === 0,
-                    upload: i % 3 === 0,
-                    print: i % 4 === 0,
+                    id: i % 3 + 1,
+                    name: `Specialization ${i % 3 + 1}`,
                 },
             ],
-        };
-
-        const mockUser: User = {
-            id: i % 10 + 1,
-            branch: mockBranch,
-            name: `User ${i % 10 + 1}`,
-            username: `user${i % 10 + 1}`,
-            email: `user${i % 10 + 1}@example.com`,
-            phone: `123456789${i % 10}`,
-            password: `password${i % 10 + 1}`,
-            effectiveTo: null,
-            effectiveFrom: new Date(2020, i % 12, (i % 28) + 1),
-            role: mockRole,
-            image: `image${i % 10 + 1}.png`,
+            qualification: `Qualification ${i % 5 + 1}`,
+            joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
+            external: i % 2 === 0,
+            user: undefined,
+            lastname: "",
+            expYear: 0,
+            about: "",
+            image: "",
+            pincode: "",
+            city: "",
+            biography: "",
+            gender: 0,
+            verified: false,
+            percentages: [],
+            serviceList: [],
+            branchList: [],
+            languageList: [],
+            district: undefined,
+            state: undefined,
+            country: undefined,
+            consultationFee: undefined,
+            reviewCount: 0,
+            rating: 0
         };
 
         const mockAppointment: AppointmentRequest = {
@@ -86,9 +74,9 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             firstName: `FirstName ${i + 1}`,
             lastName: `LastName ${i + 1}`,
             email: `user${i + 1}@example.com`,
-            phone: 1234567890 + i,
+            phone: 1234567890 + i, // Ensure phone is a number
             dob: new Date(1990, i % 12, (i % 28) + 1),
-            gender: i % 2,
+            gender: i % 2, // 0 for male, 1 for female
             district: mockDistrict,
             state: mockState,
             country: mockCountry,
@@ -96,27 +84,7 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             appointmentDate: new Date(2025, i % 12, (i % 28) + 1).toISOString(),
             isAccept: i % 2 === 0,
             isReject: i % 2 !== 0,
-            doctor: {
-                id: i % 10 + 1,
-                name: `Doctor ${i % 10 + 1}`,
-                email: `doctor${i % 10 + 1}@example.com`,
-                uid: `UID-${i % 10 + 1}`,
-                mobile: 9876543210 + i,
-                desgination: `Designation ${i % 5 + 1}`,
-                specialization: `Specialization ${i % 3 + 1}`,
-                specializationList: [
-                    {
-                        id: i % 3 + 1,
-                        name: `Specialization ${i % 3 + 1}`,
-                    },
-                ],
-                qualification: `Qualification ${i % 5 + 1}`,
-                joiningDate: new Date(2020, i % 12, (i % 28) + 1),
-                user: mockUser,
-                status: `Status ${i % 3 + 1}`,
-                external: i % 2 === 0,
-                external_temp: null,
-            },
+            doctor: mockDoctor,
             appointmentType: {
                 id: i % 3 + 1,
                 name: `Type ${i % 3 + 1}`,

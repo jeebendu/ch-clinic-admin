@@ -5,11 +5,11 @@ import { useAppointments } from "../hooks/useAppointments";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import AppointmentSidebar from "../components/AppointmentSidebar";
 import PageHeader from "@/admin/components/PageHeader";
-import InfiniteAppointmentList from "../components/InfiniteAppointmentList";
+import InfiniteAppointmentList from "../components/AppointmentList";
 import AppointmentCalendar from "../components/AppointmentCalendar";
-import { Doctor } from "../types/Doctor";
 import { fetchDoctorDetailsById } from "../services/DoctorService";
-import { AppointmentQueryParams } from "../services/appointmentService";
+import { Doctor } from "../../doctor/types/Doctor";
+import { AppointmentQueryParams } from "../types/Appointment";
 
 const AppointmentsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");

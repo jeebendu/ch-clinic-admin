@@ -1,51 +1,42 @@
-
-import { Branch } from "../../shared/types/Branch";
-import { Country, District, State } from "../../shared/types/Address";
-import { User } from "../../users/types/User";
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import { User } from "@/admin/modules/user/types/User";
+import { Country, District, State } from "@/admin/modules/core/types/Address";
+import { Specialization } from "../submodules/specialization/types/Specialization";
 
 export interface Doctor {
   id: number;
   uid: string;
   firstname: string;
   lastname: string;
-  name?: string;
-  email: string;
-  phone?: string;
-  mobile?: number;
   external: boolean;
   desgination: string;
-  expYear?: number;
+  expYear: number;
+  email: string;
+  phone: string;
   qualification: string;
-  joiningDate: Date | string;
-  about?: string;
-  image?: string;
-  pincode?: string;
-  city?: string;
-  biography?: string;
-  gender?: number;
-  verified?: boolean;
-  percentages?: any[];
+  joiningDate: string;
+  about: string;
+  image: string;
+  pincode: string;
+  city: string;
+  biography: string;
+  gender: number;
+  verified: boolean;
+  percentages: any[];
   specializationList: Specialization[];
-  serviceList?: DoctorService[];
-  branchList?: Branch[];
-  languageList?: Language[];
+  serviceList: DoctorService[];
+  branchList: Branch[];
+  languageList: Language[];
   user: User;
-  district?: District;
-  state?: State;
-  country?: Country;
+  district: District;
+  state: State;
+  country: Country;
   education?: Education[];
-  consultationFee?: any;
-  reviewCount?: number;
-  rating?: number;
-  status?: string;
-  external_temp?: any;
-  specialization?: string;
+  consultationFee: any;
+  reviewCount: number;
+  rating: number;
 }
 
-export interface Specialization {
-  id: number;
-  name: string;
-}
 
 export interface DoctorService {
   id: number;
@@ -62,22 +53,4 @@ export interface Education {
   degree: string;
   institution: string;
   year: string;
-}
-
-export interface SearchForm {
-  value: String;
-  doctorType?: any;
-  specialization: any;
-}
-
-export interface SearchReport {
-  refDrId: number;
-  fromDate: Date;
-  toDate: Date;
-}
-
-export interface EnquiryServiceType {
-  id: number;
-  name: string;
-  price: number;
 }

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import "../styles/admin.css"; // Import the CSS file for styles
 
 type AdminLayoutProps = {
   children: React.ReactNode;
@@ -14,7 +15,6 @@ type AdminLayoutProps = {
   showAddButton?: boolean;
   onAddButtonClick?: () => void;
 };
-
 // Use both named export and default export for backward compatibility
 export const AdminLayout = ({ 
   children, 
