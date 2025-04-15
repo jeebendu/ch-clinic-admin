@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -26,36 +27,36 @@ import { format, parse } from "date-fns";
 import { Doctor } from "@/admin/modules/doctors/types/Doctor";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 import { AllAppointment } from "@/admin/modules/appointments/types/AllAppointment";
+import { Slot } from "@/admin/types/allappointment";
 
 interface SlotCreationDialogProps {
   open: boolean;
-  setOpen: (open: boolean) => void;
-  doctors: Doctor[];
-  branches: Branch[];
-  selectedDate: Date | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
-  onSlotCreate: (slot: any) => void;
-  appointments: AllAppointment[];
+  onOpenChange: (open: boolean) => void;
+  doctors?: Doctor[];
+  branches?: Branch[];
+  selectedDate?: Date;
+  appointments?: AllAppointment[];
+  onSave: (slot: Partial<Slot>) => void;
 }
 
-const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
+export const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
   open,
-  setOpen,
-  doctors,
-  branches,
-  selectedDate,
-  setSelectedDate,
-  onSlotCreate,
-  appointments,
+  onOpenChange,
+  doctors = [],
+  branches = [],
+  selectedDate = new Date(),
+  appointments = [],
+  onSave,
 }) => {
   const [slotType, setSlotType] = useState("regular");
   const [isRecurring, setIsRecurring] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<string>("");
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [capacity, setCapacity] = useState("");
   const [recurringDays, setRecurringDays] = useState<string[]>([]);
+  const [date, setDate] = useState<Date | undefined>(selectedDate);
 
   const handleCreateSlot = () => {
     if (!selectedDoctor || !selectedBranch || !startTime || !endTime) {
@@ -63,20 +64,18 @@ const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
       return;
     }
 
-    const newSlot = {
-      slotType: slotType,
-      isRecurring: isRecurring,
-      selectedDoctor: selectedDoctor,
-      selectedBranch: selectedBranch,
+    const newSlot: Partial<Slot> = {
+      doctorId: parseInt(selectedDoctor, 10),
+      branchId: parseInt(selectedBranch, 10),
       startTime: startTime,
       endTime: endTime,
-      capacity: capacity,
+      capacity: capacity ? parseInt(capacity, 10) : undefined,
+      isRecurring: isRecurring,
       recurringDays: recurringDays,
-      selectedDate: selectedDate,
+      date: date,
     };
 
-    onSlotCreate(newSlot);
-    setOpen(false);
+    onSave(newSlot);
   };
 
   const handleDayToggle = (day: string) => {
@@ -87,17 +86,19 @@ const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (doctors.length > 0) {
-      setSelectedDoctor(doctors[0]);
-    }
-    if (branches.length > 0) {
-      setSelectedBranch(branches[0]);
-    }
-  }, [doctors, branches]);
+  // Convert doctors and branches to options for SearchableSelect
+  const doctorOptions = doctors.map(doctor => ({
+    label: doctor.name,
+    value: doctor.id.toString(),
+  }));
+
+  const branchOptions = branches.map(branch => ({
+    label: branch.name,
+    value: branch.id.toString(),
+  }));
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create Appointment Slot</DialogTitle>
@@ -106,7 +107,7 @@ const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <Tabs defaultValue="regular" className="w-[400px]">
+          <Tabs defaultValue="regular" className="w-full">
             <TabsList>
               <TabsTrigger value="regular" onClick={() => setSlotType("regular")}>
                 Regular
@@ -120,32 +121,16 @@ const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
                 <div className="space-y-2">
                   <Label htmlFor="doctor">Doctor</Label>
                   <SearchableSelect
-                    options={doctors.map((doctor) => ({
-                      label: doctor.name,
-                      value: doctor.id.toString(),
-                    }))}
-                    onChange={(value: string) => {
-                      const doctor = doctors.find(
-                        (doctor) => doctor.id.toString() === value
-                      );
-                      setSelectedDoctor(doctor || null);
-                    }}
+                    options={doctorOptions}
+                    onChange={(value: string) => setSelectedDoctor(value)}
                     placeholder="Select a doctor"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="branch">Branch</Label>
                   <SearchableSelect
-                    options={branches.map((branch) => ({
-                      label: branch.name,
-                      value: branch.id.toString(),
-                    }))}
-                    onChange={(value: string) => {
-                      const branch = branches.find(
-                        (branch) => branch.id.toString() === value
-                      );
-                      setSelectedBranch(branch || null);
-                    }}
+                    options={branchOptions}
+                    onChange={(value: string) => setSelectedBranch(value)}
                     placeholder="Select a branch"
                   />
                 </div>
@@ -183,8 +168,9 @@ const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
                   <Label htmlFor="date">Date</Label>
                   <Calendar
                     mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
+                    selected={date}
+                    onSelect={setDate}
+                    className="pointer-events-auto"
                   />
                 </div>
               </div>
@@ -200,12 +186,29 @@ const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
                           key={day}
                           variant={recurringDays.includes(day) ? "default" : "outline"}
                           onClick={() => handleDayToggle(day)}
+                          type="button"
                         >
                           {day}
                         </Button>
                       )
                     )}
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="doctor">Doctor</Label>
+                  <SearchableSelect
+                    options={doctorOptions}
+                    onChange={(value: string) => setSelectedDoctor(value)}
+                    placeholder="Select a doctor"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="branch">Branch</Label>
+                  <SearchableSelect
+                    options={branchOptions}
+                    onChange={(value: string) => setSelectedBranch(value)}
+                    placeholder="Select a branch"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="start-time">Start Time</Label>
@@ -241,8 +244,9 @@ const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
                   <Label htmlFor="date">Start Date</Label>
                   <Calendar
                     mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
+                    selected={date}
+                    onSelect={setDate}
+                    className="pointer-events-auto"
                   />
                 </div>
               </div>
@@ -250,7 +254,7 @@ const SlotCreationDialog: React.FC<SlotCreationDialogProps> = ({
           </Tabs>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleCreateSlot}>
+          <Button type="button" onClick={handleCreateSlot}>
             Create slot
           </Button>
         </DialogFooter>

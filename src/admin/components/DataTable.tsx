@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   flexRender,
@@ -6,6 +7,7 @@ import {
   getSortedRowModel,
   SortingState,
   getFilteredRowModel,
+  ColumnDef,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -18,7 +20,7 @@ import {
 import { FileType } from "@/admin/modules/core/types/File";
 
 interface DataTableProps<TData, TValue> {
-  columns: any[];
+  columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onRowClick?: (row: TData) => void;
   enableSorting?: boolean;
@@ -62,8 +64,8 @@ const DataTable = <TData extends object, TValue>({
                             header.getContext()
                           )}
                           {{
-                            ascending: " 🔼",
-                            descending: " 🔽",
+                            asc: " 🔼",
+                            desc: " 🔽",
                           }[header.column.getIsSorted() as string] ?? null}
                         </div>
                       ) : (

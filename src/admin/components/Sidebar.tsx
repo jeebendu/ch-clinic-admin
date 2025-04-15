@@ -1,5 +1,6 @@
+
 import { Link, useLocation } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Calendar,
@@ -22,10 +23,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/authContext";
+import { Button } from "@/components/ui/button";
 
-interface SidebarProps {
-  isCollapsed: boolean;
-  toggleSidebar: () => void;
+export interface SidebarProps {
+  isCollapsed?: boolean;
+  toggleSidebar?: () => void;
+  onClose?: () => void;
+  collapsed?: boolean;
 }
 
 const sidebarVariants = {
@@ -106,29 +110,26 @@ const CollapsibleList = ({
           </motion.span>
         )}
       </motion.button>
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            variants={{
-              collapsed: { height: 0 },
-              expanded: { height: "auto" },
-            }}
-            initial="collapsed"
-            animate="expanded"
-            exit="collapsed"
-            overflow="hidden"
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-          >
-            {children}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <motion.div
+        variants={{
+          collapsed: { height: 0 },
+          expanded: { height: "auto" },
+        }}
+        initial="collapsed"
+        animate={isExpanded ? "expanded" : "collapsed"}
+        exit="collapsed"
+        style={{ overflow: "hidden" }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+      >
+        {children}
+      </motion.div>
     </div>
   );
 };
 
-const Sidebar = ({ isCollapsed, toggleSidebar }: SidebarProps) => {
+const Sidebar = ({ onClose, collapsed = false }: SidebarProps) => {
   const { user, logout } = useAuth();
+  const isCollapsed = collapsed;
 
   return (
     <motion.div

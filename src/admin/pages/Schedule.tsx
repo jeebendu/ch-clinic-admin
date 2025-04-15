@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { SlotCreationDialog } from "../components/SlotCreationDialog";
-import { Slot } from "../types/allappointment";
+import { Slot } from "@/admin/types/allappointment";
 
 
 const Schedule = () => {

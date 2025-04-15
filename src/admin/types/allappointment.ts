@@ -1,5 +1,15 @@
 
-import { Slot } from "@/admin/types/allappointment";
+export interface Slot {
+  id?: number;
+  date?: Date;
+  startTime?: string;
+  endTime?: string;
+  doctorId?: number;
+  branchId?: number;
+  capacity?: number;
+  isRecurring?: boolean;
+  recurringDays?: string[];
+}
 
 export interface AppointmentQueryParams {
   doctorId?: number;
@@ -11,7 +21,3 @@ export interface AppointmentQueryParams {
   pageSize?: number;
   pageNumber?: number;
 }
-
-// Export for use in mock services
-export { AppointmentQueryParams };
-

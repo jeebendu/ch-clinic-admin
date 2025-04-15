@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -17,28 +18,67 @@ import { getDistrictByStateId } from "@/admin/services/districtService";
 import { SearchableSelect } from "./SearchableSelect";
 import { MultipleSearchableSelect } from "./MultipleSearchableSelect";
 import { getRoles } from "@/admin/services/roleService";
-import { Clinic } from "@/admin/modules/core/types/Clinic";
+import { Clinic } from "@/admin/modules/clinics/types/Clinic";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 import { Country } from "@/admin/modules/core/types/Country";
 import { State } from "@/admin/modules/core/types/State";
 import { District } from "@/admin/modules/core/types/District";
 import { Role } from "@/admin/modules/users/types/User";
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger 
+} from "@/components/ui/popover";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription 
+} from "@/components/ui/dialog";
+import { 
+  Command, 
+  CommandEmpty, 
+  CommandGroup, 
+  CommandInput, 
+  CommandItem, 
+  CommandList 
+} from "@/components/ui/command";
+import { Building, ChevronDown, Store } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Mock data - In a real application, you would fetch these from an API
-const mockModule: Module = { id: 1, name: "Basic Module" };
-const mockFeatureList: featureList = { 
-  id: 1, 
-  module: mockModule, 
-  print: true 
-};
-
-const mockPlan: Plan = {
-  features: mockFeatureList
-};
-
 const mockClinics: Clinic[] = [
-  { id: 1, uid: "c1", name: "Main Clinic", email: "main@example.com", contact: "1234567890", address: "123 Main St", plan: mockPlan },
-  { id: 2, uid: "c2", name: "Downtown Clinic", email: "downtown@example.com", contact: "1234567891", address: "456 Downtown", plan: mockPlan },
+  { 
+    id: 1, 
+    uid: "c1", 
+    name: "Main Clinic", 
+    email: "main@example.com", 
+    contact: "1234567890", 
+    address: "123 Main St", 
+    plan: {
+      features: {
+        id: 1,
+        module: { id: 1, name: "Basic Module" },
+        print: true
+      }
+    }
+  },
+  { 
+    id: 2, 
+    uid: "c2", 
+    name: "Downtown Clinic", 
+    email: "downtown@example.com", 
+    contact: "1234567891", 
+    address: "456 Downtown",
+    plan: {
+      features: {
+        id: 1,
+        module: { id: 1, name: "Basic Module" },
+        print: true
+      }
+    }
+  },
 ];
 
 // Create country object to use in state and district objects
