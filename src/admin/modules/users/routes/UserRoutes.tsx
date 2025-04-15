@@ -1,10 +1,16 @@
 
 import { Route, Routes } from "react-router-dom";
+import UsersList from "../submodules/users/pages/UsersList";
+import LoginHistoryList from "../submodules/login-history/pages/LoginHistoryList";
+import RolesList from "../submodules/roles/pages/RolesList";
 
 const UserRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<div>User Dashboard</div>} />
+      <Route path="/" element={<UsersList />} />
+      <Route path="/users/*" element={<UsersList />} />
+      <Route path="/login-history/*" element={<LoginHistoryList />} />
+      <Route path="/roles/*" element={<RolesList />} />
     </Routes>
   );
 };

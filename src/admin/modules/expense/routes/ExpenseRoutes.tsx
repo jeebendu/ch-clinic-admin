@@ -1,10 +1,11 @@
 
 import { Route, Routes } from "react-router-dom";
+import ExpenseList from "../pages/ExpenseList";
 
 const ExpenseRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<div>Expense Dashboard</div>} />
+      <Route path="/" element={<ExpenseList />} />
     </Routes>
   );
 };
