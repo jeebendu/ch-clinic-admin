@@ -1,5 +1,5 @@
 
-import { User } from "../user/User";
+import { User } from "./User";
 
 export interface Doctor {
   id: number;

@@ -1,6 +1,6 @@
 
-import { Doctor } from "../doctor/Doctor";
-import { User } from "../user/User";
+import { Doctor } from "./Doctor";
+import { User } from "./User";
 
 export interface Patient {
   id: number;

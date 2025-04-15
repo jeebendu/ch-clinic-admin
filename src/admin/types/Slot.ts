@@ -1,6 +1,6 @@
 
-import { Branch } from "../shared/Branch";
-import { Doctor } from "../doctor/Doctor";
+import { Branch } from "./Branch";
+import { Doctor } from "./Doctor";
 
 export interface Slot {
   id: number;

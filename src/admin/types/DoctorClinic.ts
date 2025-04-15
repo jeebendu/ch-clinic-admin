@@ -1,5 +1,5 @@
 
-import { Doctor } from "../doctor/Doctor";
+import { Doctor } from "./Doctor";
 
 export interface DoctorClinic {
   id: number;

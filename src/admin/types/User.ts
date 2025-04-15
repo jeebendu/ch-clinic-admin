@@ -1,9 +1,8 @@
-import { Branch } from "./branch";
 
+import { Branch } from "./Branch";
 
 export interface User {
   id: number;
-  branch: Branch;
   name: string;
   username: string;
   email: string;
@@ -11,10 +10,10 @@ export interface User {
   password: string;
   effectiveTo?: Date;
   effectiveFrom?: Date;
+  branch: Branch;
   role: Role;
-  image:string;
+  image: string;
 }
-
 
 export interface Role {
   id: number;
@@ -24,24 +23,9 @@ export interface Role {
 
 export interface Permission {
   id: number;
-  module: Module;
+  module: any;
   read: boolean;
   write: boolean;
   upload: boolean;
   print: boolean;
-}
-
-export interface Module {
-  id: number;
-  name: string;
-  code: string;
-}
-
-export interface AuthUser {
-  email: string | null;
-  reason: "login";
-  tenant: "dev";
-  otp: string | null;
-  authToken: string | null;
-  phone: string | null;
 }
