@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Calendar, 
@@ -27,7 +28,9 @@ interface PatientSidebarProps {
 const PatientSidebar: React.FC<PatientSidebarProps> = ({ patient, onClose }) => {
   if (!patient) return null;
   
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | undefined) => {
+    if (!name) return "PT"; // Default initials if name is undefined
+    
     return name
       .split(' ')
       .map(part => part[0])
@@ -47,6 +50,9 @@ const PatientSidebar: React.FC<PatientSidebarProps> = ({ patient, onClose }) => 
     return age;
   };
 
+  // Ensure we have a fullName to display
+  const displayName = patient.fullName || `${patient.firstname || ''} ${patient.lastname || ''}`.trim() || 'Patient';
+
   return (
     <div className="w-full h-full flex flex-col overflow-y-auto bg-white">
       <div className="flex justify-between items-center p-4 border-b">
@@ -61,17 +67,17 @@ const PatientSidebar: React.FC<PatientSidebarProps> = ({ patient, onClose }) => 
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20 border-2 border-primary/10">
             <AvatarImage src={patient.photoUrl} />
-            <AvatarFallback className="text-xl">{getInitials(patient.fullName)}</AvatarFallback>
+            <AvatarFallback className="text-xl">{getInitials(displayName)}</AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="text-xl font-bold">{patient.fullName}</h3>
+            <h3 className="text-xl font-bold">{displayName}</h3>
             <div className="text-sm text-muted-foreground">{patient.uid}</div>
             <div className="mt-1 flex items-center gap-2 text-sm">
               <div className="bg-primary/10 py-1 px-2 rounded-full">
-                {patient.gender}
+                {patient.gender || 'Unknown'}
               </div>
               <div className="bg-primary/10 py-1 px-2 rounded-full">
-                {patient.age || getAgeFromDOB(patient.dob)} years
+                {patient.age || (patient.dob ? getAgeFromDOB(patient.dob) : 'Unknown')} years
               </div>
             </div>
           </div>
@@ -86,18 +92,18 @@ const PatientSidebar: React.FC<PatientSidebarProps> = ({ patient, onClose }) => 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{patient.whatsappNo}</span>
+              <span>{patient.whatsappNo || 'No phone number'}</span>
             </div>
             
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="truncate">{patient?.user?.email}</span>
+              <span className="truncate">{patient?.user?.email || 'No email'}</span>
             </div>
           </div>
           
           <div className="flex items-start gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-            <span>{patient.address}</span>
+            <span>{patient.address || 'No address'}</span>
           </div>
           
           {patient.whatsappNo && (
@@ -118,10 +124,12 @@ const PatientSidebar: React.FC<PatientSidebarProps> = ({ patient, onClose }) => 
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-muted-foreground">MEDICAL INFORMATION</h4>
           
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span>Date of Birth: {format(new Date(patient.dob), 'MMMM d, yyyy')}</span>
-          </div>
+          {patient.dob && (
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span>Date of Birth: {format(new Date(patient.dob), 'MMMM d, yyyy')}</span>
+            </div>
+          )}
           
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-muted-foreground" />
