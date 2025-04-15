@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Grid, List, Plus, RefreshCw, Filter } from "lucide-react";
@@ -19,7 +18,7 @@ interface PageHeaderProps {
   totalElements?: number; // Add totalElements prop
 }
 
-const PageHeader = ({
+export const PageHeader = ({ 
   title,
   onViewModeToggle,
   viewMode = 'list',
