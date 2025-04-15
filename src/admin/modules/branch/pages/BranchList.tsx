@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -44,13 +43,13 @@ const BranchList = () => {
     queryKey: ['branches', page, size, searchTerm],
     queryFn: async () => {
       const response = await BranchService.list();
-      console.log("Branch API response:", response);
+      console.log("Branch API response (direct):", response);
       return response;
     },
   });
 
   // Extract branches from the response
-  const branches = data?.data?.content || [];
+  const branches = Array.isArray(data) ? data : [];
   console.log("Extracted branches:", branches);
 
   useEffect(() => {
@@ -165,7 +164,7 @@ const BranchList = () => {
     );
   };
 
-  const totalElements = data?.data?.totalElements || 0;
+  const totalElements = branches.length || 0;
   const loadedElements = branches.length || 0;
 
   return (

@@ -8,7 +8,8 @@ export const BranchService = {
   list: async () => {
     try {
       const response = await http.get(`${apiUrl}/v1/branch/list`);
-      return response;
+      console.log("Raw API response:", response);
+      return response.data; // Return just the data part of the response
     } catch (error) {
       console.error("Error fetching branches:", error);
       throw error;
