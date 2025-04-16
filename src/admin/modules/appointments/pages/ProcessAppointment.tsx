@@ -24,7 +24,8 @@ import {
   Pill,
   XCircle,
   CalendarIcon,
-  FileText
+  FileText,
+  Printer
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -60,6 +61,7 @@ import patientMockService from "../services/patientMockService";
 import { Appointment } from "../types/Appointment";
 import { Patient } from "../../patient/types/Patient";
 import { LabTest, Medicines } from "../../patient/types/Prescription";
+import PrintAppointmentButton from "../components/PrintAppointmentButton";
 
 const consultationSchema = z.object({
   vitals: z.object({
@@ -291,10 +293,15 @@ const ProcessAppointment = () => {
     <AdminLayout>
       <PageHeader title="Process Appointment" />
       <div className="container mx-auto mt-4">
-        <Button variant="ghost" onClick={handleGoBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Appointments
-        </Button>
+        <div className="flex justify-between items-center">
+          <Button variant="ghost" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Appointments
+          </Button>
+          {appointment && (
+            <PrintAppointmentButton appointment={appointment} />
+          )}
+        </div>
         <Card className="mt-4">
           <CardContent className="grid gap-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -632,7 +639,6 @@ const ProcessAppointment = () => {
         </Form>
       </div>
 
-      {/* Add Medication Dialog */}
       <Dialog open={isAddMedicationDialogOpen} onOpenChange={setIsAddMedicationDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -730,7 +736,6 @@ const ProcessAppointment = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Lab Test Dialog */}
       <Dialog open={isAddLabTestDialogOpen} onOpenChange={setIsAddLabTestDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

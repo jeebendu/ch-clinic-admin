@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { AppointmentQueryParams } from '../types/Appointment';
 import { fetchAppointmentsByDoctorId } from '../services/appointmentService';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 
 export const useAppointments = (initialParams: AppointmentQueryParams) => {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -68,6 +69,11 @@ export const useAppointments = (initialParams: AppointmentQueryParams) => {
     fetchAppointments(newParams, false);
   };
 
+  // Get single appointment
+  const getAppointmentById = (id: number) => {
+    return appointments.find(appointment => appointment.id === id) || null;
+  };
+
   useEffect(() => {
     fetchAppointments(initialParams, false);
   }, []);
@@ -79,6 +85,7 @@ export const useAppointments = (initialParams: AppointmentQueryParams) => {
     hasMore,
     loadMore,
     refreshAppointments,
-    updateFilters
+    updateFilters,
+    getAppointmentById
   };
 };
