@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import { BrowserRouter as Router, Routes as RouterRoutes, Route } from "react-router-dom";
 import "./App.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/sonner";
-import { jwtInterceptor } from "./lib/JwtInterceptor";
+import jwtInterceptor from "./lib/JwtInterceptor";
 import { BranchProvider } from "./contexts/BranchContext";
 import AdminRoutes from "./admin/AdminRoutes";
 import Login from "./pages/Login";
@@ -29,7 +30,7 @@ function App() {
       <BranchProvider>
         <Router>
           <div className="app min-h-screen">
-            <Routes />
+            <AppRoutes />
           </div>
           <Toaster position="top-right" />
         </Router>
@@ -38,15 +39,15 @@ function App() {
   );
 }
 
-// Routes Component
-const Routes = () => {
+// Routes Component - renamed to avoid naming conflict
+const AppRoutes = () => {
   return (
-    <Routes>
+    <RouterRoutes>
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/admin/*" element={<AdminRoutes />} />
       <Route path="*" element={<NotFound />} />
-    </Routes>
+    </RouterRoutes>
   );
 };
 
