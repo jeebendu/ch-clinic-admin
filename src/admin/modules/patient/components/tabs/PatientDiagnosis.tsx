@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +23,7 @@ const PatientDiagnosis: React.FC<PatientDiagnosisProps> = ({ patientId }) => {
         // Mock data for demonstration
         const mockDiagnoses: Partial<Diagnosis>[] = [
           {
-            id: 1, // Changed from string to number
+            id: 1,
             date: new Date(),
             symptoms: 'Headache, fever, cough',
             diagnosis: 'Common cold',
@@ -39,7 +38,7 @@ const PatientDiagnosis: React.FC<PatientDiagnosisProps> = ({ patientId }) => {
             }
           },
           {
-            id: 2, // Changed from string to number
+            id: 2,
             date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
             symptoms: 'Joint pain, stiffness',
             diagnosis: 'Mild arthritis',
@@ -53,7 +52,7 @@ const PatientDiagnosis: React.FC<PatientDiagnosisProps> = ({ patientId }) => {
             }
           },
           {
-            id: 3, // Changed from string to number
+            id: 3,
             date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
             symptoms: 'Shortness of breath, chest pain',
             diagnosis: 'Anxiety attack',
