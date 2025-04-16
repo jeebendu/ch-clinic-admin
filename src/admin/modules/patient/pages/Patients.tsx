@@ -9,6 +9,8 @@ import PageHeader from "@/admin/components/PageHeader";
 import PatientTable from "../components/PatientTable";
 import PatientGrid from "../components/PatientGrid";
 import { Patient } from "../types/Patient";
+import { useNavigate } from "react-router-dom";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PatientsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,6 +19,7 @@ const PatientsAdmin = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showFilters, setShowFilters] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Filter states
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
@@ -123,8 +126,7 @@ const PatientsAdmin = () => {
   };
 
   const handlePatientClick = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setShowSidebar(true);
+    navigate(`/admin/patients/view/${patient.id}`);
   };
 
   const handleAddPatient = () => {
@@ -143,12 +145,7 @@ const PatientsAdmin = () => {
   };
 
   return (
-    <AdminLayout 
-      rightSidebar={showSidebar ? <PatientSidebar patient={selectedPatient} onClose={() => setShowSidebar(false)} /> : undefined}
-      onUserClick={() => setShowSidebar(!showSidebar)}
-      showAddButton={true}
-      onAddButtonClick={handleAddPatient}
-    >
+    <AdminLayout>
       <PageHeader 
         title="Patients"
         onViewModeToggle={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
@@ -176,33 +173,30 @@ const PatientsAdmin = () => {
         />
       )}
 
-     
-      <div 
-        className="overflow-auto flex-1 pb-6" 
-        onScroll={handleScroll}
-        style={{ maxHeight: 'calc(100vh - 220px)' }}
-      >
-        {viewMode === 'list' ? (
-          <PatientTable 
-            patients={patients}
-            onDelete={(id) => console.log('Delete patient:', id)}
-            onPatientClick={handlePatientClick}
-            loading={loading}
-          />
-        ) : (
-          <PatientGrid 
-            patients={patients}
-            loading={loading}
-            onPatientClick={handlePatientClick}
-          />
-        )}
-        
-        {loading && patients.length > 0 && (
-          <div className="flex justify-center my-4">
-            <div className="animate-pulse bg-gray-200 h-8 w-40 rounded-md"></div>
-          </div>
-        )}
-      </div>
+      <ScrollArea className="flex-1 h-[calc(100vh-220px)]">
+        <div className="pb-6">
+          {viewMode === 'list' ? (
+            <PatientTable 
+              patients={patients}
+              onDelete={(id) => console.log('Delete patient:', id)}
+              onPatientClick={handlePatientClick}
+              loading={loading}
+            />
+          ) : (
+            <PatientGrid 
+              patients={patients}
+              loading={loading}
+              onPatientClick={handlePatientClick}
+            />
+          )}
+          
+          {loading && patients.length > 0 && (
+            <div className="flex justify-center my-4">
+              <div className="animate-pulse bg-gray-200 h-8 w-40 rounded-md"></div>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </AdminLayout>
   );
 };

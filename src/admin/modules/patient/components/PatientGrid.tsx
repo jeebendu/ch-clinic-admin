@@ -18,7 +18,8 @@ interface PatientGridProps {
 const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientClick }) => {
   const navigate = useNavigate();
   
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | undefined) => {
+    if (!name) return 'NA';
     return name
       .split(' ')
       .map(part => part[0])
@@ -56,10 +57,10 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-white">
                 <AvatarImage src={patient.photoUrl} />
-                <AvatarFallback className="text-lg">{getInitials(patient.fullName)}</AvatarFallback>
+                <AvatarFallback className="text-lg">{getInitials(patient.fullName || `${patient.firstname} ${patient.lastname}`)}</AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold text-lg">{patient.fullName}</h3>
+                <h3 className="font-semibold text-lg">{patient.fullName || `${patient.firstname} ${patient.lastname}`}</h3>
                 <div className="text-sm text-muted-foreground">{patient.uid}</div>
                 <div className="flex gap-2 mt-1">
                   <Badge variant="outline">{patient.gender}</Badge>
@@ -73,12 +74,12 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-muted-foreground" />
-                <span>{patient.whatsappNo}</span>
+                <span>{patient.whatsappNo || patient.user?.phone || 'No phone'}</span>
               </div>
               
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-muted-foreground" />
-                <span className="truncate">{patient?.user?.email}</span>
+                <span className="truncate">{patient?.user?.email || 'No email'}</span>
               </div>
               
               <div className="flex items-center gap-2">
