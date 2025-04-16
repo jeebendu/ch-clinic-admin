@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { Search, UserPlus, Calendar, ClipboardList } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Search, UserPlus, Calendar, ClipboardList, X, Loader2 } from "lucide-react";
 import { patientListService } from "@/admin/modules/patient/services/patientListService";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface QuickPatientFormProps {
   onFormClose?: () => void;
@@ -25,6 +26,7 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("search");
   
   // New patient form state
   const [formData, setFormData] = useState({
@@ -57,6 +59,7 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
           title: "No patients found",
           description: "You can create a new patient with this information.",
         });
+        setActiveTab("new");
       }
     } catch (error) {
       console.error("Error searching patients:", error);
@@ -100,7 +103,6 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
       navigate(`/admin/appointments/book?patientId=${selectedPatient.id}&reason=${encodeURIComponent(visitDetails.reason)}&visitType=${encodeURIComponent(visitDetails.visitType)}&urgency=${encodeURIComponent(visitDetails.urgency)}&notes=${encodeURIComponent(visitDetails.notes)}`);
     } else {
       // Create new patient first, then redirect to appointment booking
-      // This would typically call a service to create the patient
       toast({
         title: "Creating patient",
         description: "Creating new patient and redirecting to appointment booking.",
@@ -114,122 +116,131 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
   };
   
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl">Quick Patient Check & Appointment</CardTitle>
+    <Card className="w-full h-auto max-h-[85vh] overflow-auto">
+      <CardHeader className="sticky top-0 bg-white z-10 pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl">Quick Patient & Appointment</CardTitle>
+          <Button variant="ghost" size="icon" onClick={onFormClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {!selectedPatient && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="searchQuery">Search Patient</Label>
+      
+      <CardContent className="px-4 pb-2">
+        {!selectedPatient ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="search">Search Patient</TabsTrigger>
+              <TabsTrigger value="new">New Patient</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="search" className="space-y-3">
               <div className="flex space-x-2">
                 <Input
-                  id="searchQuery"
                   placeholder="Name, Phone or Email"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="flex-1"
                 />
                 <Button 
-                  type="button" 
                   onClick={handleSearch}
                   disabled={isSearching}
+                  className="whitespace-nowrap"
                 >
-                  <Search className="h-4 w-4 mr-2" />
-                  {isSearching ? "Searching..." : "Search"}
+                  {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  ) : (
+                    <Search className="h-4 w-4 mr-1" />
+                  )}
+                  Search
                 </Button>
               </div>
-            </div>
-            
-            {searchResults.length > 0 && (
-              <div className="border rounded-md p-2 max-h-48 overflow-y-auto">
-                <p className="text-sm text-muted-foreground mb-2">Select a patient:</p>
-                {searchResults.map((patient) => (
-                  <div 
-                    key={patient.id}
-                    className="p-2 hover:bg-muted rounded-md cursor-pointer flex justify-between items-center"
-                    onClick={() => handlePatientSelect(patient)}
-                  >
-                    <div>
-                      <p className="font-medium">{patient.firstname} {patient.lastname}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {patient.user && patient.user.phone ? patient.user.phone : "No phone number"}
-                      </p>
+              
+              {searchResults.length > 0 && (
+                <div className="border rounded-md p-2 max-h-48 overflow-y-auto mt-2">
+                  {searchResults.map((patient) => (
+                    <div 
+                      key={patient.id}
+                      className="p-2 hover:bg-muted rounded-md cursor-pointer flex justify-between items-center"
+                      onClick={() => handlePatientSelect(patient)}
+                    >
+                      <div>
+                        <p className="font-medium">{patient.firstname} {patient.lastname}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {patient.user && patient.user.phone ? patient.user.phone : "No phone number"}
+                        </p>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        Select
+                      </Button>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      Select
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </TabsContent>
             
-            {(searchResults.length === 0 || !searchQuery) && (
-              <div className="space-y-3 pt-2">
-                <p className="text-sm font-medium">New Patient Information</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                </div>
+            <TabsContent value="new" className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="lastName">Last Name</Label>
                   <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
                     onChange={handleInputChange}
                   />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value) => handleSelectChange("gender", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Male">Male</SelectItem>
-                      <SelectItem value="Female">Female</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
-            )}
-          </>
-        )}
-        
-        {selectedPatient && (
-          <div className="border rounded-md p-4">
-            <div className="flex justify-between items-start mb-3">
+              <div className="space-y-1">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="gender">Gender</Label>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) => handleSelectChange("gender", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="border rounded-md p-3 mb-4">
+            <div className="flex justify-between items-start">
               <div>
                 <h3 className="font-medium text-lg">{selectedPatient.firstname} {selectedPatient.lastname}</h3>
                 <p className="text-sm text-muted-foreground">ID: {selectedPatient.id}</p>
@@ -242,7 +253,7 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
                 Change
               </Button>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-2 text-sm mt-2">
               <div>
                 <p className="text-muted-foreground">Phone</p>
                 <p>{selectedPatient.user && selectedPatient.user.phone ? selectedPatient.user.phone : "N/A"}</p>
@@ -263,80 +274,84 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
           </div>
         )}
         
-        {/* Visit Details Section */}
-        <div className="border rounded-md p-4 space-y-3 mt-4">
-          <h3 className="font-medium flex items-center">
+        {/* Visit Details Section - More compact */}
+        <div className="border rounded-md p-3 space-y-3">
+          <h3 className="font-medium flex items-center text-sm">
             <ClipboardList className="h-4 w-4 mr-2 text-clinic-primary" />
             Visit Details
           </h3>
           
-          <div className="space-y-1">
-            <Label htmlFor="reason">Reason for Visit</Label>
-            <Input
-              id="reason"
-              name="reason"
-              placeholder="Brief description"
-              value={visitDetails.reason}
-              onChange={handleVisitInputChange}
-            />
-          </div>
-          
-          <div className="space-y-1">
-            <Label htmlFor="visitType">Visit Type</Label>
-            <Select
-              value={visitDetails.visitType}
-              onValueChange={(value) => handleVisitSelectChange("visitType", value)}
-            >
-              <SelectTrigger id="visitType">
-                <SelectValue placeholder="Select visit type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Consultation">Consultation</SelectItem>
-                <SelectItem value="Follow-up">Follow-up</SelectItem>
-                <SelectItem value="Procedure">Procedure</SelectItem>
-                <SelectItem value="Emergency">Emergency</SelectItem>
-                <SelectItem value="Routine Check">Routine Check</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-1">
-            <Label>Urgency</Label>
-            <RadioGroup 
-              defaultValue={visitDetails.urgency}
-              onValueChange={(value) => handleVisitSelectChange("urgency", value)}
-              className="flex space-x-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Normal" id="normal" />
-                <Label htmlFor="normal" className="cursor-pointer">Normal</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Urgent" id="urgent" />
-                <Label htmlFor="urgent" className="cursor-pointer">Urgent</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Emergency" id="emergency" />
-                <Label htmlFor="emergency" className="cursor-pointer">Emergency</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          
-          <div className="space-y-1">
-            <Label htmlFor="notes">Additional Notes</Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              placeholder="Any additional information..."
-              className="h-20 resize-none"
-              value={visitDetails.notes}
-              onChange={handleVisitInputChange}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1 col-span-2">
+              <Label htmlFor="reason" className="text-sm">Reason for Visit</Label>
+              <Input
+                id="reason"
+                name="reason"
+                placeholder="Brief description"
+                value={visitDetails.reason}
+                onChange={handleVisitInputChange}
+                className="h-8"
+              />
+            </div>
+            
+            <div className="space-y-1">
+              <Label htmlFor="visitType" className="text-sm">Visit Type</Label>
+              <Select
+                value={visitDetails.visitType}
+                onValueChange={(value) => handleVisitSelectChange("visitType", value)}
+              >
+                <SelectTrigger id="visitType" className="h-8">
+                  <SelectValue placeholder="Select visit type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Consultation">Consultation</SelectItem>
+                  <SelectItem value="Follow-up">Follow-up</SelectItem>
+                  <SelectItem value="Procedure">Procedure</SelectItem>
+                  <SelectItem value="Emergency">Emergency</SelectItem>
+                  <SelectItem value="Routine Check">Routine Check</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-1">
+              <Label className="text-sm">Urgency</Label>
+              <RadioGroup 
+                defaultValue={visitDetails.urgency}
+                onValueChange={(value) => handleVisitSelectChange("urgency", value)}
+                className="flex space-x-2"
+              >
+                <div className="flex items-center space-x-1">
+                  <RadioGroupItem value="Normal" id="normal" />
+                  <Label htmlFor="normal" className="cursor-pointer text-xs">Normal</Label>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <RadioGroupItem value="Urgent" id="urgent" />
+                  <Label htmlFor="urgent" className="cursor-pointer text-xs">Urgent</Label>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <RadioGroupItem value="Emergency" id="emergency" />
+                  <Label htmlFor="emergency" className="cursor-pointer text-xs">Emergency</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="space-y-1 col-span-2">
+              <Label htmlFor="notes" className="text-sm">Additional Notes</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                placeholder="Any additional information..."
+                className="h-16 resize-none"
+                value={visitDetails.notes}
+                onChange={handleVisitInputChange}
+              />
+            </div>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={onFormClose}>
+      
+      <CardFooter className="flex justify-between gap-2 py-3 sticky bottom-0 bg-white">
+        <Button variant="outline" onClick={onFormClose} size="sm">
           Cancel
         </Button>
         <Button 
@@ -345,6 +360,7 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
             (!selectedPatient && (!formData.firstName || !formData.lastName || !formData.phone)) ||
             !visitDetails.reason
           }
+          size="sm"
         >
           <Calendar className="h-4 w-4 mr-2" />
           Book Appointment
