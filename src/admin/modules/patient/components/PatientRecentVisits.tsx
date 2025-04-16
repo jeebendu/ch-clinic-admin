@@ -2,9 +2,22 @@
 import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock } from 'lucide-react';
-import { Visit } from '@/admin/modules/appointments/types/visit';
+import { Calendar, Clock, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+interface Visit {
+  id: number;
+  date: Date;
+  reason: string;
+  doctor: {
+    id: number;
+    firstname: string;
+    lastname: string;
+  };
+  status: string;
+  followUpRequired: boolean;
+  followUpDate?: Date;
+}
 
 interface PatientRecentVisitsProps {
   patientId: string;
@@ -26,37 +39,41 @@ const PatientRecentVisits: React.FC<PatientRecentVisitsProps> = ({ patientId, li
         // Mock data for demonstration
         const mockVisits: Visit[] = [
           {
-            id: '1',
-            patientId,
-            visitDate: new Date().toISOString(),
-            visitType: 'routine',
-            reasonForVisit: 'Annual check-up',
-            createdBy: 'staff-1',
-            notes: 'Patient reported no issues. Vitals normal.',
-            doctorId: 'doctor-1',
-            status: 'closed'
+            id: 1,
+            date: new Date(),
+            reason: 'Regular check-up',
+            doctor: {
+              id: 1,
+              firstname: 'John',
+              lastname: 'Smith'
+            },
+            status: 'Completed',
+            followUpRequired: true,
+            followUpDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
           },
           {
-            id: '2',
-            patientId,
-            visitDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-            visitType: 'follow-up',
-            reasonForVisit: 'Follow-up on previous treatment',
-            createdBy: 'staff-2',
-            notes: 'Treatment showing positive results. Continue medication.',
-            doctorId: 'doctor-2',
-            status: 'follow-up'
+            id: 2,
+            date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            reason: 'Flu symptoms',
+            doctor: {
+              id: 2,
+              firstname: 'Sarah',
+              lastname: 'Johnson'
+            },
+            status: 'Completed',
+            followUpRequired: false
           },
           {
-            id: '3',
-            patientId,
-            visitDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-            visitType: 'emergency',
-            reasonForVisit: 'Sudden sharp pain',
-            createdBy: 'staff-1',
-            notes: 'Emergency treatment provided. Pain subsided after medication.',
-            doctorId: 'doctor-1',
-            status: 'closed'
+            id: 3,
+            date: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+            reason: 'Annual physical',
+            doctor: {
+              id: 1,
+              firstname: 'John',
+              lastname: 'Smith'
+            },
+            status: 'Completed',
+            followUpRequired: false
           }
         ];
         
@@ -72,18 +89,13 @@ const PatientRecentVisits: React.FC<PatientRecentVisitsProps> = ({ patientId, li
     fetchVisits();
   }, [patientId, limit]);
 
-  const getVisitTypeColor = (type: string) => {
-    switch (type) {
-      case 'routine': return 'bg-green-100 text-green-800';
-      case 'follow-up': return 'bg-blue-100 text-blue-800';
-      case 'emergency': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const handleViewAllClick = () => {
     // Navigate to visits tab
     navigate(`/admin/patients/view/${patientId}`, { state: { activeTab: 'visits' } });
+  };
+
+  const formatDate = (date: Date) => {
+    return format(new Date(date), 'MMM dd, yyyy');
   };
 
   if (loading) {
@@ -108,24 +120,29 @@ const PatientRecentVisits: React.FC<PatientRecentVisitsProps> = ({ patientId, li
       {visits.map(visit => (
         <div key={visit.id} className="p-3 border rounded-md hover:bg-muted/30 transition-colors">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Badge className={`${getVisitTypeColor(visit.visitType)}`}>
-                {visit.visitType.charAt(0).toUpperCase() + visit.visitType.slice(1)}
-              </Badge>
-              <span className="font-medium">{visit.reasonForVisit}</span>
+            <div>
+              <div className="font-medium">{visit.reason}</div>
+              <div className="flex items-center text-sm">
+                <User className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
+                <span>Dr. {visit.doctor.firstname} {visit.doctor.lastname}</span>
+              </div>
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="mr-1 h-3.5 w-3.5" />
-              {format(new Date(visit.visitDate), 'MMM dd, yyyy')}
-              <Clock className="ml-2 mr-1 h-3.5 w-3.5" />
-              {format(new Date(visit.visitDate), 'h:mm a')}
+              {formatDate(visit.date)}
             </div>
           </div>
-          {visit.notes && (
-            <div className="mt-2 text-sm text-muted-foreground line-clamp-1">
-              {visit.notes}
-            </div>
-          )}
+          <div className="mt-2 flex flex-wrap justify-between items-center">
+            <Badge variant={visit.status === 'Completed' ? 'outline' : 'secondary'}>
+              {visit.status}
+            </Badge>
+            {visit.followUpRequired && visit.followUpDate && (
+              <div className="text-xs text-muted-foreground flex items-center">
+                <Clock className="mr-1 h-3 w-3" />
+                Follow-up: {formatDate(visit.followUpDate)}
+              </div>
+            )}
+          </div>
         </div>
       ))}
       {limit && visits.length >= limit && (
