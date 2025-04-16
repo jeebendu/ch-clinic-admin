@@ -28,3 +28,19 @@ export interface AuthUser {
   authToken: string | null;
   phone: string | null;
 }
+
+
+export interface Staff {
+  firstname: string;
+  lastname: string;
+  id: number;
+  userId: number;
+  dob: Date;
+  whatsappNo: number;
+  age: string;
+  gender: any;
+  lastVisitedOn: Date;
+  user: User;
+  name: string;
+  branchList: Branch[];
+}
