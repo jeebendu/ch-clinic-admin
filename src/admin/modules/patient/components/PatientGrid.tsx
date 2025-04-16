@@ -18,8 +18,7 @@ interface PatientGridProps {
 const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientClick }) => {
   const navigate = useNavigate();
   
-  const getInitials = (name: string | undefined) => {
-    if (!name) return 'NA';
+  const getInitials = (name: string) => {
     return name
       .split(' ')
       .map(part => part[0])
@@ -49,11 +48,6 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
     }
   };
 
-  const getPatientName = (patient: Patient) => {
-    if (patient.fullName) return patient.fullName;
-    return `${patient.firstname || ''} ${patient.lastname || ''}`.trim() || 'Unknown Patient';
-  };
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {patients.map((patient) => (
@@ -62,10 +56,10 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-white">
                 <AvatarImage src={patient.photoUrl} />
-                <AvatarFallback className="text-lg">{getInitials(getPatientName(patient))}</AvatarFallback>
+                <AvatarFallback className="text-lg">{getInitials(patient.fullName)}</AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold text-lg">{getPatientName(patient)}</h3>
+                <h3 className="font-semibold text-lg">{patient.fullName}</h3>
                 <div className="text-sm text-muted-foreground">{patient.uid}</div>
                 <div className="flex gap-2 mt-1">
                   <Badge variant="outline">{patient.gender}</Badge>
@@ -79,12 +73,12 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-muted-foreground" />
-                <span>{patient.whatsappNo || patient.user?.phone || 'No phone'}</span>
+                <span>{patient.whatsappNo}</span>
               </div>
               
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-muted-foreground" />
-                <span className="truncate">{patient?.user?.email || 'No email'}</span>
+                <span className="truncate">{patient?.user?.email}</span>
               </div>
               
               <div className="flex items-center gap-2">

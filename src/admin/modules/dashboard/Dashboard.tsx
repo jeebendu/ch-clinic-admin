@@ -28,11 +28,8 @@ const Dashboard = () => {
   
   return (
     <AdminLayout>
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="text-lg font-medium mb-2">Redirecting to {userRole.toLowerCase()} dashboard...</div>
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-        </div>
+      <div>
+        Redirecting to {userRole.toLowerCase()} dashboard...
       </div>
     </AdminLayout>
   );
