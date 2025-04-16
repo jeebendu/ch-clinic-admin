@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -7,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import "../styles/admin.css"; // Import the CSS file for styles
+import { useBranchContext } from "@/contexts/BranchContext";
 
 type AdminLayoutProps = {
   children: React.ReactNode;
@@ -31,21 +31,8 @@ export const AdminLayout = ({
   const [isScrolled, setIsScrolled] = useState(false); // State to track scroll position
   const [userProfileOpen, setUserProfileOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const { selectedBranchId } = useBranchContext();
   
-  // Branch change event listener
-  useEffect(() => {
-    const handleBranchChange = (event: Event) => {
-      // You can add specific UI updates here if needed
-      console.log('Branch changed:', (event as CustomEvent).detail.branchId);
-      // For example, show a loading indicator or update specific parts of the UI
-    };
-    
-    document.addEventListener('branch-change', handleBranchChange);
-    return () => {
-      document.removeEventListener('branch-change', handleBranchChange);
-    };
-  }, []);
-
   // Load theme on initial render
   useEffect(() => {
     // Check if theme exists in localStorage and apply it
@@ -99,6 +86,13 @@ export const AdminLayout = ({
       }
     };
   }, []);
+
+  // Add effect to log branch changes for debugging
+  useEffect(() => {
+    if (selectedBranchId) {
+      console.log("AdminLayout detected branch change:", selectedBranchId);
+    }
+  }, [selectedBranchId]);
 
   return (
     <div className="flex h-screen bg-[#eff5ff]">

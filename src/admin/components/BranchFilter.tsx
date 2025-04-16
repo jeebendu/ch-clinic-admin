@@ -8,22 +8,38 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useBranchFilter } from '@/hooks/use-branch-filter';
+import { useQuery } from '@tanstack/react-query';
+import BranchService from '@/admin/modules/branch/services/branchService';
+import { Branch } from '@/admin/modules/branch/types/Branch';
 import { cn } from '@/lib/utils';
+import { useBranchContext } from '@/contexts/BranchContext';
 
 interface BranchFilterProps {
   className?: string;
 }
 
 const BranchFilter = ({ className }: BranchFilterProps) => {
-  const { branches, selectedBranch, isLoading, handleBranchChange } = useBranchFilter();
+  const { selectedBranchId, setSelectedBranchId } = useBranchContext();
+
+  // Fetch branches with React Query
+  const { data: branches = [], isLoading } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      try {
+        return await BranchService.list();
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+        throw error;
+      }
+    },
+  });
 
   // Find the name of the selected branch
   const selectedBranchName = React.useMemo(() => {
-    if (!selectedBranch) return 'Select Branch';
-    const branch = branches.find(b => b.id.toString() === selectedBranch);
+    if (!selectedBranchId) return 'Select Branch';
+    const branch = branches.find(b => b.id.toString() === selectedBranchId);
     return branch ? branch.name : 'Select Branch';
-  }, [branches, selectedBranch]);
+  }, [branches, selectedBranchId]);
 
   return (
     <div className={cn('flex items-center', className)}>
@@ -43,14 +59,14 @@ const BranchFilter = ({ className }: BranchFilterProps) => {
           ) : branches.length === 0 ? (
             <div className="p-2 text-center text-sm text-muted-foreground">No branches found</div>
           ) : (
-            branches.map((branch) => (
+            branches.map((branch: Branch) => (
               <DropdownMenuItem
                 key={branch.id}
                 className="flex items-center justify-between cursor-pointer"
-                onClick={() => handleBranchChange(branch.id.toString())}
+                onClick={() => setSelectedBranchId(branch.id.toString())}
               >
                 <span>{branch.name}</span>
-                {selectedBranch === branch.id.toString() && <Check className="h-4 w-4 text-clinic-primary" />}
+                {selectedBranchId === branch.id.toString() && <Check className="h-4 w-4 text-clinic-primary" />}
               </DropdownMenuItem>
             ))
           )}

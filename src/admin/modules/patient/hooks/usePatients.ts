@@ -4,6 +4,7 @@ import PatientService from '../services/patientService';
 import { PatientQueryParams } from '../services/patientService';
 import { useToast } from '@/hooks/use-toast';
 import { Patient } from '../types/Patient';
+import { useBranchContext } from '@/contexts/BranchContext';
 
 export const usePatients = (initialParams: PatientQueryParams) => {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -13,13 +14,25 @@ export const usePatients = (initialParams: PatientQueryParams) => {
   const [queryParams, setQueryParams] = useState<PatientQueryParams>(initialParams);
   const [totalElements, setTotalElements] = useState(0);
   const { toast } = useToast();
+  const { selectedBranchId } = useBranchContext();
 
   const fetchPatientsData = async (params: PatientQueryParams, append = false) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await PatientService.list(params.page, params.size, params.searchTerm || '');
+      // Include branch ID in the request
+      const enhancedParams = {
+        ...params,
+        branchId: selectedBranchId
+      };
+      
+      const response = await PatientService.list(
+        enhancedParams.page, 
+        enhancedParams.size, 
+        enhancedParams.searchTerm || ''
+      );
+      
       const newPatients = response.content || (Array.isArray(response) ? response : []);
       
       if (append) {
@@ -75,6 +88,16 @@ export const usePatients = (initialParams: PatientQueryParams) => {
     fetchPatientsData(newParams, false);
   };
 
+  // Refresh data when branch changes
+  useEffect(() => {
+    if (selectedBranchId) {
+      const resetParams = { ...queryParams, page: 0 };
+      setQueryParams(resetParams);
+      fetchPatientsData(resetParams, false);
+    }
+  }, [selectedBranchId]);
+
+  // Initial fetch
   useEffect(() => {
     fetchPatientsData(initialParams, false);
   }, []);

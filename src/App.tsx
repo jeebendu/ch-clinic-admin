@@ -1,49 +1,53 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import NotFound from "./pages/NotFound";
-import ProcessAppointment from "./admin/modules/appointments/pages/ProcessAppointment";
-import PatientsAdmin from "./admin/modules/patient/pages/Patients";
-import Dashboard from "./admin/modules/dashboard/Dashboard";
+import { Toaster } from "./components/ui/sonner";
+import { jwtInterceptor } from "./lib/JwtInterceptor";
+import { BranchProvider } from "./contexts/BranchContext";
 import AdminRoutes from "./admin/AdminRoutes";
-import { useTenant } from "./hooks/use-tenant";
+import Login from "./pages/Login";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Initialize the JWT interceptor
+jwtInterceptor();
 
-// Component to initialize tenant info
-const TenantInitializer = ({ children }: { children: React.ReactNode }) => {
-  useTenant(); // This will fetch tenant info on app startup
-  return <>{children}</>;
+// Initialize the Query Client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BranchProvider>
+        <Router>
+          <div className="app min-h-screen">
+            <Routes />
+          </div>
+          <Toaster position="top-right" />
+        </Router>
+      </BranchProvider>
+    </QueryClientProvider>
+  );
+}
+
+// Routes Component
+const Routes = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/admin/*" element={<AdminRoutes />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
 };
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <TenantInitializer>
-          <Routes>
-            {/* Redirect from root to login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            
-            {/* Login route */}
-            <Route path="/login" element={<Login />} />
-            
-            {/* Admin routes */}
-            <Route path="/admin/*" element={<AdminRoutes />} />
-            
-            {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TenantInitializer>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
 
 export default App;
