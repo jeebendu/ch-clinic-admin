@@ -43,16 +43,7 @@ const PatientService = {
   list: async (page = 0, size = 10, searchTerm = "") => {
     try {
       const tenantId = getTenantId();
-      const response = await http.get(`${apiUrl}/v1/patient/list`, {
-        params: {
-          page,
-          size,
-          search: searchTerm,
-        },
-        headers: {
-          'X-TENANT-ID': tenantId
-        }
-      });
+      const response = await http.post(`${apiUrl}/v1/patient/filter/${page}/${size}`);
       console.log("Raw Patient API response:", response);
       return response.data; // Return just the data part of the response
     } catch (error) {

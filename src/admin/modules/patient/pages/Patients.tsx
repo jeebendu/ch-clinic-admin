@@ -22,8 +22,7 @@ const PatientsAdmin = () => {
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
     gender: [],
     ageGroup: [],
-    lastVisit: [],
-    insuranceProvider: []
+    lastVisit: []
   });
 
   // Use the custom hook for patients with lazy loading
@@ -37,7 +36,7 @@ const PatientsAdmin = () => {
     totalElements,
     loadedElements
   } = usePatients({
-    page: 0,
+    page: 1,
     size: 10
   });
 
@@ -71,18 +70,6 @@ const PatientsAdmin = () => {
         { id: 'medium', label: 'Medium (30-180 days)' },
         { id: 'old', label: 'Old (180+ days)' },
         { id: 'none', label: 'No visits' }
-      ]
-    },
-    {
-      id: 'insuranceProvider',
-      label: 'Insurance',
-      options: [
-        { id: 'Medicare', label: 'Medicare' },
-        { id: 'BlueCross', label: 'BlueCross' },
-        { id: 'Aetna', label: 'Aetna' },
-        { id: 'UnitedHealth', label: 'UnitedHealth' },
-        { id: 'Cigna', label: 'Cigna' },
-        { id: 'none', label: 'No Insurance' }
       ]
     }
   ];

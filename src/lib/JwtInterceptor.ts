@@ -20,7 +20,7 @@ http.interceptors.request.use(
     // Add headers to every request
     config.headers['Accept'] = 'application/json';
     config.headers['ngrok-skip-browser-warning'] = '1';
-    config.headers['X-App-Token'] = X_APP_TOKEN;
+    //config.headers['X-App-Token'] = X_APP_TOKEN;
     config.headers['tenant'] = getTenantId();
 
     // Add token if available
@@ -38,7 +38,7 @@ http.interceptors.request.use(
     }
 
     if (selectedBranch) {
-      config.headers['X-Branch-ID'] = selectedBranch;
+      config.headers['Branch'] = selectedBranch;
     }
     
     return config;
