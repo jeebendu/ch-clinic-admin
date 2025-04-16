@@ -3,8 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Calendar, Clock, FileText, User } from 'lucide-react';
+import { Calendar, ChevronDown, Clock, FileText, User } from 'lucide-react';
 import { Visit } from '@/admin/modules/appointments/types/visit';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@/components/ui/accordion';
 
 interface PatientVisitsProps {
   patientId: string;
@@ -31,7 +37,7 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
             visitType: 'routine',
             reasonForVisit: 'Annual check-up',
             createdBy: 'staff-1',
-            notes: 'Patient reported no issues. Vitals normal.',
+            notes: 'Patient reported no issues. Vitals normal. Blood pressure 120/80. Temperature 98.6°F. Weight 160 lbs. Height 5\'10". BMI 23.0. Patient is in good health. Recommended regular exercise and balanced diet.',
             doctorId: 'doctor-1',
             status: 'closed'
           },
@@ -42,7 +48,7 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
             visitType: 'follow-up',
             reasonForVisit: 'Follow-up on previous treatment',
             createdBy: 'staff-2',
-            notes: 'Treatment showing positive results. Continue medication.',
+            notes: 'Treatment showing positive results. Continue medication. Patient reports improvement in symptoms. Prescribed additional medication for 2 weeks. Follow-up appointment scheduled.',
             doctorId: 'doctor-2',
             status: 'follow-up'
           },
@@ -53,7 +59,7 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
             visitType: 'emergency',
             reasonForVisit: 'Sudden sharp pain',
             createdBy: 'staff-1',
-            notes: 'Emergency treatment provided. Pain subsided after medication.',
+            notes: 'Emergency treatment provided. Pain subsided after medication. Patient reported severe abdominal pain. Prescribed pain relievers and advised to rest. If symptoms persist, advised to return immediately.',
             doctorId: 'doctor-1',
             status: 'closed'
           }
@@ -107,54 +113,98 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-4">
       {visits.map(visit => (
-        <Card key={visit.id} className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <CardTitle className="text-lg flex items-center gap-2">
+        <Accordion type="single" collapsible key={visit.id}>
+          <AccordionItem value={visit.id} className="border rounded-lg overflow-hidden shadow-sm">
+            <AccordionTrigger className="px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex flex-col md:flex-row md:items-center justify-between w-full text-left gap-2">
+                <div className="flex items-center gap-2">
                   <Badge className={`${getVisitTypeColor(visit.visitType)}`}>
                     {visit.visitType.charAt(0).toUpperCase() + visit.visitType.slice(1)}
                   </Badge>
-                  <span className="text-base font-medium">{visit.reasonForVisit}</span>
-                </CardTitle>
-                <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
+                  <span className="font-medium">{visit.reasonForVisit}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" />
                     {format(new Date(visit.visitDate), 'MMM dd, yyyy')}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    {format(new Date(visit.visitDate), 'h:mm a')}
-                  </div>
+                  <Badge variant="outline" className={`${getStatusColor(visit.status)}`}>
+                    {visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
+                  </Badge>
                 </div>
               </div>
-              <Badge variant="outline" className={`${getStatusColor(visit.status)}`}>
-                {visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {visit.doctorId && (
-                <div className="flex gap-1 text-sm">
-                  <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="font-medium">Doctor:</span>
-                  <span>Dr. {visit.doctorId.replace('doctor-', '')}</span>
+            </AccordionTrigger>
+            <AccordionContent className="bg-white">
+              <div className="p-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-muted-foreground">Date & Time</span>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <span>{format(new Date(visit.visitDate), 'MMMM d, yyyy')}</span>
+                      </div>
+                      <div className="flex items-center gap-2 ml-6">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span>{format(new Date(visit.visitDate), 'h:mm a')}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-muted-foreground">Visit Type</span>
+                      <Badge className={`w-fit mt-1 ${getVisitTypeColor(visit.visitType)}`}>
+                        {visit.visitType.charAt(0).toUpperCase() + visit.visitType.slice(1)}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-muted-foreground">Status</span>
+                      <Badge variant="outline" className={`w-fit mt-1 ${getStatusColor(visit.status)}`}>
+                        {visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-muted-foreground">Doctor</span>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-primary" />
+                        <span>Dr. {visit.doctorId.replace('doctor-', 'Smith')}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-muted-foreground">Reason for Visit</span>
+                      <span className="mt-1">{visit.reasonForVisit}</span>
+                    </div>
+                    
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-muted-foreground">Created By</span>
+                      <span className="mt-1">Staff ID: {visit.createdBy}</span>
+                    </div>
+                  </div>
                 </div>
-              )}
-              
-              {visit.notes && (
-                <div className="flex gap-1 text-sm">
-                  <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="font-medium">Notes:</span>
-                  <span>{visit.notes}</span>
+                
+                <div className="border-t pt-3">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-muted-foreground">Notes</span>
+                    <p className="mt-2 p-3 bg-muted/30 rounded-md text-sm">{visit.notes}</p>
+                  </div>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                
+                <div className="flex justify-end gap-2">
+                  <Badge variant="outline" className="cursor-pointer hover:bg-muted transition-colors">
+                    <FileText className="mr-1 h-3 w-3" />
+                    View Report
+                  </Badge>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       ))}
     </div>
   );
