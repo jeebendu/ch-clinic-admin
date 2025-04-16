@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, Users, FileText, Phone, MessageSquare, UserPlus, Search } from "lucide-react";
 import { PageHeader } from "@/admin/components/PageHeader";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import QuickPatientForm from "./QuickPatientForm";
 import { useRoleAccess } from "@/hooks/use-role-access";
+import { Input } from "@/components/ui/input";
 
 const statsData = [
   {
@@ -60,6 +61,25 @@ const StaffDashboard = () => {
   useRoleAccess(['Staff', 'Admin']);
   
   const [quickFormOpen, setQuickFormOpen] = useState(false);
+  const [patientSearch, setPatientSearch] = useState("");
+  
+  // Handle quick form event from sidebar
+  useEffect(() => {
+    const handleQuickForm = () => {
+      setQuickFormOpen(true);
+    };
+    
+    document.addEventListener('open-quick-form', handleQuickForm);
+    return () => {
+      document.removeEventListener('open-quick-form', handleQuickForm);
+    };
+  }, []);
+  
+  const handlePatientSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && patientSearch.trim()) {
+      setQuickFormOpen(true);
+    }
+  };
   
   return (
     <AdminLayout>
@@ -72,31 +92,34 @@ const StaffDashboard = () => {
           onAddButtonClick={() => setQuickFormOpen(true)}
         />
         
-        {/* Quick Action Buttons */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <Button 
-            className="bg-primary hover:bg-primary/90 text-white"
-            onClick={() => setQuickFormOpen(true)}
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Quick Patient & Appointment
-          </Button>
-          
-          <Button 
-            variant="outline"
-            onClick={() => window.location.href = '/admin/patients'}
-          >
-            <Search className="h-4 w-4 mr-2" />
-            Find Patient
-          </Button>
-          
-          <Button 
-            variant="outline"
-            onClick={() => window.location.href = '/admin/appointments'}
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            Manage Appointments
-          </Button>
+        {/* Patient Search Bar */}
+        <div className="bg-white p-4 rounded-lg border shadow-sm">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                placeholder="Search patient by name, phone or ID..."
+                value={patientSearch}
+                onChange={(e) => setPatientSearch(e.target.value)}
+                onKeyDown={handlePatientSearchKeyDown}
+                className="pl-9"
+              />
+            </div>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white"
+              onClick={() => setQuickFormOpen(true)}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Quick Registration
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => window.location.href = '/admin/appointments/create'}
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              New Appointment
+            </Button>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -187,7 +210,7 @@ const StaffDashboard = () => {
       
       {/* Quick Patient Form Dialog */}
       <Dialog open={quickFormOpen} onOpenChange={setQuickFormOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] p-0">
           <QuickPatientForm onFormClose={() => setQuickFormOpen(false)} />
         </DialogContent>
       </Dialog>

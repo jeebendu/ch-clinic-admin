@@ -1,13 +1,37 @@
 
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import DoctorList from "./pages/DoctorList";
 import SpecializationList from "./submodules/specialization/pages/SpecializationList";
 import ServiceList from "./submodules/services/pages/ServiceList";
 import PercentageList from "./submodules/percentage/pages/PercentageList";
 import AvailabilityList from "./submodules/availability/pages/AvailabilityList";
 import ReportList from "./submodules/reports/pages/ReportList";
+import { useRoleAccess } from "@/hooks/use-role-access";
+import AuthService from "@/services/authService";
 
 const DoctorRoutes = () => {
+  // Role-based access control for doctor module
+  const { hasAccess } = useRoleAccess(['Admin', 'Doctor']);
+  
+  if (!hasAccess) {
+    const userRole = AuthService.getUserRole();
+    let redirectPath = '/admin/dashboard';
+    
+    switch (userRole) {
+      case 'Admin':
+        redirectPath = '/admin/dashboard/admin';
+        break;
+      case 'Doctor':
+        redirectPath = '/admin/dashboard/doctor';
+        break;
+      case 'Staff':
+        redirectPath = '/admin/dashboard/staff';
+        break;
+    }
+    
+    return <Navigate to={redirectPath} replace />;
+  }
+  
   return (
     <Routes>
       <Route path="/" element={<DoctorList />} />

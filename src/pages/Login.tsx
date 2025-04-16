@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ const Login = () => {
       
       const userRole = userData.role || 'Staff';
       
+      // Direct users to their specific dashboards based on role
       switch(userRole) {
         case 'Admin':
           navigate("/admin/dashboard/admin");

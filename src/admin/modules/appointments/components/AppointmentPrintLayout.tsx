@@ -1,13 +1,13 @@
 
-import React, { useRef } from "react";
-import { useReactToPrint } from "react-to-print";
-import { format } from "date-fns";
-import { Printer, Calendar, User, Phone, MapPin, FileText, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Appointment } from "../types/Appointment";
-import { toast } from "sonner";
+import React, { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Appointment } from '../types/Appointment';
+import { X, Printer } from 'lucide-react';
+import { format } from 'date-fns';
+import { useTenant } from '@/hooks/use-tenant';
+import { getTenantFileUrl } from '@/utils/tenantUtils';
 
 interface AppointmentPrintLayoutProps {
   appointment: Appointment;
@@ -18,36 +18,50 @@ interface AppointmentPrintLayoutProps {
 const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
   appointment,
   isOpen,
-  onClose,
+  onClose
 }) => {
-  const componentRef = useRef<HTMLDivElement>(null);
-
+  const printRef = useRef<HTMLDivElement>(null);
+  const { tenant } = useTenant();
+  
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: `Appointment_${appointment.id}`,
-    onAfterPrint: () => {
-      toast.success("Appointment details printed successfully");
-      onClose();
-    },
-    onPrintError: () => {
-      toast.error("Failed to print. Please try again.");
-    },
+    content: () => printRef.current,
+    onAfterPrint: onClose,
   });
-
-  if (!isOpen) return null;
-
+  
+  const formatDate = (date: string | Date) => {
+    if (!date) return 'N/A';
+    return format(new Date(date), 'dd MMM yyyy');
+  };
+  
+  const formatTime = (date: string | Date) => {
+    if (!date) return 'N/A';
+    return format(new Date(date), 'hh:mm a');
+  };
+  
+  const getStatusBadgeColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'canceled': return 'bg-red-100 text-red-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const logoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
+  
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-auto">
-        <div className="p-4 flex justify-between items-center border-b">
-          <h2 className="text-xl font-semibold">Appointment Details</h2>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-screen overflow-auto p-0">
+        <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+          <h2 className="text-lg font-semibold">Appointment Details</h2>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
+            <Button onClick={handlePrint} size="sm">
+              <Printer className="h-4 w-4 mr-1" />
               Print
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -67,41 +81,47 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
                 Phone: {appointment.doctorClinic?.phoneNumber || "(123) 456-7890"}
               </p> */}
             </div>
-
-            <Separator className="my-4" />
-
-            {/* Appointment Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="text-right">
+              <h2 className="text-lg font-semibold">Appointment Details</h2>
+              <p className="text-sm text-gray-500">ID: {appointment.id}</p>
+              <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(appointment.status)}`}>
+                {appointment.status}
+              </div>
+            </div>
+          </div>
+          
+          {/* Patient and Appointment Info */}
+          <div className="grid grid-cols-2 gap-6 mt-6">
+            <div className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold mb-2">Appointment Information</h2>
-                <div className="space-y-2">
-                  <div className="flex items-start">
-                    <Calendar className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
+                <h3 className="text-sm font-medium text-gray-500">Patient Information</h3>
+                <div className="mt-2 border rounded-md p-4">
+                  <p className="font-semibold text-lg">{appointment.patient?.firstname} {appointment.patient?.lastname}</p>
+                  <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                     <div>
-                      <p className="font-medium">Date & Time</p>
-                      <p className="text-gray-700">
-                        {format(new Date(appointment.appointmentDate), "PPP")} at{" "}
-                        {format(new Date(appointment.appointmentDate), "p")}
-                      </p>
+                      <p className="text-gray-500">ID</p>
+                      <p>{appointment.patient?.id || 'N/A'}</p>
                     </div>
-                  </div>
-                  <div className="flex items-start">
-                    <FileText className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
                     <div>
-                      <p className="font-medium">Appointment ID</p>
-                      <p className="text-gray-700">#{appointment.id}</p>
+                      <p className="text-gray-500">Gender</p>
+                      <p>{appointment.patient?.gender || 'N/A'}</p>
                     </div>
-                  </div>
-                  <div className="flex items-start">
-                    <Clock className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
                     <div>
-                      <p className="font-medium">Status</p>
-                      <p className="text-gray-700 capitalize">{appointment.status}</p>
+                      <p className="text-gray-500">Age</p>
+                      <p>{appointment.patient?.age || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Phone</p>
+                      <p>{appointment.patient?.user?.phone || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-gray-500">Email</p>
+                      <p>{appointment.patient?.user?.email || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
               </div>
-
+              
               <div>
                 <h2 className="text-lg font-semibold mb-2">Doctor Information</h2>
                 <div className="space-y-2">
@@ -126,52 +146,42 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
                 </div>
               </div>
             </div>
-
-            <Separator className="my-4" />
-
-            {/* Patient Information */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-2">Patient Information</h2>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-start">
-                        <User className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Patient Name</p>
-                          <p className="text-gray-700">
-                            {appointment.patient?.firstname || ""} {appointment.patient?.lastname || ""}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start">
-                        <Phone className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Phone</p>
-                          <p className="text-gray-700">{appointment.patient?.user?.phone || "N/A"}</p>
-                        </div>
-                      </div>
+            
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Appointment Details</h3>
+                <div className="mt-2 border rounded-md p-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Date</p>
+                      <p className="font-medium">{formatDate(appointment.appointmentDate || '')}</p>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-start">
-                        <MapPin className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Address</p>
-                          <p className="text-gray-700">{appointment.patient?.address || "N/A"}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start">
-                        <FileText className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Patient ID</p>
-                          <p className="text-gray-700">{appointment.patient?.id || "N/A"}</p>
-                        </div>
-                      </div>
+                    <div>
+                      <p className="text-gray-500">Time</p>
+                      <p className="font-medium">{formatTime(appointment.appointmentDate || '')}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Duration</p>
+                      <p>{appointment.interval || 30} minutes</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Type</p>
+                      <p>{appointment.visitType || 'Consultation'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-gray-500">Reason</p>
+                      <p>{appointment.visitReason || 'N/A'}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Notes & Instructions</h3>
+                <div className="mt-2 border rounded-md p-4 h-[140px] overflow-auto">
+                  <p className="text-sm">{appointment.comments || 'No special instructions.'}</p>
+                </div>
+              </div>
             </div>
 
             {/* Visit Information */}
@@ -196,17 +206,15 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
                 </CardContent>
               </Card>
             </div>
-
-            {/* Footer */}
-            <div className="text-center text-sm text-gray-500 mt-8 pt-4 border-t">
-              <p>Thank you for choosing our services.</p>
-              <p className="mt-1">This is a computer-generated document and does not require a signature.</p>
-              <p className="mt-1">Printed on: {format(new Date(), "PPP 'at' p")}</p>
+            
+            <div className="mt-6 text-center">
+              <p>Thank you for choosing {tenant?.title || 'our clinic'}.</p>
+              <p className="mt-1">We look forward to providing you with excellent care.</p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
