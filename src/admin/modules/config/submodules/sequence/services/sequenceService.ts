@@ -1,4 +1,5 @@
 import http from "@/lib/JwtInterceptor";
+import { Sequence } from "../types/sequence";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -11,7 +12,7 @@ const SequenceService = {
     return http.get(`${apiUrl}/v1/sequence/list`);
   },
 
-  saveOrUpdate: (sequence: any) => {
+  saveOrUpdate: (sequence: Sequence) => {
     return http.post(`${apiUrl}/v1/sequence/saveOrUpdate`, sequence);
   },
 

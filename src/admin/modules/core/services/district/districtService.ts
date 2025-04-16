@@ -1,4 +1,5 @@
 import http from "@/lib/JwtInterceptor";
+import { District } from "../../types/District";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -11,7 +12,7 @@ const DistrictService = {
     return http.get(`${apiUrl}/v1/district/id/${id}`);
   },
 
-  saveOrUpdate: (data: any) => {
+  saveOrUpdate: (data: District) => {
     return http.post(`${apiUrl}/v1/district/saveOrUpdate`, data);
   },
 

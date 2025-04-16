@@ -1,6 +1,7 @@
 
 import http from "@/lib/JwtInterceptor";
 import { getEnvVariable } from "@/utils/envUtils";
+import { Branch } from "../types/Branch";
 
 const apiUrl = getEnvVariable('API_URL');
 
@@ -24,7 +25,7 @@ export const BranchService = {
     return http.get(`${apiUrl}/v1/branch/id/${id}`);
   },
 
-  saveOrUpdate: (branch: any) => {
+  saveOrUpdate: (branch: Branch) => {
     return http.post(`${apiUrl}/v1/branch/saveOrUpdate`, branch);
   },
 };

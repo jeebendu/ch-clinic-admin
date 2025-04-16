@@ -1,4 +1,5 @@
 import http from "@/lib/JwtInterceptor";
+import { Courier } from "../types/courier";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -15,7 +16,7 @@ const CourierService = {
     return http.get(`${apiUrl}/v1/courier/id/${id}`);
   },
 
-  saveOrUpdate: (courier: any) => {
+  saveOrUpdate: (courier: Courier) => {
     return http.post(`${apiUrl}/v1/courier/saveOrUpdate`, courier);
   },
 };

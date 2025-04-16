@@ -1,4 +1,5 @@
 import http from "@/lib/JwtInterceptor";
+import { RepairCompany } from "../types/repairCompany";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -11,7 +12,7 @@ const RepairCompanyService = {
     return http.get(`${apiUrl}/v1/repair/company/list`);
   },
 
-  saveOrUpdate: (repairCompany: any) => {
+  saveOrUpdate: (repairCompany: RepairCompany) => {
     return http.post(`${apiUrl}/v1/repair/company/saveOrUpdate`, repairCompany);
   },
 
