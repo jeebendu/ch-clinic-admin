@@ -17,7 +17,9 @@ import {
   X,
   Palette,
   UserPlus,
-  Image
+  Image,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -28,6 +30,7 @@ import { generateColorPalette, updateCSSVariables } from "@/utils/themeUtils";
 import AuthService from "@/services/authService";
 import { useTenant } from "@/hooks/use-tenant";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -37,26 +40,32 @@ interface SidebarProps {
 // Define the UserRole type
 type UserRole = "Admin" | "Doctor" | "Staff";
 
-// Expanded navigation items list with all modules
-const navItems = [
-  { 
-    icon: <Home className="h-5 w-5" />, 
-    label: "Admin Dashboard", 
-    href: "/admin/dashboard/admin", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <Home className="h-5 w-5" />, 
-    label: "Doctor Dashboard", 
-    href: "/admin/dashboard/doctor", 
-    roles: ["Doctor", "Admin"] 
-  },
-  { 
-    icon: <Home className="h-5 w-5" />, 
-    label: "Staff Dashboard", 
-    href: "/admin/dashboard/staff", 
-    roles: ["Staff", "Admin"] 
-  },
+interface NavItem {
+  icon: React.ReactNode;
+  label: string;
+  href?: string;
+  roles: UserRole[];
+  onClick?: () => void;
+  subItems?: SubNavItem[];
+}
+
+interface SubNavItem {
+  label: string;
+  href: string;
+  roles: UserRole[];
+}
+
+// Single Dashboard with role-based redirect
+const dashboardItem: NavItem = {
+  icon: <Home className="h-5 w-5" />,
+  label: "Dashboard",
+  href: "/admin/dashboard",
+  roles: ["Admin", "Doctor", "Staff"]
+};
+
+// Expanded navigation items list with submenus
+const navItems: NavItem[] = [
+  dashboardItem,
   { 
     icon: <Calendar className="h-5 w-5" />, 
     label: "Appointments", 
@@ -66,8 +75,19 @@ const navItems = [
   { 
     icon: <Users className="h-5 w-5" />, 
     label: "Patients", 
-    href: "/admin/patients", 
-    roles: ["Admin", "Doctor", "Staff"] 
+    roles: ["Admin", "Doctor", "Staff"],
+    subItems: [
+      {
+        label: "Patient List",
+        href: "/admin/patients/list",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "Add Patient",
+        href: "/admin/patients/add",
+        roles: ["Admin", "Doctor", "Staff"]
+      }
+    ] 
   },
   { 
     icon: <Clock className="h-5 w-5" />, 
@@ -84,8 +104,24 @@ const navItems = [
   { 
     icon: <UserCircle className="h-5 w-5" />, 
     label: "Doctors", 
-    href: "/admin/doctor", 
-    roles: ["Admin"] 
+    roles: ["Admin"],
+    subItems: [
+      {
+        label: "Doctor List",
+        href: "/admin/doctor",
+        roles: ["Admin"]
+      },
+      {
+        label: "Add Doctor",
+        href: "/admin/doctor/add",
+        roles: ["Admin"]
+      },
+      {
+        label: "Specializations",
+        href: "/admin/doctor/specialization",
+        roles: ["Admin"]
+      }
+    ]
   },
   { 
     icon: <Building2 className="h-5 w-5" />, 
@@ -126,6 +162,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   const [themeColor, setThemeColor] = useState("#00b8ab");
   const { toast } = useToast();
   const { tenant } = useTenant();
+  const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
 
   // Filter nav items based on user role
   const filteredNavItems = navItems.filter(item => 
@@ -134,6 +171,17 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
 
   // Get logo URL
   const tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
+
+  // Toggle submenu
+  const toggleSubmenu = (label: string) => {
+    setOpenSubmenus(prev => {
+      if (prev.includes(label)) {
+        return prev.filter(item => item !== label);
+      } else {
+        return [...prev, label];
+      }
+    });
+  };
 
   // Add event listener for quick form
   useEffect(() => {
@@ -239,34 +287,85 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
 
       <nav className="flex-1">
         {filteredNavItems.map((item) => (
-          <NavLink
-            key={item.label}
-            to={item.href}
-            className={({ isActive }) => cn(
-              "flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
-              isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-l-4 border-sidebar-primary",
-              !isActive && "border-l-4 border-transparent",
-              collapsed && "justify-center"
+          <React.Fragment key={item.label}>
+            {item.subItems ? (
+              <Collapsible 
+                open={openSubmenus.includes(item.label) && !collapsed}
+                onOpenChange={() => !collapsed && toggleSubmenu(item.label)}
+                className="w-full"
+              >
+                <CollapsibleTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex items-center w-full px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                      "border-l-4 border-transparent",
+                      collapsed && "justify-center"
+                    )}
+                    onClick={() => {
+                      if (collapsed && onClose) {
+                        onClose();
+                      }
+                    }}
+                  >
+                    <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
+                    {!collapsed && <span>{item.label}</span>}
+                    {!collapsed && (
+                      <span className="ml-auto">
+                        {openSubmenus.includes(item.label) ? 
+                          <ChevronDown className="h-4 w-4" /> : 
+                          <ChevronRight className="h-4 w-4" />
+                        }
+                      </span>
+                    )}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-8">
+                  {!collapsed && item.subItems.map((subItem) => (
+                    subItem.roles.includes(userRole) && (
+                      <NavLink
+                        key={subItem.label}
+                        to={subItem.href}
+                        className={({ isActive }) => cn(
+                          "flex items-center px-4 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors text-sm",
+                          isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                        )}
+                        onClick={() => {
+                          if (window.innerWidth < 768 && onClose) {
+                            onClose();
+                          }
+                        }}
+                      >
+                        <span>{subItem.label}</span>
+                      </NavLink>
+                    )
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            ) : (
+              <NavLink
+                to={item.href || "#"}
+                className={({ isActive }) => cn(
+                  "flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                  isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-l-4 border-sidebar-primary",
+                  !isActive && "border-l-4 border-transparent",
+                  collapsed && "justify-center"
+                )}
+                onClick={(e) => {
+                  if (item.onClick) {
+                    e.preventDefault();
+                    item.onClick();
+                  }
+                  
+                  if (window.innerWidth < 768 && onClose) {
+                    onClose();
+                  }
+                }}
+              >
+                <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
             )}
-            onClick={(e) => {
-              if (item.onClick) {
-                e.preventDefault();
-                item.onClick();
-              }
-              
-              if (window.innerWidth < 768 && onClose) {
-                onClose();
-              }
-            }}
-          >
-            <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
-            {!collapsed && <span>{item.label}</span>}
-            {!collapsed && (item.label.includes("Dashboard") || item.label === "Appointments" || item.label === "Doctors" || item.label === "Patients") && (
-              <span className="ml-auto">
-                <PanelLeft className="h-4 w-4 rotate-180" />
-              </span>
-            )}
-          </NavLink>
+          </React.Fragment>
         ))}
       </nav>
 
