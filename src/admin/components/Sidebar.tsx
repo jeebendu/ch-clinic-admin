@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,8 @@ import {
   PanelLeft,
   X,
   Palette,
-  UserPlus
+  UserPlus,
+  Image
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,6 +26,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { generateColorPalette, updateCSSVariables } from "@/utils/themeUtils";
 import AuthService from "@/services/authService";
+import { useTenant } from "@/hooks/use-tenant";
+import { getTenantFileUrl } from "@/utils/tenantUtils";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -121,11 +125,15 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   const userRole: UserRole = AuthService.getUserRole() as UserRole;
   const [themeColor, setThemeColor] = useState("#00b8ab");
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   // Filter nav items based on user role
   const filteredNavItems = navItems.filter(item => 
     item.roles.includes(userRole)
   );
+
+  // Get logo URL
+  const tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
 
   // Add event listener for quick form
   useEffect(() => {
@@ -178,9 +186,24 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
       "bg-sidebar text-sidebar-foreground h-full transition-all duration-300",
       collapsed ? "w-[70px]" : "w-64"
     )}>
-      <div className="p-4 flex items-center justify-between h-16 border-b border-sidebar-border">
+      <div className="p-4 flex flex-col items-center justify-between h-auto border-b border-sidebar-border">
+        {/* Tenant Logo */}
+        {tenantLogoUrl && (
+          <div className={cn(
+            "w-full flex items-center justify-center mb-2",
+            collapsed ? "mx-auto" : ""
+          )}>
+            <img 
+              src={tenantLogoUrl} 
+              alt={tenant?.title || 'Tenant Logo'} 
+              className={cn("h-8 w-auto", collapsed ? "mx-auto" : "")}
+            />
+          </div>
+        )}
+        
+        {/* ClinicHub Logo */}
         {!collapsed ? (
-          <div className="flex items-center">
+          <div className="flex items-center w-full">
             <img 
               src="https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png" 
               alt="ClinicHub Logo" 

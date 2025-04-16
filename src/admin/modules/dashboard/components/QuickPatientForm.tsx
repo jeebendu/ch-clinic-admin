@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Search, UserPlus, Calendar } from "lucide-react";
+import { Search, UserPlus, Calendar, ClipboardList } from "lucide-react";
 import { patientListService } from "@/admin/modules/patient/services/patientListService";
 import { Patient } from "@/admin/modules/patient/types/Patient";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface QuickPatientFormProps {
   onFormClose?: () => void;
@@ -31,6 +33,14 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
     phone: "",
     email: "",
     gender: "Male"
+  });
+  
+  // Visit details state
+  const [visitDetails, setVisitDetails] = useState({
+    reason: "",
+    visitType: "Consultation",
+    urgency: "Normal",
+    notes: "",
   });
   
   const handleSearch = async () => {
@@ -60,13 +70,22 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
     }
   };
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+  const handleVisitInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setVisitDetails(prev => ({ ...prev, [name]: value }));
+  };
+  
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleVisitSelectChange = (name: string, value: string) => {
+    setVisitDetails(prev => ({ ...prev, [name]: value }));
   };
   
   const handlePatientSelect = (patient: Patient) => {
@@ -77,8 +96,8 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
   
   const createAppointment = () => {
     if (selectedPatient) {
-      // Redirect to appointment booking page with patient ID
-      navigate(`/admin/appointments/book?patientId=${selectedPatient.id}`);
+      // Redirect to appointment booking page with patient ID and visit details
+      navigate(`/admin/appointments/book?patientId=${selectedPatient.id}&reason=${encodeURIComponent(visitDetails.reason)}&visitType=${encodeURIComponent(visitDetails.visitType)}&urgency=${encodeURIComponent(visitDetails.urgency)}&notes=${encodeURIComponent(visitDetails.notes)}`);
     } else {
       // Create new patient first, then redirect to appointment booking
       // This would typically call a service to create the patient
@@ -89,7 +108,7 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
       
       // Simulate patient creation (replace with actual API call)
       setTimeout(() => {
-        navigate(`/admin/appointments/book?newPatient=true&firstName=${formData.firstName}&lastName=${formData.lastName}&phone=${formData.phone}&email=${formData.email}&gender=${formData.gender}`);
+        navigate(`/admin/appointments/book?newPatient=true&firstName=${formData.firstName}&lastName=${formData.lastName}&phone=${formData.phone}&email=${formData.email}&gender=${formData.gender}&reason=${encodeURIComponent(visitDetails.reason)}&visitType=${encodeURIComponent(visitDetails.visitType)}&urgency=${encodeURIComponent(visitDetails.urgency)}&notes=${encodeURIComponent(visitDetails.notes)}`);
       }, 1000);
     }
   };
@@ -243,6 +262,78 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
             </div>
           </div>
         )}
+        
+        {/* Visit Details Section */}
+        <div className="border rounded-md p-4 space-y-3 mt-4">
+          <h3 className="font-medium flex items-center">
+            <ClipboardList className="h-4 w-4 mr-2 text-clinic-primary" />
+            Visit Details
+          </h3>
+          
+          <div className="space-y-1">
+            <Label htmlFor="reason">Reason for Visit</Label>
+            <Input
+              id="reason"
+              name="reason"
+              placeholder="Brief description"
+              value={visitDetails.reason}
+              onChange={handleVisitInputChange}
+            />
+          </div>
+          
+          <div className="space-y-1">
+            <Label htmlFor="visitType">Visit Type</Label>
+            <Select
+              value={visitDetails.visitType}
+              onValueChange={(value) => handleVisitSelectChange("visitType", value)}
+            >
+              <SelectTrigger id="visitType">
+                <SelectValue placeholder="Select visit type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Consultation">Consultation</SelectItem>
+                <SelectItem value="Follow-up">Follow-up</SelectItem>
+                <SelectItem value="Procedure">Procedure</SelectItem>
+                <SelectItem value="Emergency">Emergency</SelectItem>
+                <SelectItem value="Routine Check">Routine Check</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-1">
+            <Label>Urgency</Label>
+            <RadioGroup 
+              defaultValue={visitDetails.urgency}
+              onValueChange={(value) => handleVisitSelectChange("urgency", value)}
+              className="flex space-x-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Normal" id="normal" />
+                <Label htmlFor="normal" className="cursor-pointer">Normal</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Urgent" id="urgent" />
+                <Label htmlFor="urgent" className="cursor-pointer">Urgent</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Emergency" id="emergency" />
+                <Label htmlFor="emergency" className="cursor-pointer">Emergency</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          
+          <div className="space-y-1">
+            <Label htmlFor="notes">Additional Notes</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              placeholder="Any additional information..."
+              className="h-20 resize-none"
+              value={visitDetails.notes}
+              onChange={handleVisitInputChange}
+            />
+          </div>
+        </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onFormClose}>
@@ -250,7 +341,10 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
         </Button>
         <Button 
           onClick={createAppointment}
-          disabled={!selectedPatient && (!formData.firstName || !formData.lastName || !formData.phone)}
+          disabled={
+            (!selectedPatient && (!formData.firstName || !formData.lastName || !formData.phone)) ||
+            !visitDetails.reason
+          }
         >
           <Calendar className="h-4 w-4 mr-2" />
           Book Appointment

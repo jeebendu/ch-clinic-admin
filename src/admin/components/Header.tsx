@@ -10,16 +10,13 @@ import {
   Menu, 
   LogOut, 
   Settings, 
-  UserCircle,
-  Image
+  UserCircle
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import BranchFilter from "./BranchFilter";
-import { useTenant } from "@/hooks/use-tenant";
-import { getTenantFileUrl } from "@/utils/tenantUtils";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -35,7 +32,6 @@ const Header = ({
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const { tenant } = useTenant();
   const navigate = useNavigate();
 
   // Get user data from localStorage
@@ -74,9 +70,6 @@ const Header = ({
     navigate('/login');
   };
 
-  // Get logo URL
-  const logoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
-
   return (
     <header className="admin-header h-14 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 bg-white shadow-sm">
       <div className="flex items-center gap-4">
@@ -88,21 +81,6 @@ const Header = ({
         >
           <Menu className="h-5 w-5" />
         </Button>
-        
-        {/* Tenant Logo - Conditional rendering */}
-        <div className="hidden md:flex items-center">
-          {logoUrl ? (
-            <img 
-              src={logoUrl} 
-              alt={tenant?.title || 'Clinic Logo'} 
-              className="h-8 w-auto mr-2"
-            />
-          ) : (
-            <div className="h-8 w-8 bg-gray-200 rounded-md flex items-center justify-center mr-2">
-              <Image className="h-5 w-5 text-gray-500" />
-            </div>
-          )}
-        </div>
         
         {/* Add the BranchFilter here */}
         {!isMobile && <BranchFilter className="ml-4" />}
