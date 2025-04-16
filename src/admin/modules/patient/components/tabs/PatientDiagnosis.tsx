@@ -24,7 +24,7 @@ const PatientDiagnosis: React.FC<PatientDiagnosisProps> = ({ patientId }) => {
         // Mock data for demonstration
         const mockDiagnoses: Partial<Diagnosis>[] = [
           {
-            id: 1,
+            id: 1, // Changed from string to number
             date: new Date(),
             symptoms: 'Headache, fever, cough',
             diagnosis: 'Common cold',
@@ -39,7 +39,7 @@ const PatientDiagnosis: React.FC<PatientDiagnosisProps> = ({ patientId }) => {
             }
           },
           {
-            id: 2,
+            id: 2, // Changed from string to number
             date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
             symptoms: 'Joint pain, stiffness',
             diagnosis: 'Mild arthritis',
@@ -53,7 +53,7 @@ const PatientDiagnosis: React.FC<PatientDiagnosisProps> = ({ patientId }) => {
             }
           },
           {
-            id: 3,
+            id: 3, // Changed from string to number
             date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
             symptoms: 'Shortness of breath, chest pain',
             diagnosis: 'Anxiety attack',
