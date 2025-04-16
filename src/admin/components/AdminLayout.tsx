@@ -31,6 +31,20 @@ export const AdminLayout = ({
   const [isScrolled, setIsScrolled] = useState(false); // State to track scroll position
   const [userProfileOpen, setUserProfileOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  
+  // Branch change event listener
+  useEffect(() => {
+    const handleBranchChange = (event: Event) => {
+      // You can add specific UI updates here if needed
+      console.log('Branch changed:', (event as CustomEvent).detail.branchId);
+      // For example, show a loading indicator or update specific parts of the UI
+    };
+    
+    document.addEventListener('branch-change', handleBranchChange);
+    return () => {
+      document.removeEventListener('branch-change', handleBranchChange);
+    };
+  }, []);
 
   // Load theme on initial render
   useEffect(() => {

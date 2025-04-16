@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import BranchService from '@/admin/modules/branch/services/branchService';
 import { Branch } from '@/admin/modules/branch/types/Branch';
 import { useToast } from './use-toast';
@@ -9,6 +9,7 @@ export function useBranchFilter() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Load selected branch from localStorage on initial render
   useEffect(() => {
@@ -33,7 +34,7 @@ export function useBranchFilter() {
     },
   });
 
-  // Handle branch selection
+  // Handle branch selection without page reload
   const handleBranchChange = (branchId: string) => {
     setSelectedBranch(branchId);
     
@@ -46,8 +47,17 @@ export function useBranchFilter() {
       description: "Your selected branch has been updated.",
     });
     
-    // Reload the page to apply the branch filter to all API calls
-    window.location.reload();
+    // Instead of reloading the page, invalidate relevant queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    queryClient.invalidateQueries({ queryKey: ['patients'] });
+    queryClient.invalidateQueries({ queryKey: ['doctors'] });
+    // Add any other query keys that should be refreshed when branch changes
+    
+    // You can also dispatch a custom event for components that need to react to branch changes
+    const branchChangeEvent = new CustomEvent('branch-change', { 
+      detail: { branchId } 
+    });
+    document.dispatchEvent(branchChangeEvent);
   };
 
   return {
