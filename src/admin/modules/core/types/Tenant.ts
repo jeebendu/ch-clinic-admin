@@ -6,4 +6,6 @@ export interface Tenant {
   favIcon: string;
   bannerHome: string;
   logo: string;
+  phone: string;
+  description?: string;
 }

@@ -75,9 +75,9 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
         expYear: doctor.expYear?.toString() || "",
         desgination: doctor.desgination || "",
         about: doctor.about || "",
-        gender: doctor.gender?.toString() || "0",
+        gender: (doctor.gender?.toString() || "0") as "0" | "1" | "2",
         external: doctor.external || false,
-        status: doctor.status || "Active",
+        status: doctor.status || "Active" as "Active" | "Inactive",
         biography: doctor.biography || "",
         city: doctor.city || "",
       });
