@@ -58,14 +58,14 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
             {/* Header with Logo and Clinic Info */}
             <div className="text-center mb-6">
               <h1 className="text-2xl font-bold text-clinic-primary">
-                {appointment.doctorClinic?.clinicName || "Medical Clinic"}
+                {appointment.doctorClinic?.clinic?.name || "Medical Clinic"}
               </h1>
               <p className="text-sm text-gray-500">
-                {appointment.doctorClinic?.address || "123 Medical Street, City"}
+                {appointment.doctorClinic?.clinic?.address || "123 Medical Street, City"}
               </p>
-              <p className="text-sm text-gray-500">
+              {/* <p className="text-sm text-gray-500">
                 Phone: {appointment.doctorClinic?.phoneNumber || "(123) 456-7890"}
-              </p>
+              </p> */}
             </div>
 
             <Separator className="my-4" />
@@ -110,7 +110,7 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
                     <div>
                       <p className="font-medium">Doctor</p>
                       <p className="text-gray-700">
-                        Dr. {appointment.doctor?.firstName || ""} {appointment.doctor?.lastName || ""}
+                        Dr. {appointment.doctor?.firstname || ""} {appointment.doctor?.lastname || ""}
                       </p>
                     </div>
                   </div>
@@ -119,7 +119,7 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
                     <div>
                       <p className="font-medium">Specialization</p>
                       <p className="text-gray-700">
-                        {appointment.doctor?.specialization?.name || "General Medicine"}
+                        {/* {appointment.doctor?.specialization?.name || "General Medicine"} */}
                       </p>
                     </div>
                   </div>
@@ -180,7 +180,7 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-gray-700 whitespace-pre-line">
-                    This is to confirm your appointment with Dr. {appointment.doctor?.firstName || ""} {appointment.doctor?.lastName || ""} 
+                    This is to confirm your appointment with Dr. {appointment.doctor?.firstname || ""} {appointment.doctor?.lastname || ""} 
                     on {format(new Date(appointment.appointmentDate), "PPPP")} at {format(new Date(appointment.appointmentDate), "p")}.
                     Please arrive 15 minutes before your scheduled appointment time.
                   </p>
