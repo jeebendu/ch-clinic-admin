@@ -75,8 +75,8 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
               )}
               <div>
                 <h1 className="text-xl font-bold">{tenant?.title || 'Medical Clinic'}</h1>
-                <p className="text-gray-500">{tenant?.description || 'Healthcare Services'}</p>
-                <p className="text-gray-500">{tenant?.phone || 'Phone: (555) 123-4567'}</p>
+                <p className="text-gray-500">{tenant?.title || 'Healthcare Services'}</p>
+                <p className="text-gray-500">{tenant?.contact || 'Phone: (555) 123-4567'}</p>
               </div>
             </div>
             <div className="text-right">
@@ -131,7 +131,7 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
                     </div>
                     <div className="col-span-2">
                       <p className="text-gray-500">Contact</p>
-                      <p>{appointment.doctor?.phone || appointment.doctor?.mobile || 'N/A'}</p>
+                      <p>{appointment.doctor?.phone || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -145,23 +145,23 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-500">Date</p>
-                      <p className="font-medium">{formatDate(appointment.appointmentStart || '')}</p>
+                      <p className="font-medium">{formatDate(appointment.appointmentDate || '')}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Time</p>
-                      <p className="font-medium">{formatTime(appointment.appointmentStart || '')}</p>
+                      <p className="font-medium">{formatTime(appointment.appointmentDate || '')}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Duration</p>
-                      <p>{appointment.duration || 30} minutes</p>
+                      <p>{appointment.interval || 30} minutes</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Type</p>
-                      <p>{appointment.type || 'Consultation'}</p>
+                      <p>{appointment.visitType || 'Consultation'}</p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-gray-500">Reason</p>
-                      <p>{appointment.reason || 'N/A'}</p>
+                      <p>{appointment.visitReason || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -170,7 +170,7 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Notes & Instructions</h3>
                 <div className="mt-2 border rounded-md p-4 h-[140px] overflow-auto">
-                  <p className="text-sm">{appointment.notes || 'No special instructions.'}</p>
+                  <p className="text-sm">{appointment.comments || 'No special instructions.'}</p>
                 </div>
               </div>
             </div>
@@ -185,7 +185,7 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
               </div>
               <div className="text-right">
                 <p>For any changes, please contact us at:</p>
-                <p>{tenant?.phone || '(555) 123-4567'}</p>
+                <p>{tenant?.contact || '(555) 123-4567'}</p>
               </div>
             </div>
             
