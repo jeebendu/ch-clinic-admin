@@ -65,21 +65,19 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
             </Button>
           </div>
         </div>
-
-        {/* Printable content */}
-        <div ref={componentRef} className="p-8 bg-white">
-          <div className="print-container">
-            {/* Header with Logo and Clinic Info */}
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-clinic-primary">
-                {appointment.doctorClinic?.clinic?.name || "Medical Clinic"}
-              </h1>
-              <p className="text-sm text-gray-500">
-                {appointment.doctorClinic?.clinic?.address || "123 Medical Street, City"}
-              </p>
-              {/* <p className="text-sm text-gray-500">
-                Phone: {appointment.doctorClinic?.phoneNumber || "(123) 456-7890"}
-              </p> */}
+        
+        <div ref={printRef} className="p-8 bg-white">
+          {/* Clinic Header */}
+          <div className="flex justify-between items-center border-b pb-4">
+            <div className="flex items-center">
+              {logoUrl && (
+                <img src={logoUrl} alt="Clinic Logo" className="h-16 mr-4" />
+              )}
+              <div>
+                <h1 className="text-xl font-bold">{tenant?.title || 'Medical Clinic'}</h1>
+                <p className="text-gray-500">{tenant?.title || 'Healthcare Services'}</p>
+                <p className="text-gray-500">{tenant?.contact || 'Phone: (555) 123-4567'}</p>
+              </div>
             </div>
             <div className="text-right">
               <h2 className="text-lg font-semibold">Appointment Details</h2>
@@ -123,24 +121,17 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
               </div>
               
               <div>
-                <h2 className="text-lg font-semibold mb-2">Doctor Information</h2>
-                <div className="space-y-2">
-                  <div className="flex items-start">
-                    <User className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Doctor</p>
-                      <p className="text-gray-700">
-                        Dr. {appointment.doctor?.firstname || ""} {appointment.doctor?.lastname || ""}
-                      </p>
+                <h3 className="text-sm font-medium text-gray-500">Doctor Information</h3>
+                <div className="mt-2 border rounded-md p-4">
+                  <p className="font-semibold text-lg">{appointment.doctor?.firstname} {appointment.doctor?.lastname}</p>
+                  <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                    <div className="col-span-2">
+                      <p className="text-gray-500">Specialization</p>
+                      <p>{appointment.doctor?.specializationList?.[0]?.name || 'General'}</p>
                     </div>
-                  </div>
-                  <div className="flex items-start">
-                    <FileText className="h-5 w-5 text-clinic-primary mr-2 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Specialization</p>
-                      <p className="text-gray-700">
-                        {/* {appointment.doctor?.specialization?.name || "General Medicine"} */}
-                      </p>
+                    <div className="col-span-2">
+                      <p className="text-gray-500">Contact</p>
+                      <p>{appointment.doctor?.phone || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -183,28 +174,19 @@ const AppointmentPrintLayout: React.FC<AppointmentPrintLayoutProps> = ({
                 </div>
               </div>
             </div>
-
-            {/* Visit Information */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-2">Visit Information</h2>
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-gray-700 whitespace-pre-line">
-                    This is to confirm your appointment with Dr. {appointment.doctor?.firstname || ""} {appointment.doctor?.lastname || ""} 
-                    on {format(new Date(appointment.appointmentDate), "PPPP")} at {format(new Date(appointment.appointmentDate), "p")}.
-                    Please arrive 15 minutes before your scheduled appointment time.
-                  </p>
-                  <div className="mt-4 text-sm">
-                    <p className="font-medium">Important Notes:</p>
-                    <ul className="list-disc pl-5 mt-1 space-y-1">
-                      <li>Please bring any relevant medical records or test results.</li>
-                      <li>Inform us 24 hours in advance if you need to cancel or reschedule.</li>
-                      <li>Face masks are required for all in-person visits.</li>
-                      <li>Payment is due at the time of service.</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
+          </div>
+          
+          {/* Footer */}
+          <div className="mt-8 pt-4 border-t text-sm text-gray-500">
+            <div className="flex justify-between">
+              <div>
+                <p>Printed on: {format(new Date(), 'dd MMM yyyy, hh:mm a')}</p>
+                <p>Appointment booked by: {appointment.doctor?.firstname} {appointment.doctor?.lastname}</p>
+              </div>
+              <div className="text-right">
+                <p>For any changes, please contact us at:</p>
+                <p>{tenant?.contact || '(555) 123-4567'}</p>
+              </div>
             </div>
             
             <div className="mt-6 text-center">
