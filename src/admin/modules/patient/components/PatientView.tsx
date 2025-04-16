@@ -33,6 +33,8 @@ import {
   AccordionItem,
   AccordionTrigger
 } from '@/components/ui/accordion';
+import PatientRecentVisits from './PatientRecentVisits';
+import PatientRecentDiagnosis from './PatientRecentDiagnosis';
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
