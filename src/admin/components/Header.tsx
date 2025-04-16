@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Search, 
@@ -16,7 +17,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import ClinicBranchFilter from "./ClinicBranchFilter";
+import BranchFilter from "./BranchFilter";
 import { useTenant } from "@/hooks/use-tenant";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
 
@@ -30,11 +31,16 @@ const Header = ({
   onMenuClick, 
   sidebarCollapsed, 
   onUserClick,
-}) => {
+}: HeaderProps) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { tenant } = useTenant();
+  const navigate = useNavigate();
+
+  // Get user data from localStorage
+  const userDataStr = localStorage.getItem('user');
+  const userData = userDataStr ? JSON.parse(userDataStr) : { name: 'User', email: 'user@example.com' };
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -55,6 +61,17 @@ const Header = ({
     } else {
       setProfileOpen(!profileOpen);
     }
+  };
+
+  const handleLogout = () => {
+    // Clear all localStorage items
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('selectedClinic');
+    localStorage.removeItem('selectedBranch');
+    
+    // Redirect to login page
+    navigate('/login');
   };
 
   // Get logo URL
@@ -87,15 +104,15 @@ const Header = ({
           )}
         </div>
         
-        {/* Add the ClinicBranchFilter here */}
-        {!isMobile && <ClinicBranchFilter className="ml-4" />}
+        {/* Add the BranchFilter here */}
+        {!isMobile && <BranchFilter className="ml-4" />}
       </div>
 
       <div className="flex items-center space-x-2 md:space-x-4">
-        {/* Mobile view for ClinicBranchFilter */}
+        {/* Mobile view for BranchFilter */}
         {isMobile && (
           <div className="mr-2">
-            <ClinicBranchFilter />
+            <BranchFilter />
           </div>
         )}
         
@@ -116,7 +133,7 @@ const Header = ({
           >
             <Avatar className="h-8 w-8">
               <AvatarImage src="" />
-              <AvatarFallback className="bg-[#00b8ab] text-white">
+              <AvatarFallback className="bg-clinic-primary text-white">
                 <User className="h-4 w-4" />
               </AvatarFallback>
             </Avatar>
@@ -125,8 +142,8 @@ const Header = ({
           {profileOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white/90 backdrop-blur-md border border-gray-200 rounded-md shadow-lg py-1 z-50">
               <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-sm font-medium">John Doe</p>
-                <p className="text-xs text-gray-500 truncate">john.doe@example.com</p>
+                <p className="text-sm font-medium">{userData.name}</p>
+                <p className="text-xs text-gray-500 truncate">{userData.email}</p>
               </div>
               <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                 <UserCircle className="h-4 w-4 mr-2" />
@@ -137,10 +154,13 @@ const Header = ({
                 Settings
               </a>
               <div className="border-t border-gray-100 my-1"></div>
-              <a href="#" className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+              <button 
+                onClick={handleLogout}
+                className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign out
-              </a>
+              </button>
             </div>
           )}
         </div>

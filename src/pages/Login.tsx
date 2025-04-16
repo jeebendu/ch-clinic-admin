@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useTenant } from "@/hooks/use-tenant";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import AuthService from "@/services/authService";
+import { loadSavedTheme } from "@/utils/themeUtils";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -23,6 +24,10 @@ const Login = () => {
   const { toast } = useToast();
   const { tenant } = useTenant();
 
+  useEffect(() => {
+    loadSavedTheme();
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -31,13 +36,11 @@ const Login = () => {
     try {
       const userData = await AuthService.login(username, password);
       
-      // Show success toast
       toast({
         title: "Login successful",
         description: `Welcome ${userData.name}`,
       });
       
-      // Redirect based on user role
       const userRole = userData.role || 'Staff';
       
       switch(userRole) {
@@ -51,7 +54,6 @@ const Login = () => {
           navigate("/admin/dashboard/staff");
           break;
         default:
-          // Default to admin dashboard
           navigate("/admin");
       }
     } catch (err: any) {
@@ -70,7 +72,6 @@ const Login = () => {
     try {
       await AuthService.forgotPassword(forgotEmail);
       
-      // Always show success message regardless of actual result for security
       setForgotEmailSent(true);
       toast({
         title: "Email sent",
@@ -78,7 +79,6 @@ const Login = () => {
       });
     } catch (err: any) {
       console.error("Forgot password error:", err);
-      // For security reasons, we don't reveal if the email exists or not
       setForgotEmailSent(true);
       toast({
         title: "Email sent",
@@ -112,7 +112,7 @@ const Login = () => {
             </div>
           </div>
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-brand-primary to-brand-secondary flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-r from-clinic-primary to-clinic-secondary flex items-center justify-center">
             <div className="text-center text-white p-8">
               <h1 className="text-4xl font-bold mb-4">{tenant?.title || 'Clinic Management System'}</h1>
               <p className="text-xl">Your health, our priority</p>
@@ -133,11 +133,11 @@ const Login = () => {
                 />
               </div>
             ) : null}
-            <h1 className="text-3xl font-bold text-brand-dark">{tenant?.title || 'Clinic Management System'}</h1>
+            <h1 className="text-3xl font-bold text-clinic-dark">{tenant?.title || 'Clinic Management System'}</h1>
             <p className="text-gray-600 mt-2">Access your clinic dashboard</p>
           </div>
 
-          <Card className="w-full shadow-lg border-brand-light">
+          <Card className="w-full shadow-lg border-clinic-light">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl text-center">Login</CardTitle>
               <CardDescription className="text-center">
@@ -183,7 +183,7 @@ const Login = () => {
               
                 <Button 
                   type="submit" 
-                  className="w-full bg-brand-primary hover:bg-brand-secondary"
+                  className="w-full bg-clinic-primary hover:bg-clinic-secondary text-white"
                   disabled={isLoading}
                 >
                   {isLoading ? "Logging in..." : "Login"}
@@ -194,7 +194,7 @@ const Login = () => {
               <div className="text-sm text-gray-500 text-center w-full">
                 <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
                   <DialogTrigger asChild>
-                    <span className="hover:text-brand-primary cursor-pointer">Forgot password?</span>
+                    <span className="hover:text-clinic-primary cursor-pointer">Forgot password?</span>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
@@ -221,7 +221,7 @@ const Login = () => {
                         <DialogFooter>
                           <Button 
                             type="submit" 
-                            className="w-full bg-brand-primary hover:bg-brand-secondary"
+                            className="w-full bg-clinic-primary hover:bg-clinic-secondary text-white"
                             disabled={isForgotLoading}
                           >
                             {isForgotLoading ? "Sending..." : "Send reset link"}

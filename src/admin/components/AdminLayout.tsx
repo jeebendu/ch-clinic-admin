@@ -15,6 +15,7 @@ type AdminLayoutProps = {
   showAddButton?: boolean;
   onAddButtonClick?: () => void;
 };
+
 // Use both named export and default export for backward compatibility
 export const AdminLayout = ({ 
   children, 
@@ -28,7 +29,17 @@ export const AdminLayout = ({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false); // State to track scroll position
+  const [userProfileOpen, setUserProfileOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+
+  // Load theme on initial render
+  useEffect(() => {
+    // Check if theme exists in localStorage and apply it
+    const savedTheme = localStorage.getItem('themeColor');
+    if (savedTheme) {
+      document.documentElement.style.setProperty('--clinic-primary', savedTheme);
+    }
+  }, []);
 
   // Close sidebar when switching from mobile to desktop
   useEffect(() => {
@@ -46,6 +57,7 @@ export const AdminLayout = ({
   };
 
   const handleUserClick = () => {
+    setUserProfileOpen(!userProfileOpen);
     if (onUserClick) {
       onUserClick();
       if (isMobile) {
@@ -116,7 +128,7 @@ export const AdminLayout = ({
           {showAddButton && isMobile && (
             <Button 
               onClick={onAddButtonClick}
-              className="appointment-add-button bg-primary hover:bg-primary/90"
+              className="appointment-add-button bg-clinic-primary hover:bg-clinic-primary/90 text-white"
             >
               <Plus className="h-6 w-6" />
             </Button>

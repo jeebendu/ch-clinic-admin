@@ -52,6 +52,18 @@ const PatientService = {
     }
   },
 
+  searchPatients: async (searchTerm: string) => {
+    try {
+      const response = await http.get(`${apiUrl}/v1/patient/search`, {
+        params: { term: searchTerm }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error searching patients:", error);
+      throw error;
+    }
+  },
+
   getById: async (id: number) => {
     try {
       const response = await http.get(`${apiUrl}/v1/patient/id/${id}`);
