@@ -3,15 +3,12 @@ import { BrowserRouter as Router, Routes as RouterRoutes, Route } from "react-ro
 import "./App.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/sonner";
-import jwtInterceptor from "./lib/JwtInterceptor";
+import http from "./lib/JwtInterceptor";
 import { BranchProvider } from "./contexts/BranchContext";
 import AdminRoutes from "./admin/AdminRoutes";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-
-// Initialize the JWT interceptor
-jwtInterceptor();
 
 // Initialize the Query Client
 const queryClient = new QueryClient({
