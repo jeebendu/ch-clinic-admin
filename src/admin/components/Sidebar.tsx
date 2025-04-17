@@ -17,7 +17,10 @@ import {
   X,
   Palette,
   UserPlus,
-  Image
+  Image,
+  ArrowLeftCircle,
+  ArrowUpRightFromCircle,
+  ArrowDownRightFromCircle
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -91,6 +94,12 @@ const navItems = [
     icon: <Building2 className="h-5 w-5" />, 
     label: "Branches", 
     href: "/admin/branch", 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <ArrowDownRightFromCircle className="h-5 w-5" />, 
+    label: "Sequence", 
+    href: "/admin/sequence", 
     roles: ["Admin"] 
   },
   { 
