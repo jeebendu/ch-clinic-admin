@@ -1,4 +1,5 @@
-import Module from "module";
+import { Module } from "@/admin/modules/core/types/Module";
+
 
 
 export interface Sequence {

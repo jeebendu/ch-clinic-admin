@@ -25,7 +25,7 @@ export const BranchService = {
     return http.get(`${apiUrl}/v1/branch/id/${id}`);
   },
 
-  saveOrUpdate: (branch: Branch) => {
+  saveOrUpdate: (branch: any) => {
     return http.post(`${apiUrl}/v1/branch/saveOrUpdate`, branch);
   },
 };
