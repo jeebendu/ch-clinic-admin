@@ -8,7 +8,7 @@ export interface Sequence {
   includeYear: boolean;
   incrementLastFinal: string;
   incrementLastId: number;
-  incrementPadChar: number;
+  incrementPadChar: string;
   incrementPadLength: number;
   incrementPrefix: string;
   module?: Module;

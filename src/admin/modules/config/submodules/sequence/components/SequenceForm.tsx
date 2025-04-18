@@ -20,7 +20,7 @@ interface SequenceFormProps {
 const formSchema = z.object({
   incrementPrefix: z.string().min(1, "Prefix is required"),
   incrementPadLength: z.number().min(1, "Pad Length is required"),
-  incrementPadChar: z.number().min(1, "Pad Char is required"),
+  incrementPadChar: z.string().min(1, "Pad Char is required"),
   // city: z.string().min(1, "City is required"),
   // pincode: z.string().min(1, "Pincode is required"),
   includeBranchCode: z.boolean().optional(),
@@ -37,7 +37,7 @@ const SequenceForm: React.FC<SequenceFormProps> = ({ sequence, onSuccess }) => {
   const defaultValues: Partial<FormValues> = {
     incrementPrefix: sequence?.incrementPrefix || "",
     incrementPadLength: sequence?.incrementPadLength || 0,
-    incrementPadChar: sequence?.incrementPadChar || 0,
+    incrementPadChar: sequence?.incrementPadChar || "",
     // city: sequence?.city || "",
     // pincode: sequence?.pincode?.toString() || "",
     includeBranchCode: sequence?.includeBranchCode || false,
@@ -51,10 +51,12 @@ const SequenceForm: React.FC<SequenceFormProps> = ({ sequence, onSuccess }) => {
 
   const onSubmit = async (data: FormValues) => {
     try {
+      console.log("Form data:", data);
       // Transform form data to match Sequence type
       const sequenceData: Partial<Sequence> = {
         ...data,
         // pincode: parseInt(data.pincode),
+       
         id: sequence?.id,
       };
 
@@ -90,14 +92,12 @@ const SequenceForm: React.FC<SequenceFormProps> = ({ sequence, onSuccess }) => {
             control={form.control}
             name="incrementPadLength"
             label="Pad Length"
-            type="number"
           />
           
           <FormField
             control={form.control}
             name="incrementPadChar"
             label="Pad Char"
-            type="number"
           />
           
        

@@ -36,6 +36,7 @@ const SequenceTable = ({ sequences, onDelete, onEdit }: SequenceTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Module</TableHead>
               <TableHead>Prefix</TableHead>
               <TableHead>Pad Length</TableHead>
               <TableHead>Pad Char</TableHead>
@@ -54,9 +55,10 @@ const SequenceTable = ({ sequences, onDelete, onEdit }: SequenceTableProps) => {
             ) : (
               sequences.map((sequence) => (
                 <TableRow key={sequence.id}>
-                  <TableCell className="font-medium">{sequence.incrementPrefix}</TableCell>
-                  <TableCell>{sequence.incrementPadLength}</TableCell>
-                  <TableCell>{sequence.incrementPadChar}</TableCell>
+                  <TableCell className="font-medium">{sequence.module?.name}</TableCell>
+                  <TableCell>{sequence?.incrementPrefix}</TableCell>
+                  <TableCell>{sequence?.incrementPadLength}</TableCell>
+                  <TableCell>{sequence?.incrementPadChar}</TableCell>
                   {/* <TableCell>{sequence.city}</TableCell>
                   <TableCell>{sequence.pincode}</TableCell> */}
                   <TableCell>
