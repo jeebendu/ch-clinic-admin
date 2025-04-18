@@ -1,6 +1,7 @@
 
 import http from "@/lib/JwtInterceptor";
 import { getEnvVariable } from "@/utils/envUtils";
+import axios from "axios";
 
 const apiUrl = getEnvVariable('API_URL');
 
@@ -24,9 +25,11 @@ export const SpecialityService = {
     return http.get(`${apiUrl}/v1/public/doctor/specialization/id/${id}`);
   },
 
-  saveOrUpdate: (branch: any) => {
-    return http.post(`${apiUrl}/v1/public/doctor/specialization/saveOrUpdate`, branch);
+  saveOrUpdate: async(data: FormData) => {
+console.log("Sending data to API:", data);
+    return axios.post(`${apiUrl}/v1/public/doctor/specialization/saveOrUpdate`, data, {
+      headers:{ "Content-Type": "application/json" },
+    });
   },
-};
-
+}
 export default SpecialityService;

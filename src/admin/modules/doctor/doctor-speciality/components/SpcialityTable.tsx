@@ -38,6 +38,7 @@ const SpecialityTable = ({ speciality, onDelete, onEdit }: SpecialityTableProps)
             <TableRow>
               <TableHead>Speciality Name</TableHead>
               <TableHead>Icon</TableHead>
+              <TableHead>Image</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -53,7 +54,9 @@ const SpecialityTable = ({ speciality, onDelete, onEdit }: SpecialityTableProps)
                 speciality.map((branch) => (
                 <TableRow key={branch.id}>
                   <TableCell className="font-medium">{branch.name}</TableCell>
+                  
                   <TableCell>{branch.icon}</TableCell>
+                  <TableCell>{branch.imageUrl && <img src={branch.imageUrl} alt={branch.name} className="w-10 h-10 rounded-full" />}</TableCell>
               
                   <TableCell>
                     <span className={`px-2 py-1 text-xs rounded-full ${branch.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
