@@ -1,9 +1,10 @@
 import http from "@/lib/JwtInterceptor";
+import { Config } from "../types/config";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
 const ConfigService = {
-  save: (config: any) => {
+  save: (config: Config) => {
     return http.post(`${apiUrl}/v1/catalog/config/save`, config);
   },
 

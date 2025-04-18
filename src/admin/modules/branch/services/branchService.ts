@@ -1,6 +1,7 @@
 
 import http from "@/lib/JwtInterceptor";
 import { getEnvVariable } from "@/utils/envUtils";
+import { Branch } from "../types/Branch";
 
 const apiUrl = getEnvVariable('API_URL');
 

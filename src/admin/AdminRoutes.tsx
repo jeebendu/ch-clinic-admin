@@ -9,6 +9,9 @@ import CustomerRoutes from "./modules/customer/routes/CustomerRoutes";
 import DoctorRoutes from "./modules/doctor/DoctorRoutes";
 import UserRoutes from "./modules/user/UserRoutes";
 import CoreRoutes from "./modules/core/routes/CoreRoutes";
+import SequenceRoutes from "./modules/config/submodules/sequence/routes/SequenceRoutes";
+import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/routes/RepairCompanyRoutes";
+import CourierRoutes from "./modules/config/submodules/courier/routes/CourierRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -18,6 +21,9 @@ const AdminRoutes = () => {
       <Route path="/appointments/*" element={<AppointmentRoutes />} />
       <Route path="/patients/*" element={<PatientRoutes />} />
       <Route path="/branch/*" element={<BranchRoutes />} />
+      <Route path="/sequence/*" element={<SequenceRoutes />} />
+      <Route path="/repair-company/*" element={<RepairCompanyRoutes />} />
+      <Route path="/courier/*" element={<CourierRoutes />} />
       <Route path="/customer/*" element={<CustomerRoutes />} />
       <Route path="/doctor/*" element={<DoctorRoutes />} />
       <Route path="/users/*" element={<UserRoutes />} />
