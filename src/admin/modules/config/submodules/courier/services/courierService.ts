@@ -1,11 +1,19 @@
 import http from "@/lib/JwtInterceptor";
-import { Courier } from "../types/courier";
+import { getEnvVariable } from "@/utils/envUtils";
 
-const apiUrl = process.env.REACT_APP_API_URL;
+const apiUrl = getEnvVariable('API_URL');
 
 const CourierService = {
-  list: () => {
-    return http.get(`${apiUrl}/v1/courier/list`);
+
+  list: async () => {
+    try {
+      const response = await http.get(`${apiUrl}/v1/courier/list`);
+      // console.log("Raw API response:", response);
+      return response.data; // Return just the data part of the response
+    } catch (error) {
+      console.error("Error fetching Courier:", error);
+      throw error;
+    }
   },
 
   deleteById: (id: number) => {
@@ -16,7 +24,7 @@ const CourierService = {
     return http.get(`${apiUrl}/v1/courier/id/${id}`);
   },
 
-  saveOrUpdate: (courier: Courier) => {
+  saveOrUpdate: (courier: any) => {
     return http.post(`${apiUrl}/v1/courier/saveOrUpdate`, courier);
   },
 };

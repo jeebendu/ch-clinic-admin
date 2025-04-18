@@ -21,7 +21,8 @@ import {
   ArrowLeftCircle,
   ArrowUpRightFromCircle,
   ArrowDownRightFromCircle,
-  Settings2Icon
+  Settings2Icon,
+  ShoppingBasket
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -107,6 +108,12 @@ const navItems = [
     icon: <Settings2Icon className="h-5 w-5" />, 
     label: "Reapir Company", 
     href: "/admin/repair-company", 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <ShoppingBasket className="h-5 w-5" />, 
+    label: "Courier", 
+    href: "/admin/courier", 
     roles: ["Admin"] 
   },
   { 
