@@ -3,7 +3,7 @@ import { getEnvVariable } from "@/utils/envUtils";
 
 const apiUrl = getEnvVariable('API_URL');
 
-const CourierService = {
+export const CourierService = {
 
   list: async () => {
     try {
