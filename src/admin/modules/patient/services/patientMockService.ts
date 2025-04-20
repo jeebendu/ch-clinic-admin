@@ -68,8 +68,6 @@ const generatePatient = (): Patient => {
     },
     effectiveFrom: faker.date.past(),
     image: faker.image.avatar(),
-    firstName: firstname, // Added firstName
-    lastName: lastname, // Added lastName
   };
 
   const mockDoctor: Doctor = {

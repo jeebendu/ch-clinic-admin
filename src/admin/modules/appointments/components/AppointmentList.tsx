@@ -108,13 +108,16 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
   };
 
   // Helper function to safely format date
-  const formatDate = (dateString: string | null | undefined) => {
+  const formatDate = (dateString: string | Date | null | undefined) => {
     if (!dateString) return "Date not available";
     
     try {
-      // Convert Date objects to ISO strings before formatting
-      const dateValue = dateString instanceof Date ? dateString.toISOString() : dateString;
-      return format(new Date(dateValue), "EEE, MMM d, yyyy");
+      // Handle both string and Date object types
+      if (typeof dateString === 'object') {
+        return format(dateString, "EEE, MMM d, yyyy");
+      }
+      // For string dates
+      return format(new Date(dateString), "EEE, MMM d, yyyy");
     } catch (error) {
       console.error("Error formatting date:", error, dateString);
       return "Date not available";
