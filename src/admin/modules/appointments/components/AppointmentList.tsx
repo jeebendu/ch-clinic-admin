@@ -112,7 +112,9 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
     if (!dateString) return "Date not available";
     
     try {
-      return format(new Date(dateString), "EEE, MMM d, yyyy");
+      // Convert Date objects to ISO strings before formatting
+      const dateValue = dateString instanceof Date ? dateString.toISOString() : dateString;
+      return format(new Date(dateValue), "EEE, MMM d, yyyy");
     } catch (error) {
       console.error("Error formatting date:", error, dateString);
       return "Date not available";
