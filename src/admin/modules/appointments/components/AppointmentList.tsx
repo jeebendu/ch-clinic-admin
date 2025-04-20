@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Appointment } from '../types/Appointment';
 import { Badge } from '@/components/ui/badge';
@@ -28,27 +27,32 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
   const observer = useRef<IntersectionObserver | null>(null);
   const [visibleAppointments, setVisibleAppointments] = useState<Appointment[]>([]);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const listContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setVisibleAppointments(appointments);
+    if (appointments.length > 0) {
+      setVisibleAppointments(prev => {
+        if (JSON.stringify(prev) !== JSON.stringify(appointments)) {
+          return appointments;
+        }
+        return prev;
+      });
+    }
   }, [appointments]);
 
   useEffect(() => {
     if (loading) return;
 
-    // Disconnect previous observer
     if (observer.current) {
       observer.current.disconnect();
     }
 
-    // Create new observer
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
         loadMore();
       }
     }, { rootMargin: '100px' });
 
-    // Observe the load more element
     if (loadMoreRef.current) {
       observer.current.observe(loadMoreRef.current);
     }
@@ -94,12 +98,10 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
     }
   };
 
-  // Helper function to safely format time
   const formatTime = (timeString: string | null | undefined) => {
     if (!timeString) return "Time not available";
     
     try {
-      // For "HH:mm:ss" format strings
       return format(parseISO(`1970-01-01T${timeString}`), "hh:mm a");
     } catch (error) {
       console.error("Error formatting time:", error, timeString);
@@ -107,16 +109,13 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
     }
   };
 
-  // Helper function to safely format date
   const formatDate = (dateString: string | Date | null | undefined) => {
     if (!dateString) return "Date not available";
     
     try {
-      // Handle both string and Date object types
       if (typeof dateString === 'object') {
         return format(dateString, "EEE, MMM d, yyyy");
       }
-      // For string dates
       return format(new Date(dateString), "EEE, MMM d, yyyy");
     } catch (error) {
       console.error("Error formatting date:", error, dateString);
@@ -125,7 +124,7 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
   };
 
   return (
-    <div className="space-y-4 mb-6">
+    <div className="space-y-4 mb-6" ref={listContainerRef}>
       {visibleAppointments.map((appointment) => (
         <div
           key={appointment.id}
