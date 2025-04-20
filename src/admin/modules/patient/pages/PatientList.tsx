@@ -2,20 +2,20 @@
 import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
-import PatientGrid from "../components/PatientGrid";
 import PatientTable from "../components/PatientTable";
+import PatientCardList from "../components/PatientCardList";
 import { Patient } from "../types/Patient";
 import PatientView from "../components/PatientView";
 import { usePatients } from "../hooks/usePatients";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useDefaultFilters } from '@/hooks/use-default-filters';
 import FilterCard from "@/admin/components/FilterCard";
 
 const PatientList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [showForm, setShowForm] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const { showFilters, setShowFilters } = useDefaultFilters(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   const {
     patients,
@@ -30,6 +30,7 @@ const PatientList = () => {
     page: 0,
     size: 12,
     searchTerm: "",
+    patientType: null,
     status: null
   });
 
@@ -53,12 +54,6 @@ const PatientList = () => {
     }
   };
 
-  const handleFilterChange = (filterId: string, optionId: string) => {
-    updateFilters({
-      [filterId]: optionId
-    });
-  };
-
   return (
     <AdminLayout>
       <div className="flex flex-col h-full">
@@ -67,7 +62,7 @@ const PatientList = () => {
           description="Manage your clinic's patients"
           showAddButton={true}
           addButtonLabel="Add Patient"
-          onAddButtonClick={() => {/* Add patient form would go here */}}
+          onAddButtonClick={() => setShowForm(true)}
           onViewModeToggle={handleViewModeToggle}
           viewMode={viewMode}
           onRefreshClick={refreshPatients}
@@ -80,45 +75,38 @@ const PatientList = () => {
 
         {showFilters && (
           <FilterCard 
-            searchTerm=""
-            onSearchChange={handleSearchChange}
             filters={[
               {
                 id: 'status',
                 label: 'Status',
                 options: [
-                  { id: 'Active', label: 'Active' },
-                  { id: 'Inactive', label: 'Inactive' }
+                  { id: 'active', label: 'Active' },
+                  { id: 'inactive', label: 'Inactive' }
                 ]
               }
             ]}
             selectedFilters={{}}
-            onFilterChange={handleFilterChange}
-            onClearFilters={() => {
-              updateFilters({
-                status: null,
-                searchTerm: ""
-              });
-            }}
+            onFilterChange={() => {}}
+            onClearFilters={() => {}}
           />
         )}
 
         <ScrollArea 
           className="flex-1 px-1" 
-          onScroll={handleScroll} 
+          onScroll={handleScroll}
           style={{ height: 'calc(100vh - 180px)' }}
         >
           {viewMode === 'grid' ? (
-            <PatientGrid 
-              patients={patients} 
+            <PatientCardList 
+              patients={patients}
+              onDelete={() => {}}
               loading={loading}
-              onPatientClick={handleViewPatient}
             />
           ) : (
             <PatientTable 
-              patients={patients} 
-              loading={loading}
+              patients={patients}
               onDelete={() => {}}
+              loading={loading}
             />
           )}
           
