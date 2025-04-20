@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -11,7 +12,7 @@ import { useDefaultFilters } from '@/hooks/use-default-filters';
 import FilterCard from "@/admin/components/FilterCard";
 
 const PatientList = () => {
-  const [viewMode, setViewMode<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const { showFilters, setShowFilters } = useDefaultFilters(true);
@@ -108,10 +109,10 @@ const PatientList = () => {
           style={{ height: 'calc(100vh - 180px)' }}
         >
           {viewMode === 'grid' ? (
-            <PatientTable 
+            <PatientGrid 
               patients={patients} 
               loading={loading}
-              onDelete={() => {}}
+              onPatientClick={handleViewPatient}
             />
           ) : (
             <PatientTable 
