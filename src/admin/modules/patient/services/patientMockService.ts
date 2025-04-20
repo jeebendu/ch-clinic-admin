@@ -1,3 +1,4 @@
+
 import { faker } from '@faker-js/faker';
 import { Patient } from '../types/Patient';
 import { Branch } from '../../branch/types/Branch';
@@ -68,6 +69,9 @@ const generatePatient = (): Patient => {
     },
     effectiveFrom: faker.date.past(),
     image: faker.image.avatar(),
+    status: 'Active', // Added this status property
+    firstName: firstname, // Added firstName
+    lastName: lastname, // Added lastName
   };
 
   const mockDoctor: Doctor = {

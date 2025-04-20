@@ -10,13 +10,16 @@ import {
   Menu, 
   LogOut, 
   Settings, 
-  UserCircle
+  UserCircle,
+  Moon,
+  Sun
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import BranchFilter from "./BranchFilter";
+import { Switch } from "@/components/ui/switch";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -30,6 +33,7 @@ const Header = ({
   onUserClick,
 }: HeaderProps) => {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -37,6 +41,24 @@ const Header = ({
   // Get user data from localStorage
   const userDataStr = localStorage.getItem('user');
   const userData = userDataStr ? JSON.parse(userDataStr) : { name: 'User', email: 'user@example.com' };
+
+  // Load and apply theme
+  useEffect(() => {
+    // Check if theme exists in localStorage
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    setIsDarkMode(currentTheme === 'dark');
+    
+    // Apply theme to document
+    document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+  }, []);
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const newTheme = isDarkMode ? 'light' : 'dark';
+    setIsDarkMode(!isDarkMode);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -93,6 +115,19 @@ const Header = ({
             <BranchFilter />
           </div>
         )}
+        
+        {/* Theme Toggle */}
+        <div className="flex items-center mr-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleTheme}
+            className="text-gray-600 rounded-full"
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+        </div>
         
         <Button variant="ghost" size="icon" className="text-gray-600 hidden md:flex rounded-full">
           <Bell className="h-5 w-5" />

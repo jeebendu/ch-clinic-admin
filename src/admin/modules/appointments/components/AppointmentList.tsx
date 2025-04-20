@@ -1,8 +1,9 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Appointment } from '../types/Appointment';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Loader2, Video, MapPin, Bell, ClipboardList, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -93,6 +94,31 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
     }
   };
 
+  // Helper function to safely format time
+  const formatTime = (timeString: string | null | undefined) => {
+    if (!timeString) return "Time not available";
+    
+    try {
+      // For "HH:mm:ss" format strings
+      return format(parseISO(`1970-01-01T${timeString}`), "hh:mm a");
+    } catch (error) {
+      console.error("Error formatting time:", error, timeString);
+      return "Time not available";
+    }
+  };
+
+  // Helper function to safely format date
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "Date not available";
+    
+    try {
+      return format(new Date(dateString), "EEE, MMM d, yyyy");
+    } catch (error) {
+      console.error("Error formatting date:", error, dateString);
+      return "Date not available";
+    }
+  };
+
   return (
     <div className="space-y-4 mb-6">
       {visibleAppointments.map((appointment) => (
@@ -139,14 +165,10 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
             <div className="w-full md:w-auto flex flex-col items-end gap-2">
               <div className="flex flex-col items-end gap-1">
                 <div className="text-sm text-gray-500">
-                  {appointment.slot?.date 
-                    ? format(new Date(appointment.slot.date), "EEE, MMM d, yyyy") 
-                    : "Date not available"}
+                  {formatDate(appointment.slot?.date)}
                 </div>
                 <div className="font-medium">
-                  {appointment?.slot?.startTime 
-                   ? format(new Date(`1970-01-01T${appointment?.slot?.startTime}`), "hh:mm a") 
-                    : "Time not available"}
+                  {formatTime(appointment.slot?.startTime)}
                 </div>
               </div>
               
