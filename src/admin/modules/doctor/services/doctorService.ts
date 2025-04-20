@@ -34,54 +34,20 @@ export const DoctorService = {
     await http.delete(`/v1/doctor/${id}`);
   },
 
-  fetchPaginated: (
+  fetchPaginated: async (
     page: number,
     size: number,
     filter: { value: string; doctorType: string | null; specialization: string | null }
   ): Promise<PaginatedResponse<Doctor>> => {
     if (!isProduction()) {
-      const mockDoctors = DoctorMockService.generateMockDoctors(100);
-      
-      const filteredDoctors = mockDoctors.filter((doctor) => {
-        const matchesValue = filter.value
-          ? doctor.firstname.toLowerCase().includes(filter.value.toLowerCase()) || 
-            doctor.lastname.toLowerCase().includes(filter.value.toLowerCase())
-          : true;
-        const matchesDoctorType = filter.doctorType ? doctor.desgination === filter.doctorType : true;
-        const matchesSpecialization = filter.specialization
-          ? doctor.specializationList.some((spec) => spec.name === filter.specialization)
-          : true;
-
-        return matchesValue && matchesDoctorType && matchesSpecialization;
-      });
-
-      const totalElements = filteredDoctors.length;
-      const totalPages = Math.ceil(totalElements / size);
-      const startIndex = page * size;
-      const endIndex = startIndex + size;
-      const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
-
-      return Promise.resolve({
-        content: paginatedDoctors,
-        totalElements,
-        totalPages,
-        size,
-        number: page,
-        first: page === 0,
-        last: page === totalPages - 1,
-        numberOfElements: paginatedDoctors.length,
-      });
+      const { DoctorMockService } = await import("./doctorMockService");
+      return DoctorMockService.fetchPaginated(page, size, filter);
     }
-
-    return http.get<PaginatedResponse<Doctor>>('/v1/doctor', {
-      params: {
-        page,
-        size,
-        search: filter.value,
-        doctorType: filter.doctorType,
-        specialization: filter.specialization,
-      }
-    }).then(response => response.data);
+    const response = await http.post<PaginatedResponse<Doctor>>(
+      `/v1/doctor/filter/${page}/${size}`,
+      filter
+    );
+    return response.data;
   }
 };
 
