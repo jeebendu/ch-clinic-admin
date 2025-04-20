@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -21,9 +20,9 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
   onViewClick,
   onEditClick
 }) => {
-  const getInitials = (firstname: string, lastname: string) => {
-    if (!firstname || !lastname) return 'DR'; // Default fallback
-    return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
+  const getInitials = (firstname: string | undefined, lastname: string | undefined) => {
+    if (!firstname && !lastname) return 'DR';
+    return `${firstname?.[0] || ''}${lastname?.[0] || ''}`.toUpperCase() || 'DR';
   };
 
   const formatJoiningDate = (date?: string) => {

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -9,12 +8,14 @@ import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
 import { useDoctors } from "../hooks/useDoctors";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import FilterCard from "../components/FilterCard";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [showForm, setShowForm] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const {
     doctors,
@@ -86,9 +87,38 @@ const DoctorList = () => {
           viewMode={viewMode}
           onRefreshClick={refreshDoctors}
           onSearchChange={handleSearchChange}
+          onFilterToggle={() => setShowFilters(!showFilters)}
+          showFilter={showFilters}
           loadedElements={loadedElements}
           totalElements={totalElements}
         />
+
+        {showFilters && (
+          <FilterCard 
+            filters={[
+              {
+                id: 'doctorType',
+                label: 'Doctor Type',
+                options: [
+                  { id: 'fullTime', label: 'Full Time' },
+                  { id: 'partTime', label: 'Part Time' },
+                  { id: 'visiting', label: 'Visiting' }
+                ]
+              },
+              {
+                id: 'specialization',
+                label: 'Specialization',
+                options: [
+                  { id: 'general', label: 'General' },
+                  { id: 'specialist', label: 'Specialist' }
+                ]
+              }
+            ]}
+            selectedFilters={{}}
+            onFilterChange={() => {}}
+            onClearFilters={() => {}}
+          />
+        )}
 
         <ScrollArea 
           className="flex-1 px-1" 

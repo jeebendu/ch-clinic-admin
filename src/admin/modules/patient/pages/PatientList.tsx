@@ -1,30 +1,21 @@
 
 import React, { useState } from "react";
-import AdminLayout from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
-import { useToast } from "@/hooks/use-toast";
+import AdminLayout from "@/admin/components/AdminLayout";
 import PatientTable from "../components/PatientTable";
 import PatientCardList from "../components/PatientCardList";
 import { Patient } from "../types/Patient";
+import PatientView from "../components/PatientView";
 import { usePatients } from "../hooks/usePatients";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import PatientService from "../services/patientService";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog";
+import FilterCard from "@/admin/components/FilterCard";
 
 const PatientList = () => {
-  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [patientToDelete, setPatientToDelete] = useState<number | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const {
     patients,
@@ -38,7 +29,9 @@ const PatientList = () => {
   } = usePatients({
     page: 0,
     size: 12,
-    searchTerm: ""
+    searchTerm: "",
+    patientType: null,
+    status: null
   });
 
   const handleViewModeToggle = () => {
@@ -49,31 +42,9 @@ const PatientList = () => {
     updateFilters({ searchTerm: value });
   };
 
-  const handleDeletePatient = (id: number) => {
-    setPatientToDelete(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (patientToDelete === null) return;
-    
-    try {
-      await PatientService.deleteById(patientToDelete);
-      toast({
-        title: "Patient deleted",
-        description: "Patient has been successfully deleted.",
-        className: "bg-clinic-primary text-white"
-      });
-      refreshPatients();
-      setDeleteDialogOpen(false);
-      setPatientToDelete(null);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete patient.",
-        variant: "destructive",
-      });
-    }
+  const handleViewPatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setShowViewModal(true);
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -89,16 +60,36 @@ const PatientList = () => {
         <PageHeader 
           title="Patients" 
           description="Manage your clinic's patients"
-          viewMode={viewMode}
-          onViewModeToggle={handleViewModeToggle}
           showAddButton={true}
           addButtonLabel="Add Patient"
-          onAddButtonClick={() => {/* Add patient form would go here */}}
+          onAddButtonClick={() => setShowForm(true)}
+          onViewModeToggle={handleViewModeToggle}
+          viewMode={viewMode}
           onRefreshClick={refreshPatients}
+          onSearchChange={handleSearchChange}
+          onFilterToggle={() => setShowFilters(!showFilters)}
+          showFilter={showFilters}
           loadedElements={loadedElements}
           totalElements={totalElements}
-          onSearchChange={handleSearchChange}
         />
+
+        {showFilters && (
+          <FilterCard 
+            filters={[
+              {
+                id: 'status',
+                label: 'Status',
+                options: [
+                  { id: 'active', label: 'Active' },
+                  { id: 'inactive', label: 'Inactive' }
+                ]
+              }
+            ]}
+            selectedFilters={{}}
+            onFilterChange={() => {}}
+            onClearFilters={() => {}}
+          />
+        )}
 
         <ScrollArea 
           className="flex-1 px-1" 
@@ -107,14 +98,14 @@ const PatientList = () => {
         >
           {viewMode === 'grid' ? (
             <PatientCardList 
-              patients={patients} 
-              onDelete={handleDeletePatient}
+              patients={patients}
+              onDelete={() => {}}
               loading={loading}
             />
           ) : (
             <PatientTable 
-              patients={patients} 
-              onDelete={handleDeletePatient}
+              patients={patients}
+              onDelete={() => {}}
               loading={loading}
             />
           )}
@@ -126,24 +117,14 @@ const PatientList = () => {
           )}
         </ScrollArea>
       </div>
-      
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the patient
-              and remove all associated data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPatientToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
+      {showViewModal && selectedPatient && (
+        <PatientView
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal(false)}
+          patient={selectedPatient}
+        />
+      )}
     </AdminLayout>
   );
 };

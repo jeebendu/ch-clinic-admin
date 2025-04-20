@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -40,10 +39,8 @@ interface SidebarProps {
   collapsed?: boolean;
 }
 
-// Define the UserRole type
 type UserRole = "Admin" | "Doctor" | "Staff";
 
-// Expanded navigation items list with all modules
 const navItems = [
   { 
     icon: <Home className="h-5 w-5" />, 
@@ -151,25 +148,20 @@ const navItems = [
 ];
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
-  // Get user role from auth service
   const userRole: UserRole = AuthService.getUserRole() as UserRole;
   const [themeColor, setThemeColor] = useState("#00b8ab");
   const { toast } = useToast();
   const { tenant } = useTenant();
 
-  // Filter nav items based on user role
   const filteredNavItems = navItems.filter(item => 
     item.roles.includes(userRole)
   );
 
-  // Get logo URL
   const tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
 
-  // Add event listener for quick form
   useEffect(() => {
     const handleQuickForm = () => {
-      // This event will be caught by the StaffDashboard component
-      // We're using this approach to avoid passing state across components
+      document.dispatchEvent(new CustomEvent('open-quick-form'));
     };
     
     document.addEventListener('open-quick-form', handleQuickForm);
@@ -187,7 +179,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     const colorPalette = generateColorPalette(themeColor);
     updateCSSVariables(colorPalette);
     
-    // Store color preference in localStorage
     localStorage.setItem('themeColor', themeColor);
     
     toast({
@@ -196,7 +187,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     });
   };
 
-  // Load saved theme on initial render
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('themeColor');
     if (savedTheme) {
@@ -204,7 +194,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
       const colorPalette = generateColorPalette(savedTheme);
       updateCSSVariables(colorPalette);
     } else {
-      // Apply default theme
       const defaultTheme = "#00b8ab";
       const colorPalette = generateColorPalette(defaultTheme);
       updateCSSVariables(colorPalette);
@@ -213,11 +202,10 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
 
   return (
     <aside className={cn(
-      "bg-sidebar text-sidebar-foreground h-full transition-all duration-300",
+      "bg-sidebar text-sidebar-foreground h-screen flex flex-col transition-all duration-300 ease-in-out md:static",
       collapsed ? "w-[70px]" : "w-64"
     )}>
-      <div className="p-4 flex flex-col items-center justify-between h-auto border-b border-sidebar-border">
-        {/* Tenant Logo */}
+      <div className="p-4 flex-shrink-0 flex flex-col items-center justify-between border-b border-sidebar-border">
         {tenantLogoUrl && (
           <div className={cn(
             "w-full flex items-center justify-center mb-2",
@@ -231,7 +219,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
           </div>
         )}
         
-        {/* ClinicHub Logo */}
         {!collapsed ? (
           <div className="flex items-center w-full">
             <img 
@@ -259,7 +246,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
         </Button>
       </div>
 
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 flex-shrink-0">
         {!collapsed && (
           <div className="text-xs font-semibold uppercase text-sidebar-foreground/70 mb-2 tracking-wider">
             Main Menu
@@ -267,7 +254,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
         )}
       </div>
 
-      <nav className="flex-1">
+      <nav className="flex-1 overflow-y-auto">
         {filteredNavItems.map((item) => (
           <NavLink
             key={item.label}
@@ -300,7 +287,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
         ))}
       </nav>
 
-      <div className="p-4 mt-auto border-t border-sidebar-border">
+      <div className="p-4 mt-auto border-t border-sidebar-border flex-shrink-0">
         {!collapsed ? (
           <div className="space-y-4">
             <Dialog>
