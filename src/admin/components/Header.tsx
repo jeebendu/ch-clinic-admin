@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,13 +9,18 @@ import {
   Menu, 
   LogOut, 
   Settings, 
-  UserCircle
+  UserCircle,
+  Palette
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import BranchFilter from "./BranchFilter";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { generateColorPalette, updateCSSVariables } from "@/utils/themeUtils";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -70,8 +74,19 @@ const Header = ({
     navigate('/login');
   };
 
+  const [themeColor, setThemeColor] = useState(localStorage.getItem('themeColor') || "#00b8ab");
+  const [showColorPicker, setShowColorPicker] = useState(false);
+
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newColor = e.target.value;
+    setThemeColor(newColor);
+    const colorPalette = generateColorPalette(newColor);
+    updateCSSVariables(colorPalette);
+    localStorage.setItem('themeColor', newColor);
+  };
+
   return (
-    <header className="admin-header h-14 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 bg-white shadow-sm">
+    <header className="admin-header h-14 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
       <div className="flex items-center gap-4">
         <Button 
           variant="ghost" 
@@ -87,6 +102,34 @@ const Header = ({
       </div>
 
       <div className="flex items-center space-x-2 md:space-x-4">
+        <Dialog open={showColorPicker} onOpenChange={setShowColorPicker}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-gray-600 rounded-full"
+            onClick={() => setShowColorPicker(true)}
+          >
+            <Palette className="h-5 w-5" />
+          </Button>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Choose Theme Color</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="themeColor">Primary Color</Label>
+                <Input
+                  id="themeColor"
+                  type="color"
+                  value={themeColor}
+                  onChange={handleColorChange}
+                  className="h-10 w-full"
+                />
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Mobile view for BranchFilter */}
         {isMobile && (
           <div className="mr-2">

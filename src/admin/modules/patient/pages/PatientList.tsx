@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -8,13 +7,14 @@ import { Patient } from "../types/Patient";
 import PatientView from "../components/PatientView";
 import { usePatients } from "../hooks/usePatients";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDefaultFilters } from '@/hooks/use-default-filters';
 import FilterCard from "@/admin/components/FilterCard";
 
 const PatientList = () => {
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode<'list' | 'grid'>('list');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const { showFilters, setShowFilters } = useDefaultFilters(true);
 
   const {
     patients,
@@ -52,6 +52,12 @@ const PatientList = () => {
     }
   };
 
+  const handleFilterChange = (filterId: string, optionId: string) => {
+    updateFilters({
+      [filterId]: optionId
+    });
+  };
+
   return (
     <AdminLayout>
       <div className="flex flex-col h-full">
@@ -73,6 +79,8 @@ const PatientList = () => {
 
         {showFilters && (
           <FilterCard 
+            searchTerm=""
+            onSearchChange={handleSearchChange}
             filters={[
               {
                 id: 'status',
@@ -81,20 +89,16 @@ const PatientList = () => {
                   { id: 'Active', label: 'Active' },
                   { id: 'Inactive', label: 'Inactive' }
                 ]
-              },
-              {
-                id: 'gender',
-                label: 'Gender',
-                options: [
-                  { id: 'Male', label: 'Male' },
-                  { id: 'Female', label: 'Female' },
-                  { id: 'Other', label: 'Other' }
-                ]
               }
             ]}
             selectedFilters={{}}
-            onFilterChange={() => {}}
-            onClearFilters={() => {}}
+            onFilterChange={handleFilterChange}
+            onClearFilters={() => {
+              updateFilters({
+                status: null,
+                searchTerm: ""
+              });
+            }}
           />
         )}
 

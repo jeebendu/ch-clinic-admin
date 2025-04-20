@@ -13,7 +13,7 @@
 .admin-sidebar {
   background-color: var(--admin-sidebar-bg, #ffffff);
   border-right: 1px solid var(--admin-border-color, #e5e7eb);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -24,7 +24,21 @@
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 80px; /* Add padding for scrolling */
+  scrollbar-width: thin;
+  padding-bottom: 80px;
+}
+
+.sidebar-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
 }
 
 .admin-sidebar-right {
@@ -365,8 +379,8 @@
 }
 
 .flex-1 {
-  overflow: auto; /* Ensure the element is scrollable */
-  transition: padding-top 0.9s ease-in-out; /* Smooth transition for padding-top */
+  overflow: auto;
+  transition: padding-top 0.9s ease-in-out;
 }
 
 /* Responsive styles for admin */

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Patient } from '../types/Patient';
 import { useToast } from '@/hooks/use-toast';
@@ -55,12 +54,12 @@ export const usePatients = (initialParams: PatientQueryParams) => {
     }
   };
 
-  const loadMore = () => {
+  const loadMore = async () => {
     if (!loading && hasMore) {
       const nextPage = queryParams.page + 1;
       const nextParams = { ...queryParams, page: nextPage };
       setQueryParams(nextParams);
-      fetchPatientsData(nextParams, true);
+      await fetchPatientsData(nextParams, true);
     }
   };
 
