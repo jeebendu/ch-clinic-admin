@@ -3,25 +3,77 @@ import { Patient } from "../types/Patient";
 import { faker } from "@faker-js/faker";
 import { PaginatedResponse } from "@/types/common";
 
-// Create a function to generate mock patients
-const generateMockPatients = (count: number): Patient[] => {
-  return Array.from({ length: count }).map((_, index) => ({
-    id: index + 1,
-    name: faker.person.fullName(),
-    email: faker.internet.email(),
-    phoneNumber: faker.phone.number(),
-    age: faker.number.int({ min: 1, max: 100 }),
-    gender: faker.helpers.arrayElement(['Male', 'Female', 'Other']),
-    address: faker.location.streetAddress(),
-    bloodGroup: faker.helpers.arrayElement(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
-    status: faker.helpers.arrayElement(['Active', 'Inactive']),
-    createdAt: faker.date.past().toISOString(),
-    updatedAt: faker.date.recent().toISOString()
-  }));
-};
-
 // Create a pool of patients to use consistently
-const patientPool = generateMockPatients(100);
+const patientPool: Patient[] = Array.from({ length: 100 }).map((_, index) => ({
+  id: index + 1,
+  uid: `PT${100000 + index}`,
+  firstname: faker.person.firstName(),
+  lastname: faker.person.lastName(),
+  fullName: `${faker.person.firstName()} ${faker.person.lastName()}`,
+  gender: faker.helpers.arrayElement(['Male', 'Female', 'Other']),
+  dob: faker.date.birthdate(),
+  age: faker.number.int({ min: 1, max: 100 }),
+  address: faker.location.streetAddress(),
+  whatsappNo: faker.phone.number(),
+  problem: faker.lorem.sentence(),
+  state: {
+    id: faker.number.int({ min: 1, max: 20 }),
+    name: faker.location.state(),
+    code: faker.location.stateAbbr(),
+    country: {
+      id: 1,
+      name: "India",
+      code: "IN",
+      status: "Active"
+    },
+    status: "Active"
+  },
+  district: {
+    id: faker.number.int({ min: 1, max: 50 }),
+    name: faker.location.county(),
+    code: faker.string.alphanumeric(3).toUpperCase(),
+    state: {
+      id: faker.number.int({ min: 1, max: 20 }),
+      name: faker.location.state(),
+      code: faker.location.stateAbbr(),
+      country: {
+        id: 1,
+        name: "India",
+        code: "IN",
+        status: "Active"
+      },
+      status: "Active"
+    },
+    status: "Active"
+  },
+  user: {
+    id: index + 1,
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    username: faker.internet.userName(),
+    status: faker.helpers.arrayElement(['Active', 'Inactive']),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+  },
+  createdTime: faker.date.past(),
+  city: faker.location.city(),
+  insuranceProvider: faker.helpers.arrayElement(['Aetna', 'Blue Cross', 'Cigna', 'None']),
+  insurancePolicyNumber: faker.helpers.maybe(() => faker.string.alphanumeric(10).toUpperCase(), { probability: 0.7 }),
+  lastVisit: faker.helpers.maybe(() => faker.date.recent().toISOString(), { probability: 0.8 }),
+  medicalHistory: faker.helpers.maybe(() => faker.lorem.paragraph(), { probability: 0.6 }),
+  refDoctor: null,
+  branch: {
+    id: faker.number.int({ min: 1, max: 5 }),
+    name: `${faker.location.city()} Branch`,
+    code: faker.string.alphanumeric(4).toUpperCase(),
+    address: faker.location.streetAddress(),
+    city: faker.location.city(),
+    state: faker.location.state(),
+    pinCode: faker.location.zipCode(),
+    contact: faker.phone.number(),
+    status: 'Active'
+  }
+}));
 
 const patientMockService = {
   list: (): Promise<Patient[]> => {
@@ -30,15 +82,18 @@ const patientMockService = {
 
   getById: (id: number): Promise<Patient> => {
     const patient = patientPool.find(p => p.id === id);
-    return Promise.resolve(patient || patientPool[0]);
+    if (!patient) {
+      // Return a default patient if not found
+      return Promise.resolve(patientPool[0]);
+    }
+    return Promise.resolve(patient);
   },
 
   create: (patient: Patient): Promise<Patient> => {
     const newPatient = {
       ...patient,
       id: patientPool.length + 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdTime: new Date()
     };
     patientPool.push(newPatient);
     return Promise.resolve(newPatient);
@@ -49,7 +104,7 @@ const patientMockService = {
     if (index !== -1) {
       patientPool[index] = {
         ...patient,
-        updatedAt: new Date().toISOString()
+        // Update any needed fields
       };
       return Promise.resolve(patientPool[index]);
     }
@@ -75,16 +130,19 @@ const patientMockService = {
     if (filter.value) {
       const searchValue = filter.value.toLowerCase();
       filteredPatients = filteredPatients.filter(patient => 
-        patient.name.toLowerCase().includes(searchValue) ||
-        patient.email.toLowerCase().includes(searchValue) ||
-        patient.phoneNumber.includes(searchValue)
+        patient.firstname.toLowerCase().includes(searchValue) ||
+        patient.lastname.toLowerCase().includes(searchValue) ||
+        (patient.fullName && patient.fullName.toLowerCase().includes(searchValue)) ||
+        (patient.user.email && patient.user.email.toLowerCase().includes(searchValue)) ||
+        (patient.whatsappNo && patient.whatsappNo.includes(searchValue))
       );
     }
     
-    // Apply status filter if provided
+    // Apply status filter if provided (using createdTime as a proxy for status)
     if (filter.status) {
+      const isActive = filter.status === 'Active';
       filteredPatients = filteredPatients.filter(patient => 
-        patient.status === filter.status
+        isActive ? !!patient.createdTime : !patient.createdTime
       );
     }
     

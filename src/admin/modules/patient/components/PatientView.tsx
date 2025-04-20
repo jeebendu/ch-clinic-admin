@@ -22,6 +22,9 @@ interface PatientViewProps {
 const PatientView: React.FC<PatientViewProps> = ({ isOpen, onClose, patient, onEdit }) => {
   if (!patient) return null;
 
+  // Create display name from patient data
+  const fullName = patient.fullName || `${patient.firstname} ${patient.lastname}`;
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
@@ -38,17 +41,17 @@ const PatientView: React.FC<PatientViewProps> = ({ isOpen, onClose, patient, onE
         
         <div className="space-y-4 mt-4">
           <div className="space-y-1">
-            <h3 className="text-xl font-bold">{patient.name}</h3>
+            <h3 className="text-xl font-bold">{fullName}</h3>
             <p className="text-sm text-muted-foreground">
-              {patient.gender} · {patient.age} years · {patient.bloodGroup}
+              {patient.gender} · {patient.age} years
             </p>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Contact Information</p>
-              <p className="text-sm">{patient.phoneNumber}</p>
-              <p className="text-sm">{patient.email}</p>
+              <p className="text-sm">{patient.whatsappNo || 'No phone number'}</p>
+              <p className="text-sm">{patient.user?.email || 'No email'}</p>
             </div>
             
             <div className="space-y-1">
@@ -61,11 +64,9 @@ const PatientView: React.FC<PatientViewProps> = ({ isOpen, onClose, patient, onE
             <p className="text-sm font-medium text-muted-foreground">Status</p>
             <div className="flex items-center mt-1">
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                patient.status === 'Active' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                patient.createdTime ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {patient.status}
+                {patient.createdTime ? 'Active' : 'Inactive'}
               </span>
             </div>
           </div>

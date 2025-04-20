@@ -34,15 +34,18 @@ const PatientList = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['patients', page, size, searchTerm],
     queryFn: async () => {
-      const response = await PatientService.list(page, size, searchTerm);
-      console.log("Patient API response (direct):", response);
+      const response = await PatientService.fetchPaginated(page, size, { 
+        value: searchTerm, 
+        status: null 
+      });
+      console.log("Patient API response:", response);
       return response;
     },
   });
 
-  // Extract patients from the response - handle different response formats
-  const patients = data?.content || (Array.isArray(data) ? data : []);
-  console.log("Extracted patients:", patients);
+  // Extract patients from the response
+  const patients = data?.content || [];
+  const totalElements = data?.totalElements || 0;
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -89,7 +92,6 @@ const PatientList = () => {
     }
   };
 
-  const totalElements = data?.totalElements || patients.length || 0;
   const loadedElements = patients.length || 0;
 
   return (
@@ -120,13 +122,13 @@ const PatientList = () => {
         ) : (
           <div>
             {viewMode === 'grid' ? (
-              <PatientTable 
+              <PatientCardList 
                 patients={patients} 
                 onDelete={handleDeletePatient}
                 loading={isLoading}
               />
             ) : (
-              <PatientCardList 
+              <PatientTable 
                 patients={patients} 
                 onDelete={handleDeletePatient}
                 loading={isLoading}
