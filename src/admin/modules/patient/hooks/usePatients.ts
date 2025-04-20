@@ -1,9 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import PatientService from '../services/patientService';
-import { PatientQueryParams } from '../services/patientService';
-import { useToast } from '@/hooks/use-toast';
 import { Patient } from '../types/Patient';
+import { useToast } from '@/hooks/use-toast';
+import PatientService from '../services/patientService';
+
+export interface PatientQueryParams {
+  page: number;
+  size: number;
+  searchTerm?: string;
+  status?: string | null;
+}
 
 export const usePatients = (initialParams: PatientQueryParams) => {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -19,19 +25,22 @@ export const usePatients = (initialParams: PatientQueryParams) => {
     setError(null);
     
     try {
-      const response = await PatientService.list(params.page, params.size, params.searchTerm || '');
-      const newPatients = response.content || (Array.isArray(response) ? response : []);
+      const response = await PatientService.fetchPaginated(
+        params.page,
+        params.size,
+        { 
+          value: params.searchTerm || '',
+          status: params.status
+        }
+      );
       
       if (append) {
-        setPatients(prev => [...prev, ...newPatients]);
+        setPatients(prev => [...prev, ...response.content]);
       } else {
-        setPatients(newPatients);
+        setPatients(response.content);
       }
       
-      // Set total number of elements
-      setTotalElements(response.totalElements || newPatients.length);
-      
-      // Check if there are more patients to load
+      setTotalElements(response.totalElements);
       setHasMore(response.totalElements > (params.page + 1) * params.size);
       
     } catch (err: any) {
@@ -46,7 +55,6 @@ export const usePatients = (initialParams: PatientQueryParams) => {
     }
   };
 
-  // Load more patients
   const loadMore = () => {
     if (!loading && hasMore) {
       const nextPage = queryParams.page + 1;
@@ -56,7 +64,6 @@ export const usePatients = (initialParams: PatientQueryParams) => {
     }
   };
 
-  // Refresh patients
   const refreshPatients = () => {
     const resetParams = { ...queryParams, page: 0 };
     setQueryParams(resetParams);
@@ -68,7 +75,6 @@ export const usePatients = (initialParams: PatientQueryParams) => {
     });
   };
 
-  // Update filter parameters
   const updateFilters = (filters: Partial<PatientQueryParams>) => {
     const newParams = { ...queryParams, ...filters, page: 0 };
     setQueryParams(newParams);

@@ -16,6 +16,7 @@ const PatientList = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const {
     patients,
@@ -30,7 +31,6 @@ const PatientList = () => {
     page: 0,
     size: 12,
     searchTerm: "",
-    patientType: null,
     status: null
   });
 
@@ -39,6 +39,7 @@ const PatientList = () => {
   };
 
   const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
     updateFilters({ searchTerm: value });
   };
 
@@ -75,6 +76,8 @@ const PatientList = () => {
 
         {showFilters && (
           <FilterCard 
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
             filters={[
               {
                 id: 'status',
@@ -120,9 +123,8 @@ const PatientList = () => {
 
       {showViewModal && selectedPatient && (
         <PatientView
-          isOpen={showViewModal}
-          onClose={() => setShowViewModal(false)}
           patient={selectedPatient}
+          onClose={() => setShowViewModal(false)}
         />
       )}
     </AdminLayout>

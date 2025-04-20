@@ -53,6 +53,27 @@ export const AdminLayout = ({
     if (savedTheme) {
       document.documentElement.style.setProperty('--clinic-primary', savedTheme);
     }
+    
+    // Add CSS for fixed sidebar with scroll
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .admin-sidebar {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 80px; /* Add padding for scrolling */
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
   }, []);
 
   // Close sidebar when switching from mobile to desktop
