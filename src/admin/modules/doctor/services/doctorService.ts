@@ -1,19 +1,9 @@
+
 import http from "@/lib/JwtInterceptor";
 import { Doctor } from "../types/Doctor";
 import { isProduction } from "@/utils/envUtils";
 import { DoctorMockService } from "./doctorMockService";
-
-// Define a type for the paginated response
-interface PaginatedResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number; // Current page number (0-based index)
-  first: boolean;
-  last: boolean;
-  numberOfElements: number;
-}
+import { PaginatedResponse } from "@/types/common";
 
 export const DoctorService = {
   list: async (): Promise<Doctor[]> => {
@@ -49,38 +39,49 @@ export const DoctorService = {
     size: number,
     filter: { value: string; doctorType: string | null; specialization: string | null }
   ): Promise<PaginatedResponse<Doctor>> => {
-    const mockDoctors = DoctorMockService.generateMockDoctors(size);
+    if (!isProduction()) {
+      const mockDoctors = DoctorMockService.generateMockDoctors(100);
+      
+      const filteredDoctors = mockDoctors.filter((doctor) => {
+        const matchesValue = filter.value
+          ? doctor.firstname.toLowerCase().includes(filter.value.toLowerCase()) || 
+            doctor.lastname.toLowerCase().includes(filter.value.toLowerCase())
+          : true;
+        const matchesDoctorType = filter.doctorType ? doctor.desgination === filter.doctorType : true;
+        const matchesSpecialization = filter.specialization
+          ? doctor.specializationList.some((spec) => spec.name === filter.specialization)
+          : true;
 
-    // Apply filtering logic (if needed)
-    const filteredDoctors = mockDoctors.filter((doctor) => {
-      const matchesValue = filter.value
-        ? doctor.firstname.includes(filter.value) || doctor.lastname.includes(filter.value)
-        : true;
-      const matchesDoctorType = filter.doctorType ? doctor.desgination === filter.doctorType : true;
-      const matchesSpecialization = filter.specialization
-        ? doctor.specializationList.some((spec) => spec.name === filter.specialization)
-        : true;
+        return matchesValue && matchesDoctorType && matchesSpecialization;
+      });
 
-      return matchesValue && matchesDoctorType && matchesSpecialization;
-    });
+      const totalElements = filteredDoctors.length;
+      const totalPages = Math.ceil(totalElements / size);
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
 
-    const totalElements = filteredDoctors.length;
-    const totalPages = Math.ceil(totalElements / size);
-    const startIndex = page * size;
-    const endIndex = startIndex + size;
+      return Promise.resolve({
+        content: paginatedDoctors,
+        totalElements,
+        totalPages,
+        size,
+        number: page,
+        first: page === 0,
+        last: page === totalPages - 1,
+        numberOfElements: paginatedDoctors.length,
+      });
+    }
 
-    const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
-
-    return Promise.resolve({
-      content: paginatedDoctors,
-      totalElements,
-      totalPages,
-      size,
-      number: page,
-      first: page === 0,
-      last: page === totalPages - 1,
-      numberOfElements: paginatedDoctors.length,
-    });
+    return http.get<PaginatedResponse<Doctor>>('/v1/doctor', {
+      params: {
+        page,
+        size,
+        search: filter.value,
+        doctorType: filter.doctorType,
+        specialization: filter.specialization,
+      }
+    }).then(response => response.data);
   }
 };
 
