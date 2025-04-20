@@ -19,12 +19,12 @@ const patientPool: Patient[] = Array.from({ length: 100 }).map((_, index) => ({
   state: {
     id: faker.number.int({ min: 1, max: 20 }),
     name: faker.location.state(),
-    code: faker.location.stateAbbr(),
+    code: faker.location.countryCode(),
     country: {
       id: 1,
       name: "India",
       code: "IN",
-      status: "Active"
+      status: true // Changed from string to boolean
     },
     status: "Active"
   },
@@ -35,12 +35,12 @@ const patientPool: Patient[] = Array.from({ length: 100 }).map((_, index) => ({
     state: {
       id: faker.number.int({ min: 1, max: 20 }),
       name: faker.location.state(),
-      code: faker.location.stateAbbr(),
+      code: faker.location.countryCode(), // Changed from stateAbbr to countryCode
       country: {
         id: 1,
         name: "India",
         code: "IN",
-        status: "Active"
+        status: true // Changed from string to boolean
       },
       status: "Active"
     },
