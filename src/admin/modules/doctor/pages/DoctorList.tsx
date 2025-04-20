@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -7,15 +8,12 @@ import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
 import { useDoctors } from "../hooks/useDoctors";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import FilterCard from "../components/FilterCard";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [showForm, setShowForm] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
 
   const {
     doctors,
@@ -76,7 +74,7 @@ const DoctorList = () => {
 
   return (
     <AdminLayout>
-      <div className="flex flex-col h-full">
+      <div className="h-full flex flex-col" onScroll={handleScroll}>
         <PageHeader 
           title="Doctors" 
           description="Manage your clinic's doctors"
@@ -87,44 +85,11 @@ const DoctorList = () => {
           viewMode={viewMode}
           onRefreshClick={refreshDoctors}
           onSearchChange={handleSearchChange}
-          onFilterToggle={() => setShowFilters(!showFilters)}
-          showFilter={showFilters}
           loadedElements={loadedElements}
           totalElements={totalElements}
         />
 
-        {showFilters && (
-          <FilterCard 
-            filters={[
-              {
-                id: 'doctorType',
-                label: 'Doctor Type',
-                options: [
-                  { id: 'fullTime', label: 'Full Time' },
-                  { id: 'partTime', label: 'Part Time' },
-                  { id: 'visiting', label: 'Visiting' }
-                ]
-              },
-              {
-                id: 'specialization',
-                label: 'Specialization',
-                options: [
-                  { id: 'general', label: 'General' },
-                  { id: 'specialist', label: 'Specialist' }
-                ]
-              }
-            ]}
-            selectedFilters={{}}
-            onFilterChange={() => {}}
-            onClearFilters={() => {}}
-          />
-        )}
-
-        <ScrollArea 
-          className="flex-1 px-1" 
-          onScroll={handleScroll} 
-          style={{ height: 'calc(100vh - 180px)' }}
-        >
+        <div className="flex-1 overflow-auto">
           {viewMode === 'grid' ? (
             <DoctorGrid 
               doctors={doctors} 
@@ -140,13 +105,7 @@ const DoctorList = () => {
               onEditClick={handleEditDoctor}
             />
           )}
-          
-          {loading && doctors.length > 0 && (
-            <div className="flex justify-center my-4">
-              <div className="animate-pulse bg-gray-200 h-8 w-40 rounded-md"></div>
-            </div>
-          )}
-        </ScrollArea>
+        </div>
       </div>
 
       {showForm && (
