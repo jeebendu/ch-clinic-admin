@@ -4,10 +4,12 @@ import { Patient } from "../types/Patient";
 import { isProduction } from "@/utils/envUtils";
 import { PaginatedResponse } from "@/types/common";
 
+// Import the mock service correctly
+import patientMockService from "./patientMockService";
+
 export const PatientService = {
   list: async (): Promise<Patient[]> => {
     if (!isProduction()) {
-      const { patientMockService } = await import("./patientMockService");
       return patientMockService.list();
     }
     const response = await http.get<Patient[]>('/v1/patient');
@@ -39,7 +41,6 @@ export const PatientService = {
     filter: { value: string; status: string | null }
   ): Promise<PaginatedResponse<Patient>> => {
     if (!isProduction()) {
-      const { patientMockService } = await import("./patientMockService");
       return patientMockService.fetchPaginated(page, size, filter);
     }
     const response = await http.post<PaginatedResponse<Patient>>(

@@ -1,6 +1,6 @@
 
 import React from "react";
-import { X, ChevronDown, Filter as FilterIcon, Check } from "lucide-react";
+import { X, ChevronDown, Filter as FilterIcon } from "lucide-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 
 export type FilterOption = {
   id: string;

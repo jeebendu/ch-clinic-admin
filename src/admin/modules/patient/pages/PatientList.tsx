@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
+import PatientGrid from "../components/PatientGrid";
 import PatientTable from "../components/PatientTable";
-import PatientCardList from "../components/PatientCardList";
 import { Patient } from "../types/Patient";
 import PatientView from "../components/PatientView";
 import { usePatients } from "../hooks/usePatients";
@@ -12,11 +12,9 @@ import FilterCard from "@/admin/components/FilterCard";
 
 const PatientList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [showForm, setShowForm] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const {
     patients,
@@ -39,7 +37,6 @@ const PatientList = () => {
   };
 
   const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
     updateFilters({ searchTerm: value });
   };
 
@@ -63,7 +60,7 @@ const PatientList = () => {
           description="Manage your clinic's patients"
           showAddButton={true}
           addButtonLabel="Add Patient"
-          onAddButtonClick={() => setShowForm(true)}
+          onAddButtonClick={() => {/* Add patient form would go here */}}
           onViewModeToggle={handleViewModeToggle}
           viewMode={viewMode}
           onRefreshClick={refreshPatients}
@@ -76,15 +73,22 @@ const PatientList = () => {
 
         {showFilters && (
           <FilterCard 
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
             filters={[
               {
                 id: 'status',
                 label: 'Status',
                 options: [
-                  { id: 'active', label: 'Active' },
-                  { id: 'inactive', label: 'Inactive' }
+                  { id: 'Active', label: 'Active' },
+                  { id: 'Inactive', label: 'Inactive' }
+                ]
+              },
+              {
+                id: 'gender',
+                label: 'Gender',
+                options: [
+                  { id: 'Male', label: 'Male' },
+                  { id: 'Female', label: 'Female' },
+                  { id: 'Other', label: 'Other' }
                 ]
               }
             ]}
@@ -96,20 +100,20 @@ const PatientList = () => {
 
         <ScrollArea 
           className="flex-1 px-1" 
-          onScroll={handleScroll}
+          onScroll={handleScroll} 
           style={{ height: 'calc(100vh - 180px)' }}
         >
           {viewMode === 'grid' ? (
-            <PatientCardList 
-              patients={patients}
-              onDelete={() => {}}
+            <PatientTable 
+              patients={patients} 
               loading={loading}
+              onDelete={() => {}}
             />
           ) : (
             <PatientTable 
-              patients={patients}
-              onDelete={() => {}}
+              patients={patients} 
               loading={loading}
+              onDelete={() => {}}
             />
           )}
           
@@ -123,8 +127,9 @@ const PatientList = () => {
 
       {showViewModal && selectedPatient && (
         <PatientView
-          patient={selectedPatient}
+          isOpen={showViewModal}
           onClose={() => setShowViewModal(false)}
+          patient={selectedPatient}
         />
       )}
     </AdminLayout>
