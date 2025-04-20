@@ -22,6 +22,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
   onEditClick
 }) => {
   const getInitials = (firstname: string, lastname: string) => {
+    if (!firstname || !lastname) return 'DR'; // Default fallback
     return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
   };
 

@@ -8,6 +8,7 @@ import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
 import { useDoctors } from "../hooks/useDoctors";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -74,7 +75,7 @@ const DoctorList = () => {
 
   return (
     <AdminLayout>
-      <div className="h-full flex flex-col" onScroll={handleScroll}>
+      <div className="flex flex-col h-full">
         <PageHeader 
           title="Doctors" 
           description="Manage your clinic's doctors"
@@ -89,7 +90,11 @@ const DoctorList = () => {
           totalElements={totalElements}
         />
 
-        <div className="flex-1 overflow-auto">
+        <ScrollArea 
+          className="flex-1 px-1" 
+          onScroll={handleScroll} 
+          style={{ height: 'calc(100vh - 180px)' }}
+        >
           {viewMode === 'grid' ? (
             <DoctorGrid 
               doctors={doctors} 
@@ -105,7 +110,13 @@ const DoctorList = () => {
               onEditClick={handleEditDoctor}
             />
           )}
-        </div>
+          
+          {loading && doctors.length > 0 && (
+            <div className="flex justify-center my-4">
+              <div className="animate-pulse bg-gray-200 h-8 w-40 rounded-md"></div>
+            </div>
+          )}
+        </ScrollArea>
       </div>
 
       {showForm && (
