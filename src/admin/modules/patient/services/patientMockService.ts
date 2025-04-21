@@ -7,23 +7,19 @@ import { User } from "../../user/types/User";
 const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
   const mockUser: User = {
     id: i,
-    firstname: faker.name.firstName(),
-    lastname: faker.name.lastName(),
+    name: faker.person.firstName(),
+    username: faker.internet.userName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    status: "active",
-    verified: true,
-    image: faker.image.avatar(),
     role: "doctor",
-    createdAt: faker.date.past().toISOString(),
-    updatedAt: faker.date.recent().toISOString(),
+    image: faker.image.avatar(),
   };
 
   const mockDoctor: Doctor = {
     id: i,
     uid: faker.string.uuid(),
-    firstname: faker.name.firstName(),
-    lastname: faker.name.lastName(),
+    firstname: faker.person.firstName(),
+    lastname: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
     desgination: "Physician",
@@ -32,7 +28,7 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     joiningDate: faker.date.past().toISOString(),
     user: mockUser,
     external: false,
-    publishedOnline: false, // Add required boolean property
+    publishedOnline: false, 
     expYear: 0,
     about: '',
     image: '',
@@ -54,26 +50,55 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     status: "Active"
   };
 
-  return {
+  // Convert mock data to Patient type with all required properties
+  const patient: Patient = {
     id: i,
     uid: faker.string.uuid(),
-    doctor: mockDoctor,
-    firstname: faker.name.firstName(),
-    lastname: faker.name.lastName(),
-    gender: i % 2,
+    gender: i % 2 === 0 ? "Male" : "Female",
     dob: faker.date.birthdate(),
-    phone: faker.phone.number(),
-    email: faker.internet.email(),
+    age: faker.number.int({ min: 18, max: 80 }),
     address: faker.location.streetAddress(),
-    state: "",
-    country: "",
-    pincode: "",
-    joiningDate: faker.date.past().toISOString(),
-    status: "active",
-    createdAt: faker.date.past().toISOString()
-  } as Patient;
+    firstname: faker.person.firstName(),
+    lastname: faker.person.lastName(),
+    refDoctor: null,
+    user: mockUser,
+    state: null,
+    district: null,
+    branch: {
+      id: i % 3,
+      name: `Branch ${i % 3}`,
+      code: `B-${i % 3}`,
+      location: faker.location.city(),
+      active: true,
+      city: faker.location.city(),
+      pincode: 12345,
+      image: "",
+      latitude: 0,
+      longitude: 0,
+    },
+    photoUrl: faker.image.avatar(),
+    fullName: `${faker.person.firstName()} ${faker.person.lastName()}`,
+    lastVisit: faker.date.recent().toISOString(),
+    medicalHistory: faker.lorem.paragraph(),
+    city: faker.location.city(),
+    createdTime: faker.date.past(),
+    doctor: mockDoctor,
+    // Add any other required properties for Patient type
+  };
+
+  return patient;
 });
 
 export default {
   getMockPatients: () => Promise.resolve({ data: mockPatients }),
+  
+  // Add searchPatients function
+  searchPatients: (searchTerm: string) => {
+    const filteredPatients = mockPatients.filter(patient => 
+      patient.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    return Promise.resolve(filteredPatients);
+  }
 };

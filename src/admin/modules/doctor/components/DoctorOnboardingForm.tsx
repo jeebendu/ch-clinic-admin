@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -70,8 +69,16 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   });
 
   const handleSubmit = (data: DoctorOnboardingFormValues) => {
+    // Since registrationNumber is required, it will always be present in data
     const onboardingDetails: DoctorOnboardingDetails = {
-      ...data
+      registrationNumber: data.registrationNumber, // This is now required
+      registrationYear: data.registrationYear,
+      registrationCouncil: data.registrationCouncil,
+      specialityDegree: data.specialityDegree,
+      specialityYear: data.specialityYear,
+      specialityInstitute: data.specialityInstitute,
+      identityProof: data.identityProof,
+      addressProof: data.addressProof,
     };
 
     const updatedDoctor: Doctor = {

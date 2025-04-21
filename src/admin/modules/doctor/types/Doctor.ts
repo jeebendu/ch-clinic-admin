@@ -43,7 +43,7 @@ export interface Doctor {
 }
 
 export interface DoctorOnboardingDetails {
-  registrationNumber: string; // REQUIRED for onboarding and publishing, align with form
+  registrationNumber: string;
   registrationYear?: string;
   registrationCouncil?: string;
   specialityDegree?: string;

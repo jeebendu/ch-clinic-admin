@@ -48,7 +48,12 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
             external: i % 2 === 0,
             publishedOnline: i % 4 === 0, // Ensure publishedOnline is present and boolean
-            user: undefined,
+            user: {
+                id: i % 10 + 1,
+                name: `User ${i % 10 + 1}`,
+                username: `user${i % 10 + 1}`,
+                role: "doctor",
+            },
             lastname: "",
             expYear: 0,
             about: "",
