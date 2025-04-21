@@ -72,6 +72,7 @@ const DoctorList = () => {
     }
   };
 
+  
   return (
     <AdminLayout>
       <div className="h-full flex flex-col" onScroll={handleScroll}>
