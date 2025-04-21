@@ -89,8 +89,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="firstname" label="User First Name" />
-                    <FormField control={form.control} name="lastname" label="User Last Name" />
+                    <FormField control={form.control} name="firstname" label="First Name" />
+                    <FormField control={form.control} name="lastname" label="Last Name" />
                     <FormField control={form.control} name="username" label="Username" />
                     <FormField control={form.control} name="role" label="Role" />
                     <FormField control={form.control} name="email" label="Email" />

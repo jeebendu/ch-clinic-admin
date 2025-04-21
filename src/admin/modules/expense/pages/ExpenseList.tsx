@@ -1,21 +1,29 @@
 
-import React, { useEffect, useState } from "react";
-import PageHeader from "@/admin/components/PageHeader";
-import AdminLayout from "@/admin/components/AdminLayout";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import UserService from "../services/userService";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { useNavigate } from "react-router-dom";
+import { AdminLayout } from "@/admin/components/AdminLayout";
+import PageHeader from "@/admin/components/PageHeader";
+import { useToast } from "@/components/ui/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Staff } from "../types/User";
-import UserTable from "../components/UserTable";
-import UserForm from "../components/UserForm";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
+import { Expense } from "../types/Expense";
+import ExpenseService from "../service/ExpenseService";
+import ExpenseTable from "../components/ExpenseTable";
 
-const UsersList = () => {
+const ExpenseList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -27,11 +35,11 @@ const UsersList = () => {
   const [showFilter, setShowFilter] = useState(false);
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState<number | null>(null);
   
-  const [userToEdit, setUserToEdit] = useState<Staff | null>(null);
+  const [expenseToEdit, setExpenseToEdit] = useState<Expense | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-
+const [expenseList,setExpenseList] = useState<Expense[]>([]);
   // Define filter options
   const [filters, setFilters] = useState<FilterOption[]>([
     {
@@ -61,41 +69,43 @@ const UsersList = () => {
   });
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['user', page, size, searchTerm, selectedFilters],
+    queryKey: ['expense', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
-      const response = await UserService.paginatedList(page, size, searchTerm);
-      console.log("User API response (direct):", response);
-      return response.data;
+      const response = await ExpenseService.list();
+      console.log("Expense API response (direct):", response.data);
+      setExpenseList(response.data);
+      return response;
     },
   });
 
-  // Extract branches from the response
-  const branches = Array.isArray(data) ? data : [];
-  
+ 
+  const expense = Array.isArray(data) ? data : [];
+  console.log("Extracted Expenses:", expense);
+  console.log("Expense List:", expenseList);
 
-  // Filter branches based on search term and filters
-  const filteredUsers = branches.filter(user => {
-    // Filter by search term
-    if (searchTerm && !user.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !user.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !user.location.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
+ 
+//   const filteredExpense = expense.filter(expense => {
+//     // Filter by search term
+//     if (searchTerm && !expense.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+//         !expense.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+//         !expense.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+//       return false;
+//     }
 
-    // Filter by status
-    if (selectedFilters.status.length > 0) {
-      const statusMatch = selectedFilters.status.includes(user.active ? 'active' : 'inactive');
-      if (!statusMatch) return false;
-    }
+//     // Filter by status
+//     if (selectedFilters.status.length > 0) {
+//       const statusMatch = selectedFilters.status.includes(expense.active ? 'active' : 'inactive');
+//       if (!statusMatch) return false;
+//     }
 
-    // Filter by location
-    if (selectedFilters.location.length > 0) {
-      const locationMatch = selectedFilters.location.includes(user.location.toLowerCase());
-      if (!locationMatch) return false;
-    }
+//     // Filter by location
+//     if (selectedFilters.location.length > 0) {
+//       const locationMatch = selectedFilters.location.includes(expense.location.toLowerCase());
+//       if (!locationMatch) return false;
+//     }
 
-    return true;
-  });
+//     return true;
+//   });
 
   useEffect(() => {
     setViewMode(isMobile ? 'list' : 'grid');
@@ -105,45 +115,45 @@ const UsersList = () => {
     setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
-  const handleAddBranch = () => {
-    setUserToEdit(null);
+  const handleAddExpense = () => {
+    setExpenseToEdit(null);
     setIsAddFormOpen(true);
   };
 
   const handleCloseForm = () => {
     setIsAddFormOpen(false);
     setIsEditFormOpen(false);
-    setUserToEdit(null);
+    setExpenseToEdit(null);
     refetch();
   };
 
-  const handleEditUser = (user: Staff) => {
-    setUserToEdit(user);
+  const handleEditExpense = (expense: Expense) => {
+    setExpenseToEdit(expense);
     setIsEditFormOpen(true);
   };
 
-  const handleDeleteUser = (id: number) => {
-    setUserToDelete(id);
+  const handleDeleteExpense = (id: number) => {
+    setExpenseToDelete(id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (userToDelete === null) return;
+    if (expenseToDelete === null) return;
     
     try {
-      await UserService.deleteById(userToDelete);
+      await ExpenseService.deleteById(expenseToDelete);
       toast({
-        title: "User deleted",
-        description: "User has been successfully deleted.",
+        title: "Expense deleted",
+        description: "Expense has been successfully deleted.",
         className: "bg-clinic-primary text-white"
       });
       refetch();
       setDeleteDialogOpen(false);
-      setUserToDelete(null);
+      setExpenseToDelete(null);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete user.",
+        description: "Failed to delete expense.",
         variant: "destructive",
       });
     }
@@ -179,10 +189,10 @@ const UsersList = () => {
         <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
           <DrawerContent className="h-[85%]">
             <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New User</DrawerTitle>
+              <DrawerTitle className="text-clinic-primary">Add New Expense</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm onSuccess={handleCloseForm} />
+              {/* <ExpenseForm onSuccess={handleCloseForm} /> */}
             </div>
           </DrawerContent>
         </Drawer>
@@ -193,27 +203,27 @@ const UsersList = () => {
       <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New User</DialogTitle>
-            <DialogDescription>Add a new User to your clinic network.</DialogDescription>
+            <DialogTitle className="text-clinic-primary">Add New Expense</DialogTitle>
+            <DialogDescription>Add a new Expense to your network.</DialogDescription>
           </DialogHeader>
-          <UserForm onSuccess={handleCloseForm} />
+          {/* <ExpenseForm onSuccess={handleCloseForm} /> */}
         </DialogContent>
       </Dialog>
     );
   };
 
   const renderEditForm = () => {
-    if (!userToEdit) return null;
+    if (!expenseToEdit) return null;
     
     if (isMobile) {
       return (
         <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
           <DrawerContent className="h-[85%]">
             <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit User</DrawerTitle>
+              <DrawerTitle className="text-clinic-primary">Edit Expence</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm user={userToEdit} onSuccess={handleCloseForm} />
+              {/* <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} /> */}
             </div>
           </DrawerContent>
         </Drawer>
@@ -224,28 +234,28 @@ const UsersList = () => {
       <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit User</DialogTitle>
-            <DialogDescription>Update branch information.</DialogDescription>
+            <DialogTitle className="text-clinic-primary">Edit Expense</DialogTitle>
+            <DialogDescription>Update expense information.</DialogDescription>
           </DialogHeader>
-          <UserForm user={userToEdit} onSuccess={handleCloseForm} />
+          {/* <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} /> */}
         </DialogContent>
       </Dialog>
     );
   };
 
-  const totalElements = filteredUsers.length || 0;
-  const loadedElements = filteredUsers.length || 0;
+  const totalElements = expense.length || 0;
+  const loadedElements = expense.length || 0;
 
   return (
     <AdminLayout>
       <div className="space-y-4">
         <PageHeader 
-          title="Users" 
+          title="Expense" 
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
           showAddButton={true}
-          addButtonLabel="Add User"
-          onAddButtonClick={handleAddBranch}
+          addButtonLabel="Add Expense"
+          onAddButtonClick={handleAddExpense}
           onRefreshClick={() => refetch()}
           loadedElements={loadedElements}
           totalElements={totalElements}
@@ -266,19 +276,19 @@ const UsersList = () => {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading users...</p>
+            <p className="text-muted-foreground">Loading Expense...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading users. Please try again.</p>
+            <p className="text-destructive">Error loading Expences. Please try again.</p>
           </div>
         ) : (
           <div>
             {viewMode === 'grid' && (
-              <UserTable 
-                user={filteredUsers} 
-                onDelete={handleDeleteUser}
-                onEdit={handleEditUser}
+              <ExpenseTable 
+                expense={expenseList} 
+                onDelete={handleDeleteExpense}
+                onEdit={handleEditExpense}
               />
             )}
           </div>
@@ -293,12 +303,12 @@ const UsersList = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user
+              This action cannot be undone. This will permanently delete the expense
               and remove all associated data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setUserToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setExpenseToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
@@ -309,4 +319,4 @@ const UsersList = () => {
   );
 };
 
-export default UsersList;
+export default ExpenseList;

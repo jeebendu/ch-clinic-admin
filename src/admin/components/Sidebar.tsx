@@ -88,6 +88,12 @@ const navItems = [
     roles: ["Admin"] ,
   },
   { 
+    icon: <UserCircle className="h-5 w-5" />, 
+    label: "Expenses", 
+    href: "/admin/expense", 
+    roles: ["Admin"] ,
+  },
+  { 
     icon: <Building2 className="h-5 w-5" />, 
     label: "Branches", 
     href: "/admin/branch", 
