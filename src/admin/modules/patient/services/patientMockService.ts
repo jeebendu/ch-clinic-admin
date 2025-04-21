@@ -75,6 +75,10 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
       image: "",
       latitude: 0,
       longitude: 0,
+      // Add the missing properties required by the Branch interface
+      state: null,
+      district: null,
+      country: null
     },
     photoUrl: faker.image.avatar(),
     fullName: `${faker.person.firstName()} ${faker.person.lastName()}`,
