@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import DoctorGrid from "../components/DoctorGrid";
@@ -9,29 +9,36 @@ import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
 import { useDoctors } from "../hooks/useDoctors";
+import { toast } from "@/hooks/use-toast";
+import { useSearchParams } from "react-router-dom";
 
 const DoctorList = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchValue, setSearchValue] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [showForm, setShowForm] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
-  const {
-    doctors,
-    loading,
-    hasMore,
-    loadMore,
-    refreshDoctors,
-    updateFilters,
-    totalElements,
-    loadedElements
-  } = useDoctors({
-    page: 0,
-    size: 12,
-    searchTerm: "",
-    doctorType: null,
-    specialization: null
-  });
+// const [doctors,setDoctors]=useState<Doctor[]>([]);
+  // const {
+  //   doctors,
+  //   loading,
+  //   hasMore,
+  //   loadMore,
+  //   refreshDoctors,
+  //   updateFilters,
+  //   totalElements,
+  //   loadedElements
+  // } = useDoctors({
+  //   page: 0,
+  //   size: 12,
+  //   searchTerm: "",
+  //   doctorType: null,
+  //   specialization: null
+  // });
 
   useEffect(() => {
     const mode = searchParams.get('view') as 'list' | 'grid' | null;
@@ -41,7 +48,7 @@ const DoctorList = () => {
   }, [searchParams]);
 
   const loadDoctors = async () => {
-    setLoading(true);
+    // setLoading(true);
     try {
       const response = await doctorService.getAllDoctors();
       setDoctors(response);
@@ -53,7 +60,7 @@ const DoctorList = () => {
       });
       console.error("Error loading doctors:", error);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -62,7 +69,8 @@ const DoctorList = () => {
   };
 
   const handleSearchChange = (value: string) => {
-    updateFilters({ searchTerm: value });
+    // updateFilters({ searchTerm: value });
+    setSearchValue(value);
   };
 
   const handleAddDoctor = () => {
@@ -113,7 +121,7 @@ if(response.status){
 
   return (
     <AdminLayout>
-      <PageHeader 
+      {/* <PageHeader 
         title="Doctors" 
         description="Manage your clinic's doctors"
         showAddButton={true}
@@ -126,7 +134,7 @@ if(response.status){
         searchValue={searchValue}
         loadedElements={doctors.length}
         totalElements={doctors.length}
-      />
+      /> */}
       <div className="h-full flex flex-col" onScroll={handleScroll}>
         <PageHeader 
           title="Doctors" 

@@ -17,8 +17,6 @@ export const doctorService = {
       const { DoctorMockService } = await import("./doctorMockService");
       return DoctorMockService.list();
     }
-    const response = await http.get<Doctor[]>('/v1/doctor');
-    return response.data;
   },
 
   getById: async (id: number): Promise<Doctor> => {
@@ -67,4 +65,4 @@ export const doctorService = {
   }
 };
 
-export default DoctorService;
+
