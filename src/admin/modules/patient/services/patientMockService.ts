@@ -86,8 +86,7 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     medicalHistory: faker.lorem.paragraph(),
     city: faker.location.city(),
     createdTime: faker.date.past(),
-    doctor: mockDoctor,
-    // Add any other required properties for Patient type
+    // Remove the 'doctor' property as it's not in the Patient interface
   };
 
   return patient;
