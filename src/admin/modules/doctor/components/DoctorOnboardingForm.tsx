@@ -1,41 +1,11 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Doctor, DoctorOnboardingDetails } from "../types/Doctor";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Doctor, AdditionalInfoDoctor } from "../types/Doctor";
 import { State, District } from "@/admin/modules/core/types/Address";
-import { useState, useEffect } from "react";
-
-// EstablishmentType values: "own" (I own...) or "visit" (I visit...)
-const establishmentTypeOptions = [
-  { value: "own", label: "I own a establishment" },
-  { value: "visit", label: "I visit a establishment" }
-];
-
-// Zod schema: add establishmentType
-const doctorOnboardingSchema = z.object({
-  registrationNumber: z.string().min(1, "Registration number is required"),
-  registrationCouncil: z.string().min(1, "Registration council is required"),
-  registrationYear: z.string().min(4, "Registration year is required"),
-  specialityDegree: z.string().optional(),
-  specialityYear: z.string().optional(),
-  specialityInstitute: z.string().min(1, "Institute is required"),
-  identityProof: z.string().optional(),
-  addressProof: z.string().optional(),
-  establishmentType: z.enum(["own", "visit"], {
-    required_error: "Please select if you own or visit an establishment"
-  }),
-  establishmentName: z.string().min(1, "Establishment name required"),
-  establishmentCity: z.string().min(1, "Establishment city required"),
-  district: z.any(), // for simplicity; you may replace with correct zod schema for District
-  state: z.any(), // for simplicity; you may replace with correct zod schema for State
-});
-
-type DoctorOnboardingFormValues = z.infer<typeof doctorOnboardingSchema>;
+import { Label } from "@/components/ui/label";
 
 interface DoctorOnboardingFormProps {
   isOpen: boolean;
@@ -44,340 +14,195 @@ interface DoctorOnboardingFormProps {
   doctor: Doctor;
 }
 
-const registrationCouncilOptions = [
-  { value: "Dental Council of India (DCI)", label: "Dental Council of India (DCI)" },
-  { value: "Medical Council of India (MCI)", label: "Medical Council of India (MCI)" },
-  { value: "State Medical Council", label: "State Medical Council" },
-  // Add more as needed
-];
+const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({ isOpen, onClose, onSubmit, doctor }) => {
+  // Map initial doctor.additionalInfo fields if exists
+  const [formDoctor, setFormDoctor] = useState<Doctor>({ ...doctor });
+  const [additionalInfo, setAdditionalInfo] = useState<AdditionalInfoDoctor>(
+    doctor.additionalInfo || {
+      id: 0,
+      registationNumber: "",
+      registationCouncil: "",
+      registationYear: "",
+      degreeCollege: "",
+      yearCompletionDegree: "",
+      establishmentType: "",
+      establishmentName: "",
+      establishmentCity: "",
+      state: { id: 0, name: "" } as State,
+      district: { id: 0, name: "" } as District
+    }
+  );
 
-const yearOptions = Array.from({ length: 30 }, (_, idx) => {
-  const year = `${2010 + idx}`;
-  return { value: year, label: year };
-});
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormDoctor({
+      ...formDoctor,
+      [e.target.name]: e.target.value
+    });
+  };
 
-const instituteOptions = [
-  { value: "Christian Medical College, Vellore", label: "Christian Medical College, Vellore" },
-  { value: "AIIMS Delhi", label: "AIIMS Delhi" },
-  { value: "PGI Chandigarh", label: "PGI Chandigarh" },
-  // Add more as needed
-];
+  const handleAdditionalInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAdditionalInfo({
+      ...additionalInfo,
+      [e.target.name]: e.target.value
+    });
+  };
 
-const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  doctor,
-}) => {
-  // Dummy list for cities, districts, and states for select dropdowns
-  const [districts, setDistricts] = useState<{id: number, name: string}[]>([
-    { id: 1, name: "Koramangala" },
-    { id: 2, name: "Jayanagar" },
-  ]);
-  const [states, setStates] = useState<{id: number, name: string}[]>([
-    { id: 1, name: "Karnataka" },
-    { id: 2, name: "Maharashtra" },
-  ]);
-
-  const form = useForm<DoctorOnboardingFormValues>({
-    resolver: zodResolver(doctorOnboardingSchema),
-    defaultValues: {
-      registrationNumber: doctor?.onboardingDetails?.registrationNumber || "",
-      registrationYear: doctor?.onboardingDetails?.registrationYear || "",
-      registrationCouncil: doctor?.onboardingDetails?.registrationCouncil || "",
-      specialityDegree: doctor?.onboardingDetails?.specialityDegree || "",
-      specialityYear: doctor?.onboardingDetails?.specialityYear || "",
-      specialityInstitute: doctor?.onboardingDetails?.specialityInstitute || "",
-      identityProof: doctor?.onboardingDetails?.identityProof || "",
-      addressProof: doctor?.onboardingDetails?.addressProof || "",
-      establishmentType: doctor?.onboardingDetails?.establishmentType || undefined,
-      establishmentName: doctor?.additionalInfo?.establishmentName || "",
-      establishmentCity: doctor?.additionalInfo?.establishmentCity || "",
-      district: doctor?.additionalInfo?.district || "",
-      state: doctor?.additionalInfo?.state || "",
-    },
-  });
-
-  const handleSubmit = (data: DoctorOnboardingFormValues) => {
-    const onboardingDetails: DoctorOnboardingDetails = {
-      registrationNumber: data.registrationNumber,
-      registrationYear: data.registrationYear,
-      registrationCouncil: data.registrationCouncil,
-      specialityDegree: data.specialityDegree,
-      specialityYear: data.specialityYear,
-      specialityInstitute: data.specialityInstitute,
-      identityProof: data.identityProof,
-      addressProof: data.addressProof,
-      establishmentType: data.establishmentType,
-    };
-
-    const additionalInfo = {
-      id: 0, // New/add default as appropriate
-      registationNumber: data.registrationNumber,
-      registationCouncil: data.registrationCouncil,
-      registationYear: data.registrationYear,
-      degreeCollege: data.specialityInstitute,
-      yearCompletionDegree: data.specialityYear,
-      establishmentType: data.establishmentType,
-      establishmentName: data.establishmentName,
-      establishmentCity: data.establishmentCity,
-      state: data.state,
-      district: data.district,
-    };
-
-    const updatedDoctor: Doctor = {
-      ...doctor,
-      onboardingDetails,
-      publishedOnline: true,
-      registrationNumber: data.registrationNumber,
-      additionalInfo,
-    };
-
-    onSubmit(updatedDoctor);
+  const handleSubmit = () => {
+    onSubmit({
+      ...formDoctor,
+      additionalInfo
+    });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Publish Doctor to Online Platform</DialogTitle>
+          <DialogTitle>Publish Doctor Online</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
+          {/* Main Doctor Info */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="registrationNumber">Registration Number</Label>
+              <Input
+                id="registrationNumber"
                 name="registrationNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Registration Number*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Medical Council Registration Number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                value={formDoctor.registrationNumber || ""}
+                onChange={handleInputChange}
+                placeholder="Enter registration number"
+                required
               />
-              <FormField
-                control={form.control}
-                name="registrationCouncil"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Registration Council*</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input focus:outline-none focus:ring-2 focus:ring-brand-primary">
-                        <option value="">Select Registration Council</option>
-                        {registrationCouncilOptions.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="qualification">Qualification</Label>
+              <Input
+                id="qualification"
+                name="qualification"
+                value={formDoctor.qualification || ""}
+                onChange={handleInputChange}
+                placeholder="Enter qualification"
+                required
               />
-              <FormField
-                control={form.control}
-                name="registrationYear"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Registration Year*</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input focus:outline-none focus:ring-2 focus:ring-brand-primary">
-                        <option value="">Select Registration Year</option>
-                        {yearOptions.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+          </div>
+          {/* --- AdditionalInfoDoctor fields --- */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="registationNumber">Council Registration Number</Label>
+              <Input
+                id="registationNumber"
+                name="registationNumber"
+                value={additionalInfo.registationNumber}
+                onChange={handleAdditionalInputChange}
+                placeholder="Council Reg. Number"
+                required
               />
-              <FormField
-                control={form.control}
-                name="specialityDegree"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Speciality Degree</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Speciality Degree" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="registationCouncil">Registration Council</Label>
+              <Input
+                id="registationCouncil"
+                name="registationCouncil"
+                value={additionalInfo.registationCouncil}
+                onChange={handleAdditionalInputChange}
+                placeholder="Council"
               />
-              <FormField
-                control={form.control}
-                name="specialityInstitute"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>College/Institute*</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input focus:outline-none focus:ring-2 focus:ring-brand-primary">
-                        <option value="">Select Institute</option>
-                        {instituteOptions.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="registationYear">Registration Year</Label>
+              <Input
+                id="registationYear"
+                name="registationYear"
+                value={additionalInfo.registationYear}
+                onChange={handleAdditionalInputChange}
+                placeholder="Year"
               />
-              <FormField
-                control={form.control}
-                name="specialityYear"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Year of completion</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input focus:outline-none focus:ring-2 focus:ring-brand-primary">
-                        <option value="">Select Year</option>
-                        {yearOptions.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="degreeCollege">Degree College</Label>
+              <Input
+                id="degreeCollege"
+                name="degreeCollege"
+                value={additionalInfo.degreeCollege}
+                onChange={handleAdditionalInputChange}
+                placeholder="College"
               />
-              <FormField
-                control={form.control}
-                name="identityProof"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Identity Proof</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Identity Document Details" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="yearCompletionDegree">Year of Degree Completion</Label>
+              <Input
+                id="yearCompletionDegree"
+                name="yearCompletionDegree"
+                value={additionalInfo.yearCompletionDegree}
+                onChange={handleAdditionalInputChange}
+                placeholder="Year"
               />
-              <FormField
-                control={form.control}
-                name="addressProof"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address Proof</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Address Document Details" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="establishmentType">Establishment Type</Label>
+              <Input
+                id="establishmentType"
+                name="establishmentType"
+                value={additionalInfo.establishmentType}
+                onChange={handleAdditionalInputChange}
+                placeholder="Type"
               />
-
-              {/* Additional establishment fields */}
-              <FormField
-                control={form.control}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="establishmentName">Establishment Name</Label>
+              <Input
+                id="establishmentName"
                 name="establishmentName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Establishment Name*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Establishment name" {...field} className="bg-gray-50" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                value={additionalInfo.establishmentName}
+                onChange={handleAdditionalInputChange}
+                placeholder="Name"
               />
-
-              <FormField
-                control={form.control}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="establishmentCity">Establishment City</Label>
+              <Input
+                id="establishmentCity"
                 name="establishmentCity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City*</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input">
-                        <option value="">Select City</option>
-                        <option value="Mumbai">Mumbai</option>
-                        <option value="Bangalore">Bangalore</option>
-                        {/* ...add more as needed */}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                value={additionalInfo.establishmentCity}
+                onChange={handleAdditionalInputChange}
+                placeholder="City"
               />
-
-              <FormField
-                control={form.control}
-                name="district"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Locality*</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input">
-                        <option value="">Select Locality</option>
-                        {districts.map((d) => (
-                          <option key={d.id} value={d.name}>{d.name}</option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Input
+                id="state"
                 name="state"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>State*</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input">
-                        <option value="">Select State</option>
-                        {states.map((s) => (
-                          <option key={s.id} value={s.name}>{s.name}</option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                value={additionalInfo.state?.name || ""}
+                onChange={(e) => setAdditionalInfo({ ...additionalInfo, state: { ...additionalInfo.state, name: e.target.value } })}
+                placeholder="State"
               />
-
             </div>
-            <div>
-              <FormLabel className="mb-2 block font-semibold">
-                Please select any one of the following:
-              </FormLabel>
-              <div className="flex flex-col gap-2">
-                {establishmentTypeOptions.map(option => (
-                  <label key={option.value} className="flex items-center gap-2 border rounded-md px-4 py-2 cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      {...form.register("establishmentType")}
-                      value={option.value}
-                      checked={form.watch("establishmentType") === option.value}
-                      className="accent-brand-primary"
-                    />
-                    <span>
-                      {option.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                Note: You can add multiple establishments one by one.
-              </div>
-              <FormMessage>{form.formState.errors.establishmentType?.message}</FormMessage>
+            <div className="space-y-2">
+              <Label htmlFor="district">District</Label>
+              <Input
+                id="district"
+                name="district"
+                value={additionalInfo.district?.name || ""}
+                onChange={(e) => setAdditionalInfo({ ...additionalInfo, district: { ...additionalInfo.district, name: e.target.value } })}
+                placeholder="District"
+              />
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Publish Doctor
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">Publish</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
