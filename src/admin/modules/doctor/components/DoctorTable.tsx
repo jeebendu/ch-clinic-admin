@@ -155,7 +155,10 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                           variant="outline"
                           size="sm"
                           className="text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-700"
-                          onClick={() => onVerifyClick(doctor)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onVerifyClick(doctor);
+                          }}
                         >
                           Verify
                         </Button>
