@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import DoctorOnboardingForm from "../components/DoctorOnboardingForm";
+import ReviewDoctorDialog from "../components/ReviewDoctorDialog";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -21,6 +22,8 @@ const DoctorList = () => {
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [reviewDoctor, setReviewDoctor] = useState<Doctor | null>(null);
 
   const {
     doctors,
@@ -94,7 +97,6 @@ const DoctorList = () => {
     toast.info("Doctor onboarding verification not yet implemented.");
   };
 
-
   const handlePublishDoctor = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
     setShowOnboardingForm(true);
@@ -118,8 +120,8 @@ const DoctorList = () => {
   };
 
   const handleVerifyClick = (doctor: Doctor) => {
-    setSelectedDoctor(doctor);
-    setShowVerifyModal(true);
+    setReviewDoctor(doctor);
+    setShowReviewDialog(true);
   };
 
   const handleDoctorVerify = async (doctor: Doctor) => {
@@ -128,7 +130,8 @@ const DoctorList = () => {
       const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
       if (resp.status === 200) {
         toast.success("Doctor verified!");
-        setShowVerifyModal(false);
+        setShowReviewDialog(false);
+        setReviewDoctor(null);
         refreshDoctors();
       } else {
         toast.error("Error verifying doctor!");
@@ -185,7 +188,6 @@ const DoctorList = () => {
         />
       )}
 
-
       {showViewModal && selectedDoctor && (
         <DoctorView
           isOpen={showViewModal}
@@ -207,6 +209,17 @@ const DoctorList = () => {
         />
       )}
 
+      {showReviewDialog && reviewDoctor && (
+        <ReviewDoctorDialog
+          open={showReviewDialog}
+          doctor={reviewDoctor}
+          onClose={() => {
+            setShowReviewDialog(false);
+            setReviewDoctor(null);
+          }}
+          onVerify={handleDoctorVerify}
+        />
+      )}
     </AdminLayout>
   );
 };
