@@ -30,9 +30,10 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
 }) => {
   if (!doctor) return null;
 
-  // Nice info block class for details
   const infoBlock = "flex flex-col gap-1 bg-softGray/60 rounded-lg px-4 py-2";
   const infoItem = "flex items-baseline gap-2";
+
+  const addInfo = doctor.additionalInfoDoctor;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -99,8 +100,8 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
                 <span>
                   {
                     doctor.gender === 0 ? "Male" :
-                    doctor.gender === 1 ? "Female" :
-                    doctor.gender === 2 ? "Other" : "Not specified"
+                      doctor.gender === 1 ? "Female" :
+                        doctor.gender === 2 ? "Other" : "Not specified"
                   }
                 </span>
               </div>
@@ -149,6 +150,54 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
                 </span>
               </div>
             </div>
+
+            {/* -------- Additional Doctor Info Section -------- */}
+            {addInfo && (
+              <div className={infoBlock}>
+                <SectionTitle>Additional Info</SectionTitle>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration No.:</span>
+                  <span>{addInfo.registationNumber || "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration Council:</span>
+                  <span>{addInfo.registationCouncil || "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration Year:</span>
+                  <span>{addInfo.registationYear || "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Degree College:</span>
+                  <span>{addInfo.degreeCollege || "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Year Completion Degree:</span>
+                  <span>{addInfo.yearCompletionDegree || "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Establishment Type:</span>
+                  <span>{addInfo.establishmentType === "own" ? "Own" : addInfo.establishmentType === "visit" ? "Visiting" : "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Establishment Name:</span>
+                  <span>{addInfo.establishmentName || "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Establishment City:</span>
+                  <span>{addInfo.establishmentCity || "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">State:</span>
+                  <span>{addInfo.state?.name || "—"}</span>
+                </div>
+                <div className={infoItem}>
+                  <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">District:</span>
+                  <span>{addInfo.district?.name || "—"}</span>
+                </div>
+              </div>
+            )}
+
             <div className={infoBlock}>
               <SectionTitle>About & Biography</SectionTitle>
               <div className={infoItem}>
