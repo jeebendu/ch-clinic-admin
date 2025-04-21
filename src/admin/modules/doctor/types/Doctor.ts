@@ -10,7 +10,7 @@ export interface AdditionalInfoDoctor {
     registationYear: string;
     degreeCollege: string;
     yearCompletionDegree: string;
-    establishmentType: string;
+    establishmentType?: "own" | "visit"; 
     establishmentName: string;
     establishmentCity: string;
     state: State;
@@ -38,7 +38,7 @@ export interface Doctor {
   verified: boolean;
   publishedOnline: boolean;
   registrationNumber?: string;
-  onboardingDetails?: DoctorOnboardingDetails;
+  // additionalInfoDoctor?: DoctorOnboardingDetails;
   percentages: any[];
   specializationList: Specialization[];
   serviceList: DoctorService[];
@@ -53,20 +53,20 @@ export interface Doctor {
   reviewCount: number;
   rating: number;
   status: string;
-  additionalInfo?: AdditionalInfoDoctor; // <- New field reference
+  additionalInfoDoctor ?: AdditionalInfoDoctor; // <- New field reference
 }
 
-export interface DoctorOnboardingDetails {
-  registrationNumber: string;
-  registrationYear?: string;
-  registrationCouncil?: string;
-  specialityDegree?: string;
-  specialityYear?: string;
-  specialityInstitute?: string;
-  identityProof?: string;
-  addressProof?: string;
-  establishmentType?: "own" | "visit"; // NEW FIELD: "own" or "visit"
-}
+// export interface DoctorOnboardingDetails {
+//   registrationNumber: string;
+//   registrationYear?: string;
+//   registrationCouncil?: string;
+//   specialityDegree?: string;
+//   specialityYear?: string;
+//   specialityInstitute?: string;
+//   identityProof?: string;
+//   addressProof?: string;
+//   establishmentType?: "own" | "visit"; // NEW FIELD: "own" or "visit"
+// }
 
 export interface DoctorService {
   id: number;

@@ -102,8 +102,9 @@ const DoctorList = () => {
 
   const handleOnboardingSubmit = async (doctor: Doctor) => {
     try {
+      console.log(doctor)
       const response = await doctorService.saveOrUpdateDoctor(doctor);
-      if (response.status === 200) {
+      if (response.status) {
         toast.success("Doctor published online successfully!");
         setShowOnboardingForm(false);
         refreshDoctors();
