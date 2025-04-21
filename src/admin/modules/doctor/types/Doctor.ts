@@ -16,7 +16,7 @@ export interface Doctor {
   qualification: string;
   joiningDate: string;
   about: string;
-  image: string;
+  // image: string;
   pincode: string;
   city: string;
   biography: string;

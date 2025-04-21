@@ -76,7 +76,7 @@ const DoctorGrid: React.FC<DoctorGridProps> = ({
             
             <div className="flex items-center gap-4" onClick={() => onDoctorClick(doctor)}>
               <Avatar className="h-16 w-16 border-2 border-white">
-                <AvatarImage src={doctor.image} />
+                <AvatarImage src={doctor?.user?.image} />
                 <AvatarFallback className="text-lg">{getInitials(doctor.firstname, doctor.lastname)}</AvatarFallback>
               </Avatar>
               <div>
@@ -105,7 +105,7 @@ const DoctorGrid: React.FC<DoctorGridProps> = ({
               
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-muted-foreground" />
-                <span>{doctor.phone || 'N/A'}</span>
+                <span>{doctor.phone?doctor.phone:doctor?.user?.phone || 'N/A'}</span>
               </div>
               
               <div className="flex items-center gap-2">
@@ -126,8 +126,8 @@ const DoctorGrid: React.FC<DoctorGridProps> = ({
           </CardContent>
           
           <CardFooter className="p-2 border-t bg-gray-50 flex justify-between">
-            <Badge variant={doctor.status === 'Active' ? 'success' : 'destructive'} className="px-2 py-1">
-              {doctor.status}
+            <Badge variant={doctor.verified  ? 'success' : 'destructive'} className="px-2 py-1">
+              {doctor.verified ? 'Verified' : 'Not Verified'}
             </Badge>
             <Badge variant={doctor.external ? 'outline' : 'secondary'} className="px-2 py-1">
               {doctor.external ? 'External' : 'In-house'}

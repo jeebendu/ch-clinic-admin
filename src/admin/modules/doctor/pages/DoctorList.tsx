@@ -5,8 +5,7 @@ import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import DoctorGrid from "../components/DoctorGrid";
 import DoctorTable from "../components/DoctorTable";
-import { Button } from "@/components/ui/button";
-import { DoctorMockService } from "../services/doctorMockService";
+import { doctorService } from "../services/doctorService";
 import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
@@ -38,7 +37,7 @@ const DoctorList = () => {
   const loadDoctors = async () => {
     setLoading(true);
     try {
-      const response = await DoctorMockService.getAllDoctors();
+      const response = await doctorService.getAllDoctors();
       setDoctors(response);
     } catch (error) {
       toast({
@@ -82,28 +81,38 @@ const DoctorList = () => {
     setSelectedDoctor(null);
   };
 
-  const handleFormSubmit = (doctor: Doctor) => {
+  const handleFormSubmit = async(doctor: Doctor) => {
     // In a real app, this would make API calls
     // For now, we'll just update the UI
-    setShowForm(false);
-    loadDoctors(); // Reload the list
-    toast({
-      title: selectedDoctor ? "Doctor Updated" : "Doctor Added",
-      description: `Doctor ${doctor.firstname} ${doctor.lastname} has been ${selectedDoctor ? "updated" : "added"} successfully.`,
-    });
+const response=await doctorService.saveOrUpdateDoctor(doctor);
+if(response.status){
+  setShowForm(false);
+  loadDoctors(); // Reload the list
+  toast({
+    title: selectedDoctor ? "Doctor Updated" : "Doctor Added",
+    description: `Doctor ${doctor.firstname} ${doctor.lastname} has been ${selectedDoctor ? "updated" : "added"} successfully.`,
+  });
+}else{
+  toast({
+    title: "Error",
+    description: "An error occurred while saving the doctor.",
+    variant: "destructive",
+  });
+}
+
   };
 
-  const filteredDoctors = doctors.filter(doctor => {
-    if (!searchValue) return true;
+  // const filteredDoctors = doctors.filter(doctor => {
+  //   if (!searchValue) return true;
     
-    const searchLower = searchValue.toLowerCase();
-    return (
-      doctor.firstname.toLowerCase().includes(searchLower) ||
-      doctor.lastname.toLowerCase().includes(searchLower) ||
-      (doctor.email && doctor.email.toLowerCase().includes(searchLower)) ||
-      (doctor.uid && doctor.uid.toLowerCase().includes(searchLower))
-    );
-  });
+  //   const searchLower = searchValue.toLowerCase();
+  //   return (
+  //     doctor.firstname.toLowerCase().includes(searchLower) ||
+  //     doctor.lastname.toLowerCase().includes(searchLower) ||
+  //     (doctor.email && doctor.email.toLowerCase().includes(searchLower)) ||
+  //     (doctor.uid && doctor.uid.toLowerCase().includes(searchLower))
+  //   );
+  // });
 
   return (
     <AdminLayout>
@@ -118,7 +127,7 @@ const DoctorList = () => {
         onRefreshClick={loadDoctors}
         onSearchChange={handleSearchChange}
         searchValue={searchValue}
-        loadedElements={filteredDoctors.length}
+        loadedElements={doctors.length}
         totalElements={doctors.length}
       />
 
@@ -131,14 +140,14 @@ const DoctorList = () => {
         <>
           {viewMode === 'grid' ? (
             <DoctorGrid 
-              doctors={filteredDoctors} 
+              doctors={doctors} 
               loading={loading} 
               onDoctorClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
             />
           ) : (
             <DoctorTable 
-              doctors={filteredDoctors} 
+              doctors={doctors} 
               loading={loading}
               onViewClick={handleViewDoctor}
               onEditClick={handleEditDoctor}

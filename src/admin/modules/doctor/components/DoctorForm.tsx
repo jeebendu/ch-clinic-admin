@@ -24,7 +24,8 @@ const doctorFormSchema = z.object({
   about: z.string().optional(),
   gender: z.enum(["0", "1", "2"]),
   external: z.boolean().default(false),
-  status: z.enum(["Active", "Inactive"]),
+  verified: z.boolean().default(false),
+  // status: z.enum(["Active", "Inactive"]),
   biography: z.string().optional(),
   city: z.string().optional(),
 });
@@ -57,7 +58,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       about: "",
       gender: "0",
       external: false,
-      status: "Active",
+      verified:  false,
+      // status: "Active",
       biography: "",
       city: "",
     },
@@ -77,7 +79,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
         about: doctor.about || "",
         gender: (doctor.gender?.toString() || "0") as "0" | "1" | "2",
         external: doctor.external || false,
-        status: (doctor.status || "Active") as "Active" | "Inactive",
+        verified: doctor.verified || false,
+        // status: (doctor.status || "Active") as "Active" | "Inactive",
         biography: doctor.biography || "",
         city: doctor.city || "",
       });
@@ -100,7 +103,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       about: data.about || "",
       gender: parseInt(data.gender, 10),
       external: data.external,
-      status: data.status,
+      // status: data.status,
       biography: data.biography || "",
       city: data.city || "",
       joiningDate: doctor?.joiningDate || new Date().toISOString(),
@@ -129,9 +132,9 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       state: doctor?.state || null,
       country: doctor?.country || null,
       percentages: doctor?.percentages || [],
-      image: doctor?.image || "",
+      image: doctor?.user?.image || "",
       pincode: doctor?.pincode || "",
-      verified: doctor?.verified || false,
+      verified: doctor?.verified,
       consultationFee: doctor?.consultationFee || 0,
       reviewCount: doctor?.reviewCount || 0,
       rating: doctor?.rating || 0,
@@ -292,8 +295,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
-              <FormField
+
+              {/* <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
@@ -316,8 +319,27 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-
+              /> */}
+   <FormField
+  control={form.control}
+  name="verified"
+  render={({ field }) => (
+    <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-4">
+      <div className="space-y-0.5">
+        <FormLabel>Verified Doctor</FormLabel>
+        <div className="text-sm text-muted-foreground">
+          Doctor is verified
+        </div>
+      </div>
+      <FormControl>
+        <Switch
+          checked={field.value}
+          onCheckedChange={(checked) => field.onChange(checked)} // Pass the new value to field.onChange
+        />
+      </FormControl>
+    </FormItem>
+  )}
+/>
               <FormField
                 control={form.control}
                 name="external"
