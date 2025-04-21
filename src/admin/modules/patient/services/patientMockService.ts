@@ -83,6 +83,7 @@ const generatePatient = (): Patient => {
     joiningDate: faker.date.past().toISOString(),
     user: mockUser,
     external: false,
+    publishedOnline: false,
     expYear: 0,
     about: '',
     image: '',
