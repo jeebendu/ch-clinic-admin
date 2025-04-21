@@ -1,3 +1,4 @@
+
 import { Branch } from "@/admin/modules/branch/types/Branch";
 import { User } from "@/admin/modules/user/types/User";
 import { Country, District, State } from "@/admin/modules/core/types/Address";
@@ -16,7 +17,7 @@ export interface Doctor {
   qualification: string;
   joiningDate: string;
   about: string;
-  // image: string;
+  image: string; // Uncommented this property
   pincode: string;
   city: string;
   biography: string;

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -10,12 +9,15 @@ import DoctorView from "../components/DoctorView";
 import { useDoctors } from "../hooks/useDoctors";
 import doctorService from "../services/doctorService"
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [showForm, setShowForm] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showVerifyDialog, setShowVerifyDialog] = useState(false);
 
   const {
     doctors,
@@ -54,7 +56,11 @@ const DoctorList = () => {
 
   const handleViewDoctor = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
-    setShowViewModal(true);
+    if (!doctor.verified) {
+      setShowVerifyDialog(true);
+    } else {
+      setShowViewModal(true);
+    }
   };
 
   const handleFormClose = () => {
@@ -80,7 +86,19 @@ const DoctorList = () => {
     }
   };
 
-  
+  // Handler for clicking "Verify Onboarding"
+  const handleVerifyOnboarding = () => {
+    // Here you would call your API or verification logic
+    setShowVerifyDialog(false);
+    toast.info("Doctor onboarding verification not yet implemented."); // info for user, can change logic as needed
+  };
+
+  // Handler for clicking "View Doctor" from the popup
+  const handleShowVerifiedView = () => {
+    setShowVerifyDialog(false);
+    setShowViewModal(true); // This opens the usual view modal
+  };
+
   return (
     <AdminLayout>
       <div className="h-full flex flex-col" onScroll={handleScroll}>
@@ -126,6 +144,37 @@ const DoctorList = () => {
         />
       )}
 
+      {/* Popup for Not Verified Doctors */}
+      {showVerifyDialog && selectedDoctor && !selectedDoctor.verified && (
+        <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Doctor Not Verified</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p>
+                This doctor, <b>{selectedDoctor.firstname} {selectedDoctor.lastname}</b>, is not verified.
+              </p>
+              <p className="mt-2">
+                Please review and verify the onboarding process to continue.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowVerifyDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="secondary" onClick={handleShowVerifiedView}>
+                View Doctor
+              </Button>
+              <Button onClick={handleVerifyOnboarding}>
+                Verify Onboarding
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Existing Doctor View Modal */}
       {showViewModal && selectedDoctor && (
         <DoctorView
           isOpen={showViewModal}

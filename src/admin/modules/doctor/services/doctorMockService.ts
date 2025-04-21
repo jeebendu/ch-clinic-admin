@@ -59,7 +59,7 @@ export const DoctorMockService = {
         },
         status: i % 2 === 0 ? "Active" : "Inactive",
         about: `About doctor ${i}`,
-        image: "",
+        image: "", // Now properly typed
         city: `City ${i % 5 + 1}`,
         pincode: `${100000 + i}`,
         biography: `Biography of doctor ${i}`,
