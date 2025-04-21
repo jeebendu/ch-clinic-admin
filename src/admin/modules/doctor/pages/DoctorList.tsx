@@ -7,10 +7,11 @@ import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
 import { useDoctors } from "../hooks/useDoctors";
-import doctorService from "../services/doctorService"
+import doctorService from "../services/doctorService";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import DoctorOnboardingForm from "../components/DoctorOnboardingForm";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -18,6 +19,7 @@ const DoctorList = () => {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
+  const [showOnboardingForm, setShowOnboardingForm] = useState(false);
 
   const {
     doctors,
@@ -99,6 +101,29 @@ const DoctorList = () => {
     setShowViewModal(true); // This opens the usual view modal
   };
 
+  // Handler for clicking "Publish to Online"
+  const handlePublishDoctor = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+    setShowOnboardingForm(true);
+  };
+
+  // Handler for submitting the onboarding form
+  const handleOnboardingSubmit = async (doctor: Doctor) => {
+    try {
+      const response = await doctorService.saveOrUpdateDoctor(doctor);
+      if (response.status === 200) {
+        toast.success("Doctor published online successfully!");
+        setShowOnboardingForm(false);
+        refreshDoctors();
+      } else {
+        toast.error("Error publishing doctor!");
+      }
+    } catch (error) {
+      console.error("Error publishing doctor:", error);
+      toast.error("Error publishing doctor online!");
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="h-full flex flex-col" onScroll={handleScroll}>
@@ -130,6 +155,7 @@ const DoctorList = () => {
               loading={loading}
               onViewClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
+              onPublishClick={handlePublishDoctor}
             />
           )}
         </div>
@@ -172,6 +198,16 @@ const DoctorList = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Doctor Onboarding Form */}
+      {showOnboardingForm && selectedDoctor && (
+        <DoctorOnboardingForm
+          isOpen={showOnboardingForm}
+          onClose={() => setShowOnboardingForm(false)}
+          onSubmit={handleOnboardingSubmit}
+          doctor={selectedDoctor}
+        />
       )}
 
       {/* Existing Doctor View Modal */}

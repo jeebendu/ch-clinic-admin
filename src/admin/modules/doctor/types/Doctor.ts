@@ -17,12 +17,15 @@ export interface Doctor {
   qualification: string;
   joiningDate: string;
   about: string;
-  image: string; // Uncommented this property
+  image: string;
   pincode: string;
   city: string;
   biography: string;
   gender: number;
   verified: boolean;
+  publishedOnline: boolean;
+  registrationNumber?: string;
+  onboardingDetails?: DoctorOnboardingDetails;
   percentages: any[];
   specializationList: Specialization[];
   serviceList: DoctorService[];
@@ -39,6 +42,16 @@ export interface Doctor {
   status: string;
 }
 
+export interface DoctorOnboardingDetails {
+  registrationNumber: string;
+  registrationYear?: string;
+  registrationCouncil?: string;
+  specialityDegree?: string;
+  specialityYear?: string;
+  specialityInstitute?: string;
+  identityProof?: string;
+  addressProof?: string;
+}
 
 export interface DoctorService {
   id: number;

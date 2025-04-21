@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Eye, Edit, Star, ExternalLink } from 'lucide-react';
+import { Eye, Edit, Star, ExternalLink, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Doctor } from '../types/Doctor';
@@ -13,13 +12,15 @@ interface DoctorTableProps {
   loading: boolean;
   onViewClick: (doctor: Doctor) => void;
   onEditClick: (doctor: Doctor) => void;
+  onPublishClick?: (doctor: Doctor) => void;
 }
 
 const DoctorTable: React.FC<DoctorTableProps> = ({ 
   doctors, 
   loading,
   onViewClick,
-  onEditClick
+  onEditClick,
+  onPublishClick
 }) => {
   const getInitials = (firstname: string, lastname: string) => {
     return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
@@ -82,6 +83,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                         <div className="font-medium flex items-center">
                           {doctor.firstname} {doctor.lastname}
                           {doctor.external && <ExternalLink className="h-3 w-3 ml-1 text-muted-foreground" />}
+                          {doctor.publishedOnline && <Globe className="h-3 w-3 ml-1 text-green-500" title="Published Online" />}
                         </div>
                         <div className="text-sm text-muted-foreground">{doctor.uid}</div>
                       </div>
@@ -136,6 +138,16 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                       <Button variant="ghost" size="icon" onClick={() => onEditClick(doctor)}>
                         <Edit className="h-4 w-4" />
                       </Button>
+                      {!doctor.external && !doctor.publishedOnline && onPublishClick && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs bg-green-50 text-green-600 border-green-200 hover:bg-green-100 hover:text-green-700"
+                          onClick={() => onPublishClick(doctor)}
+                        >
+                          Publish Online
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
