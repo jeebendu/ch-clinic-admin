@@ -107,7 +107,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                   <TableCell>
                     <div className="text-sm">
                       <div>{doctor.email}</div>
-                      <div className="text-muted-foreground">{doctor.phone?doctor.phone:doctor?.user?.phone}</div>
+                      <div className="text-muted-foreground">{doctor.phone ? doctor.phone : doctor?.user?.phone}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -128,7 +128,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                   </TableCell>
                   <TableCell>
                     <Badge variant={doctor.verified ? 'success' : 'destructive'}>
-                      {doctor.verified?"verified":"Not Verified"}
+                      {doctor.verified ? "verified" : "Not Verified"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
