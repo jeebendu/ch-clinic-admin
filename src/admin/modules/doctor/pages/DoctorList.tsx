@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import DoctorOnboardingForm from "../components/DoctorOnboardingForm";
-import DoctorVerifyView from "../components/DoctorVerifyView";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -21,7 +20,7 @@ const DoctorList = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
-  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [showVerifyView, setShowVerifyView] = useState(false);
 
   const {
     doctors,
@@ -123,23 +122,7 @@ const DoctorList = () => {
 
   const handleVerifyClick = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
-    setShowVerifyModal(true);
-  };
-
-  const handleDoctorVerify = async (doctor: Doctor) => {
-    try {
-      const updatedDoctor = { ...doctor, verified: true };
-      const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
-      if (resp.status === 200) {
-        toast.success("Doctor verified!");
-        setShowVerifyModal(false);
-        refreshDoctors();
-      } else {
-        toast.error("Error verifying doctor!");
-      }
-    } catch (e) {
-      toast.error("Failed to verify doctor!");
-    }
+    setShowVerifyView(true);
   };
 
   return (
@@ -227,12 +210,15 @@ const DoctorList = () => {
         />
       )}
 
-      {showVerifyModal && selectedDoctor && (
-        <DoctorVerifyView
-          isOpen={showVerifyModal}
-          onClose={() => setShowVerifyModal(false)}
+      {showVerifyView && selectedDoctor && (
+        <DoctorView
+          isOpen={showVerifyView}
+          onClose={() => setShowVerifyView(false)}
           doctor={selectedDoctor}
-          onVerify={handleDoctorVerify}
+          onEdit={() => {
+            setShowVerifyView(false);
+            handleEditDoctor(selectedDoctor);
+          }}
         />
       )}
     </AdminLayout>
