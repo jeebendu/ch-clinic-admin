@@ -7,6 +7,8 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Doctor, DoctorOnboardingDetails } from "../types/Doctor";
+import { State, District } from "@/admin/modules/core/types/Address";
+import { useState, useEffect } from "react";
 
 // EstablishmentType values: "own" (I own...) or "visit" (I visit...)
 const establishmentTypeOptions = [
@@ -26,7 +28,11 @@ const doctorOnboardingSchema = z.object({
   addressProof: z.string().optional(),
   establishmentType: z.enum(["own", "visit"], {
     required_error: "Please select if you own or visit an establishment"
-  })
+  }),
+  establishmentName: z.string().min(1, "Establishment name required"),
+  establishmentCity: z.string().min(1, "Establishment city required"),
+  district: z.any(), // for simplicity; you may replace with correct zod schema for District
+  state: z.any(), // for simplicity; you may replace with correct zod schema for State
 });
 
 type DoctorOnboardingFormValues = z.infer<typeof doctorOnboardingSchema>;
@@ -63,6 +69,16 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   onSubmit,
   doctor,
 }) => {
+  // Dummy list for cities, districts, and states for select dropdowns
+  const [districts, setDistricts] = useState<{id: number, name: string}[]>([
+    { id: 1, name: "Koramangala" },
+    { id: 2, name: "Jayanagar" },
+  ]);
+  const [states, setStates] = useState<{id: number, name: string}[]>([
+    { id: 1, name: "Karnataka" },
+    { id: 2, name: "Maharashtra" },
+  ]);
+
   const form = useForm<DoctorOnboardingFormValues>({
     resolver: zodResolver(doctorOnboardingSchema),
     defaultValues: {
@@ -75,6 +91,10 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
       identityProof: doctor?.onboardingDetails?.identityProof || "",
       addressProof: doctor?.onboardingDetails?.addressProof || "",
       establishmentType: doctor?.onboardingDetails?.establishmentType || undefined,
+      establishmentName: doctor?.additionalInfo?.establishmentName || "",
+      establishmentCity: doctor?.additionalInfo?.establishmentCity || "",
+      district: doctor?.additionalInfo?.district || "",
+      state: doctor?.additionalInfo?.state || "",
     },
   });
 
@@ -91,11 +111,26 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
       establishmentType: data.establishmentType,
     };
 
+    const additionalInfo = {
+      id: 0, // New/add default as appropriate
+      registationNumber: data.registrationNumber,
+      registationCouncil: data.registrationCouncil,
+      registationYear: data.registrationYear,
+      degreeCollege: data.specialityInstitute,
+      yearCompletionDegree: data.specialityYear,
+      establishmentType: data.establishmentType,
+      establishmentName: data.establishmentName,
+      establishmentCity: data.establishmentCity,
+      state: data.state,
+      district: data.district,
+    };
+
     const updatedDoctor: Doctor = {
       ...doctor,
       onboardingDetails,
       publishedOnline: true,
       registrationNumber: data.registrationNumber,
+      additionalInfo,
     };
 
     onSubmit(updatedDoctor);
@@ -234,6 +269,79 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
+
+              {/* Additional establishment fields */}
+              <FormField
+                control={form.control}
+                name="establishmentName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Establishment Name*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Establishment name" {...field} className="bg-gray-50" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="establishmentCity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City*</FormLabel>
+                    <FormControl>
+                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input">
+                        <option value="">Select City</option>
+                        <option value="Mumbai">Mumbai</option>
+                        <option value="Bangalore">Bangalore</option>
+                        {/* ...add more as needed */}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="district"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Locality*</FormLabel>
+                    <FormControl>
+                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input">
+                        <option value="">Select Locality</option>
+                        {districts.map((d) => (
+                          <option key={d.id} value={d.name}>{d.name}</option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State*</FormLabel>
+                    <FormControl>
+                      <select {...field} className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input">
+                        <option value="">Select State</option>
+                        {states.map((s) => (
+                          <option key={s.id} value={s.name}>{s.name}</option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
             </div>
             <div>
               <FormLabel className="mb-2 block font-semibold">

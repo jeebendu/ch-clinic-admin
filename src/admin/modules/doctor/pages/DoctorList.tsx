@@ -20,6 +20,7 @@ const DoctorList = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
+  const [showVerifyView, setShowVerifyView] = useState(false);
 
   const {
     doctors,
@@ -88,26 +89,21 @@ const DoctorList = () => {
     }
   };
 
-  // Handler for clicking "Verify Onboarding"
   const handleVerifyOnboarding = () => {
-    // Here you would call your API or verification logic
     setShowVerifyDialog(false);
-    toast.info("Doctor onboarding verification not yet implemented."); // info for user, can change logic as needed
+    toast.info("Doctor onboarding verification not yet implemented.");
   };
 
-  // Handler for clicking "View Doctor" from the popup
   const handleShowVerifiedView = () => {
     setShowVerifyDialog(false);
-    setShowViewModal(true); // This opens the usual view modal
+    setShowViewModal(true);
   };
 
-  // Handler for clicking "Publish to Online"
   const handlePublishDoctor = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
     setShowOnboardingForm(true);
   };
 
-  // Handler for submitting the onboarding form
   const handleOnboardingSubmit = async (doctor: Doctor) => {
     try {
       const response = await doctorService.saveOrUpdateDoctor(doctor);
@@ -122,6 +118,11 @@ const DoctorList = () => {
       console.error("Error publishing doctor:", error);
       toast.error("Error publishing doctor online!");
     }
+  };
+
+  const handleVerifyClick = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+    setShowVerifyView(true);
   };
 
   return (
@@ -156,6 +157,7 @@ const DoctorList = () => {
               onViewClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
               onPublishClick={handlePublishDoctor}
+              onVerifyClick={handleVerifyClick}
             />
           )}
         </div>
@@ -170,7 +172,6 @@ const DoctorList = () => {
         />
       )}
 
-      {/* Popup for Not Verified Doctors */}
       {showVerifyDialog && selectedDoctor && !selectedDoctor.verified && (
         <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
           <DialogContent>
@@ -200,7 +201,6 @@ const DoctorList = () => {
         </Dialog>
       )}
 
-      {/* Doctor Onboarding Form */}
       {showOnboardingForm && selectedDoctor && (
         <DoctorOnboardingForm
           isOpen={showOnboardingForm}
@@ -210,14 +210,13 @@ const DoctorList = () => {
         />
       )}
 
-      {/* Existing Doctor View Modal */}
-      {showViewModal && selectedDoctor && (
+      {showVerifyView && selectedDoctor && (
         <DoctorView
-          isOpen={showViewModal}
-          onClose={() => setShowViewModal(false)}
+          isOpen={showVerifyView}
+          onClose={() => setShowVerifyView(false)}
           doctor={selectedDoctor}
           onEdit={() => {
-            setShowViewModal(false);
+            setShowVerifyView(false);
             handleEditDoctor(selectedDoctor);
           }}
         />

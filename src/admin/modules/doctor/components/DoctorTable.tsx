@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ interface DoctorTableProps {
   onViewClick: (doctor: Doctor) => void;
   onEditClick: (doctor: Doctor) => void;
   onPublishClick?: (doctor: Doctor) => void;
+  onVerifyClick?: (doctor: Doctor) => void;
 }
 
 const DoctorTable: React.FC<DoctorTableProps> = ({ 
@@ -21,7 +21,8 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
   loading,
   onViewClick,
   onEditClick,
-  onPublishClick
+  onPublishClick,
+  onVerifyClick
 }) => {
   const getInitials = (firstname: string, lastname: string) => {
     return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
@@ -147,6 +148,16 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                           onClick={() => onPublishClick(doctor)}
                         >
                           Publish Online
+                        </Button>
+                      )}
+                      {onVerifyClick && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-700"
+                          onClick={() => onVerifyClick(doctor)}
+                        >
+                          Verify
                         </Button>
                       )}
                     </div>
