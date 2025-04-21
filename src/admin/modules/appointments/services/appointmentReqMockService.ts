@@ -51,7 +51,7 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             lastname: "",
             expYear: 0,
             about: "",
-            image: "",
+            image: "", // Now properly typed
             pincode: "",
             city: "",
             biography: "",
