@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Appointment } from '../types/Appointment';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Loader2, Video, MapPin, Bell, ClipboardList, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -27,27 +27,32 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
   const observer = useRef<IntersectionObserver | null>(null);
   const [visibleAppointments, setVisibleAppointments] = useState<Appointment[]>([]);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const listContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setVisibleAppointments(appointments);
+    if (appointments.length > 0) {
+      setVisibleAppointments(prev => {
+        if (JSON.stringify(prev) !== JSON.stringify(appointments)) {
+          return appointments;
+        }
+        return prev;
+      });
+    }
   }, [appointments]);
 
   useEffect(() => {
     if (loading) return;
 
-    // Disconnect previous observer
     if (observer.current) {
       observer.current.disconnect();
     }
 
-    // Create new observer
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
         loadMore();
       }
     }, { rootMargin: '100px' });
 
-    // Observe the load more element
     if (loadMoreRef.current) {
       observer.current.observe(loadMoreRef.current);
     }
@@ -93,8 +98,33 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
     }
   };
 
+  const formatTime = (timeString: string | null | undefined) => {
+    if (!timeString) return "Time not available";
+    
+    try {
+      return format(parseISO(`1970-01-01T${timeString}`), "hh:mm a");
+    } catch (error) {
+      console.error("Error formatting time:", error, timeString);
+      return "Time not available";
+    }
+  };
+
+  const formatDate = (dateString: string | Date | null | undefined) => {
+    if (!dateString) return "Date not available";
+    
+    try {
+      if (typeof dateString === 'object') {
+        return format(dateString, "EEE, MMM d, yyyy");
+      }
+      return format(new Date(dateString), "EEE, MMM d, yyyy");
+    } catch (error) {
+      console.error("Error formatting date:", error, dateString);
+      return "Date not available";
+    }
+  };
+
   return (
-    <div className="space-y-4 mb-6">
+    <div className="space-y-4 mb-6" ref={listContainerRef}>
       {visibleAppointments.map((appointment) => (
         <div
           key={appointment.id}
@@ -139,14 +169,10 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
             <div className="w-full md:w-auto flex flex-col items-end gap-2">
               <div className="flex flex-col items-end gap-1">
                 <div className="text-sm text-gray-500">
-                  {appointment.slot?.date 
-                    ? format(new Date(appointment.slot.date), "EEE, MMM d, yyyy") 
-                    : "Date not available"}
+                  {formatDate(appointment.slot?.date)}
                 </div>
                 <div className="font-medium">
-                  {appointment?.slot?.startTime 
-                   ? format(new Date(`1970-01-01T${appointment?.slot?.startTime}`), "hh:mm a") 
-                    : "Time not available"}
+                  {formatTime(appointment.slot?.startTime)}
                 </div>
               </div>
               

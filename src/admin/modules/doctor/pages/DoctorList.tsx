@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import DoctorGrid from "../components/DoctorGrid";
@@ -9,23 +8,30 @@ import { doctorService } from "../services/doctorService";
 import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
-import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useDoctors } from "../hooks/useDoctors";
 
 const DoctorList = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [searchValue, setSearchValue] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const { toast } = useToast();
 
-  useEffect(() => {
-    loadDoctors();
-  }, []);
+  const {
+    doctors,
+    loading,
+    hasMore,
+    loadMore,
+    refreshDoctors,
+    updateFilters,
+    totalElements,
+    loadedElements
+  } = useDoctors({
+    page: 0,
+    size: 12,
+    searchTerm: "",
+    doctorType: null,
+    specialization: null
+  });
 
   useEffect(() => {
     const mode = searchParams.get('view') as 'list' | 'grid' | null;
@@ -52,13 +58,11 @@ const DoctorList = () => {
   };
 
   const handleViewModeToggle = () => {
-    const newMode = viewMode === 'list' ? 'grid' : 'list';
-    setViewMode(newMode);
-    setSearchParams({ view: newMode });
+    setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
   const handleSearchChange = (value: string) => {
-    setSearchValue(value);
+    updateFilters({ searchTerm: value });
   };
 
   const handleAddDoctor = () => {
@@ -82,8 +86,6 @@ const DoctorList = () => {
   };
 
   const handleFormSubmit = async(doctor: Doctor) => {
-    // In a real app, this would make API calls
-    // For now, we'll just update the UI
 const response=await doctorService.saveOrUpdateDoctor(doctor);
 if(response.status){
   setShowForm(false);
@@ -102,17 +104,12 @@ if(response.status){
 
   };
 
-  // const filteredDoctors = doctors.filter(doctor => {
-  //   if (!searchValue) return true;
-    
-  //   const searchLower = searchValue.toLowerCase();
-  //   return (
-  //     doctor.firstname.toLowerCase().includes(searchLower) ||
-  //     doctor.lastname.toLowerCase().includes(searchLower) ||
-  //     (doctor.email && doctor.email.toLowerCase().includes(searchLower)) ||
-  //     (doctor.uid && doctor.uid.toLowerCase().includes(searchLower))
-  //   );
-  // });
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight * 1.5 && !loading && hasMore) {
+      loadMore();
+    }
+  };
 
   return (
     <AdminLayout>
@@ -130,18 +127,26 @@ if(response.status){
         loadedElements={doctors.length}
         totalElements={doctors.length}
       />
+      <div className="h-full flex flex-col" onScroll={handleScroll}>
+        <PageHeader 
+          title="Doctors" 
+          description="Manage your clinic's doctors"
+          showAddButton={true}
+          addButtonLabel="Add Doctor"
+          onAddButtonClick={handleAddDoctor}
+          onViewModeToggle={handleViewModeToggle}
+          viewMode={viewMode}
+          onRefreshClick={refreshDoctors}
+          onSearchChange={handleSearchChange}
+          loadedElements={loadedElements}
+          totalElements={totalElements}
+        />
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-lg">Loading doctors...</span>
-        </div>
-      ) : (
-        <>
+        <div className="flex-1 overflow-auto">
           {viewMode === 'grid' ? (
             <DoctorGrid 
               doctors={doctors} 
-              loading={loading} 
+              loading={loading}
               onDoctorClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
             />
@@ -153,8 +158,8 @@ if(response.status){
               onEditClick={handleEditDoctor}
             />
           )}
-        </>
-      )}
+        </div>
+      </div>
 
       {showForm && (
         <DoctorForm

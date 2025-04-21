@@ -1,17 +1,26 @@
 import http from "@/lib/JwtInterceptor";
+import { getEnvVariable } from "@/utils/envUtils";
 
-const apiUrl = process.env.REACT_APP_API_URL;
+const apiUrl = getEnvVariable('API_URL');
 
-const DistributorService = {
+export const DistributorService = {
   deleteById: (id: number) => {
     return http.get(`${apiUrl}/v1/vendor/delete/id/${id}`);
   },
 
-  list: () => {
-    return http.get(`${apiUrl}/v1/vendor/list`);
-  },
+  list: async () => {
+      try {
+        const response = await http.get(`${apiUrl}/v1/vendor/list`);
+        // console.log("Raw API response:", response);
+        return response.data; // Return just the data part of the response
+      } catch (error) {
+        console.error("Error fetching Distributor:", error);
+        throw error;
+      }
+    },
 
-  saveOrUpdate: (distributor: { id: number; name?: string; contact?: string; address?: string }) => {
+
+  saveOrUpdate: (distributor: any) => {
     return http.post(`${apiUrl}/v1/vendor/saveOrUpdate`, distributor);
   },
 
