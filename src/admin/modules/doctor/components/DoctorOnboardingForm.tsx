@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Doctor, AdditionalInfoDoctor } from "../types/Doctor";
 import { State, District } from "@/admin/modules/core/types/Address";
+import { Label } from "@/components/ui/label";
 
 interface DoctorOnboardingFormProps {
   isOpen: boolean;
@@ -68,96 +69,132 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({ isOpen, onC
         >
           {/* Main Doctor Info */}
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Registration Number"
-              name="registrationNumber"
-              value={formDoctor.registrationNumber || ""}
-              onChange={handleInputChange}
-              placeholder="Enter registration number"
-              required
-            />
-            <Input
-              label="Qualification"
-              name="qualification"
-              value={formDoctor.qualification || ""}
-              onChange={handleInputChange}
-              placeholder="Enter qualification"
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="registrationNumber">Registration Number</Label>
+              <Input
+                id="registrationNumber"
+                name="registrationNumber"
+                value={formDoctor.registrationNumber || ""}
+                onChange={handleInputChange}
+                placeholder="Enter registration number"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="qualification">Qualification</Label>
+              <Input
+                id="qualification"
+                name="qualification"
+                value={formDoctor.qualification || ""}
+                onChange={handleInputChange}
+                placeholder="Enter qualification"
+                required
+              />
+            </div>
           </div>
           {/* --- AdditionalInfoDoctor fields --- */}
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Council Registration Number"
-              name="registationNumber"
-              value={additionalInfo.registationNumber}
-              onChange={handleAdditionalInputChange}
-              placeholder="Council Reg. Number"
-              required
-            />
-            <Input
-              label="Registration Council"
-              name="registationCouncil"
-              value={additionalInfo.registationCouncil}
-              onChange={handleAdditionalInputChange}
-              placeholder="Council"
-            />
-            <Input
-              label="Registration Year"
-              name="registationYear"
-              value={additionalInfo.registationYear}
-              onChange={handleAdditionalInputChange}
-              placeholder="Year"
-            />
-            <Input
-              label="Degree College"
-              name="degreeCollege"
-              value={additionalInfo.degreeCollege}
-              onChange={handleAdditionalInputChange}
-              placeholder="College"
-            />
-            <Input
-              label="Year of Degree Completion"
-              name="yearCompletionDegree"
-              value={additionalInfo.yearCompletionDegree}
-              onChange={handleAdditionalInputChange}
-              placeholder="Year"
-            />
-            <Input
-              label="Establishment Type"
-              name="establishmentType"
-              value={additionalInfo.establishmentType}
-              onChange={handleAdditionalInputChange}
-              placeholder="Type"
-            />
-            <Input
-              label="Establishment Name"
-              name="establishmentName"
-              value={additionalInfo.establishmentName}
-              onChange={handleAdditionalInputChange}
-              placeholder="Name"
-            />
-            <Input
-              label="Establishment City"
-              name="establishmentCity"
-              value={additionalInfo.establishmentCity}
-              onChange={handleAdditionalInputChange}
-              placeholder="City"
-            />
-            <Input
-              label="State"
-              name="state"
-              value={additionalInfo.state?.name || ""}
-              onChange={(e) => setAdditionalInfo({ ...additionalInfo, state: { ...additionalInfo.state, name: e.target.value } })}
-              placeholder="State"
-            />
-            <Input
-              label="District"
-              name="district"
-              value={additionalInfo.district?.name || ""}
-              onChange={(e) => setAdditionalInfo({ ...additionalInfo, district: { ...additionalInfo.district, name: e.target.value } })}
-              placeholder="District"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="registationNumber">Council Registration Number</Label>
+              <Input
+                id="registationNumber"
+                name="registationNumber"
+                value={additionalInfo.registationNumber}
+                onChange={handleAdditionalInputChange}
+                placeholder="Council Reg. Number"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="registationCouncil">Registration Council</Label>
+              <Input
+                id="registationCouncil"
+                name="registationCouncil"
+                value={additionalInfo.registationCouncil}
+                onChange={handleAdditionalInputChange}
+                placeholder="Council"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="registationYear">Registration Year</Label>
+              <Input
+                id="registationYear"
+                name="registationYear"
+                value={additionalInfo.registationYear}
+                onChange={handleAdditionalInputChange}
+                placeholder="Year"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="degreeCollege">Degree College</Label>
+              <Input
+                id="degreeCollege"
+                name="degreeCollege"
+                value={additionalInfo.degreeCollege}
+                onChange={handleAdditionalInputChange}
+                placeholder="College"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="yearCompletionDegree">Year of Degree Completion</Label>
+              <Input
+                id="yearCompletionDegree"
+                name="yearCompletionDegree"
+                value={additionalInfo.yearCompletionDegree}
+                onChange={handleAdditionalInputChange}
+                placeholder="Year"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="establishmentType">Establishment Type</Label>
+              <Input
+                id="establishmentType"
+                name="establishmentType"
+                value={additionalInfo.establishmentType}
+                onChange={handleAdditionalInputChange}
+                placeholder="Type"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="establishmentName">Establishment Name</Label>
+              <Input
+                id="establishmentName"
+                name="establishmentName"
+                value={additionalInfo.establishmentName}
+                onChange={handleAdditionalInputChange}
+                placeholder="Name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="establishmentCity">Establishment City</Label>
+              <Input
+                id="establishmentCity"
+                name="establishmentCity"
+                value={additionalInfo.establishmentCity}
+                onChange={handleAdditionalInputChange}
+                placeholder="City"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Input
+                id="state"
+                name="state"
+                value={additionalInfo.state?.name || ""}
+                onChange={(e) => setAdditionalInfo({ ...additionalInfo, state: { ...additionalInfo.state, name: e.target.value } })}
+                placeholder="State"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="district">District</Label>
+              <Input
+                id="district"
+                name="district"
+                value={additionalInfo.district?.name || ""}
+                onChange={(e) => setAdditionalInfo({ ...additionalInfo, district: { ...additionalInfo.district, name: e.target.value } })}
+                placeholder="District"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
