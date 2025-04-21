@@ -8,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Doctor, DoctorOnboardingDetails } from "../types/Doctor";
 
-// Zod schema: registrationNumber is REQUIRED for published doctors
+// EstablishmentType values: "own" (I own...) or "visit" (I visit...)
+const establishmentTypeOptions = [
+  { value: "own", label: "I own a establishment" },
+  { value: "visit", label: "I visit a establishment" }
+];
+
+// Zod schema: add establishmentType
 const doctorOnboardingSchema = z.object({
   registrationNumber: z.string().min(1, "Registration number is required"),
   registrationCouncil: z.string().min(1, "Registration council is required"),
@@ -18,6 +24,9 @@ const doctorOnboardingSchema = z.object({
   specialityInstitute: z.string().min(1, "Institute is required"),
   identityProof: z.string().optional(),
   addressProof: z.string().optional(),
+  establishmentType: z.enum(["own", "visit"], {
+    required_error: "Please select if you own or visit an establishment"
+  })
 });
 
 type DoctorOnboardingFormValues = z.infer<typeof doctorOnboardingSchema>;
@@ -65,13 +74,13 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
       specialityInstitute: doctor?.onboardingDetails?.specialityInstitute || "",
       identityProof: doctor?.onboardingDetails?.identityProof || "",
       addressProof: doctor?.onboardingDetails?.addressProof || "",
+      establishmentType: doctor?.onboardingDetails?.establishmentType || undefined,
     },
   });
 
   const handleSubmit = (data: DoctorOnboardingFormValues) => {
-    // Since registrationNumber is required, it will always be present in data
     const onboardingDetails: DoctorOnboardingDetails = {
-      registrationNumber: data.registrationNumber, // This is now required
+      registrationNumber: data.registrationNumber,
       registrationYear: data.registrationYear,
       registrationCouncil: data.registrationCouncil,
       specialityDegree: data.specialityDegree,
@@ -79,6 +88,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
       specialityInstitute: data.specialityInstitute,
       identityProof: data.identityProof,
       addressProof: data.addressProof,
+      establishmentType: data.establishmentType,
     };
 
     const updatedDoctor: Doctor = {
@@ -113,7 +123,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="registrationCouncil"
@@ -132,7 +141,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="registrationYear"
@@ -151,7 +159,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="specialityDegree"
@@ -165,7 +172,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="specialityInstitute"
@@ -184,7 +190,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="specialityYear"
@@ -203,7 +208,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="identityProof"
@@ -230,6 +234,31 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
+            </div>
+            <div>
+              <FormLabel className="mb-2 block font-semibold">
+                Please select any one of the following:
+              </FormLabel>
+              <div className="flex flex-col gap-2">
+                {establishmentTypeOptions.map(option => (
+                  <label key={option.value} className="flex items-center gap-2 border rounded-md px-4 py-2 cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      {...form.register("establishmentType")}
+                      value={option.value}
+                      checked={form.watch("establishmentType") === option.value}
+                      className="accent-brand-primary"
+                    />
+                    <span>
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Note: You can add multiple establishments one by one.
+              </div>
+              <FormMessage>{form.formState.errors.establishmentType?.message}</FormMessage>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>

@@ -51,6 +51,7 @@ export interface DoctorOnboardingDetails {
   specialityInstitute?: string;
   identityProof?: string;
   addressProof?: string;
+  establishmentType?: "own" | "visit"; // NEW FIELD: "own" or "visit"
 }
 
 export interface DoctorService {
