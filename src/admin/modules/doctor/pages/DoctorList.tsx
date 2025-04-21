@@ -76,7 +76,7 @@ const DoctorList = () => {
 
   const handleFormSubmit = async (doctor: Doctor) => {
     const response = await doctorService.saveOrUpdateDoctor(doctor);
-    if (response.status === 200) {
+    if (response.status) {
       toast.success("Doctor saved successfully!");
     } else {
       toast.error("Error saving doctor!");
