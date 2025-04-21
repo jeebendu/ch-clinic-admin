@@ -58,7 +58,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       about: "",
       gender: "0",
       external: false,
-      verified:  false,
+      verified: false,
       // status: "Active",
       biography: "",
       city: "",
@@ -151,7 +151,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             {doctor ? "Edit Doctor" : "Add New Doctor"}
           </DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -169,7 +169,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="lastname"
@@ -183,7 +183,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -197,7 +197,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="phone"
@@ -226,7 +226,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="expYear"
@@ -240,7 +240,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="desgination"
@@ -254,15 +254,15 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="gender"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gender</FormLabel>
-                    <Select 
-                      value={field.value} 
+                    <Select
+                      value={field.value}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
@@ -320,26 +320,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               /> */}
-   <FormField
-  control={form.control}
-  name="verified"
-  render={({ field }) => (
-    <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-4">
-      <div className="space-y-0.5">
-        <FormLabel>Verified Doctor</FormLabel>
-        <div className="text-sm text-muted-foreground">
-          Doctor is verified
-        </div>
-      </div>
-      <FormControl>
-        <Switch
-          checked={field.value}
-          onCheckedChange={(checked) => field.onChange(checked)} // Pass the new value to field.onChange
-        />
-      </FormControl>
-    </FormItem>
-  )}
-/>
+
               <FormField
                 control={form.control}
                 name="external"
@@ -370,17 +351,17 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                 <FormItem>
                   <FormLabel>About</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Brief description about the doctor"
                       className="h-20"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="biography"
@@ -388,17 +369,17 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                 <FormItem>
                   <FormLabel>Biography</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Detailed professional biography"
                       className="h-32"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel

@@ -218,7 +218,7 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
               disabled={loading}
               onClick={() => onVerify(doctor)}
               className="bg-vividPurple hover:bg-primary text-white font-bold min-w-[160px] shadow-md hover-scale transition-transform duration-200"
-              style={{ boxShadow: "0 2px 8px #8b5cf622" }}
+              style={{ boxShadow: "0 2px 8px rgba(65, 65, 66, 0.13)",color:"black"}}
             >
               <Check className="mr-2 h-4 w-4" /> Verify Doctor
             </Button>
