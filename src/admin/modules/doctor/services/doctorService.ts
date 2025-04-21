@@ -5,14 +5,18 @@ import { isProduction } from "@/utils/envUtils";
 import { DoctorMockService } from "./doctorMockService";
 import { PaginatedResponse } from "@/types/common";
 
-export const DoctorService = {
-  list: async (): Promise<Doctor[]> => {
-    if (!isProduction()) {
+// Real implementation would use these endpoints
+ const doctorService = {
+  getAllDoctors: async (): Promise<Doctor[]> => {
+    try {
+      const response = await http.get<Doctor[]>('/v1/doctor/list');
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+      // Fallback to mock data for development
       const { DoctorMockService } = await import("./doctorMockService");
       return DoctorMockService.list();
     }
-    const response = await http.get<Doctor[]>('/v1/doctor');
-    return response.data;
   },
 
   getById: async (id: number): Promise<Doctor> => {
@@ -20,15 +24,25 @@ export const DoctorService = {
     return response.data;
   },
 
-  create: async (doctor: Doctor): Promise<Doctor> => {
-    const response = await http.post<Doctor>('/v1/doctor', doctor);
-    return response.data;
+   saveOrUpdateDoctor: async (doctor: Doctor): Promise<any> => {
+    try {
+      const response = await http.post<any>('/v1/doctor/saveOrUpdate', doctor);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating doctor:", error);
+      throw error;
+    }
   },
 
-  update: async (doctor: Doctor): Promise<Doctor> => {
-    const response = await http.put<Doctor>(`/v1/doctor/${doctor.id}`, doctor);
-    return response.data;
-  },
+  // updateDoctor: async (doctor: Doctor): Promise<Doctor> => {
+  //   try {
+  //     const response = await http.put<Doctor>(`/v1/doctor/${doctor.id}`, doctor);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error(`Error updating doctor with ID ${doctor.id}:`, error);
+  //     throw error;
+  //   }
+  // },
 
   delete: async (id: number): Promise<void> => {
     await http.delete(`/v1/doctor/${id}`);
@@ -51,4 +65,5 @@ export const DoctorService = {
   }
 };
 
-export default DoctorService;
+
+export default doctorService;

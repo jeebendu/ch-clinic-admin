@@ -75,7 +75,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={doctor.image} />
+                        <AvatarImage src={doctor?.user?.image} />
                         <AvatarFallback>{getInitials(doctor.firstname, doctor.lastname)}</AvatarFallback>
                       </Avatar>
                       <div>
@@ -104,7 +104,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                   <TableCell>
                     <div className="text-sm">
                       <div>{doctor.email}</div>
-                      <div className="text-muted-foreground">{doctor.phone}</div>
+                      <div className="text-muted-foreground">{doctor.phone?doctor.phone:doctor?.user?.phone}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -124,8 +124,8 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={doctor.status === 'Active' ? 'success' : 'destructive'}>
-                      {doctor.status}
+                    <Badge variant={doctor.verified ? 'success' : 'destructive'}>
+                      {doctor.verified?"verified":"Not Verified"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

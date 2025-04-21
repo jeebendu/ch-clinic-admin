@@ -8,6 +8,8 @@ import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
 import { useDoctors } from "../hooks/useDoctors";
+import doctorService from "../services/doctorService"
+import { toast } from "sonner";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -60,7 +62,13 @@ const DoctorList = () => {
     setSelectedDoctor(null);
   };
 
-  const handleFormSubmit = (doctor: Doctor) => {
+  const handleFormSubmit = async (doctor: Doctor) => {
+    const response = await doctorService.saveOrUpdateDoctor(doctor);
+    if (response.status === 200) {
+      toast.success("Doctor saved successfully!");
+    } else {
+      toast.error("Error saving doctor!");
+    }
     setShowForm(false);
     refreshDoctors();
   };
@@ -76,8 +84,8 @@ const DoctorList = () => {
   return (
     <AdminLayout>
       <div className="h-full flex flex-col" onScroll={handleScroll}>
-        <PageHeader 
-          title="Doctors" 
+        <PageHeader
+          title="Doctors"
           description="Manage your clinic's doctors"
           showAddButton={true}
           addButtonLabel="Add Doctor"
@@ -92,15 +100,15 @@ const DoctorList = () => {
 
         <div className="flex-1 overflow-auto">
           {viewMode === 'grid' ? (
-            <DoctorGrid 
-              doctors={doctors} 
+            <DoctorGrid
+              doctors={doctors}
               loading={loading}
               onDoctorClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
             />
           ) : (
-            <DoctorTable 
-              doctors={doctors} 
+            <DoctorTable
+              doctors={doctors}
               loading={loading}
               onViewClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
