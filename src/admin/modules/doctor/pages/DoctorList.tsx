@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import DoctorOnboardingForm from "../components/DoctorOnboardingForm";
-import DoctorVerifyView from "../components/DoctorVerifyView";
 
 const DoctorList = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -95,10 +94,6 @@ const DoctorList = () => {
     toast.info("Doctor onboarding verification not yet implemented.");
   };
 
-  const handleShowVerifiedView = () => {
-    setShowVerifyDialog(false);
-    setShowViewModal(true);
-  };
 
   const handlePublishDoctor = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
@@ -189,33 +184,17 @@ const DoctorList = () => {
         />
       )}
 
-      {showVerifyDialog && selectedDoctor && !selectedDoctor.verified && (
-        <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Doctor Not Verified</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p>
-                This doctor, <b>{selectedDoctor.firstname} {selectedDoctor.lastname}</b>, is not verified.
-              </p>
-              <p className="mt-2">
-                Please review and verify the onboarding process to continue.
-              </p>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowVerifyDialog(false)}>
-                Cancel
-              </Button>
-              <Button variant="secondary" onClick={handleShowVerifiedView}>
-                View Doctor
-              </Button>
-              <Button onClick={handleVerifyOnboarding}>
-                Verify Onboarding
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+
+      {showViewModal && selectedDoctor && (
+        <DoctorView
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal(false)}
+          doctor={selectedDoctor}
+          onEdit={() => {
+            setShowViewModal(false);
+            handleEditDoctor(selectedDoctor);
+          }}
+        />
       )}
 
       {showOnboardingForm && selectedDoctor && (
@@ -227,14 +206,6 @@ const DoctorList = () => {
         />
       )}
 
-      {showVerifyModal && selectedDoctor && (
-        <DoctorVerifyView
-          isOpen={showVerifyModal}
-          onClose={() => setShowVerifyModal(false)}
-          doctor={selectedDoctor}
-          onVerify={handleDoctorVerify}
-        />
-      )}
     </AdminLayout>
   );
 };
