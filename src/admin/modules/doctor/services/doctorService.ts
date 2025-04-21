@@ -6,7 +6,7 @@ import { DoctorMockService } from "./doctorMockService";
 import { PaginatedResponse } from "@/types/common";
 
 // Real implementation would use these endpoints
-export const doctorService = {
+ const doctorService = {
   getAllDoctors: async (): Promise<Doctor[]> => {
     try {
       const response = await http.get<Doctor[]>('/v1/doctor/list');
@@ -24,7 +24,7 @@ export const doctorService = {
     return response.data;
   },
 
-   saveOrUpdateDoctor: async (doctor: Doctor): Promise<Doctor> => {
+   saveOrUpdateDoctor: async (doctor: Doctor): Promise<any> => {
     try {
       const response = await http.post<any>('/v1/doctor/saveOrUpdate', doctor);
       return response.data;
@@ -66,3 +66,4 @@ export const doctorService = {
 };
 
 
+export default doctorService;
