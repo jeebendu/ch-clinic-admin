@@ -128,7 +128,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                   </TableCell>
                   <TableCell>
                     <Badge variant={doctor.verified ? 'success' : 'destructive'}>
-                      {doctor.verified?"verified":"Not Verified"}
+                      {doctor.verified ? "verified" : "Not Verified"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
