@@ -47,11 +47,12 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             qualification: `Qualification ${i % 5 + 1}`,
             joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
             external: i % 2 === 0,
+            publishedOnline: i % 4 === 0, // Added publishedOnline property
             user: undefined,
             lastname: "",
             expYear: 0,
             about: "",
-            image: "", // Now properly typed
+            image: "",
             pincode: "",
             city: "",
             biography: "",

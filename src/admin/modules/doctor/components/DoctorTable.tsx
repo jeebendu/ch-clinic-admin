@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -83,7 +84,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                         <div className="font-medium flex items-center">
                           {doctor.firstname} {doctor.lastname}
                           {doctor.external && <ExternalLink className="h-3 w-3 ml-1 text-muted-foreground" />}
-                          {doctor.publishedOnline && <Globe className="h-3 w-3 ml-1 text-green-500" title="Published Online" />}
+                          {doctor.publishedOnline && <Globe className="h-3 w-3 ml-1 text-green-500" aria-label="Published Online" />}
                         </div>
                         <div className="text-sm text-muted-foreground">{doctor.uid}</div>
                       </div>

@@ -50,12 +50,17 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   });
 
   const handleSubmit = (data: DoctorOnboardingFormValues) => {
-    const updatedDoctor = {
+    const onboardingDetails: DoctorOnboardingDetails = {
+      ...data
+    };
+    
+    const updatedDoctor: Doctor = {
       ...doctor,
-      onboardingDetails: data,
+      onboardingDetails,
       publishedOnline: true,
       registrationNumber: data.registrationNumber,
     };
+    
     onSubmit(updatedDoctor);
   };
 

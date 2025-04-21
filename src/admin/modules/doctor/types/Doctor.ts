@@ -43,7 +43,7 @@ export interface Doctor {
 }
 
 export interface DoctorOnboardingDetails {
-  registrationNumber: string;
+  registrationNumber?: string; // Made optional
   registrationYear?: string;
   registrationCouncil?: string;
   specialityDegree?: string;
