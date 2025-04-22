@@ -26,6 +26,7 @@ import {
   AlignVerticalDistributeCenterIcon,
   Martini,
   Filter,
+  CopyMinusIcon,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -135,6 +136,12 @@ const navItems = [
     icon: <Filter className="h-5 w-5" />, 
     label: "Category", 
     href: "/admin/category", 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <CopyMinusIcon className="h-5 w-5" />, 
+    label: "Brand", 
+    href: "/admin/brand", 
     roles: ["Admin"] 
   },
   { 
