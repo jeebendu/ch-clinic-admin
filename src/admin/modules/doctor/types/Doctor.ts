@@ -12,6 +12,51 @@ export interface Doctor {
   branch: Branch;
   isVerified: boolean;
   additionalInfo?: AdditionalInfoDoctor;
+  
+  // Additional properties needed by components
+  firstname: string;
+  lastname: string;
+  phone: string;
+  expYear: number;
+  desgination: string;
+  about: string;
+  gender: number;
+  external: boolean;
+  verified: boolean; // alias for isVerified
+  biography: string;
+  city: string;
+  uid: string;
+  joiningDate: string;
+  user?: {
+    id: number;
+    branch: any;
+    name: string;
+    username: string;
+    email: string;
+    phone: string;
+    password: string;
+    effectiveTo: string | null;
+    effectiveFrom: string | null;
+    role: {
+      id: number;
+      name: string;
+      permissions: any[];
+    };
+    image: string;
+  };
+  specializationList?: { id: number; name: string }[];
+  serviceList?: { id: number; name: string }[];
+  branchList?: Branch[];
+  languageList?: { id: number; name: string }[];
+  district?: District;
+  state?: State;
+  country?: { id: number; name: string };
+  percentages?: any[];
+  pincode?: string;
+  consultationFee?: number;
+  reviewCount?: number;
+  rating?: number;
+  publishedOnline?: boolean;
 }
 
 export interface AdditionalInfoDoctor {

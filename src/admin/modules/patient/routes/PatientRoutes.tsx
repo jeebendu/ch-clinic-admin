@@ -1,3 +1,4 @@
+
 import { Route, Routes } from "react-router-dom";
 import Patients from "../pages/Patients";
 import PatientDetails from "../pages/PatientDetails";
