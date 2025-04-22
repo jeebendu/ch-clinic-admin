@@ -3,6 +3,20 @@ import { User } from "@/admin/modules/user/types/User";
 import { Country, District, State } from "@/admin/modules/core/types/Address";
 import { Specialization } from "../submodules/specialization/types/Specialization";
 
+export interface AdditionalInfoDoctor {
+    id: number;
+    registationNumber: string;
+    registationCouncil: string;
+    registationYear: string;
+    degreeCollege: string;
+    yearCompletionDegree: string;
+    establishmentType?: "own" | "visit"; 
+    establishmentName: string;
+    establishmentCity: string;
+    state: State;
+    district: District;
+}
+
 export interface Doctor {
   id: number;
   uid: string;
@@ -22,6 +36,9 @@ export interface Doctor {
   biography: string;
   gender: number;
   verified: boolean;
+  publishedOnline: boolean;
+  registrationNumber?: string;
+  // additionalInfoDoctor?: DoctorOnboardingDetails;
   percentages: any[];
   specializationList: Specialization[];
   serviceList: DoctorService[];
@@ -36,8 +53,20 @@ export interface Doctor {
   reviewCount: number;
   rating: number;
   status: string;
+  additionalInfoDoctor ?: AdditionalInfoDoctor; // <- New field reference
 }
 
+// export interface DoctorOnboardingDetails {
+//   registrationNumber: string;
+//   registrationYear?: string;
+//   registrationCouncil?: string;
+//   specialityDegree?: string;
+//   specialityYear?: string;
+//   specialityInstitute?: string;
+//   identityProof?: string;
+//   addressProof?: string;
+//   establishmentType?: "own" | "visit"; // NEW FIELD: "own" or "visit"
+// }
 
 export interface DoctorService {
   id: number;

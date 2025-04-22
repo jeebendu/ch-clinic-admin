@@ -1,7 +1,7 @@
+
 import { AppointmentRequest } from "../types/AppointmentRequest";
 import { Country, District, State } from "../../core/types/Address";
 import { Doctor } from "../../doctor/types/Doctor";
-
 
 /**
  * Generate mock appointment requests data for development
@@ -36,8 +36,8 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             firstname: `Doctor ${i % 10 + 1}`,
             email: `doctor${i % 10 + 1}@example.com`,
             uid: `UID-${i % 10 + 1}`,
-            phone: (9876543210 + i).toString(), // Ensure mobile is a string
-            desgination: `Designation ${i % 5 + 1}`, // Corrected to match the property name in 'Doctor'
+            phone: (9876543210 + i).toString(),
+            desgination: `Designation ${i % 5 + 1}`,
             specializationList: [
                 {
                     id: i % 3 + 1,
@@ -47,7 +47,13 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             qualification: `Qualification ${i % 5 + 1}`,
             joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
             external: i % 2 === 0,
-            user: undefined,
+            publishedOnline: i % 4 === 0, // Ensure publishedOnline is present and boolean
+            user: {
+                id: i % 10 + 1,
+                name: `User ${i % 10 + 1}`,
+                username: `user${i % 10 + 1}`,
+                role: "doctor",
+            },
             lastname: "",
             expYear: 0,
             about: "",
@@ -67,7 +73,7 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             consultationFee: undefined,
             reviewCount: 0,
             rating: 0,
-            status: i % 2 === 0 ? "Active" : "Inactive" // Added missing status property
+            status: i % 2 === 0 ? "Active" : "Inactive"
         };
 
         const mockAppointment: AppointmentRequest = {
@@ -75,9 +81,9 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             firstName: `FirstName ${i + 1}`,
             lastName: `LastName ${i + 1}`,
             email: `user${i + 1}@example.com`,
-            phone: 1234567890 + i, // Ensure phone is a number
+            phone: 1234567890 + i,
             dob: new Date(1990, i % 12, (i % 28) + 1),
-            gender: i % 2, // 0 for male, 1 for female
+            gender: i % 2,
             district: mockDistrict,
             state: mockState,
             country: mockCountry,

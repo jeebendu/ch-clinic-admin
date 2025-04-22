@@ -24,7 +24,8 @@ const doctorFormSchema = z.object({
   about: z.string().optional(),
   gender: z.enum(["0", "1", "2"]),
   external: z.boolean().default(false),
-  status: z.enum(["Active", "Inactive"]),
+  verified: z.boolean().default(false),
+  // status: z.enum(["Active", "Inactive"]),
   biography: z.string().optional(),
   city: z.string().optional(),
 });
@@ -57,7 +58,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       about: "",
       gender: "0",
       external: false,
-      status: "Active",
+      verified: false,
+      // status: "Active",
       biography: "",
       city: "",
     },
@@ -77,7 +79,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
         about: doctor.about || "",
         gender: (doctor.gender?.toString() || "0") as "0" | "1" | "2",
         external: doctor.external || false,
-        status: (doctor.status || "Active") as "Active" | "Inactive",
+        verified: doctor.verified || false,
+        // status: (doctor.status || "Active") as "Active" | "Inactive",
         biography: doctor.biography || "",
         city: doctor.city || "",
       });
@@ -100,7 +103,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       about: data.about || "",
       gender: parseInt(data.gender, 10),
       external: data.external,
-      status: data.status,
+      // status: data.status,
       biography: data.biography || "",
       city: data.city || "",
       joiningDate: doctor?.joiningDate || new Date().toISOString(),
@@ -129,9 +132,9 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       state: doctor?.state || null,
       country: doctor?.country || null,
       percentages: doctor?.percentages || [],
-      image: doctor?.image || "",
+      image: doctor?.user?.image || "",
       pincode: doctor?.pincode || "",
-      verified: doctor?.verified || false,
+      verified: doctor?.verified,
       consultationFee: doctor?.consultationFee || 0,
       reviewCount: doctor?.reviewCount || 0,
       rating: doctor?.rating || 0,
@@ -148,7 +151,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
             {doctor ? "Edit Doctor" : "Add New Doctor"}
           </DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -166,7 +169,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="lastname"
@@ -180,7 +183,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -194,7 +197,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="phone"
@@ -223,7 +226,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="expYear"
@@ -237,7 +240,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="desgination"
@@ -251,15 +254,15 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="gender"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gender</FormLabel>
-                    <Select 
-                      value={field.value} 
+                    <Select
+                      value={field.value}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
@@ -292,8 +295,8 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                   </FormItem>
                 )}
               />
-              
-              <FormField
+
+              {/* <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
@@ -316,7 +319,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
 
               <FormField
                 control={form.control}
@@ -348,17 +351,17 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                 <FormItem>
                   <FormLabel>About</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Brief description about the doctor"
                       className="h-20"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="biography"
@@ -366,17 +369,17 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                 <FormItem>
                   <FormLabel>Biography</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Detailed professional biography"
                       className="h-32"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
