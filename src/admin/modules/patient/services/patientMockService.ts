@@ -3,15 +3,24 @@ import { faker } from "@faker-js/faker";
 import { Patient } from "../types/Patient";
 import { Doctor } from "../../doctor/types/Doctor";
 import { User } from "../../user/types/User";
+import { Role } from "../../user/submodules/roles/types/Role";
 
 const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
+  // Create a proper Role object
+  const patientRole: Role = {
+    id: 3,
+    name: "Patient",
+    permissions: []
+  };
+
   const mockUser: User = {
     id: i,
+    uid: faker.string.uuid(),
     name: faker.person.firstName(),
     username: faker.internet.userName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    role: "doctor",
+    role: patientRole,
     image: faker.image.avatar(),
   };
 
@@ -26,7 +35,38 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     specializationList: [],
     qualification: "MBBS",
     joiningDate: faker.date.past().toISOString(),
-    user: mockUser,
+    user: {
+      id: i,
+      uid: faker.string.uuid(),
+      branch: {
+        id: i % 3,
+        name: `Branch ${i % 3}`,
+        code: `B-${i % 3}`,
+        location: faker.location.city(),
+        active: true,
+        city: faker.location.city(),
+        pincode: 12345,
+        image: "",
+        latitude: 0,
+        longitude: 0,
+        state: null,
+        district: null,
+        country: null
+      },
+      name: faker.person.fullName(),
+      username: faker.internet.userName(),
+      email: faker.internet.email(),
+      phone: faker.phone.number(),
+      password: "password",
+      effectiveTo: faker.date.future().toISOString(),
+      effectiveFrom: faker.date.past().toISOString(),
+      role: {
+        id: 2,
+        name: "Doctor",
+        permissions: []
+      },
+      image: faker.image.avatar()
+    },
     external: false,
     publishedOnline: false, 
     expYear: 0,
@@ -37,6 +77,7 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     biography: '',
     gender: 0,
     verified: false,
+    isVerified: false,
     percentages: [],
     serviceList: [],
     branchList: [],
@@ -47,7 +88,9 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     consultationFee: undefined,
     reviewCount: 0,
     rating: 0,
-    status: "Active"
+    status: "Active",
+    name: faker.person.fullName(),
+    mobile: faker.phone.number(),
   };
 
   // Convert mock data to Patient type with all required properties

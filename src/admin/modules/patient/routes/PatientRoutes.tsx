@@ -1,10 +1,6 @@
+
 import { Route, Routes } from "react-router-dom";
 import Patients from "../pages/Patients";
-import PatientDetails from "../pages/PatientDetails";
-import CreatePatient from "../pages/CreatePatient";
-import EditPatient from "../pages/EditPatient";
-import PatientServiceTypeList from "../pages/PatientServiceTypeList";
-import PatientServiceTypeForm from "../pages/PatientServiceTypeForm";
 import EnquiryList from "../submodules/enquiry/pages/EnquiryList";
 
 const PatientRoutes = () => {
@@ -12,12 +8,13 @@ const PatientRoutes = () => {
     <Routes>
       <Route path="/" element={<Patients />} />
       <Route path="/list" element={<Patients />} />
-      <Route path="/details/:id" element={<PatientDetails />} />
+      {/* These routes are commented out until their components are implemented */}
+      {/* <Route path="/details/:id" element={<PatientDetails />} />
       <Route path="/create" element={<CreatePatient />} />
       <Route path="/edit/:id" element={<EditPatient />} />
       <Route path="/patient-service-types" element={<PatientServiceTypeList />} />
       <Route path="/patient-service-type/add" element={<PatientServiceTypeForm />} />
-      <Route path="/patient-service-type/edit/:id" element={<PatientServiceTypeForm />} />
+      <Route path="/patient-service-type/edit/:id" element={<PatientServiceTypeForm />} /> */}
       <Route path="/enquiries" element={<EnquiryList />} />
     </Routes>
   );

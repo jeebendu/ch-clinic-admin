@@ -26,7 +26,7 @@ const AdminRoutes = () => {
       <Route path="/patients/*" element={<PatientRoutes />} />
       <Route path="/branch/*" element={<BranchRoutes />} />
       <Route path="/sequence/*" element={<SequenceRoutes />} />
-      <Route path="/repair-company/*" element={<RepairCompanyRoutes />} />
+      {/* Route for RepairCompanyRoutes has been removed as it doesn't exist */}
       <Route path="/courier/*" element={<CourierRoutes />} />
       <Route path="/distributor/*" element={<DistributorRoutes />} />
       <Route path="/product/*" element={<ProductRoutes/>} />

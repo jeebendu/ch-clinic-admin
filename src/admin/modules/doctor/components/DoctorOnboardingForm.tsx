@@ -97,10 +97,10 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
 
   useEffect(() => {
     setBranchList(doctor.branchList || []);
-    console.log(doctor)
-    if (doctor?.additionalInfoDoctor) {
+    console.log(doctor);
+    if (doctor?.additionalInfo) {
       form.reset({
-        ...doctor.additionalInfoDoctor
+        ...doctor.additionalInfo
       });
     }
   }, [doctor]);
@@ -121,22 +121,21 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   const form = useForm<DoctorOnboardingFormValues>({
     resolver: zodResolver(doctorOnboardingSchema),
     defaultValues: {
-      registationCouncil: doctor?.additionalInfoDoctor?.registationCouncil || "",
-      registationYear: doctor?.additionalInfoDoctor?.registationYear || "",
-      registationNumber: doctor?.additionalInfoDoctor?.registationNumber || "",
-      degreeCollege: doctor?.additionalInfoDoctor?.degreeCollege || "",
-      yearCompletionDegree: doctor?.additionalInfoDoctor?.yearCompletionDegree || "",
-      establishmentType: doctor?.additionalInfoDoctor?.establishmentType || undefined,
-      establishmentName: doctor?.additionalInfoDoctor?.establishmentName || "",
-      establishmentCity: doctor?.additionalInfoDoctor?.establishmentCity || "",
-      district: doctor?.additionalInfoDoctor?.district || null,
-      state: doctor?.additionalInfoDoctor?.state || null,
+      registationCouncil: doctor?.additionalInfo?.registationCouncil || "",
+      registationYear: doctor?.additionalInfo?.registationYear || "",
+      registationNumber: doctor?.additionalInfo?.registationNumber || "",
+      degreeCollege: doctor?.additionalInfo?.degreeCollege || "",
+      yearCompletionDegree: doctor?.additionalInfo?.yearCompletionDegree || "",
+      establishmentType: doctor?.additionalInfo?.establishmentType || undefined,
+      establishmentName: doctor?.additionalInfo?.establishmentName || "",
+      establishmentCity: doctor?.additionalInfo?.establishmentCity || "",
+      district: doctor?.additionalInfo?.district || null,
+      state: doctor?.additionalInfo?.state || null,
     },
   });
 
   const handleSubmit = (data: AdditionalInfoDoctor) => {
-
-    const additionalInfoDoctor = {
+    const additionalInfo = {
       id: data.id, // New/add default as appropriate
       registationNumber: data.registationNumber,
       registationYear: data.registationYear,
@@ -153,7 +152,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
     const updatedDoctor: Doctor = {
       ...doctor,
       publishedOnline: true,
-      additionalInfoDoctor,
+      additionalInfo,
       branchList: branchList,
     };
 

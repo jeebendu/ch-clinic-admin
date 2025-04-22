@@ -1,5 +1,4 @@
 
-
 export interface Expense {
   id: number;
   uid: string;
@@ -14,6 +13,12 @@ export interface Expense {
   discount: number;
   grandTotal: number;
   approved: boolean;
+  createdBy?: string;
+  approvedBy?: {
+    firstname: string;
+    lastname: string;
+  };
+  approvedTime?: Date;
 }
 
 export interface ExpenseItem {
