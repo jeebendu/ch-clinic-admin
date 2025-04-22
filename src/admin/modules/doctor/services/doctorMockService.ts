@@ -37,6 +37,7 @@ export const DoctorMockService = {
         } : undefined,
         user: {
           id: i,
+          uid: `USR-${i}`, // Add uid property
           branch: {
             id: i % 3 + 1,
             name: `Branch ${i % 3 + 1}`,

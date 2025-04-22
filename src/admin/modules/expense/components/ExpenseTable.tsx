@@ -40,8 +40,7 @@ const ExpenseTable = ({ expense, onDelete, onEdit }: ExpenseTableProps) => {
                             <TableHead>Amount</TableHead>
                             <TableHead>Payment Type</TableHead>
                             <TableHead>Description</TableHead>
-                            <TableHead>Submited By</TableHead>
-                            <TableHead>Approved By</TableHead>
+                            <TableHead>Created</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -50,7 +49,7 @@ const ExpenseTable = ({ expense, onDelete, onEdit }: ExpenseTableProps) => {
                         {expense.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                                    No user found
+                                    No expenses found
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -59,20 +58,11 @@ const ExpenseTable = ({ expense, onDelete, onEdit }: ExpenseTableProps) => {
                                     <TableCell className="font-medium">{user.grandTotal}</TableCell>
                                     <TableCell className="font-medium">{user.paymentType?.name}</TableCell>
                                     <TableCell>{user.description}</TableCell>
-                                    <TableCell><div>{user.createdBy} </div>
+                                    <TableCell>
                                         <div className="text-sm text-muted-foreground">
                                             {user.createdTime ? format(new Date(user.createdTime), 'PPP') : ''}
                                         </div>
                                     </TableCell>
-                                    <TableCell><div>
-                                        <div>{user.approvedBy.firstname}   {user.approvedBy.lastname}</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            {user.approvedTime ? format(new Date(user.approvedTime), 'PPP') : ''}
-                                        </div>
-                                    </div></TableCell>
-
-
-
                                     <TableCell>
                                         <span className={`px-2 py-1 text-xs rounded-full ${user.approved ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                             {user.approved ? 'Approved' : 'Pending'}
@@ -102,29 +92,6 @@ const ExpenseTable = ({ expense, onDelete, onEdit }: ExpenseTableProps) => {
                     </TableBody>
                 </Table>
             </div>
-
-            {/* Map Modal */}
-            {/* <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
-                <DialogContent className="max-w-4xl h-[80vh]">
-                    <DialogHeader className="border-b pb-4">
-                        <DialogTitle className="text-clinic-primary">Expence Location</DialogTitle>
-                    </DialogHeader>
-                    <div className="h-full w-full">
-                        {selectedMapUrl && (
-                            <iframe
-                                src={selectedMapUrl}
-                                width="100%"
-                                height="100%"
-                                style={{ border: 0, minHeight: "400px" }}
-                                allowFullScreen={true}
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                className="rounded"
-                            ></iframe>
-                        )}
-                    </div>
-                </DialogContent>
-            </Dialog> */}
         </>
     );
 };
