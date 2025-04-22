@@ -10,6 +10,10 @@ import DoctorRoutes from "./modules/doctor/DoctorRoutes";
 import UserRoutes from "./modules/user/UserRoutes";
 import CoreRoutes from "./modules/core/routes/CoreRoutes";
 import ExpenseRoutes from "./modules/expense/routes/ExpenseRoutes";
+import SequenceRoutes from "./modules/config/submodules/sequence/routes/SequenceRoutes";
+import CourierRoutes from "./modules/config/submodules/courier/routes/CourierRoutes";
+import DistributorRoutes from "./modules/config/submodules/distributor/routes/DistributorRoutes";
+import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/routes/RepairCompanyRoutes";
 
 const AdminRoutes = () => {
   return (
