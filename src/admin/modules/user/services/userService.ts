@@ -1,5 +1,5 @@
 import http from "@/lib/JwtInterceptor";
-import { User } from "../types/User";
+import { Staff, User } from "../types/User";
 import { getEnvVariable } from "@/utils/envUtils";
 
 const apiUrl = getEnvVariable('API_URL');
@@ -28,8 +28,8 @@ const UserService = {
     return http.get(`${apiUrl}/v1/staff/id/${id}`);
   },
 
-  saveOrUpdate: (staff:User) => {
-    return http.post(`${apiUrl}/v1/staff/saveOrUpdate`, staff);
+  saveOrUpdate: (userData:Staff) => {
+    return http.post(`${apiUrl}/v1/staff/saveOrUpdate`, userData);
   },
 
   filter: (pageNumber:any, pageSize:any, search:any) => {

@@ -1,3 +1,4 @@
+import { Staff } from "../../user/types/User";
 
 
 export interface Expense {
@@ -14,6 +15,11 @@ export interface Expense {
   discount: number;
   grandTotal: number;
   approved: boolean;
+  approvedBy:Staff;
+  createdBy: string;
+  approvedTime: Date;
+  
+
 }
 
 export interface ExpenseItem {

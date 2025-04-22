@@ -35,6 +35,7 @@ const UserRoutes = () => {
       <Route path="/users/*" element={<UsersList />} />
       <Route path="/login-history/*" element={<LoginHistoryList />} />
       <Route path="/roles/*" element={<RolesList />} />
+      
     </Routes>
   );
 };

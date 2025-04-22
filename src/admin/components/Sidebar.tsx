@@ -95,6 +95,12 @@ const navItems = [
   },
   { 
     icon: <UserCircle className="h-5 w-5" />, 
+    label: "Login-History", 
+    href: "/admin/users/login-history", 
+    roles: ["Admin"] ,
+  },
+  { 
+    icon: <UserCircle className="h-5 w-5" />, 
     label: "Expenses", 
     href: "/admin/expense", 
     roles: ["Admin"] ,
@@ -103,6 +109,12 @@ const navItems = [
     icon: <Building2 className="h-5 w-5" />, 
     label: "Branches", 
     href: "/admin/branch", 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <Building2 className="h-5 w-5" />, 
+    label: "Roles", 
+    href: "/admin/users/roles", 
     roles: ["Admin"] 
   },
   { 

@@ -19,9 +19,9 @@ import {
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import { Expense } from "../types/Expense";
 import ExpenseService from "../service/ExpenseService";
 import ExpenseTable from "../components/ExpenseTable";
+import { Expense } from "../types/Expense";
 
 const ExpenseList = () => {
   const navigate = useNavigate();
