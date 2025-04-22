@@ -1,12 +1,14 @@
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import { Brand } from "@/admin/modules/patient/types/Product";
 
 
 export interface Product {
     id: number;
     name: string;
-    price: number;
+    price: string;
     buyprice: number;
     specialprice: number;
-    qty: number;
+    qty: string;
     qtyLoose: number;
     stripsPerBox: number;
     capPerStrip: number;
@@ -21,9 +23,7 @@ export interface Product {
     smallimage: string;
     largeimage: string;
     description: string;
-    branchId: number;
-    categoryId: number;
-    brandId: number;
+    branch: Branch;
     category: Category;
     serials: ProductItem[];
     batchList: any[];
@@ -50,10 +50,10 @@ export interface SearchObj {
     category: Category;
 }
 
-export interface Brand {
-    id:number
-    name:string
-}
+// export interface Brand {
+//     id:number
+//     name:string
+// }
 export interface Category {
     id:number
     name:string
@@ -62,5 +62,4 @@ export interface ProductType {
     id:number
     name:string
     strip:boolean
-    
 }
