@@ -30,6 +30,22 @@ export const DoctorMockService = {
         joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
         external: i % 3 === 0,
         publishedOnline: i % 7 === 0,
+        branch: {
+          id: i % 3 + 1,
+          name: `Branch ${i % 3 + 1}`,
+          code: `BR-${i % 3 + 1}`,
+          location: `Location ${i % 3 + 1}`,
+          active: true,
+          state: null,
+          district: null,
+          country: null,
+          city: `City ${i % 3 + 1}`,
+          mapurl: "",
+          pincode: 12345,
+          image: "",
+          latitude: 0,
+          longitude: 0,
+        },
         user: {
           id: i,
           branch: {

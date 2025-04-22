@@ -2,12 +2,12 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import FormField from "@/admin/components/FormField";
 import { Button } from "@/components/ui/button";
 import { Enquiry } from "@/admin/modules/enquiry/types/Enquiry";
 import { useToast } from "@/components/ui/use-toast";
 import enquiryService from "@/admin/modules/enquiry/service/EnquiryService";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 interface EnquiryFormProps {
   enquiry?: Enquiry | null;
@@ -60,12 +60,28 @@ const EnquiryForm = ({ enquiry, onClose }: EnquiryFormProps) => {
           <FormField
             control={form.control}
             name="firstName"
-            label="First Name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>First Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter first name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
           <FormField
             control={form.control}
             name="lastName"
-            label="Last Name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Last Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter last name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
         
@@ -73,12 +89,28 @@ const EnquiryForm = ({ enquiry, onClose }: EnquiryFormProps) => {
           <FormField
             control={form.control}
             name="countryCode"
-            label="Country Code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Country Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter country code" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
           <FormField
             control={form.control}
             name="mobile"
-            label="Mobile"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mobile</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter mobile number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
         
@@ -86,17 +118,32 @@ const EnquiryForm = ({ enquiry, onClose }: EnquiryFormProps) => {
           <FormField
             control={form.control}
             name="city"
-            label="City"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>City</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter city" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
           <FormField
             control={form.control}
             name="leadDate"
-            label="Lead Date"
-            type="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Lead Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
         
-        {/* Use FormField component for textareas */}
+        {/* Text areas for longer content */}
         <div className="space-y-4">
           <FormField
             control={form.control}

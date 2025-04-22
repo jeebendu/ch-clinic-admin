@@ -35,9 +35,23 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     specializationList: [],
     qualification: "MBBS",
     joiningDate: faker.date.past().toISOString(),
+    branch: {
+      id: i % 3,
+      name: `Branch ${i % 3}`,
+      code: `B-${i % 3}`,
+      location: faker.location.city(),
+      active: true,
+      city: faker.location.city(),
+      pincode: 12345,
+      image: "",
+      latitude: 0,
+      longitude: 0,
+      state: null,
+      district: null,
+      country: null
+    },
     user: {
       id: i,
-      uid: faker.string.uuid(),
       branch: {
         id: i % 3,
         name: `Branch ${i % 3}`,
@@ -65,7 +79,8 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
         name: "Doctor",
         permissions: []
       },
-      image: faker.image.avatar()
+      image: faker.image.avatar(),
+      uid: faker.string.uuid()
     },
     external: false,
     publishedOnline: false, 
