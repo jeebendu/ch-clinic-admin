@@ -1,11 +1,14 @@
 import http from "@/lib/JwtInterceptor";
 import { User } from "../types/User";
+import { getEnvVariable } from "@/utils/envUtils";
 
-const apiUrl = process.env.REACT_APP_API_URL;
+const apiUrl = getEnvVariable('API_URL');
 
 const UserService = {
-  paginatedList: (pageNumber:any, pageSize:any, search:any) => {
-    const url = `${apiUrl}/v1/staff/list/${pageNumber}/${pageSize}${search ? '/' + search : ''}`;
+  paginatedList: (pageNumber: number, pageSize: number, search: string | null) => {
+    const url = search
+      ? `${apiUrl}/v1/staff/list/${pageNumber}/${pageSize}?search=${encodeURIComponent(search)}`
+      : `${apiUrl}/v1/staff/list/${pageNumber}/${pageSize}`;
     return http.get(url);
   },
 

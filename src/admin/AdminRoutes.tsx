@@ -9,10 +9,7 @@ import CustomerRoutes from "./modules/customer/routes/CustomerRoutes";
 import DoctorRoutes from "./modules/doctor/DoctorRoutes";
 import UserRoutes from "./modules/user/UserRoutes";
 import CoreRoutes from "./modules/core/routes/CoreRoutes";
-import SequenceRoutes from "./modules/config/submodules/sequence/routes/SequenceRoutes";
-import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/routes/RepairCompanyRoutes";
-import CourierRoutes from "./modules/config/submodules/courier/routes/CourierRoutes";
-import DistributorRoutes from "./modules/config/submodules/distributor/routes/DistributorRoutes";
+import ExpenseRoutes from "./modules/expense/routes/ExpenseRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -29,6 +26,7 @@ const AdminRoutes = () => {
       <Route path="/customer/*" element={<CustomerRoutes />} />
       <Route path="/doctor/*" element={<DoctorRoutes />} />
       <Route path="/users/*" element={<UserRoutes />} />
+      <Route path="/expense/*" element={<ExpenseRoutes/>} />
       <Route path="/core/*" element={<CoreRoutes />} />
       <Route path="/:section" element={<DashboardRoutes />} />
     </Routes>

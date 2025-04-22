@@ -25,11 +25,12 @@ export const SpecialityService = {
     return http.get(`${apiUrl}/v1/public/doctor/specialization/id/${id}`);
   },
 
-  saveOrUpdate: async(data: FormData) => {
-console.log("Sending data to API:", data);
-    return axios.post(`${apiUrl}/v1/public/doctor/specialization/saveOrUpdate`, data, {
-      headers:{ "Content-Type": "application/json" },
-    });
+  saveOrUpdate: async (data: FormData) => {
+    console.log("Sending data to API:", data);
+    for (let pair of data.entries()) {
+      console.log(pair[0] + ": ", pair[1]);
+    }
+    return axios.post(`${apiUrl}/v1/public/doctor/specialization/saveOrUpdate`, data);
   },
 }
 export default SpecialityService;

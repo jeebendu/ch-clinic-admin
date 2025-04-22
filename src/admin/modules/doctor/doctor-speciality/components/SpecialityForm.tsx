@@ -76,18 +76,16 @@ const SpecialityForm: React.FC<SpecialityFormProps> = ({ speciality, onSuccess }
       }
       formData.append("filename", selectedFile);
 
-      // formData.append(
-      //   "specilityObj",
-      //   new Blob([JSON.stringify(specialityData)], {
-      //     type: "application/json",
-      //   })
-      // );
+      formData.append(
+        "specilityObj",
+        new Blob([JSON.stringify(specialityData)], {
+          type: "application/json",
+        })
+      );
 // console.log("FormData before sending:", formData.get("specilityObj"));
 //       console.log("Selected file:", selectedFile);
 //       console.log(formData);
 
-      formData.set("specilityObj",new Blob([ JSON.stringify(specialityData)]));
-      console.log("FormData after setting specilityObj:", formData);
       const res = await SpecialityService.saveOrUpdate(formData);
 
       toast({

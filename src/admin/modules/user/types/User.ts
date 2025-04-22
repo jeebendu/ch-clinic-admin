@@ -4,6 +4,7 @@ import { Role } from "../submodules/roles/types/Role";
 
 export interface User {
   id: number;
+  uid: string;
   branch?: Branch;
   name: string;
   username: string;
@@ -12,12 +13,13 @@ export interface User {
   password?: string;
   effectiveTo?: Date;
   effectiveFrom?: Date;
-  role?: Role | string;
+  role?: Role ;
   roleobj?: Role;
   image?: string;
   token?: string;
   branchId?: number;
   branchIds?: number[];
+  status?: boolean;
 }
 
 export interface AuthUser {
@@ -34,7 +36,7 @@ export interface Staff {
   firstname: string;
   lastname: string;
   id: number;
-  userId: number;
+  uId: number;
   dob: Date;
   whatsappNo: number;
   age: string;
