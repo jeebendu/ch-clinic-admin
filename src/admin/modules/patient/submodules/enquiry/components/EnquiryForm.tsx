@@ -5,10 +5,8 @@ import { Form } from "@/components/ui/form";
 import FormField from "@/admin/components/FormField";
 import { Button } from "@/components/ui/button";
 import { Enquiry } from "@/admin/modules/enquiry/types/Enquiry";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
-import enquiryService from "@/admin/modules/enquiry/service/EnquiryService";
 import { useToast } from "@/components/ui/use-toast";
+import enquiryService from "@/admin/modules/enquiry/service/EnquiryService";
 
 interface EnquiryFormProps {
   enquiry?: Enquiry | null;
@@ -24,6 +22,10 @@ const EnquiryForm = ({ enquiry, onClose }: EnquiryFormProps) => {
       enquiryServiceType: enquiry?.enquiryServiceType?.id?.toString() || "",
       needs: enquiry?.needs || "",
       remark: enquiry?.remark || "",
+      notes: enquiry?.notes || "",
+      countryCode: enquiry?.countryCode || "",
+      city: enquiry?.city || "",
+      leadDate: enquiry?.leadDate || new Date(),
     }
   });
 
@@ -34,11 +36,7 @@ const EnquiryForm = ({ enquiry, onClose }: EnquiryFormProps) => {
       await enquiryService.saveOrUpdate({
         ...enquiry,
         ...data,
-        enquiryServiceType: {
-          id: parseInt(data.enquiryServiceType),
-          name: "",
-          price: 0
-        }
+        leadDate: new Date(data.leadDate),
       });
       toast({
         title: "Success",
@@ -70,28 +68,52 @@ const EnquiryForm = ({ enquiry, onClose }: EnquiryFormProps) => {
           />
         </div>
         
-        <FormField
-          control={form.control}
-          name="mobile"
-          label="Mobile"
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="countryCode"
+            label="Country Code"
+          />
+          <FormField
+            control={form.control}
+            name="mobile"
+            label="Mobile"
+          />
+        </div>
         
-        <FormField
-          control={form.control}
-          name="enquiryServiceType"
-          label="Service Type"
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="city"
+            label="City"
+          />
+          <FormField
+            control={form.control}
+            name="leadDate"
+            label="Lead Date"
+            type="date"
+          />
+        </div>
         
         <FormField
           control={form.control}
           name="needs"
           label="Needs"
+          component="textarea"
         />
         
         <FormField
           control={form.control}
           name="remark"
           label="Remarks"
+          component="textarea"
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          label="Notes"
+          component="textarea"
         />
 
         <div className="flex justify-end gap-2">

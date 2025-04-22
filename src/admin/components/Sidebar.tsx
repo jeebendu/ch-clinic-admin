@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,6 +25,7 @@ import {
   AlignVerticalDistributeCenterIcon,
   Martini,
   Filter,
+  MessageSquare,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -42,10 +42,8 @@ interface SidebarProps {
   collapsed?: boolean;
 }
 
-// Define the UserRole type
 type UserRole = "Admin" | "Doctor" | "Staff";
 
-// Expanded navigation items list with all modules
 const navItems = [
   { 
     icon: <Home className="h-5 w-5" />, 
@@ -168,28 +166,29 @@ const navItems = [
     roles: ["Staff"], 
     onClick: () => document.dispatchEvent(new CustomEvent('open-quick-form'))
   },
+  { 
+    icon: <MessageSquare className="h-5 w-5" />, 
+    label: "Enquiries", 
+    href: "/admin/patients/enquiries", 
+    roles: ["Admin", "Staff"] 
+  },
 ];
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
-  // Get user role from auth service
   const userRole: UserRole = AuthService.getUserRole() as UserRole;
   const [themeColor, setThemeColor] = useState("#00b8ab");
   const { toast } = useToast();
   const { tenant } = useTenant();
 
-  // Filter nav items based on user role
   const filteredNavItems = navItems.filter(item => 
     item.roles.includes(userRole)
   );
 
-  // Get logo URL
   const tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
 
-  // Add event listener for quick form
   useEffect(() => {
     const handleQuickForm = () => {
-      // This event will be caught by the StaffDashboard component
-      // We're using this approach to avoid passing state across components
+      document.dispatchEvent(new CustomEvent('open-quick-form'));
     };
     
     document.addEventListener('open-quick-form', handleQuickForm);
@@ -207,7 +206,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     const colorPalette = generateColorPalette(themeColor);
     updateCSSVariables(colorPalette);
     
-    // Store color preference in localStorage
     localStorage.setItem('themeColor', themeColor);
     
     toast({
@@ -216,7 +214,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     });
   };
 
-  // Load saved theme on initial render
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('themeColor');
     if (savedTheme) {
@@ -224,7 +221,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
       const colorPalette = generateColorPalette(savedTheme);
       updateCSSVariables(colorPalette);
     } else {
-      // Apply default theme
       const defaultTheme = "#00b8ab";
       const colorPalette = generateColorPalette(defaultTheme);
       updateCSSVariables(colorPalette);
@@ -237,7 +233,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
       collapsed ? "w-[70px]" : "w-64"
     )}>
       <div className="p-4 flex flex-col items-center justify-between h-auto border-b border-sidebar-border">
-        {/* Tenant Logo */}
         {tenantLogoUrl && (
           <div className={cn(
             "w-full flex items-center justify-center mb-2",
@@ -251,7 +246,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
           </div>
         )}
         
-        {/* ClinicHub Logo */}
         {!collapsed ? (
           <div className="flex items-center w-full">
             <img 
