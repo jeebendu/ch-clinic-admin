@@ -117,7 +117,7 @@ const DoctorList = () => {
     try {
       const updatedDoctor = { ...doctor, verified: true };
       const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
-      if (resp.status === 200) {
+      if (resp.status) {
         toast.success("Doctor verified!");
         setShowReviewDialog(false);
         setReviewDoctor(null);
