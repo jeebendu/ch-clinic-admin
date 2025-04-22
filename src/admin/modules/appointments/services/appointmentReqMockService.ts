@@ -1,3 +1,4 @@
+
 import { AppointmentRequest } from "../types/AppointmentRequest";
 import { PaginatedResponse } from "@/types/common";
 
@@ -8,37 +9,19 @@ export const AppointmentReqMockService = {
       mockAppointmentRequests.push({
         id: i,
         uid: `APR-${i}`,
-        patient: {
-          id: i,
-          uid: `PAT-${i}`,
-          firstname: `Patient${i}`,
-          lastname: `Last${i}`,
-          email: `patient${i}@example.com`,
-          phone: `+123456789${i}`,
-          dob: new Date(1980, i % 12, (i % 28) + 1).toISOString(),
-          age: `${30 + (i % 20)}`,
-          gender: i % 2 === 0 ? "Male" : "Female",
-          lastVisitedOn: new Date(2023, i % 12, (i % 28) + 1).toISOString(),
-          user: {
-            id: i,
-            uid: `USR-${i}`,
-            name: `User ${i}`,
-            username: `user${i}`,
-            email: `user${i}@example.com`,
-            phone: `+123456789${i}`,
-            password: `password${i}`,
-            effectiveTo: new Date(2025, i % 12, (i % 28) + 1),
-            effectiveFrom: new Date(2024, i % 12, (i % 28) + 1),
-            role: {
-              id: 1,
-              name: "Patient",
-              permissions: [],
-            },
-            image: "",
-          },
-          status: i % 2 === 0 ? "Active" : "Inactive",
-          image: "",
-        },
+        firstName: `Patient${i}`,
+        lastName: `Last${i}`,
+        email: `patient${i}@example.com`,
+        phone: i * 10000000,
+        dob: new Date(1980, i % 12, (i % 28) + 1),
+        gender: i % 2,
+        district: null,
+        state: null,
+        country: null,
+        city: `City ${i}`,
+        appointmentDate: `2023-${(i % 12) + 1}-${(i % 28) + 1}`,
+        isAccept: i % 3 === 0,
+        isReject: i % 3 === 1,
         doctor: {
           id: i,
           uid: `DOC-${i}`,
@@ -71,18 +54,51 @@ export const AppointmentReqMockService = {
               permissions: [],
             },
             image: "",
+            branch: {
+              id: 1,
+              name: "Main Branch",
+              code: "BR-001",
+              location: "Downtown",
+              active: true,
+              state: null,
+              district: null,
+              country: null,
+              city: "New York",
+              mapurl: "",
+              pincode: 10001,
+              image: "",
+              latitude: 40.7128,
+              longitude: -74.0060,
+            },
           },
           status: i % 2 === 0 ? "Active" : "Inactive",
           about: `About doctor ${i}`,
           image: "",
+          expYear: i % 10,
+          city: `City ${i}`,
+          pincode: `${100000 + i}`,
+          biography: `Bio for doctor ${i}`,
+          gender: i % 2,
+          verified: i % 2 === 0,
+          percentages: [],
+          serviceList: [],
+          branchList: [],
+          languageList: [],
+          district: null,
+          state: null,
+          country: null,
+          consultationFee: i * 100,
+          reviewCount: i % 5,
+          rating: (i % 5) + 1,
         },
-        appointmentDate: new Date(2023, i % 12, (i % 28) + 1),
-        appointmentTime: `${10 + (i % 8)}:${i % 2 === 0 ? "00" : "30"}`,
-        status: i % 3 === 0 ? "Pending" : i % 3 === 1 ? "Confirmed" : "Cancelled",
-        reason: `Appointment reason ${i}`,
-        notes: `Additional notes for appointment ${i}`,
-        createdAt: new Date(2023, i % 12, (i % 28) + 1),
-        updatedAt: new Date(2023, i % 12, (i % 28) + 1),
+        appointmentType: {
+          id: i % 3 + 1,
+          name: i % 3 === 0 ? "Regular" : i % 3 === 1 ? "Emergency" : "Follow-up"
+        },
+        visitType: {
+          id: i % 2 + 1,
+          name: i % 2 === 0 ? "In-person" : "Virtual"
+        }
       });
     }
 
@@ -113,12 +129,16 @@ export const AppointmentReqMockService = {
     
     const filteredRequests = mockAppointmentRequests.filter((request) => {
       const matchesValue = filter.value
-        ? request.patient.firstname.toLowerCase().includes(filter.value.toLowerCase()) || 
-          request.patient.lastname.toLowerCase().includes(filter.value.toLowerCase()) ||
+        ? request.firstName.toLowerCase().includes(filter.value.toLowerCase()) || 
+          request.lastName.toLowerCase().includes(filter.value.toLowerCase()) ||
           request.doctor.firstname.toLowerCase().includes(filter.value.toLowerCase()) ||
           request.doctor.lastname.toLowerCase().includes(filter.value.toLowerCase())
         : true;
-      const matchesStatus = filter.status ? request.status === filter.status : true;
+      const matchesStatus = filter.status 
+        ? (filter.status === "accepted" && request.isAccept) ||
+          (filter.status === "rejected" && request.isReject) ||
+          (filter.status === "pending" && !request.isAccept && !request.isReject)
+        : true;
 
       return matchesValue && matchesStatus;
     });

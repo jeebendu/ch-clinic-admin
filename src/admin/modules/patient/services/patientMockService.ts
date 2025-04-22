@@ -7,12 +7,35 @@ import { User } from "../../user/types/User";
 const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
   const mockUser: User = {
     id: i,
+    uid: `USR-${i}`,
     name: faker.person.firstName(),
     username: faker.internet.userName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    role: "doctor",
+    role: {
+      id: 3,
+      name: "Patient",
+      permissions: []
+    },
+    branch: {
+      id: i % 3,
+      name: `Branch ${i % 3}`,
+      code: `B-${i % 3}`,
+      location: faker.location.city(),
+      active: true,
+      city: faker.location.city(),
+      pincode: 12345,
+      image: "",
+      latitude: 0,
+      longitude: 0,
+      state: null,
+      district: null,
+      country: null
+    },
     image: faker.image.avatar(),
+    password: "password",
+    effectiveFrom: new Date(),
+    effectiveTo: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
   };
 
   const mockDoctor: Doctor = {
@@ -75,7 +98,6 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
       image: "",
       latitude: 0,
       longitude: 0,
-      // Add the missing properties required by the Branch interface
       state: null,
       district: null,
       country: null
@@ -86,7 +108,6 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     medicalHistory: faker.lorem.paragraph(),
     city: faker.location.city(),
     createdTime: faker.date.past(),
-    // Remove the 'doctor' property as it's not in the Patient interface
   };
 
   return patient;
@@ -95,7 +116,6 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
 export default {
   getMockPatients: () => Promise.resolve({ data: mockPatients }),
   
-  // Add searchPatients function
   searchPatients: (searchTerm: string) => {
     const filteredPatients = mockPatients.filter(patient => 
       patient.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||

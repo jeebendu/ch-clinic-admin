@@ -27,17 +27,21 @@ export const DoctorMockService = {
         external: i % 3 === 0,
         publishedOnline: i % 7 === 0,
         registrationNumber: i % 7 === 0 ? `REG-${i*1000}` : undefined,
-        onboardingDetails: i % 7 === 0 ? {
-          registrationNumber: `REG-${i*1000}`,
-          registrationYear: "2018",
-          registrationCouncil: "Medical Council of India",
-          specialityDegree: "MD",
-          specialityYear: "2015",
-          specialityInstitute: "AIIMS"
+        additionalInfoDoctor: i % 7 === 0 ? {
+          id: i,
+          registationNumber: `REG-${i*1000}`,
+          registationCouncil: "Medical Council of India",
+          registationYear: "2018",
+          degreeCollege: "AIIMS",
+          yearCompletionDegree: "2015",
+          establishmentName: "Healthcare Center",
+          establishmentCity: "Mumbai",
+          state: null,
+          district: null
         } : undefined,
         user: {
           id: i,
-          uid: `USR-${i}`, // Add uid property
+          uid: `USR-${i}`,
           branch: {
             id: i % 3 + 1,
             name: `Branch ${i % 3 + 1}`,

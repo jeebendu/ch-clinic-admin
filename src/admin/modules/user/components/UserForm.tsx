@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import FormField from "@/admin/components/FormField";
-import { Staff } from "../types/User";
+import { Staff, User } from "../types/User";
 import UserService from "../services/userService";
 
 interface UserFormProps {
@@ -63,9 +64,39 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
 
     const onSubmit = async (data: FormValues) => {
         try {
-            const userData: Partial<Staff> = {
-                ...data,
+            // Create a formatted user object that includes the required uid and username fields
+            const userData: User = {
                 id: user?.id,
+                uid: user?.user?.uid || `USR-${Date.now()}`, // Generate a UID if not editing
+                username: data.username,
+                name: `${data.firstname} ${data.lastname}`,
+                email: data.email || "",
+                phone: data.phone || "",
+                password: "",  // This would typically be handled separately
+                role: {
+                    id: 1, // This would need to be properly mapped
+                    name: data.role,
+                    permissions: []
+                },
+                branch: {
+                    id: 1, // Default branch
+                    name: "Main Branch",
+                    code: "MB-001",
+                    location: "Main Location",
+                    active: true,
+                    city: "Default City",
+                    state: null,
+                    district: null,
+                    country: null,
+                    pincode: 12345,
+                    mapurl: "",
+                    image: "",
+                    latitude: 0,
+                    longitude: 0
+                },
+                image: "",
+                effectiveFrom: data.effectiveFrom || new Date(),
+                effectiveTo: data.effectiveTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1))
             };
 
             await UserService.saveOrUpdate(userData);
@@ -121,15 +152,20 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
                         control={form.control}
                         name="dob"
                         render={({ field }) => (
-                            <input
-                                type="date"
-                                className="form-input block w-full mt-1"
-                                onChange={(e) => field.onChange(new Date(e.target.value))} // Convert string to Date
-                                onBlur={field.onBlur}
-                                value={field.value ? field.value.toISOString().split('T')[0] : ''} // Convert Date to string
-                                name={field.name}
-                                ref={field.ref}
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Date of Birth
+                                </label>
+                                <input
+                                    type="date"
+                                    className="form-input block w-full mt-1"
+                                    onChange={(e) => field.onChange(new Date(e.target.value))} // Convert string to Date
+                                    onBlur={field.onBlur}
+                                    value={field.value ? field.value.toISOString().split('T')[0] : ''} // Convert Date to string
+                                    name={field.name}
+                                    ref={field.ref}
+                                />
+                            </div>
                         )}
                     />
 
