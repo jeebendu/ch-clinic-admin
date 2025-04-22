@@ -19,7 +19,6 @@ const DoctorList = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showVerifyDialog, setShowVerifyDialog] = useState(false);
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
@@ -62,13 +61,8 @@ const DoctorList = () => {
 
   const handleViewDoctor = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
-    if (!doctor.verified) {
-      setShowVerifyDialog(true);
-    } else {
       setShowViewModal(true);
-    }
   };
-
   const handleFormClose = () => {
     setShowForm(false);
     setSelectedDoctor(null);
@@ -90,11 +84,6 @@ const DoctorList = () => {
     if (scrollHeight - scrollTop <= clientHeight * 1.5 && !loading && hasMore) {
       loadMore();
     }
-  };
-
-  const handleVerifyOnboarding = () => {
-    setShowVerifyDialog(false);
-    toast.info("Doctor onboarding verification not yet implemented.");
   };
 
   const handlePublishDoctor = (doctor: Doctor) => {
