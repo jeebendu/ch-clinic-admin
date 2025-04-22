@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import "./styles/admin.css";
 import DashboardRoutes from "./modules/dashboard/routes/DashboardRoutes";
@@ -16,6 +15,7 @@ import DistributorRoutes from "./modules/config/submodules/distributor/routes/Di
 import ProductRoutes from "./modules/inventory/product/routes/ProductRoutes";
 import CategoryRoutes from "./modules/inventory/category/routes/CategoryRoutes";
 import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/routes/RepairCompanyRoutes";
+import EnquiryRoutes from "./modules/enquiry/routes/EnquiryRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -37,6 +37,7 @@ const AdminRoutes = () => {
       <Route path="/expense/*" element={<ExpenseRoutes/>} />
       <Route path="/core/*" element={<CoreRoutes />} />
       <Route path="/:section" element={<DashboardRoutes />} />
+      <Route path="/enquiry/*" element={<EnquiryRoutes />} />
     </Routes>
   );
 };
