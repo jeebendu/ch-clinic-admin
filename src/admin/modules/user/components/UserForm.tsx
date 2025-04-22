@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import FormField from "@/admin/components/FormField";
-import { Staff } from "../types/User";
+import { Staff, User } from "../types/User";
 import UserService from "../services/userService";
 
 interface UserFormProps {
@@ -63,9 +64,15 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
 
     const onSubmit = async (data: FormValues) => {
         try {
-            const userData: Partial<Staff> = {
-                ...data,
+            // Create a properly structured user object that matches the User type
+            const userData: Partial<User> = {
                 id: user?.id,
+                uid: user?.uId?.toString() || "new-user-" + Date.now(),
+                username: data.username,
+                name: `${data.firstname} ${data.lastname}`,
+                email: data.email,
+                phone: data.phone,
+                // Add other required User properties
             };
 
             await UserService.saveOrUpdate(userData);

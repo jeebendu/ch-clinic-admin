@@ -7,11 +7,16 @@ import { User } from "../../user/types/User";
 const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
   const mockUser: User = {
     id: i,
+    uid: faker.string.uuid(),
     name: faker.person.firstName(),
     username: faker.internet.userName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    role: "doctor",
+    role: {
+      id: 3,
+      name: "Patient",
+      permissions: []
+    },
     image: faker.image.avatar(),
   };
 
@@ -26,7 +31,38 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     specializationList: [],
     qualification: "MBBS",
     joiningDate: faker.date.past().toISOString(),
-    user: mockUser,
+    user: {
+      id: i,
+      uid: faker.string.uuid(),
+      branch: {
+        id: i % 3,
+        name: `Branch ${i % 3}`,
+        code: `B-${i % 3}`,
+        location: faker.location.city(),
+        active: true,
+        city: faker.location.city(),
+        pincode: 12345,
+        image: "",
+        latitude: 0,
+        longitude: 0,
+        state: null,
+        district: null,
+        country: null
+      },
+      name: faker.person.fullName(),
+      username: faker.internet.userName(),
+      email: faker.internet.email(),
+      phone: faker.phone.number(),
+      password: "password",
+      effectiveTo: faker.date.future().toISOString(),
+      effectiveFrom: faker.date.past().toISOString(),
+      role: {
+        id: 2,
+        name: "Doctor",
+        permissions: []
+      },
+      image: faker.image.avatar()
+    },
     external: false,
     publishedOnline: false, 
     expYear: 0,

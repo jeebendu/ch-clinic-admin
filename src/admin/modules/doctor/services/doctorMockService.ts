@@ -58,8 +58,8 @@ export const DoctorMockService = {
           email: `user${i}@example.com`,
           phone: `+123456789${i}`,
           password: `password${i}`,
-          effectiveTo: new Date(2025, i % 12, (i % 28) + 1),
-          effectiveFrom: new Date(2024, i % 12, (i % 28) + 1),
+          effectiveTo: new Date(2025, i % 12, (i % 28) + 1).toISOString(),
+          effectiveFrom: new Date(2024, i % 12, (i % 28) + 1).toISOString(),
           role: {
             id: 1,
             name: "Doctor",

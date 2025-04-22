@@ -8,7 +8,7 @@ const PatientRoutes = () => {
     <Routes>
       <Route path="/" element={<Patients />} />
       <Route path="/list" element={<Patients />} />
-      {/* Commented out routes for pages that don't exist yet */}
+      {/* These routes are commented out until their components are implemented */}
       {/* <Route path="/details/:id" element={<PatientDetails />} />
       <Route path="/create" element={<CreatePatient />} />
       <Route path="/edit/:id" element={<EditPatient />} />
