@@ -33,13 +33,10 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
 
         const mockDoctor: Doctor = {
             id: i % 10 + 1,
-            name: `Doctor Name ${i % 10 + 1}`,
             firstname: `Doctor ${i % 10 + 1}`,
-            lastname: `Last ${i % 10 + 1}`,
             email: `doctor${i % 10 + 1}@example.com`,
             uid: `UID-${i % 10 + 1}`,
             phone: (9876543210 + i).toString(),
-            mobile: (9876543210 + i).toString(),
             desgination: `Designation ${i % 5 + 1}`,
             specializationList: [
                 {
@@ -50,47 +47,33 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
             qualification: `Qualification ${i % 5 + 1}`,
             joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
             external: i % 2 === 0,
-            publishedOnline: i % 4 === 0,
+            publishedOnline: i % 4 === 0, // Ensure publishedOnline is present and boolean
             user: {
                 id: i % 10 + 1,
                 name: `User ${i % 10 + 1}`,
                 username: `user${i % 10 + 1}`,
-                email: `user${i % 10 + 1}@example.com`,
-                phone: (9876543210 + i).toString(),
-                password: "password",
-                effectiveTo: null,
-                effectiveFrom: null,
-                branch: null,
-                role: {
-                    id: 2,
-                    name: "Doctor",
-                    permissions: []
-                },
-                image: ""
+                role: "doctor",
             },
-            expYear: i % 10,
+            lastname: "",
+            expYear: 0,
             about: "",
+            image: "",
+            pincode: "",
+            city: "",
+            biography: "",
             gender: 0,
             verified: false,
-            biography: "",
-            city: "",
-            branch: {
-              id: 1,
-              name: "Main Branch",
-              code: "MB",
-              location: "Central",
-              active: true,
-              state: null,
-              district: null,
-              country: null,
-              city: "City 1",
-              mapurl: "",
-              pincode: 123456,
-              image: "",
-              latitude: 0,
-              longitude: 0
-            },
-            isVerified: false
+            percentages: [],
+            serviceList: [],
+            branchList: [],
+            languageList: [],
+            district: undefined,
+            state: undefined,
+            country: undefined,
+            consultationFee: undefined,
+            reviewCount: 0,
+            rating: 0,
+            status: i % 2 === 0 ? "Active" : "Inactive"
         };
 
         const mockAppointment: AppointmentRequest = {

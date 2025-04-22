@@ -3,7 +3,6 @@ import React from "react";
 import { FormControl, FormDescription, FormField as ShadcnFormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 interface FormFieldProps {
   control: Control<any>;

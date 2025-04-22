@@ -1,6 +1,5 @@
-
 import http from "@/lib/JwtInterceptor";
-import { Expense } from "../types/Expense";
+import { Expense } from "../types/expense";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 

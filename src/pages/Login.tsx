@@ -42,7 +42,7 @@ const Login = () => {
         description: `Welcome ${userData.name}`,
       });
       
-      const userRole = userData.role?.name || 'Staff';
+      const userRole = userData.role || 'Staff';
       
       // Direct users to their specific dashboards based on role
       switch(userRole) {
