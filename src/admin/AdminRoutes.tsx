@@ -15,6 +15,7 @@ import CourierRoutes from "./modules/config/submodules/courier/routes/CourierRou
 import DistributorRoutes from "./modules/config/submodules/distributor/routes/DistributorRoutes";
 import ProductRoutes from "./modules/inventory/product/routes/ProductRoutes";
 import CategoryRoutes from "./modules/inventory/category/routes/CategoryRoutes";
+import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/routes/RepairCompanyRoutes";
 
 const AdminRoutes = () => {
   return (
