@@ -14,6 +14,7 @@ import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/route
 import CourierRoutes from "./modules/config/submodules/courier/routes/CourierRoutes";
 import DistributorRoutes from "./modules/config/submodules/distributor/routes/DistributorRoutes";
 import ProductRoutes from "./modules/inventory/product/routes/ProductRoutes";
+import CategoryRoutes from "./modules/inventory/category/routes/CategoryRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -28,6 +29,7 @@ const AdminRoutes = () => {
       <Route path="/courier/*" element={<CourierRoutes />} />
       <Route path="/distributor/*" element={<DistributorRoutes />} />
       <Route path="/product/*" element={<ProductRoutes/>} />
+      <Route path="/category/*" element={<CategoryRoutes/>} />
       <Route path="/customer/*" element={<CustomerRoutes />} />
       <Route path="/doctor/*" element={<DoctorRoutes />} />
       <Route path="/users/*" element={<UserRoutes />} />
