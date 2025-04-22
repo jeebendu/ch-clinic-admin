@@ -15,9 +15,9 @@ const EnquiryTable = ({ data, isLoading, onEdit }: EnquiryTableProps) => {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-
+  
   return (
-    <div className="border rounded-lg">
+    <div className="bg-white border rounded-lg overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
