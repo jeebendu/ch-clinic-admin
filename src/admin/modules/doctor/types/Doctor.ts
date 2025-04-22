@@ -1,86 +1,75 @@
-import { Branch } from "@/admin/modules/branch/types/Branch";
-import { User } from "@/admin/modules/user/types/User";
-import { Country, District, State } from "@/admin/modules/core/types/Address";
-import { Specialization } from "../submodules/specialization/types/Specialization";
 
-export interface AdditionalInfoDoctor {
-    id: number;
-    registationNumber: string;
-    registationCouncil: string;
-    registationYear: string;
-    degreeCollege: string;
-    yearCompletionDegree: string;
-    establishmentType?: "own" | "visit"; 
-    establishmentName: string;
-    establishmentCity: string;
-    state: State;
-    district: District;
-}
+import { Branch } from "../../branch/types/Branch";
+import { District } from "../../core/types/District";
+import { State } from "../../core/types/State";
 
 export interface Doctor {
   id: number;
-  uid: string;
+  name: string;
+  mobile: string;
+  email: string;
+  qualification: string;
+  branch: Branch;
+  isVerified: boolean;
+  additionalInfo?: AdditionalInfoDoctor;
+  
+  // Additional properties needed by components
   firstname: string;
   lastname: string;
-  external: boolean;
-  desgination: string;
-  expYear: number;
-  email: string;
   phone: string;
-  qualification: string;
-  joiningDate: string;
+  expYear: number;
+  desgination: string;
   about: string;
-  image: string;
-  pincode: string;
-  city: string;
-  biography: string;
   gender: number;
-  verified: boolean;
-  publishedOnline: boolean;
-  registrationNumber?: string;
-  // additionalInfoDoctor?: DoctorOnboardingDetails;
-  percentages: any[];
-  specializationList: Specialization[];
-  serviceList: DoctorService[];
-  branchList: Branch[];
-  languageList: Language[];
-  user: User;
-  district: District;
+  external: boolean;
+  verified: boolean; // alias for isVerified
+  biography: string;
+  city: string;
+  uid: string;
+  joiningDate: string;
+  user?: {
+    id: number;
+    branch: any;
+    name: string;
+    username: string;
+    email: string;
+    phone: string;
+    password: string;
+    effectiveTo: string | null;
+    effectiveFrom: string | null;
+    role: {
+      id: number;
+      name: string;
+      permissions: any[];
+    };
+    image: string;
+  };
+  specializationList?: { id: number; name: string }[];
+  serviceList?: { id: number; name: string }[];
+  branchList?: Branch[];
+  languageList?: { id: number; name: string }[];
+  district?: District;
+  state?: State;
+  country?: { id: number; name: string };
+  percentages?: any[];
+  pincode?: string;
+  consultationFee?: number;
+  reviewCount?: number;
+  rating?: number;
+  publishedOnline?: boolean;
+  status?: string;
+}
+
+export interface AdditionalInfoDoctor {
+  id: number;
+  registationNumber: string;
+  registationCouncil: string;
+  registationYear: string;
+  degreeCollege: string;
+  yearCompletionDegree: string;
+  establishmentType?: "own" | "visit";
+  establishmentName: string;
+  establishmentCity: string;
   state: State;
-  country: Country;
-  education?: Education[];
-  consultationFee: any;
-  reviewCount: number;
-  rating: number;
-  status: string;
-  additionalInfoDoctor ?: AdditionalInfoDoctor; // <- New field reference
-}
-
-// export interface DoctorOnboardingDetails {
-//   registrationNumber: string;
-//   registrationYear?: string;
-//   registrationCouncil?: string;
-//   specialityDegree?: string;
-//   specialityYear?: string;
-//   specialityInstitute?: string;
-//   identityProof?: string;
-//   addressProof?: string;
-//   establishmentType?: "own" | "visit"; // NEW FIELD: "own" or "visit"
-// }
-
-export interface DoctorService {
-  id: number;
-  name: string;
-}
-
-export interface Language {
-  id: number;
-  name: string;
-}
-
-export interface Education {
-  id: number;
-  degree: string;
-  institution: string;
-  year: string;
+  district: District;
 }
