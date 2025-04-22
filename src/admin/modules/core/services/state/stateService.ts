@@ -1,4 +1,5 @@
 import http from "@/lib/JwtInterceptor";
+import { State } from "../../types/State";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -15,7 +16,7 @@ const StateService = {
     return http.get(`${apiUrl}/v1/state/id/${id}`);
   },
 
-  saveOrUpdate: (state: any) => {
+  saveOrUpdate: (state: State) => {
     return http.post(`${apiUrl}/v1/state/saveOrUpdate`, state);
   },
 

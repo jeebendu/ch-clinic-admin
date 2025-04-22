@@ -1,61 +1,87 @@
-
 import http from "@/lib/JwtInterceptor";
 import { Doctor } from "../types/Doctor";
+import { isProduction } from "@/utils/envUtils";
+import { DoctorMockService } from "./doctorMockService";
 
-// Real implementation would use these endpoints
-const doctorService = {
-  getAllDoctors: async (): Promise<Doctor[]> => {
-    try {
-      const response = await http.get<Doctor[]>('/v1/doctor');
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching doctors:", error);
-      // Fallback to mock data for development
+// Define a type for the paginated response
+interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number; // Current page number (0-based index)
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
+}
+
+export const DoctorService = {
+  list: async (): Promise<Doctor[]> => {
+    if (!isProduction()) {
       const { DoctorMockService } = await import("./doctorMockService");
-      return DoctorMockService.getAllDoctors();
+      return DoctorMockService.list();
     }
+    const response = await http.get<Doctor[]>('/v1/doctor');
+    return response.data;
   },
 
-  getDoctorById: async (id: number): Promise<Doctor> => {
-    try {
-      const response = await http.get<Doctor>(`/v1/doctor/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching doctor with ID ${id}:`, error);
-      // Fallback to mock data for development
-      const { DoctorMockService } = await import("./doctorMockService");
-      return DoctorMockService.getDoctorById(id);
-    }
+  getById: async (id: number): Promise<Doctor> => {
+    const response = await http.get<Doctor>(`/v1/doctor/${id}`);
+    return response.data;
   },
 
-  createDoctor: async (doctor: Doctor): Promise<Doctor> => {
-    try {
-      const response = await http.post<Doctor>('/v1/doctor', doctor);
-      return response.data;
-    } catch (error) {
-      console.error("Error creating doctor:", error);
-      throw error;
-    }
+  create: async (doctor: Doctor): Promise<Doctor> => {
+    const response = await http.post<Doctor>('/v1/doctor', doctor);
+    return response.data;
   },
 
-  updateDoctor: async (doctor: Doctor): Promise<Doctor> => {
-    try {
-      const response = await http.put<Doctor>(`/v1/doctor/${doctor.id}`, doctor);
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating doctor with ID ${doctor.id}:`, error);
-      throw error;
-    }
+  update: async (doctor: Doctor): Promise<Doctor> => {
+    const response = await http.put<Doctor>(`/v1/doctor/${doctor.id}`, doctor);
+    return response.data;
   },
 
-  deleteDoctor: async (id: number): Promise<void> => {
-    try {
-      await http.delete(`/v1/doctor/${id}`);
-    } catch (error) {
-      console.error(`Error deleting doctor with ID ${id}:`, error);
-      throw error;
-    }
+  delete: async (id: number): Promise<void> => {
+    await http.delete(`/v1/doctor/${id}`);
+  },
+
+  fetchPaginated: (
+    page: number,
+    size: number,
+    filter: { value: string; doctorType: string | null; specialization: string | null }
+  ): Promise<PaginatedResponse<Doctor>> => {
+    const mockDoctors = DoctorMockService.generateMockDoctors(size);
+
+    // Apply filtering logic (if needed)
+    const filteredDoctors = mockDoctors.filter((doctor) => {
+      const matchesValue = filter.value
+        ? doctor.firstname.includes(filter.value) || doctor.lastname.includes(filter.value)
+        : true;
+      const matchesDoctorType = filter.doctorType ? doctor.desgination === filter.doctorType : true;
+      const matchesSpecialization = filter.specialization
+        ? doctor.specializationList.some((spec) => spec.name === filter.specialization)
+        : true;
+
+      return matchesValue && matchesDoctorType && matchesSpecialization;
+    });
+
+    const totalElements = filteredDoctors.length;
+    const totalPages = Math.ceil(totalElements / size);
+    const startIndex = page * size;
+    const endIndex = startIndex + size;
+
+    const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
+
+    return Promise.resolve({
+      content: paginatedDoctors,
+      totalElements,
+      totalPages,
+      size,
+      number: page,
+      first: page === 0,
+      last: page === totalPages - 1,
+      numberOfElements: paginatedDoctors.length,
+    });
   }
 };
 
-export default doctorService;
+export default DoctorService;

@@ -5,13 +5,12 @@ import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import DoctorGrid from "../components/DoctorGrid";
 import DoctorTable from "../components/DoctorTable";
-import { Button } from "@/components/ui/button";
-import { DoctorMockService } from "../services/doctorMockService";
 import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import DoctorService from "../services/doctorService";
 
 const DoctorList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,7 +37,7 @@ const DoctorList = () => {
   const loadDoctors = async () => {
     setLoading(true);
     try {
-      const response = await DoctorMockService.getAllDoctors();
+      const response = await DoctorService.list();
       setDoctors(response);
     } catch (error) {
       toast({

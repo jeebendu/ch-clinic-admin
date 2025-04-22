@@ -7,14 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Eye, Phone, Mail, Calendar, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { Patient } from '../types/Patient';
+import { useNavigate } from 'react-router-dom';
 
 interface PatientGridProps {
   patients: Patient[];
   loading: boolean;
-  onPatientClick: (patient: Patient) => void;
+  onPatientClick?: (patient: Patient) => void;
 }
 
 const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientClick }) => {
+  const navigate = useNavigate();
+  
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -36,11 +39,19 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
     if (diffDays <= 180) return 'bg-blue-100 text-blue-800';
     return 'bg-amber-100 text-amber-800';
   };
+  
+  const handlePatientClick = (patient: Patient) => {
+    if (onPatientClick) {
+      onPatientClick(patient);
+    } else {
+      navigate(`/admin/patients/view/${patient.id}`);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {patients.map((patient) => (
-        <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden" onClick={() => onPatientClick(patient)}>
+        <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden" onClick={() => handlePatientClick(patient)}>
           <div className="bg-primary/10 p-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-white">

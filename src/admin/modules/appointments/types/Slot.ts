@@ -13,4 +13,6 @@ export interface Slot {
     duration?: number;
     slotType?: string;
     status?: string;
+    description?: string;
+    notes?: string;
 }

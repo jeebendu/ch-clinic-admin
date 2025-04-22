@@ -41,12 +41,18 @@ export const fetchPatients = async (params: PatientQueryParams) => {
 
 const PatientService = {
   list: async (page = 0, size = 10, searchTerm = "") => {
+    const search = {
+      inputValue: "",
+    };
     try {
       const filter={
         inputValue:"",
       }
       const tenantId = getTenantId();
-      const response = await http.post(`${apiUrl}/v1/patient/filter/${page}/${size}`,filter);
+      const search={
+        inputValue:""
+      }
+      const response = await http.post(`${apiUrl}/v1/patient/filter/${page}/${size}`,search);
       console.log("Raw Patient API response:", response);
       return response.data; // Return just the data part of the response
     } catch (error) {

@@ -19,6 +19,10 @@ const AdminRoutes = () => {
       <Route path="/appointments/*" element={<AppointmentRoutes />} />
       <Route path="/patients/*" element={<PatientRoutes />} />
       <Route path="/branch/*" element={<BranchRoutes />} />
+      <Route path="/sequence/*" element={<SequenceRoutes />} />
+      <Route path="/repair-company/*" element={<RepairCompanyRoutes />} />
+      <Route path="/courier/*" element={<CourierRoutes />} />
+      <Route path="/distributor/*" element={<DistributorRoutes />} />
       <Route path="/customer/*" element={<CustomerRoutes />} />
       <Route path="/doctor/*" element={<DoctorRoutes />} />
       <Route path="/users/*" element={<UserRoutes />} />

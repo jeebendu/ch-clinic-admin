@@ -1,12 +1,11 @@
-
 import { Doctor } from "../types/Doctor";
 import { Specialization } from "../submodules/specialization/types/Specialization";
 
 export const DoctorMockService = {
-  generateMockDoctors: (): Doctor[] => {
-    const mockDoctors: Doctor[] = [];
 
-    for (let i = 1; i <= 100; i++) {
+  generateMockDoctors: (size: number): Doctor[] => {
+    const mockDoctors: Doctor[] = [];
+    for (let i = 1; i <= size; i++) {
       const specializationList: Specialization[] = [
         { id: 1, name: "Cardiology" },
         { id: 2, name: "Neurology" },
@@ -37,7 +36,7 @@ export const DoctorMockService = {
             district: null,
             country: null,
             city: `City ${i % 3 + 1}`,
-            mapurl: "",  // Changed from mapUrl
+            mapurl: "",
             pincode: 12345,
             image: "",
             latitude: 0,
@@ -82,8 +81,8 @@ export const DoctorMockService = {
     return mockDoctors;
   },
 
-  getDoctorById: (id: number): Promise<Doctor> => {
-    const mockDoctors = DoctorMockService.generateMockDoctors();
+  getById: (id: number): Promise<Doctor> => {
+    const mockDoctors = DoctorMockService.generateMockDoctors(100);
     const doctor = mockDoctors.find(doc => doc.id === id);
     
     if (!doctor) {
@@ -93,7 +92,23 @@ export const DoctorMockService = {
     return Promise.resolve(doctor);
   },
   
-  getAllDoctors: (): Promise<Doctor[]> => {
-    return Promise.resolve(DoctorMockService.generateMockDoctors());
+  list: (): Promise<Doctor[]> => {
+    return Promise.resolve(DoctorMockService.generateMockDoctors(100));
+  },
+
+  fetchPaginated: (page: number, size: number): Promise<{ content: Doctor[]; totalElements: number; totalPages: number; }> => {
+    const mockDoctors = DoctorMockService.generateMockDoctors(size);
+    const totalElements = mockDoctors.length;
+    const totalPages = Math.ceil(totalElements / size);
+    const startIndex = page * size;
+    const endIndex = startIndex + size;
+
+    const paginatedDoctors = mockDoctors.slice(startIndex, endIndex);
+
+    return Promise.resolve({
+      content: paginatedDoctors,
+      totalElements,
+      totalPages,
+    });
   }
 };
