@@ -3,8 +3,16 @@ import { faker } from "@faker-js/faker";
 import { Patient } from "../types/Patient";
 import { Doctor } from "../../doctor/types/Doctor";
 import { User } from "../../user/types/User";
+import { Role } from "../../user/submodules/roles/types/Role";
 
 const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
+  // Create a proper Role object
+  const patientRole: Role = {
+    id: 3,
+    name: "Patient",
+    permissions: []
+  };
+
   const mockUser: User = {
     id: i,
     uid: faker.string.uuid(),
@@ -12,11 +20,7 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     username: faker.internet.userName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    role: {
-      id: 3,
-      name: "Patient",
-      permissions: []
-    },
+    role: patientRole,
     image: faker.image.avatar(),
   };
 
@@ -73,6 +77,7 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     biography: '',
     gender: 0,
     verified: false,
+    isVerified: false,
     percentages: [],
     serviceList: [],
     branchList: [],
@@ -83,7 +88,9 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     consultationFee: undefined,
     reviewCount: 0,
     rating: 0,
-    status: "Active"
+    status: "Active",
+    name: faker.person.fullName(),
+    mobile: faker.phone.number(),
   };
 
   // Convert mock data to Patient type with all required properties

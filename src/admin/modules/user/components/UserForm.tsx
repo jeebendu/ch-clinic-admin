@@ -65,14 +65,25 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
     const onSubmit = async (data: FormValues) => {
         try {
             // Create a properly structured user object that matches the User type
-            const userData: Partial<User> = {
-                id: user?.id,
+            const userData: User = {
+                id: user?.id || Date.now(), // Use existing ID or generate a new one
                 uid: user?.uId?.toString() || "new-user-" + Date.now(),
                 username: data.username,
                 name: `${data.firstname} ${data.lastname}`,
-                email: data.email,
-                phone: data.phone,
-                // Add other required User properties
+                email: data.email || "",
+                phone: data.phone || "",
+                // Add required properties with default values if not provided
+                branch: user?.user?.branch,
+                role: {
+                    id: 1,
+                    name: data.role,
+                    permissions: []
+                },
+                password: user?.user?.password || "",
+                effectiveFrom: data.effectiveFrom,
+                effectiveTo: data.effectiveTo,
+                image: user?.user?.image || "",
+                status: data.active
             };
 
             await UserService.saveOrUpdate(userData);

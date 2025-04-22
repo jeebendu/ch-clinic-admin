@@ -34,7 +34,7 @@ export const getMockUsers = (page: number, size: number, searchTerm?: string) =>
 
     const mockUser: User = {
       id: i + 1,
-      uid: `user-${i + 1}`, // Add the required uid property
+      uid: `user-${i + 1}`,
       branch: {
         id: i % 5 + 1,
         name: `Branch ${i % 5 + 1}`,
@@ -121,7 +121,7 @@ export const getMockUserById = async (id: number): Promise<User> => {
 
   const mockUser: User = {
     id: id,
-    uid: `user-${id}`, // Add the required uid property
+    uid: `user-${id}`,
     branch: {
       id: 1,
       name: "Branch 1",
@@ -151,3 +151,4 @@ export const getMockUserById = async (id: number): Promise<User> => {
 
   return Promise.resolve(mockUser);
 };
+
