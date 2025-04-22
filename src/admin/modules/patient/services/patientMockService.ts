@@ -1,3 +1,4 @@
+
 import { faker } from "@faker-js/faker";
 import { Patient } from "../types/Patient";
 import { Doctor } from "../../doctor/types/Doctor";

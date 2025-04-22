@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Form } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import FormField from "@/admin/components/FormField";
 import { Button } from "@/components/ui/button";
 import { Enquiry } from "@/admin/modules/enquiry/types/Enquiry";
@@ -96,47 +96,47 @@ const EnquiryForm = ({ enquiry, onClose }: EnquiryFormProps) => {
           />
         </div>
         
-        {/* Replace component="textarea" with <Textarea /> components */}
+        {/* Use FormField component for textareas */}
         <div className="space-y-4">
-          <Form.Field
+          <FormField
             control={form.control}
             name="needs"
             render={({ field }) => (
-              <Form.Item>
-                <Form.Label>Needs</Form.Label>
-                <Form.Control>
+              <FormItem>
+                <FormLabel>Needs</FormLabel>
+                <FormControl>
                   <Textarea {...field} />
-                </Form.Control>
-                <Form.Message />
-              </Form.Item>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
           
-          <Form.Field
+          <FormField
             control={form.control}
             name="remark"
             render={({ field }) => (
-              <Form.Item>
-                <Form.Label>Remarks</Form.Label>
-                <Form.Control>
+              <FormItem>
+                <FormLabel>Remarks</FormLabel>
+                <FormControl>
                   <Textarea {...field} />
-                </Form.Control>
-                <Form.Message />
-              </Form.Item>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
-          <Form.Field
+          <FormField
             control={form.control}
             name="notes"
             render={({ field }) => (
-              <Form.Item>
-                <Form.Label>Notes</Form.Label>
-                <Form.Control>
+              <FormItem>
+                <FormLabel>Notes</FormLabel>
+                <FormControl>
                   <Textarea {...field} />
-                </Form.Control>
-                <Form.Message />
-              </Form.Item>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
         </div>
