@@ -1,4 +1,3 @@
-
 import { faker } from "@faker-js/faker";
 import { Patient } from "../types/Patient";
 import { Doctor } from "../../doctor/types/Doctor";
@@ -118,7 +117,6 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
       image: "",
       latitude: 0,
       longitude: 0,
-      // Add the missing properties required by the Branch interface
       state: null,
       district: null,
       country: null
@@ -129,7 +127,6 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     medicalHistory: faker.lorem.paragraph(),
     city: faker.location.city(),
     createdTime: faker.date.past(),
-    // Remove the 'doctor' property as it's not in the Patient interface
   };
 
   return patient;

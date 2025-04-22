@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Enquiry } from "@/admin/modules/enquiry/types/Enquiry";
 import { useToast } from "@/components/ui/use-toast";
 import enquiryService from "@/admin/modules/enquiry/service/EnquiryService";
+import { Textarea } from "@/components/ui/textarea";
 
 interface EnquiryFormProps {
   enquiry?: Enquiry | null;
@@ -95,26 +96,50 @@ const EnquiryForm = ({ enquiry, onClose }: EnquiryFormProps) => {
           />
         </div>
         
-        <FormField
-          control={form.control}
-          name="needs"
-          label="Needs"
-          component="textarea"
-        />
-        
-        <FormField
-          control={form.control}
-          name="remark"
-          label="Remarks"
-          component="textarea"
-        />
+        {/* Replace component="textarea" with <Textarea /> components */}
+        <div className="space-y-4">
+          <Form.Field
+            control={form.control}
+            name="needs"
+            render={({ field }) => (
+              <Form.Item>
+                <Form.Label>Needs</Form.Label>
+                <Form.Control>
+                  <Textarea {...field} />
+                </Form.Control>
+                <Form.Message />
+              </Form.Item>
+            )}
+          />
+          
+          <Form.Field
+            control={form.control}
+            name="remark"
+            render={({ field }) => (
+              <Form.Item>
+                <Form.Label>Remarks</Form.Label>
+                <Form.Control>
+                  <Textarea {...field} />
+                </Form.Control>
+                <Form.Message />
+              </Form.Item>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="notes"
-          label="Notes"
-          component="textarea"
-        />
+          <Form.Field
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <Form.Item>
+                <Form.Label>Notes</Form.Label>
+                <Form.Control>
+                  <Textarea {...field} />
+                </Form.Control>
+                <Form.Message />
+              </Form.Item>
+            )}
+          />
+        </div>
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" type="button" onClick={onClose}>

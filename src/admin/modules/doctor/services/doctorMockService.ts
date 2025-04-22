@@ -1,4 +1,3 @@
-
 import { Doctor } from "../types/Doctor";
 import { PaginatedResponse } from "@/types/common";
 
@@ -30,14 +29,6 @@ export const DoctorMockService = {
         joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
         external: i % 3 === 0,
         publishedOnline: i % 7 === 0,
-        onboardingDetails: i % 7 === 0 ? {
-          registrationNumber: `REG-${i*1000}`,
-          registrationYear: "2018",
-          registrationCouncil: "Medical Council of India",
-          specialityDegree: "MD",
-          specialityYear: "2015",
-          specialityInstitute: "AIIMS"
-        } : undefined,
         user: {
           id: i,
           branch: {
