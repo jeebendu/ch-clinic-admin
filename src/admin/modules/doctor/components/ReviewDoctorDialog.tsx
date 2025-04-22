@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -33,7 +32,7 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
   const infoBlock = "flex flex-col gap-1 bg-softGray/60 rounded-lg px-4 py-2";
   const infoItem = "flex items-baseline gap-2";
 
-  const addInfo = doctor.additionalInfoDoctor;
+  const addInfo = doctor.additionalInfo;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -49,7 +48,6 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col md:flex-row gap-8 px-6 py-6 bg-white/60">
-          {/* Left: Doctor Avatar + Basic */}
           <div className="md:w-1/3 flex flex-col items-center text-center bg-white/70 rounded-xl shadow-md p-4">
             <Avatar className="h-20 w-20 mb-2 ring-2 ring-primary/30">
               <AvatarImage src={doctor?.user?.image} />
@@ -73,7 +71,6 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
               </span>
             </div>
           </div>
-          {/* Right: Details */}
           <div className="md:w-2/3 flex flex-col gap-3">
             <div className={infoBlock}>
               <SectionTitle>Basic Info</SectionTitle>
@@ -151,7 +148,6 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
               </div>
             </div>
 
-            {/* -------- Additional Doctor Info Section -------- */}
             {addInfo && (
               <div className={infoBlock}>
                 <SectionTitle>Additional Info</SectionTitle>

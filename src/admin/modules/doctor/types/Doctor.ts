@@ -57,6 +57,7 @@ export interface Doctor {
   reviewCount?: number;
   rating?: number;
   publishedOnline?: boolean;
+  status?: string;
 }
 
 export interface AdditionalInfoDoctor {
