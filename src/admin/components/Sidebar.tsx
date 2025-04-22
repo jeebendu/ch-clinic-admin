@@ -150,6 +150,7 @@ const navItems = [
     href: "/admin/brand", 
     roles: ["Admin"] 
   },
+  
   { 
     icon: <UserCog className="h-5 w-5" />, 
     label: "Customers", 
