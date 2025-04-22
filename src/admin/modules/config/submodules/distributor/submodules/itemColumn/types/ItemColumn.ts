@@ -1,4 +1,4 @@
-import { Distributor } from "../../types/Distributor";
+import { Distributor } from "../../../types/Distributor";
 
 
 export interface ItemColumn {

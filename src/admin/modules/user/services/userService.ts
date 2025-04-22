@@ -1,4 +1,5 @@
 import http from "@/lib/JwtInterceptor";
+import { User } from "../types/User";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -24,7 +25,7 @@ const UserService = {
     return http.get(`${apiUrl}/v1/staff/id/${id}`);
   },
 
-  saveOrUpdate: (staff:any) => {
+  saveOrUpdate: (staff:User) => {
     return http.post(`${apiUrl}/v1/staff/saveOrUpdate`, staff);
   },
 

@@ -1,4 +1,5 @@
 import http from "@/lib/JwtInterceptor";
+import { ItemColumn } from "../types/ItemColumn";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -24,7 +25,7 @@ const ItemColumnService = {
     return http.get(`${apiUrl}/v1/item-position/id/${id}`);
   },
 
-  saveOrUpdate: (itemColumn: any) => {
+  saveOrUpdate: (itemColumn: ItemColumn) => {
     return http.post(`${apiUrl}/v1/item-position/saveOrUpdate`, itemColumn);
   },
 

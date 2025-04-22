@@ -41,6 +41,9 @@ export const fetchPatients = async (params: PatientQueryParams) => {
 
 const PatientService = {
   list: async (page = 0, size = 10, searchTerm = "") => {
+    const search = {
+      inputValue: "",
+    };
     try {
       const filter={
         inputValue:"",
