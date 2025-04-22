@@ -141,6 +141,7 @@ const navItems = [
     href: "/admin/settings", 
     roles: ["Admin"] 
   },
+  
   { 
     icon: <UserPlus className="h-5 w-5" />, 
     label: "Quick Patient Form", 
