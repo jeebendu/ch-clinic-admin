@@ -1,66 +1,7 @@
+
 import { AppointmentRequest } from "../types/AppointmentRequest";
 import { Doctor } from "../../doctor/types/Doctor";
 import { Country, District, State } from "../../core/types/Address";
-
-const mockAppointmentRequests: AppointmentRequest[] = [
-  {
-    id: 1,
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "1234567890",
-    dob: new Date(),
-    gender: 1,
-    district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
-    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
-    country: { id: 1, name: "Country 1", code: "C1", status: true },
-    city: "City 1",
-    appointmentDate: "2023-04-23",
-    isAccept: false,
-    isReject: false,
-    doctor: getDoctor(1),
-    appointmentType: { id: 1, name: "Regular" },
-    visitType: { id: 1, name: "New" }
-  },
-  {
-    id: 2,
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@example.com",
-    phone: 9876543210,
-    dob: new Date(),
-    gender: 2,
-    district: { id: 2, name: "District 2", state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } } },
-    state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } },
-    country: { id: 2, name: "Country 2", code: "C2", status: true },
-    city: "City 2",
-    appointmentDate: "2023-04-24",
-    isAccept: true,
-    isReject: false,
-    doctor: { id: 2, uId: "D002" } as Doctor,
-    appointmentType: { id: 2, name: "Emergency" },
-    visitType: { id: 2, name: "Follow-up" }
-  },
-  {
-    id: 3,
-    firstName: "Alice",
-    lastName: "Johnson",
-    email: "alice.johnson@example.com",
-    phone: 5555555555,
-    dob: new Date(),
-    gender: 2,
-    district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
-    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
-    country: { id: 1, name: "Country 1", code: "C1", status: true },
-    city: "City 1",
-    appointmentDate: "2023-04-25",
-    isAccept: false,
-    isReject: false,
-    doctor: { id: 1, uId: "D001" } as Doctor,
-    appointmentType: { id: 1, name: "Regular" },
-    visitType: { id: 1, name: "New" }
-  }
-];
 
 // Function with the correct getDoctor implementation
 export const getDoctor = (id: number): Doctor => {
@@ -91,6 +32,66 @@ export const getDoctor = (id: number): Doctor => {
     rating: 4.5
   };
 };
+
+const mockAppointmentRequests: AppointmentRequest[] = [
+  {
+    id: 1,
+    firstName: "John",
+    lastName: "Doe",
+    email: "john.doe@example.com",
+    phone: "1234567890",
+    dob: new Date(),
+    gender: 1,
+    district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
+    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
+    country: { id: 1, name: "Country 1", code: "C1", status: true },
+    city: "City 1",
+    appointmentDate: "2023-04-23",
+    isAccept: false,
+    isReject: false,
+    doctor: getDoctor(1),
+    appointmentType: { id: 1, name: "Regular" },
+    visitType: { id: 1, name: "New" }
+  },
+  {
+    id: 2,
+    firstName: "Jane",
+    lastName: "Smith",
+    email: "jane.smith@example.com",
+    phone: "9876543210",
+    dob: new Date(),
+    gender: 2,
+    district: { id: 2, name: "District 2", state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } } },
+    state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } },
+    country: { id: 2, name: "Country 2", code: "C2", status: true },
+    city: "City 2",
+    appointmentDate: "2023-04-24",
+    isAccept: true,
+    isReject: false,
+    doctor: getDoctor(2),
+    appointmentType: { id: 2, name: "Emergency" },
+    visitType: { id: 2, name: "Follow-up" }
+  },
+  {
+    id: 3,
+    firstName: "Alice",
+    lastName: "Johnson",
+    email: "alice.johnson@example.com",
+    phone: "5555555555",
+    dob: new Date(),
+    gender: 2,
+    district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
+    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
+    country: { id: 1, name: "Country 1", code: "C1", status: true },
+    city: "City 1",
+    appointmentDate: "2023-04-25",
+    isAccept: false,
+    isReject: false,
+    doctor: getDoctor(1),
+    appointmentType: { id: 1, name: "Regular" },
+    visitType: { id: 1, name: "New" }
+  }
+];
 
 export const appointmentRequestMockService = {
   getAppointmentRequests: (

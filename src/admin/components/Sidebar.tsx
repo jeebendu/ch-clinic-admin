@@ -38,7 +38,20 @@ interface SidebarProps {
 
 type UserRole = "Admin" | "Doctor" | "Staff";
 
-const navItems = [
+interface NavItem {
+  icon: React.ReactNode;
+  label: string;
+  href?: string;
+  roles: string[];
+  submenu?: {
+    label: string;
+    href: string;
+    roles: string[];
+  }[];
+  onClick?: () => void;
+}
+
+const navItems: NavItem[] = [
   { 
     icon: <Home className="h-5 w-5" />, 
     label: "Admin Dashboard", 
@@ -303,7 +316,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                 </Collapsible>
               ) : (
                 <NavLink
-                  to={item.href}
+                  to={item.href!}
                   className={({ isActive }) => cn(
                     "flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
                     isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-l-4 border-sidebar-primary",
@@ -339,4 +352,3 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
 };
 
 export default Sidebar;
-

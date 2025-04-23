@@ -26,11 +26,20 @@ export const AdminLayout = ({
 }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    // Initialize from localStorage if available
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false); // State to track scroll position
   const [userProfileOpen, setUserProfileOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
   
   // Branch change event listener
   useEffect(() => {
@@ -100,6 +109,22 @@ export const AdminLayout = ({
     };
   }, []);
 
+  // Memoize sidebar and header components to prevent re-rendering
+  const sidebarComponent = React.useMemo(() => (
+    <Sidebar 
+      onClose={() => setSidebarOpen(false)} 
+      collapsed={sidebarCollapsed}
+    />
+  ), [sidebarCollapsed]);
+
+  const headerComponent = React.useMemo(() => (
+    <Header 
+      onMenuClick={toggleSidebar} 
+      sidebarCollapsed={sidebarCollapsed}
+      onUserClick={handleUserClick}
+    />
+  ), [sidebarCollapsed, toggleSidebar, handleUserClick]);
+
   return (
     <div className="flex h-screen bg-[#eff5ff]">
       {/* Mobile overlay */}
@@ -118,18 +143,11 @@ export const AdminLayout = ({
         sidebarCollapsed ? "md:w-[70px]" : "md:w-64",
         "bg-white shadow-sm"
       )}>
-        <Sidebar 
-          onClose={() => setSidebarOpen(false)} 
-          collapsed={sidebarCollapsed}
-        />
+        {sidebarComponent}
       </div>
       
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Header 
-          onMenuClick={toggleSidebar} 
-          sidebarCollapsed={sidebarCollapsed}
-          onUserClick={handleUserClick}
-        />
+        {headerComponent}
         <main
           ref={mainRef}
           className={cn(
