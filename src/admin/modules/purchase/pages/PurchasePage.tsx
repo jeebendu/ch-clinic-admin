@@ -11,14 +11,14 @@ import PurchaseLayout from "../components/PurchaseLayout";
 const mockPurchases: Order[] = [
   {
     id: 1,
-    uid: "PO-001",
+    uid: "PO-001", // Changed to string
     orderTime: new Date(),
     createdTime: new Date(),
     paymentType: { id: 1, name: "Cash" },
     approved: false,
     remark: "First purchase",
     items: [],
-    vendor: { id: 1, name: "Vendor 1", address: "", active: true, gst: "", phone: "", email: "", pan: "", remark: "" },
+    vendor: { id: 1, name: "Vendor 1", address: "", gst: "", phone: "", email: "", pan: "", remark: "" }, // Removed active property
     subtotal: 1000,
     discount: 0,
     grandTotal: 1000,

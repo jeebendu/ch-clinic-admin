@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -13,9 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RoleService } from "../services/RoleService";
-import { Role } from "../types/Role";
+import { Role } from "../submodules/roles/types/Role";
 import { User } from "../types/User";
-import { UserService } from "../services/UserService";
 import { BranchService } from "../../branch/services/BranchService";
 import { Branch } from "../../branch/types/Branch";
 import { Staff } from "../types/User";
@@ -53,7 +53,7 @@ const UserForm: React.FC<Props> = ({ user, onSave, onClose }) => {
     defaultValues: {
       username: user?.username || "",
       password: user?.password || "",
-      roleId: user?.roleId?.toString() || "",
+      roleId: user?.role?.id?.toString() || "",
       branchId: user?.branchId?.toString() || "",
       email: user?.email || "",
     },
@@ -76,9 +76,12 @@ const UserForm: React.FC<Props> = ({ user, onSave, onClose }) => {
       ...user,
       username: data.username,
       password: data.password,
-      roleId: parseInt(data.roleId),
+      role: { id: parseInt(data.roleId), name: '' },
       branchId: parseInt(data.branchId),
       email: data.email,
+      id: user?.id || 0,
+      uid: user?.uid || '',
+      name: user?.name || ''
     };
     // Minimal logic for demo
     onSave(userData);
