@@ -11,7 +11,7 @@ export interface Order {
     paymentType: PaymentType ;
     approved: Boolean;
     remark: string;
-    items: OrderItem;
+    items: OrderItem[];
     vendor: Distributor;
     subtotal: number;
     discount: number;
