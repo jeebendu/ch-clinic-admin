@@ -19,7 +19,7 @@ const UserService = {
   list: () => {
     return http.get(`${apiUrl}/v1/staff/list`);
   },
-
+  
   deleteById: (id:number) => {
     return http.get(`${apiUrl}/v1/staff/delete/id/${id}`);
   },
