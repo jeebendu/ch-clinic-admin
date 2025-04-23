@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Calendar, Plus, Save, X, Print } from "lucide-react";
+import { Calendar, Plus, Save, X, Printer } from "lucide-react";
 import { format } from "date-fns";
 import PurchaseItemDialog from "../components/PurchaseItemDialog";
 import { Order, OrderItem } from "../types/PurchaseOrder";
@@ -245,7 +244,9 @@ export default function PurchasePage() {
           <div className="w-full flex justify-end gap-4 mt-12 pb-4">
             <Button type="button" variant="destructive" className="bg-red-700 text-white text-lg px-8 py-3 rounded-full shadow-none">Cancel</Button>
             <Button type="submit" className="bg-blue-700 text-white text-lg px-8 py-3 rounded-full shadow-none">Submit</Button>
-            <Button type="button" className="bg-blue-700 text-white text-lg px-8 py-3 flex gap-2 rounded-full shadow-none"><Print className="w-5 h-5" /> Print</Button>
+            <Button type="button" className="bg-blue-700 text-white text-lg px-8 py-3 flex gap-2 rounded-full shadow-none">
+              <Printer className="w-5 h-5" /> Print
+            </Button>
           </div>
         </form>
       </div>
