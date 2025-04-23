@@ -23,7 +23,6 @@ export const AppointmentReqMockService = {
         isReject: i % 3 === 1,
         doctor: {
           id: i,
-          uid: `DOC-${i}`, // Added the missing uid property
           firstname: `Doctor${i}`,
           lastname: `Last${i}`,
           email: `doctor${i}@example.com`,

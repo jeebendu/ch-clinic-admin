@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import "./styles/admin.css";
 import DashboardRoutes from "./modules/dashboard/routes/DashboardRoutes";
@@ -19,7 +18,6 @@ import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/route
 import EnquiryRoutes from "./modules/enquiry/routes/EnquiryRoutes";
 import BrandRoutes from "./modules/inventory/brand/routes/BrandRoutes";
 import ProductTypeRoutes from "./modules/inventory/product-type/routes/ProductTypeRoutes";
-import PurchasePage from "./modules/purchase/pages/PurchasePage";
 
 const AdminRoutes = () => {
   return (
@@ -35,6 +33,7 @@ const AdminRoutes = () => {
       <Route path="/distributor/*" element={<DistributorRoutes />} />
       <Route path="/product/*" element={<ProductRoutes/>} />
       <Route path="/category/*" element={<CategoryRoutes/>} />
+      <Route path="/category/*" element={<CategoryRoutes/>} />
       <Route path="/brand/*" element={<BrandRoutes />} />
       <Route path="/product-type/*" element={<ProductTypeRoutes />} />
       <Route path="/doctor/*" element={<DoctorRoutes />} />
@@ -43,7 +42,6 @@ const AdminRoutes = () => {
       <Route path="/core/*" element={<CoreRoutes />} />
       <Route path="/:section" element={<DashboardRoutes />} />
       <Route path="/enquiry/*" element={<EnquiryRoutes />} />
-      <Route path="/purchase" element={<PurchasePage />} />
     </Routes>
   );
 };

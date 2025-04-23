@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,56 +64,42 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
 
     const onSubmit = async (data: FormValues) => {
         try {
-            // Create a staff object including user data
-            const staffData: Staff = {
-                id: user?.id || 0,
-                firstname: data.firstname,
-                lastname: data.lastname,
-                uId: user?.uId || 0,
-                dob: data.dob || new Date(),
-                whatsappNo: 0,
-                age: "",
-                gender: data.gender || "",
-                lastVisitedOn: new Date(),
+            // Create a formatted user object that includes the required uid and username fields
+            const userData: User = {
+                id: user?.id,
+                uid: user?.user?.uid || `USR-${Date.now()}`, // Generate a UID if not editing
+                username: data.username,
                 name: `${data.firstname} ${data.lastname}`,
-                branchList: [],
-                user: {
-                    id: user?.user?.id || 0,
-                    uid: user?.user?.uid || `USR-${Date.now()}`,
-                    username: data.username,
-                    name: `${data.firstname} ${data.lastname}`,
-                    email: data.email || "",
-                    phone: data.phone || "",
-                    role: {
-                        id: 1,
-                        name: data.role,
-                        permissions: []
-                    },
-                    branch: {
-                        id: 1,
-                        name: "Main Branch",
-                        code: "MB-001",
-                        location: "Main Location",
-                        active: true,
-                        city: "Default City",
-                        state: null,
-                        district: null,
-                        country: null,
-                        pincode: 12345,
-                        mapurl: "",
-                        image: "",
-                        latitude: 0,
-                        longitude: 0
-                    },
+                email: data.email || "",
+                phone: data.phone || "",
+                password: "",  // This would typically be handled separately
+                role: {
+                    id: 1, // This would need to be properly mapped
+                    name: data.role,
+                    permissions: []
+                },
+                branch: {
+                    id: 1, // Default branch
+                    name: "Main Branch",
+                    code: "MB-001",
+                    location: "Main Location",
+                    active: true,
+                    city: "Default City",
+                    state: null,
+                    district: null,
+                    country: null,
+                    pincode: 12345,
+                    mapurl: "",
                     image: "",
-                    effectiveFrom: data.effectiveFrom || new Date(),
-                    effectiveTo: data.effectiveTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-                    status: data.active
-                }
+                    latitude: 0,
+                    longitude: 0
+                },
+                image: "",
+                effectiveFrom: data.effectiveFrom || new Date(),
+                effectiveTo: data.effectiveTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1))
             };
 
-            // Now use the staffData object
-            await UserService.saveOrUpdate(staffData);
+            await UserService.saveOrUpdate(userData);
 
             toast({
                 title: `User ${isEditing ? "updated" : "added"} successfully`,
