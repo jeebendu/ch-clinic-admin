@@ -1,7 +1,6 @@
 import http from "@/lib/JwtInterceptor";
 import { getEnvVariable } from "@/utils/envUtils";
 import { Expense } from "../types/Expense";
-import { Expense as expenseee} from "../types/Expense";
  
 const apiUrl = getEnvVariable('API_URL');
  
@@ -25,7 +24,7 @@ const ExpenseService = {
     return http.get(`${apiUrl}/v1/expense/id/${id}`);
   },
  
-  saveOrUpdate: (expense: expenseee) => {
+  saveOrUpdate: (expense: Expense) => {
     return http.post(`${apiUrl}/v1/expense/saveOrUpdate`, expense);
   },
  
