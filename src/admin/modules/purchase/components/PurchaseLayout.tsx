@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { layoutList, layoutGrid, list } from "lucide-react";
+import { LayoutList, LayoutGrid, List } from "lucide-react";
 
 type PurchaseLayoutProps = {
   children: React.ReactNode;
@@ -22,17 +22,17 @@ const sidebarItems = [
   {
     label: "All Purchases",
     href: "/admin/purchase",
-    icon: layoutList,
+    icon: LayoutList,
   },
   {
     label: "Vendors",
     href: "/admin/purchase/vendors",
-    icon: list,
+    icon: List,
   },
   {
     label: "Reports",
     href: "/admin/purchase/reports",
-    icon: layoutGrid,
+    icon: LayoutGrid,
   },
 ];
 

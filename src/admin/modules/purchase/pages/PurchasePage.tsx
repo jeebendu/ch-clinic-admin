@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Plus, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,18 @@ const mockPurchases: Order[] = [
     approved: false,
     remark: "First purchase",
     items: [],
-    vendor: { id: 1, name: "Vendor 1", code: "V-001", address: "", active: true, gst: "", phone: "", email: "", pan: "", remark: "" },
+    vendor: { id: 1, name: "Vendor 1", address: "", active: true, gst: "", phone: "", email: "", pan: "", remark: "" },
     subtotal: 1000,
     discount: 0,
     grandTotal: 1000,
-    product: { id: 1, name: "Sample", price: 1000, buyprice: 900, specialprice: 950, qty: 1, qtyLoose: 0, stripsPerBox: 0, capPerStrip: 0, ram: '', storage: '', sku: '', brand: { id: 1, name: "Brand" }, modelno: 0, rackNo: '', color: '', warranty: '', smallimage: '', largeimage: '', description: '', branchId: 1, categoryId: 1, brandId: 1, category: { id: 1, name: "Category" }, serials: [], batchList: [], isSerialNoEnable: false, batched: false, type: { id: 1, name: "Type", strip: false }},
+    product: { 
+      id: 1, name: "Sample", price: 1000, buyprice: 900, specialprice: 950, qty: 1, qtyLoose: 0, 
+      stripsPerBox: 0, capPerStrip: 0, ram: '', storage: '', sku: '', brand: { id: 1, name: "Brand" }, 
+      modelno: 0, rackNo: '', color: '', warranty: '', smallimage: '', largeimage: '', 
+      description: '', branchId: 1, categoryId: 1, brandId: 1, category: { id: 1, name: "Category" }, 
+      serials: [], batchList: [], isSerialNoEnable: false, batched: false, 
+      type: { id: 1, name: "Type", strip: false }
+    },
     approvedTime: new Date(),
     totalDiscount: 0,
     totalGst: 0,

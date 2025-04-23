@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PurchaseItemDialog from "./PurchaseItemDialog";
 import { Order, OrderItem } from "../types/PurchaseOrder";
+import { Edit } from "lucide-react";
 
 interface Props {
   purchase: Order | null;
