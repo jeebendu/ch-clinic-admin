@@ -4,10 +4,9 @@ import { getEnvVariable } from "@/utils/envUtils";
 const apiUrl = getEnvVariable('API_URL');
 
 const LoginHistoryService = {
-
-    filter: (pageNumber:any, pageSize:any, search:any) => {
-        const url = `${apiUrl}/v1/login/filter/${0}/${10}`;
+    filter: (pageNumber: number, pageSize: number, search: any) => {
+        const url = `${apiUrl}/v1/login/filter/${pageNumber}/${pageSize}`;
         return http.post(url, search);
-      },
+    },
 };
 export default LoginHistoryService;
