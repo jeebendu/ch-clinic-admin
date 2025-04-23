@@ -42,7 +42,7 @@ const DoctorRoutes = () => {
       <Route path="/percentages/*" element={<PercentageList />} />
       <Route path="/availability/*" element={<AvailabilityList />} />
       <Route path="/reports/*" element={<ReportList />} />
-      <Route path="speciality/*" element={<SpecialityList />} />
+      <Route path="/speciality/*" element={<SpecialityList />} />
     </Routes>
   );
 };
