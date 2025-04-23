@@ -20,12 +20,13 @@ import {
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import { Sequence } from "../types/sequence";
-import SequenceService from "../services/sequenceService";
-import SequenceForm from "../components/SequenceForm";
-import SequenceTable from "../components/SequenceTable";
+import { Brand } from "../types/Brand";
+import BrandService from "../service/BrandService";
+import BrandTable from "../components/BrandTable";
+import BrandForm from "../components/BrandForm";
 
-const SequenceList = () => {
+
+const BrandList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -37,9 +38,9 @@ const SequenceList = () => {
   const [showFilter, setShowFilter] = useState(false);
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [sequenceToDelete, setSequenceToDelete] = useState<number | null>(null);
+  const [brandToDelete, setBrandToDelete] = useState<number | null>(null);
   
-  const [sequenceToEdit, setSequenceToEdit] = useState<Sequence | null>(null);
+  const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   // Define filter options
@@ -71,36 +72,36 @@ const SequenceList = () => {
   });
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['sequences', page, size, searchTerm, selectedFilters],
+    queryKey: ['brands', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
-      const response = await SequenceService.list();
-      console.log("Sequence API response (direct):", response);
+      const response = await BrandService.list();
+      // console.log("Brand API response (direct):", response);
       return response;
     },
   });
 
-  // Extract sequences from the response
-  const sequences = Array.isArray(data) ? data : [];
-  console.log("Extracted sequences:", sequences);
+  // Extract brands from the response
+  const brands = Array.isArray(data) ? data : [];
+  // console.log("Extracted brands:", brands);
 
-  // Filter sequences based on search term and filters
-  const filteredSequences = sequences.filter(sequence => {
+  // Filter brands based on search term and filters
+  const filteredBrands = brands.filter(brand => {
     // Filter by search term
-    if (searchTerm && !sequence.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !sequence.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !sequence.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+    if (searchTerm && !brand.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !brand.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !brand.location.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
     // Filter by status
     if (selectedFilters.status.length > 0) {
-      const statusMatch = selectedFilters.status.includes(sequence.active ? 'active' : 'inactive');
+      const statusMatch = selectedFilters.status.includes(brand.active ? 'active' : 'inactive');
       if (!statusMatch) return false;
     }
 
     // Filter by location
     if (selectedFilters.location.length > 0) {
-      const locationMatch = selectedFilters.location.includes(sequence.location.toLowerCase());
+      const locationMatch = selectedFilters.location.includes(brand.location.toLowerCase());
       if (!locationMatch) return false;
     }
 
@@ -115,45 +116,45 @@ const SequenceList = () => {
     setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
-  const handleAddSequence = () => {
-    setSequenceToEdit(null);
+  const handleAddBrand = () => {
+    setBrandToEdit(null);
     setIsAddFormOpen(true);
   };
 
   const handleCloseForm = () => {
     setIsAddFormOpen(false);
     setIsEditFormOpen(false);
-    setSequenceToEdit(null);
+    setBrandToEdit(null);
     refetch();
   };
 
-  const handleEditSequence = (sequence: Sequence) => {
-    setSequenceToEdit(sequence);
+  const handleEditBrand = (brand: Brand) => {
+    setBrandToEdit(brand);
     setIsEditFormOpen(true);
   };
 
-  const handleDeleteSequence = (id: number) => {
-    setSequenceToDelete(id);
+  const handleDeleteBrand = (id: number) => {
+    setBrandToDelete(id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (sequenceToDelete === null) return;
+    if (brandToDelete === null) return;
     
     try {
-      await SequenceService.deleteById(sequenceToDelete);
+      await BrandService.deleteById(brandToDelete);
       toast({
-        title: "Sequence deleted",
-        description: "Sequence has been successfully deleted.",
+        title: "Brand deleted",
+        description: "Brand has been successfully deleted.",
         className: "bg-clinic-primary text-white"
       });
       refetch();
       setDeleteDialogOpen(false);
-      setSequenceToDelete(null);
+      setBrandToDelete(null);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete sequence.",
+        description: "Failed to delete brand.",
         variant: "destructive",
       });
     }
@@ -189,10 +190,10 @@ const SequenceList = () => {
         <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
           <DrawerContent className="h-[85%]">
             <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Sequence</DrawerTitle>
+              <DrawerTitle className="text-clinic-primary">Add New Brand</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <SequenceForm onSuccess={handleCloseForm} />
+              <BrandForm onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -203,27 +204,27 @@ const SequenceList = () => {
       <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Sequence</DialogTitle>
-            <DialogDescription>Add a new sequence to your clinic network.</DialogDescription>
+            <DialogTitle className="text-clinic-primary">Add New Brand</DialogTitle>
+            <DialogDescription>Add a new brand to your clinic network.</DialogDescription>
           </DialogHeader>
-          <SequenceForm onSuccess={handleCloseForm} />
+          <BrandForm onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );
   };
 
   const renderEditForm = () => {
-    if (!sequenceToEdit) return null;
+    if (!brandToEdit) return null;
     
     if (isMobile) {
       return (
         <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
           <DrawerContent className="h-[85%]">
             <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Sequence</DrawerTitle>
+              <DrawerTitle className="text-clinic-primary">Edit Brand</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <SequenceForm sequence={sequenceToEdit} onSuccess={handleCloseForm} />
+              <BrandForm brand={brandToEdit} onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -234,28 +235,28 @@ const SequenceList = () => {
       <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Sequence</DialogTitle>
-            <DialogDescription>Update sequence information.</DialogDescription>
+            <DialogTitle className="text-clinic-primary">Edit Brand</DialogTitle>
+            <DialogDescription>Update brand information.</DialogDescription>
           </DialogHeader>
-          <SequenceForm sequence={sequenceToEdit} onSuccess={handleCloseForm} />
+          <BrandForm brand={brandToEdit} onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );
   };
 
-  const totalElements = filteredSequences.length || 0;
-  const loadedElements = filteredSequences.length || 0;
+  const totalElements = filteredBrands.length || 0;
+  const loadedElements = filteredBrands.length || 0;
 
   return (
     <AdminLayout>
       <div className="space-y-4">
         <PageHeader 
-          title="Sequence" 
+          title="Brand" 
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
           showAddButton={true}
-          addButtonLabel="Add Sequence"
-          onAddButtonClick={handleAddSequence}
+          addButtonLabel="Add Brand"
+          onAddButtonClick={handleAddBrand}
           onRefreshClick={() => refetch()}
           loadedElements={loadedElements}
           totalElements={totalElements}
@@ -276,19 +277,19 @@ const SequenceList = () => {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading sequences...</p>
+            <p className="text-muted-foreground">Loading brands...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading sequences. Please try again.</p>
+            <p className="text-destructive">Error loading brands. Please try again.</p>
           </div>
         ) : (
           <div>
-          
-              <SequenceTable 
-                sequences={filteredSequences} 
-                onDelete={handleDeleteSequence}
-                onEdit={handleEditSequence}
+            
+              <BrandTable 
+                brands={filteredBrands} 
+                onDelete={handleDeleteBrand}
+                onEdit={handleEditBrand}
               />
            
           </div>
@@ -303,12 +304,12 @@ const SequenceList = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the sequence
+              This action cannot be undone. This will permanently delete the brand
               and remove all associated data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSequenceToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setBrandToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
@@ -319,4 +320,4 @@ const SequenceList = () => {
   );
 };
 
-export default SequenceList;
+export default BrandList;

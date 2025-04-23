@@ -20,12 +20,13 @@ import {
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import { Sequence } from "../types/sequence";
-import SequenceService from "../services/sequenceService";
-import SequenceForm from "../components/SequenceForm";
-import SequenceTable from "../components/SequenceTable";
+import ProductTypeForm from "../components/ProductTypeForm";
+import { ProductType } from "../types/ProductType";
+import ProductTypeTable from "../components/ProductTypeTable";
+import ProductTypeService from "../service/ProductTypeService";
 
-const SequenceList = () => {
+
+const ProductTypeList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -37,9 +38,9 @@ const SequenceList = () => {
   const [showFilter, setShowFilter] = useState(false);
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [sequenceToDelete, setSequenceToDelete] = useState<number | null>(null);
+  const [typeToDelete, setTypeToDelete] = useState<number | null>(null);
   
-  const [sequenceToEdit, setSequenceToEdit] = useState<Sequence | null>(null);
+  const [typeToEdit, setTypeToEdit] = useState<ProductType | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   // Define filter options
@@ -71,36 +72,36 @@ const SequenceList = () => {
   });
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['sequences', page, size, searchTerm, selectedFilters],
+    queryKey: ['types', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
-      const response = await SequenceService.list();
-      console.log("Sequence API response (direct):", response);
+      const response = await ProductTypeService.list();
+      // console.log("Product Type API response (direct):", response);
       return response;
     },
   });
 
-  // Extract sequences from the response
-  const sequences = Array.isArray(data) ? data : [];
-  console.log("Extracted sequences:", sequences);
+  // Extract types from the response
+  const types = Array.isArray(data) ? data : [];
+  // console.log("Extracted types:", types);
 
-  // Filter sequences based on search term and filters
-  const filteredSequences = sequences.filter(sequence => {
+  // Filter types based on search term and filters
+  const filteredTypes = types.filter(type => {
     // Filter by search term
-    if (searchTerm && !sequence.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !sequence.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !sequence.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+    if (searchTerm && !type.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !type.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !type.location.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
     // Filter by status
     if (selectedFilters.status.length > 0) {
-      const statusMatch = selectedFilters.status.includes(sequence.active ? 'active' : 'inactive');
+      const statusMatch = selectedFilters.status.includes(type.active ? 'active' : 'inactive');
       if (!statusMatch) return false;
     }
 
     // Filter by location
     if (selectedFilters.location.length > 0) {
-      const locationMatch = selectedFilters.location.includes(sequence.location.toLowerCase());
+      const locationMatch = selectedFilters.location.includes(type.location.toLowerCase());
       if (!locationMatch) return false;
     }
 
@@ -115,45 +116,45 @@ const SequenceList = () => {
     setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
-  const handleAddSequence = () => {
-    setSequenceToEdit(null);
+  const handleAddType = () => {
+    setTypeToEdit(null);
     setIsAddFormOpen(true);
   };
 
   const handleCloseForm = () => {
     setIsAddFormOpen(false);
     setIsEditFormOpen(false);
-    setSequenceToEdit(null);
+    setTypeToEdit(null);
     refetch();
   };
 
-  const handleEditSequence = (sequence: Sequence) => {
-    setSequenceToEdit(sequence);
+  const handleEditType = (type: ProductType) => {
+    setTypeToEdit(type);
     setIsEditFormOpen(true);
   };
 
-  const handleDeleteSequence = (id: number) => {
-    setSequenceToDelete(id);
+  const handleDeleteType = (id: number) => {
+    setTypeToDelete(id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (sequenceToDelete === null) return;
+    if (typeToDelete === null) return;
     
     try {
-      await SequenceService.deleteById(sequenceToDelete);
+      await ProductTypeService.deleteById(typeToDelete);
       toast({
-        title: "Sequence deleted",
-        description: "Sequence has been successfully deleted.",
+        title: "Product-Type deleted",
+        description: "Product-Type has been successfully deleted.",
         className: "bg-clinic-primary text-white"
       });
       refetch();
       setDeleteDialogOpen(false);
-      setSequenceToDelete(null);
+      setTypeToDelete(null);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete sequence.",
+        description: "Failed to delete Product-Type.",
         variant: "destructive",
       });
     }
@@ -189,10 +190,10 @@ const SequenceList = () => {
         <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
           <DrawerContent className="h-[85%]">
             <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Sequence</DrawerTitle>
+              <DrawerTitle className="text-clinic-primary">Add New Product-Type</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <SequenceForm onSuccess={handleCloseForm} />
+              <ProductTypeForm onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -203,27 +204,27 @@ const SequenceList = () => {
       <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Sequence</DialogTitle>
-            <DialogDescription>Add a new sequence to your clinic network.</DialogDescription>
+            <DialogTitle className="text-clinic-primary">Add New Product-Type</DialogTitle>
+            <DialogDescription>Add a new Product-Type to your clinic network.</DialogDescription>
           </DialogHeader>
-          <SequenceForm onSuccess={handleCloseForm} />
+          <ProductTypeForm onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );
   };
 
   const renderEditForm = () => {
-    if (!sequenceToEdit) return null;
+    if (!typeToEdit) return null;
     
     if (isMobile) {
       return (
         <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
           <DrawerContent className="h-[85%]">
             <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Sequence</DrawerTitle>
+              <DrawerTitle className="text-clinic-primary">Edit Product-Type</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <SequenceForm sequence={sequenceToEdit} onSuccess={handleCloseForm} />
+              <ProductTypeForm type={typeToEdit} onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -234,28 +235,28 @@ const SequenceList = () => {
       <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Sequence</DialogTitle>
-            <DialogDescription>Update sequence information.</DialogDescription>
+            <DialogTitle className="text-clinic-primary">Edit Product-Type</DialogTitle>
+            <DialogDescription>Update Product-Type information.</DialogDescription>
           </DialogHeader>
-          <SequenceForm sequence={sequenceToEdit} onSuccess={handleCloseForm} />
+          <ProductTypeForm type={typeToEdit} onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );
   };
 
-  const totalElements = filteredSequences.length || 0;
-  const loadedElements = filteredSequences.length || 0;
+  const totalElements = filteredTypes.length || 0;
+  const loadedElements = filteredTypes.length || 0;
 
   return (
     <AdminLayout>
       <div className="space-y-4">
         <PageHeader 
-          title="Sequence" 
+          title="Product-Type" 
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
           showAddButton={true}
-          addButtonLabel="Add Sequence"
-          onAddButtonClick={handleAddSequence}
+          addButtonLabel="Add Product-Type"
+          onAddButtonClick={handleAddType}
           onRefreshClick={() => refetch()}
           loadedElements={loadedElements}
           totalElements={totalElements}
@@ -276,19 +277,19 @@ const SequenceList = () => {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading sequences...</p>
+            <p className="text-muted-foreground">Loading product-Types...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading sequences. Please try again.</p>
+            <p className="text-destructive">Error loading product-types. Please try again.</p>
           </div>
         ) : (
           <div>
-          
-              <SequenceTable 
-                sequences={filteredSequences} 
-                onDelete={handleDeleteSequence}
-                onEdit={handleEditSequence}
+            
+              <ProductTypeTable 
+                types={filteredTypes} 
+                onDelete={handleDeleteType}
+                onEdit={handleEditType}
               />
            
           </div>
@@ -303,12 +304,12 @@ const SequenceList = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the sequence
+              This action cannot be undone. This will permanently delete the product-type
               and remove all associated data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSequenceToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setTypeToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
@@ -319,4 +320,4 @@ const SequenceList = () => {
   );
 };
 
-export default SequenceList;
+export default ProductTypeList;

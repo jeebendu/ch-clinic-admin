@@ -26,6 +26,9 @@ import {
   Martini,
   Filter,
   MessageSquare
+  CopyMinusIcon,
+  LucideMartini,
+  MessageCircleQuestionIcon,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -142,6 +145,19 @@ const navItems = [
     roles: ["Admin"] 
   },
   { 
+    icon: <CopyMinusIcon className="h-5 w-5" />, 
+    label: "Brand", 
+    href: "/admin/brand", 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <MessageCircleQuestionIcon className="h-5 w-5" />, 
+    label: "Product-Type", 
+    href: "/admin/product-type", 
+    roles: ["Admin"] 
+  },
+
+  { 
     icon: <UserCog className="h-5 w-5" />, 
     label: "Customers", 
     href: "/admin/customer", 
@@ -159,6 +175,7 @@ const navItems = [
     href: "/admin/settings", 
     roles: ["Admin"] 
   },
+  
   { 
     icon: <UserPlus className="h-5 w-5" />, 
     label: "Quick Patient Form", 

@@ -16,6 +16,8 @@ import ProductRoutes from "./modules/inventory/product/routes/ProductRoutes";
 import CategoryRoutes from "./modules/inventory/category/routes/CategoryRoutes";
 import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/routes/RepairCompanyRoutes";
 import EnquiryRoutes from "./modules/enquiry/routes/EnquiryRoutes";
+import BrandRoutes from "./modules/inventory/brand/routes/BrandRoutes";
+import ProductTypeRoutes from "./modules/inventory/product-type/routes/ProductTypeRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -31,7 +33,9 @@ const AdminRoutes = () => {
       <Route path="/distributor/*" element={<DistributorRoutes />} />
       <Route path="/product/*" element={<ProductRoutes/>} />
       <Route path="/category/*" element={<CategoryRoutes/>} />
-      <Route path="/customer/*" element={<CustomerRoutes />} />
+      <Route path="/category/*" element={<CategoryRoutes/>} />
+      <Route path="/brand/*" element={<BrandRoutes />} />
+      <Route path="/product-type/*" element={<ProductTypeRoutes />} />
       <Route path="/doctor/*" element={<DoctorRoutes />} />
       <Route path="/users/*" element={<UserRoutes />} />
       <Route path="/expense/*" element={<ExpenseRoutes/>} />
