@@ -201,6 +201,12 @@ const navItems = [
     href: "/admin/enquiry", 
     roles: ["Admin", "Doctor", "Staff"] 
   },
+  { 
+    icon: <ShoppingBasket className="h-5 w-5" />, 
+    label: "Purchase", 
+    href: "/admin/purchase", 
+    roles: ["Admin"] 
+  },
 ];
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
