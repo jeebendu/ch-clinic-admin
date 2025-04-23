@@ -1,145 +1,96 @@
 
 import { AppointmentRequest } from "../types/AppointmentRequest";
 import { Doctor } from "../../doctor/types/Doctor";
+import { Country, District, State } from "../../core/types/Address";
 
-export const AppointmentReqMockService = {
-  generateMockAppointmentRequests: (size: number): AppointmentRequest[] => {
-    const mockAppointmentRequests: AppointmentRequest[] = [];
-    for (let i = 1; i <= size; i++) {
-      mockAppointmentRequests.push({
-        id: i,
-        firstName: `Patient${i}`,
-        lastName: `Last${i}`,
-        email: `patient${i}@example.com`,
-        phone: i * 10000000,
-        dob: new Date(1980, i % 12, (i % 28) + 1),
-        gender: i % 2,
-        district: null,
-        state: null,
-        country: null,
-        city: `City ${i}`,
-        appointmentDate: `2023-${(i % 12) + 1}-${(i % 28) + 1}`,
-        isAccept: i % 3 === 0,
-        isReject: i % 3 === 1,
-        doctor: {
-          id: i,
-          firstname: `Doctor${i}`,
-          lastname: `Last${i}`,
-          email: `doctor${i}@example.com`,
-          phone: `+123456789${i}`,
-          desgination: "Senior Physician",
-          specializationList: [
-            { id: 1, name: "Cardiology" },
-            { id: 2, name: "Neurology" },
-          ],
-          qualification: "MD",
-          joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
-          external: i % 3 === 0,
-          publishedOnline: i % 7 === 0,
-          user: {
-            id: i,
-            uid: `USR-${i + 100}`,
-            name: `User ${i + 100}`,
-            username: `user${i + 100}`,
-            email: `user${i + 100}@example.com`,
-            phone: `+123456789${i + 100}`,
-            password: `password${i + 100}`,
-            effectiveTo: new Date(2025, i % 12, (i % 28) + 1),
-            effectiveFrom: new Date(2024, i % 12, (i % 28) + 1),
-            role: {
-              id: 2,
-              name: "Doctor",
-              permissions: [],
-            },
-            image: "",
-            branch: {
-              id: 1,
-              name: "Main Branch",
-              code: "BR-001",
-              location: "Downtown",
-              active: true,
-              state: null,
-              district: null,
-              country: null,
-              city: "New York",
-              mapurl: "",
-              pincode: 10001,
-              image: "",
-              latitude: 40.7128,
-              longitude: -74.0060,
-            },
-          },
-          status: i % 2 === 0 ? "Active" : "Inactive",
-          about: `About doctor ${i}`,
-          image: "",
-          expYear: i % 10,
-          city: `City ${i}`,
-          pincode: `${100000 + i}`,
-          biography: `Bio for doctor ${i}`,
-          gender: i % 2,
-          verified: i % 2 === 0,
-          percentages: [],
-          serviceList: [],
-          branchList: [],
-          languageList: [],
-          district: null,
-          state: null,
-          country: null,
-          consultationFee: i * 100,
-          reviewCount: i % 5,
-          rating: (i % 5) + 1,
-        },
-        appointmentType: {
-          id: i % 3 + 1,
-          name: i % 3 === 0 ? "Regular" : i % 3 === 1 ? "Emergency" : "Follow-up"
-        },
-        visitType: {
-          id: i % 2 + 1,
-          name: i % 2 === 0 ? "In-person" : "Virtual"
-        }
-      });
-    }
-
-    return mockAppointmentRequests;
-    branchId: 1
+const mockAppointmentRequests: AppointmentRequest[] = [
+  {
+    id: 1,
+    firstName: "John",
+    lastName: "Doe",
+    email: "john.doe@example.com",
+    phone: 1234567890,
+    dob: new Date(),
+    gender: 1,
+    district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
+    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
+    country: { id: 1, name: "Country 1", code: "C1", status: true },
+    city: "City 1",
+    appointmentDate: "2023-04-23",
+    isAccept: false,
+    isReject: false,
+    doctor: { id: 1, uId: "D001" } as Doctor,
+    appointmentType: { id: 1, name: "Regular" },
+    visitType: { id: 1, name: "New" }
+  },
+  {
+    id: 2,
+    firstName: "Jane",
+    lastName: "Smith",
+    email: "jane.smith@example.com",
+    phone: 9876543210,
+    dob: new Date(),
+    gender: 2,
+    district: { id: 2, name: "District 2", state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } } },
+    state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } },
+    country: { id: 2, name: "Country 2", code: "C2", status: true },
+    city: "City 2",
+    appointmentDate: "2023-04-24",
+    isAccept: true,
+    isReject: false,
+    doctor: { id: 2, uId: "D002" } as Doctor,
+    appointmentType: { id: 2, name: "Emergency" },
+    visitType: { id: 2, name: "Follow-up" }
+  },
+  {
+    id: 3,
+    firstName: "Alice",
+    lastName: "Johnson",
+    email: "alice.johnson@example.com",
+    phone: 5555555555,
+    dob: new Date(),
+    gender: 2,
+    district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
+    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
+    country: { id: 1, name: "Country 1", code: "C1", status: true },
+    city: "City 1",
+    appointmentDate: "2023-04-25",
+    isAccept: false,
+    isReject: false,
+    doctor: { id: 1, uId: "D001" } as Doctor,
+    appointmentType: { id: 1, name: "Regular" },
+    visitType: { id: 1, name: "New" }
   },
 
-  getById: (id: number): Promise<AppointmentRequest> => {
-    const mockAppointmentRequests = AppointmentReqMockService.generateMockAppointmentRequests(100);
-    const appointmentRequest = mockAppointmentRequests.find(req => req.id === id);
-    
-    if (!appointmentRequest) {
-      return Promise.reject(new Error("Appointment request not found"));
-    }
-    
-    return Promise.resolve(appointmentRequest);
-    branchId: 2
-  },
-  
-  list: (): Promise<AppointmentRequest[]> => {
-    return Promise.resolve(AppointmentReqMockService.generateMockAppointmentRequests(100));
-    branchId: 1
-  },
-
-  fetchPaginated: (
-    page: number, 
-    size: number, 
-    filter: { value: string; status: string | null; }
-  ): Promise<PaginatedResponse<AppointmentRequest>> => {
-    const mockAppointmentRequests = AppointmentReqMockService.generateMockAppointmentRequests(100);
-    
-    const filteredRequests = mockAppointmentRequests.filter((request) => {
-      const matchesValue = filter.value
-        ? request.firstName.toLowerCase().includes(filter.value.toLowerCase()) || 
-          request.lastName.toLowerCase().includes(filter.value.toLowerCase()) ||
-          request.doctor.firstname.toLowerCase().includes(filter.value.toLowerCase()) ||
-          request.doctor.lastname.toLowerCase().includes(filter.value.toLowerCase())
-        : true;
-      const matchesStatus = filter.status 
-        ? (filter.status === "accepted" && request.isAccept) ||
-          (filter.status === "rejected" && request.isReject) ||
-          (filter.status === "pending" && !request.isAccept && !request.isReject)
-        : true;
+// Function with the correct getDoctor implementation
+export const getDoctor = (id: number): Doctor => {
+  return {
+    id: 1,
+    uId: "D001", 
+    firstname: "John",
+    lastname: "Doe",
+    email: "john.doe@example.com",
+    phone: "1234567890",
+    desgination: "Senior Doctor",
+    specializationList: [{ id: 1, name: "General" }],
+    qualification: "MBBS, MD",
+    joiningDate: "2020-01-01",
+    address: "123 Main Street",
+    city: "New York",
+    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
+    zipCode: "10001",
+    gender: "Male",
+    dateOfBirth: "1980-01-01",
+    bloodGroup: "O+",
+    emergencyContactName: "Jane Doe",
+    emergencyContactPhone: "9876543210",
+    biography: "Experienced general practitioner.",
+    profilePicture: "url",
+    active: true,
+    branchId: 1,
+    rating: 4.5
+  };
+};
 
       return matchesValue && matchesStatus;
     });
