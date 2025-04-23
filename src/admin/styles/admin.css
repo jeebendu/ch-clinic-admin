@@ -194,10 +194,7 @@
   color: var(--brand-dark);
 }
 
-/* Rounded sidebar */
-.admin-sidebar-rounded {
-  border-top-right-radius: 0.75rem;
-}
+
 
 /* Fixed header for scrolling */
 .sticky-header {

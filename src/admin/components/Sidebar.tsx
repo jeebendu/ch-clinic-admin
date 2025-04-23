@@ -259,10 +259,10 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
 
   return (
     <aside className={cn(
-      "bg-sidebar text-sidebar-foreground h-full transition-all duration-300 flex flex-col",
+      "text-sidebar-foreground h-full transition-all duration-300 flex flex-col",
       collapsed ? "w-[70px]" : "w-64"
     )}>
-      <div className="p-4 flex-none border-b border-sidebar-border">
+      <div className="p-4 flex-none border-b">
         {tenantLogoUrl && (
           <div className={cn(
             "w-full flex items-center justify-center mb-2",
@@ -276,23 +276,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
           </div>
         )}
         
-        {!collapsed ? (
-          <div className="flex items-center w-full">
-            <img 
-              src="https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png" 
-              alt="ClinicHub Logo" 
-              className="h-8" 
-            />
-          </div>
-        ) : (
-          <div className="w-8 h-8 mx-auto">
-            <img 
-              src="https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png" 
-              alt="ClinicHub Logo" 
-              className="h-8" 
-            />
-          </div>
-        )}
+        
         <Button
           variant="ghost"
           size="icon"
@@ -303,14 +287,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
         </Button>
       </div>
 
-      <div className="px-4 py-2 flex-none">
-        {!collapsed && (
-          <div className="text-xs font-semibold uppercase text-sidebar-foreground/70 mb-2 tracking-wider">
-            Main Menu
-          </div>
-        )}
-      </div>
-
+      
       <ScrollArea className="flex-1">
         <nav>
           {filteredNavItems.map((item) => (

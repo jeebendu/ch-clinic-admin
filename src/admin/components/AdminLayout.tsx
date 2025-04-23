@@ -113,7 +113,7 @@ export const AdminLayout = ({
       
       {/* Left Sidebar */}
       <div className={cn(
-        "admin-sidebar admin-sidebar-rounded z-40 transition-all duration-300 ease-in-out md:static", 
+        "admin-sidebar z-40 transition-all duration-300 ease-in-out md:static", 
         sidebarOpen ? "open" : "",
         sidebarCollapsed ? "md:w-[70px]" : "md:w-64",
         "bg-white shadow-sm"
