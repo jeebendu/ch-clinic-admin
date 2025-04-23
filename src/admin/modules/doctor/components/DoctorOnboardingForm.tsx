@@ -11,8 +11,7 @@ import { useState, useEffect } from "react";
 import StateService from "@/admin/modules/core/services/state/stateService";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
 import { Branch } from "../../branch/types/Branch";
-import BranchService from "../../branch/services/branchService";
-
+import BranchService from '@/admin/modules/branch/services/BranchService';
 // EstablishmentType values: "own" (I own...) or "visit" (I visit...)
 const establishmentTypeOptions = [
   // { value: "own", label: "I own a establishment" },

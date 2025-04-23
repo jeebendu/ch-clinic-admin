@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
-import BranchService from "../services/branchService";
+import BranchService from '@/admin/modules/branch/services/BranchService';
 import { Branch } from "../types/Branch";
 import BranchTable from "../components/BranchTable";
 import BranchCardList from "../components/BranchCardList";
