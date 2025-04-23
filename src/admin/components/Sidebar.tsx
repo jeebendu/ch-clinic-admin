@@ -201,6 +201,12 @@ const navItems = [
     href: "/admin/enquiry", 
     roles: ["Admin", "Doctor", "Staff"] 
   },
+  { 
+    icon: <span className="inline-block"><svg width="20" height="20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" fill="#fff" stroke="#000" strokeWidth="2"/><path d="M7 8h6" stroke="#000" strokeWidth="2" strokeLinecap="round"/><path d="M7 12h4" stroke="#000" strokeWidth="2" strokeLinecap="round"/></svg></span>, 
+    label: "Purchase Order", 
+    href: "/admin/purchase", 
+    roles: ["Admin"] 
+  },
 ];
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
