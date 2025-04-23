@@ -32,6 +32,7 @@ export interface Enquiry {
     remark: string;
     needs: string;
     notes: string;
+    staff: Staff;
   }
   
   export class Relationship {

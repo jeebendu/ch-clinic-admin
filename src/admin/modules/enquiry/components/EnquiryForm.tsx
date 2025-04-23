@@ -62,7 +62,7 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
       mobile: enquiry?.mobile || '',
       enquiryServiceType: enquiry?.enquiryServiceType?.id?.toString() || '',
       relationship: enquiry?.relationship?.id?.toString() || '',
-      assignTo: enquiry?.followUpBy || '',
+      staff: enquiry?.staff || '',
       country: enquiry?.country?.id?.toString() || countryList[0].id.toString(),
       state: enquiry?.state?.id?.toString() || stateList[0].id.toString(),
       district: enquiry?.district?.id?.toString() || districtList[0].id.toString(),
@@ -115,7 +115,7 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
 
   return (
     <Form {...form}>
-      <ScrollArea className="h-[600px] w-full pr-4">
+      <ScrollArea className="h-[600px] w-full pr-2 pl-2">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pr-2">
           <div className="grid grid-cols-2 gap-4">
             <FormField control={form.control} name="firstName" label="First Name*" />
@@ -173,11 +173,11 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
             <div>
               <Controller
                 control={form.control}
-                name="assignTo"
+                name="staff"
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Assign To*</label>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value.toString()} onValueChange={field.onChange}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select Staff to Assign" />
                       </SelectTrigger>
