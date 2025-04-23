@@ -19,7 +19,7 @@ export const usePatients = (initialParams: PatientQueryParams) => {
     setError(null);
     
     try {
-      const response = await PatientService.list(params.page, params.size, params.searchTerm || '');
+      const response = await PatientService.list(params.page, params.size, params);
       const newPatients = response.content || (Array.isArray(response) ? response : []);
       
       if (append) {
