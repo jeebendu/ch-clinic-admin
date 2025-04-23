@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +20,7 @@ import {
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import ExpenseService from "../service/ExpenseService";
 import ExpenseTable from "../components/ExpenseTable";
-import { Expense } from "../types/Expense";
+import { Expense } from "../types/expense";
 
 const ExpenseList = () => {
   const navigate = useNavigate();
@@ -39,8 +38,8 @@ const ExpenseList = () => {
   
   const [expenseToEdit, setExpenseToEdit] = useState<Expense | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-const [expenseList,setExpenseList] = useState<Expense[]>([]);
-  // Define filter options
+  const [expenseList,setExpenseList] = useState<Expense[]>([]);
+  
   const [filters, setFilters] = useState<FilterOption[]>([
     {
       id: 'status',
@@ -84,29 +83,6 @@ const [expenseList,setExpenseList] = useState<Expense[]>([]);
   console.log("Expense List:", expenseList);
 
  
-//   const filteredExpense = expense.filter(expense => {
-//     // Filter by search term
-//     if (searchTerm && !expense.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-//         !expense.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
-//         !expense.location.toLowerCase().includes(searchTerm.toLowerCase())) {
-//       return false;
-//     }
-
-//     // Filter by status
-//     if (selectedFilters.status.length > 0) {
-//       const statusMatch = selectedFilters.status.includes(expense.active ? 'active' : 'inactive');
-//       if (!statusMatch) return false;
-//     }
-
-//     // Filter by location
-//     if (selectedFilters.location.length > 0) {
-//       const locationMatch = selectedFilters.location.includes(expense.location.toLowerCase());
-//       if (!locationMatch) return false;
-//     }
-
-//     return true;
-//   });
-
   useEffect(() => {
     setViewMode(isMobile ? 'list' : 'grid');
   }, [isMobile]);
@@ -164,10 +140,8 @@ const [expenseList,setExpenseList] = useState<Expense[]>([]);
       const newFilters = {...prev};
       
       if (newFilters[filterId].includes(optionId)) {
-        // Remove filter if already selected
         newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
       } else {
-        // Add filter if not already selected
         newFilters[filterId] = [...newFilters[filterId], optionId];
       }
       

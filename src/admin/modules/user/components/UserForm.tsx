@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -16,7 +15,7 @@ import {
 import { RoleService } from "../services/RoleService";
 import { Role } from "../submodules/roles/types/Role";
 import { User } from "../types/User";
-import { BranchService } from "../../branch/services/BranchService";
+import { BranchService } from "../../branch/services/branchService";
 import { Branch } from "../../branch/types/Branch";
 import { Staff } from "../types/User";
 
@@ -76,7 +75,7 @@ const UserForm: React.FC<Props> = ({ user, onSave, onClose }) => {
       ...user,
       username: data.username,
       password: data.password,
-      role: { id: parseInt(data.roleId), name: '' },
+      role: { id: parseInt(data.roleId), name: '', permissions: [] },
       branchId: parseInt(data.branchId),
       email: data.email,
       id: user?.id || 0,

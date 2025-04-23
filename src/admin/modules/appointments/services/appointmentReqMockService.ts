@@ -1,6 +1,7 @@
 
 import { AppointmentRequest } from "../types/AppointmentRequest";
 import { Doctor } from "../../doctor/types/Doctor";
+import { Country, District, State } from "../../core/types/Address";
 
 const mockAppointmentRequests: AppointmentRequest[] = [
   {
@@ -11,21 +12,16 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     phone: 1234567890,
     dob: new Date(),
     gender: 1,
-    district: { id: 1, name: "District 1" },
-    state: { id: 1, name: "State 1" },
-    country: { id: 1, name: "Country 1" },
+    district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
+    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
+    country: { id: 1, name: "Country 1", code: "C1", status: true },
     city: "City 1",
-    appointmentTime: new Date(),
     appointmentDate: "2023-04-23",
     isAccept: false,
     isReject: false,
-    doctor: { id: 1 } as Doctor,
+    doctor: { id: 1, uId: "D001" } as Doctor,
     appointmentType: { id: 1, name: "Regular" },
-    visitType: { id: 1, name: "New" },
-    reason: "General checkup",
-    status: "Scheduled",
-    notes: "Patient reports occasional headaches.",
-    branchId: 1
+    visitType: { id: 1, name: "New" }
   },
   {
     id: 2,
@@ -35,21 +31,16 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     phone: 9876543210,
     dob: new Date(),
     gender: 2,
-    district: { id: 2, name: "District 2" },
-    state: { id: 2, name: "State 2" },
-    country: { id: 2, name: "Country 2" },
+    district: { id: 2, name: "District 2", state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } } },
+    state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } },
+    country: { id: 2, name: "Country 2", code: "C2", status: true },
     city: "City 2",
-    appointmentTime: new Date(),
     appointmentDate: "2023-04-24",
     isAccept: true,
     isReject: false,
-    doctor: { id: 2 } as Doctor,
+    doctor: { id: 2, uId: "D002" } as Doctor,
     appointmentType: { id: 2, name: "Emergency" },
-    visitType: { id: 2, name: "Follow-up" },
-    reason: "Follow-up consultation",
-    status: "Completed",
-    notes: "Discussed treatment options and next steps.",
-    branchId: 2
+    visitType: { id: 2, name: "Follow-up" }
   },
   {
     id: 3,
@@ -59,30 +50,24 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     phone: 5555555555,
     dob: new Date(),
     gender: 2,
-    district: { id: 1, name: "District 1" },
-    state: { id: 1, name: "State 1" },
-    country: { id: 1, name: "Country 1" },
+    district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
+    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
+    country: { id: 1, name: "Country 1", code: "C1", status: true },
     city: "City 1",
-    appointmentTime: new Date(),
     appointmentDate: "2023-04-25",
     isAccept: false,
     isReject: false,
-    doctor: { id: 1 } as Doctor,
+    doctor: { id: 1, uId: "D001" } as Doctor,
     appointmentType: { id: 1, name: "Regular" },
-    visitType: { id: 1, name: "New" },
-    reason: "Vaccination",
-    status: "Scheduled",
-    notes: "Administer flu vaccine.",
-    branchId: 1
+    visitType: { id: 1, name: "New" }
   },
 ];
 
-// Function that needs the fix:
+// Function with the correct getDoctor implementation
 export const getDoctor = (id: number): Doctor => {
-  // Adding the uid property to the doctor object
   return {
     id: 1,
-    uId: "D001", // Added missing uid property
+    uId: "D001", 
     firstname: "John",
     lastname: "Doe",
     email: "john.doe@example.com",
@@ -93,7 +78,7 @@ export const getDoctor = (id: number): Doctor => {
     joiningDate: "2020-01-01",
     address: "123 Main Street",
     city: "New York",
-    state: "NY",
+    state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } },
     zipCode: "10001",
     gender: "Male",
     dateOfBirth: "1980-01-01",
