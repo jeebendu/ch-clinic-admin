@@ -1,0 +1,322 @@
+
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { AdminLayout } from "@/admin/components/AdminLayout";
+import PageHeader from "@/admin/components/PageHeader";
+
+import { useToast } from "@/components/ui/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
+import { Product } from "../types/Product";
+import ProductService from "../service/productService";
+import ProductForm from "../components/ProductForm";
+import ProductTable from "../components/ProductTable";
+
+const ProductList = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(isMobile ? 'list' : 'grid');
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [showFilter, setShowFilter] = useState(false);
+  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<number | null>(null);
+  
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+
+  // Define filter options
+  const [filters, setFilters] = useState<FilterOption[]>([
+    {
+      id: 'status',
+      label: 'Status',
+      options: [
+        { id: 'active', label: 'Active' },
+        { id: 'inactive', label: 'Inactive' }
+      ]
+    },
+    {
+      id: 'location',
+      label: 'Location',
+      options: [
+        { id: 'central', label: 'Central' },
+        { id: 'east', label: 'East' },
+        { id: 'west', label: 'West' },
+        { id: 'north', label: 'North' },
+        { id: 'south', label: 'South' }
+      ]
+    }
+  ]);
+  
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+    status: [],
+    location: []
+  });
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['products', page, size, searchTerm, selectedFilters],
+    queryFn: async () => {
+      const response = await ProductService.list();
+      // console.log("Product API response (direct):", response);
+      return response;
+    },
+  });
+
+  // Extract products from the response
+  const products = Array.isArray(data) ? data : [];
+  // console.log("Extracted products:", products);
+
+  // Filter products based on search term and filters
+  const filteredProducts = products.filter(product => {
+    // Filter by search term
+    if (searchTerm && !product.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !product.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !product.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // Filter by status
+    if (selectedFilters.status.length > 0) {
+      const statusMatch = selectedFilters.status.includes(product.active ? 'active' : 'inactive');
+      if (!statusMatch) return false;
+    }
+
+    // Filter by location
+    if (selectedFilters.location.length > 0) {
+      const locationMatch = selectedFilters.location.includes(product.location.toLowerCase());
+      if (!locationMatch) return false;
+    }
+
+    return true;
+  });
+
+  useEffect(() => {
+    setViewMode(isMobile ? 'list' : 'grid');
+  }, [isMobile]);
+
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'list' ? 'grid' : 'list');
+  };
+
+  const handleAddProduct = () => {
+    setProductToEdit(null);
+    setIsAddFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsAddFormOpen(false);
+    setIsEditFormOpen(false);
+    setProductToEdit(null);
+    refetch();
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setProductToEdit(product);
+    setIsEditFormOpen(true);
+  };
+
+  const handleDeleteProduct = (id: number) => {
+    setProductToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (productToDelete === null) return;
+    
+    try {
+      await ProductService.deleteById(productToDelete);
+      toast({
+        title: "Product deleted",
+        description: "Product has been successfully deleted.",
+        className: "bg-clinic-primary text-white"
+      });
+      refetch();
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete product.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFilterChange = (filterId: string, optionId: string) => {
+    setSelectedFilters(prev => {
+      const newFilters = {...prev};
+      
+      if (newFilters[filterId].includes(optionId)) {
+        // Remove filter if already selected
+        newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
+      } else {
+        // Add filter if not already selected
+        newFilters[filterId] = [...newFilters[filterId], optionId];
+      }
+      
+      return newFilters;
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedFilters({
+      status: [],
+      location: []
+    });
+    setSearchTerm("");
+  };
+
+  const renderForm = () => {
+    if (isMobile) {
+      return (
+        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
+          <DrawerContent className="h-[85%]">
+            <DrawerHeader className="border-b border-clinic-accent">
+              <DrawerTitle className="text-clinic-primary">Add New Product</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-4">
+              <ProductForm onSuccess={handleCloseForm} />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      );
+    } 
+    
+    return (
+      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="border-b border-clinic-accent pb-4">
+            <DialogTitle className="text-clinic-primary">Add New Product</DialogTitle>
+            <DialogDescription>Add a new product to your clinic network.</DialogDescription>
+          </DialogHeader>
+          <ProductForm onSuccess={handleCloseForm} />
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const renderEditForm = () => {
+    if (!productToEdit) return null;
+    
+    if (isMobile) {
+      return (
+        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
+          <DrawerContent className="h-[85%]">
+            <DrawerHeader className="border-b border-clinic-accent">
+              <DrawerTitle className="text-clinic-primary">Edit Product</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-4">
+              <ProductForm product={productToEdit} onSuccess={handleCloseForm} />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      );
+    } 
+    
+    return (
+      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="border-b border-clinic-accent pb-4">
+            <DialogTitle className="text-clinic-primary">Edit Product</DialogTitle>
+            <DialogDescription>Update product information.</DialogDescription>
+          </DialogHeader>
+          <ProductForm product={productToEdit} onSuccess={handleCloseForm} />
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const totalElements = filteredProducts.length || 0;
+  const loadedElements = filteredProducts.length || 0;
+
+  return (
+    <AdminLayout>
+      <div className="space-y-4">
+        <PageHeader 
+          title="Product" 
+          viewMode={viewMode}
+          onViewModeToggle={toggleViewMode}
+          showAddButton={true}
+          addButtonLabel="Add Product"
+          onAddButtonClick={handleAddProduct}
+          onRefreshClick={() => refetch()}
+          loadedElements={loadedElements}
+          totalElements={totalElements}
+          onFilterToggle={() => setShowFilter(!showFilter)}
+          showFilter={showFilter}
+        />
+
+        {showFilter && (
+          <FilterCard 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            filters={filters}
+            selectedFilters={selectedFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+          />
+        )}
+
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading Products...</p>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-destructive">Error loading Products. Please try again.</p>
+          </div>
+        ) : (
+          <div>
+            
+              <ProductTable 
+                products={filteredProducts} 
+                onDelete={handleDeleteProduct}
+                onEdit={handleEditProduct}
+              />
+           
+          </div>
+        )}
+      </div>
+      
+      {renderForm()}
+      {renderEditForm()}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the product
+              and remove all associated data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setProductToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AdminLayout>
+  );
+};
+
+export default ProductList;

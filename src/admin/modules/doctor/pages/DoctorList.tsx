@@ -1,6 +1,4 @@
-
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import DoctorGrid from "../components/DoctorGrid";
@@ -8,57 +6,47 @@ import DoctorTable from "../components/DoctorTable";
 import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
-import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import DoctorService from "../services/doctorService";
+import { useDoctors } from "../hooks/useDoctors";
+import doctorService from "../services/doctorService";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import DoctorOnboardingForm from "../components/DoctorOnboardingForm";
+import ReviewDoctorDialog from "../components/ReviewDoctorDialog";
 
 const DoctorList = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [searchValue, setSearchValue] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const { toast } = useToast();
+  const [showOnboardingForm, setShowOnboardingForm] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [reviewDoctor, setReviewDoctor] = useState<Doctor | null>(null);
 
-  useEffect(() => {
-    loadDoctors();
-  }, []);
-
-  useEffect(() => {
-    const mode = searchParams.get('view') as 'list' | 'grid' | null;
-    if (mode && (mode === 'list' || mode === 'grid')) {
-      setViewMode(mode);
-    }
-  }, [searchParams]);
-
-  const loadDoctors = async () => {
-    setLoading(true);
-    try {
-      const response = await DoctorService.list();
-      setDoctors(response);
-    } catch (error) {
-      toast({
-        title: "Error loading doctors",
-        description: "Could not load the doctor list. Please try again.",
-        variant: "destructive",
-      });
-      console.error("Error loading doctors:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    doctors,
+    loading,
+    hasMore,
+    loadMore,
+    refreshDoctors,
+    updateFilters,
+    totalElements,
+    loadedElements
+  } = useDoctors({
+    page: 0,
+    size: 12,
+    searchTerm: "",
+    doctorType: null,
+    specialization: null
+  });
 
   const handleViewModeToggle = () => {
-    const newMode = viewMode === 'list' ? 'grid' : 'list';
-    setViewMode(newMode);
-    setSearchParams({ view: newMode });
+    setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
   const handleSearchChange = (value: string) => {
-    setSearchValue(value);
+    updateFilters({ searchTerm: value });
   };
 
   const handleAddDoctor = () => {
@@ -73,78 +61,112 @@ const DoctorList = () => {
 
   const handleViewDoctor = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
-    setShowViewModal(true);
+      setShowViewModal(true);
   };
-
   const handleFormClose = () => {
     setShowForm(false);
     setSelectedDoctor(null);
   };
 
-  const handleFormSubmit = (doctor: Doctor) => {
-    // In a real app, this would make API calls
-    // For now, we'll just update the UI
+  const handleFormSubmit = async (doctor: Doctor) => {
+    const response = await doctorService.saveOrUpdateDoctor(doctor);
+    if (response.status) {
+      toast.success("Doctor saved successfully!");
+    } else {
+      toast.error("Error saving doctor!");
+    }
     setShowForm(false);
-    loadDoctors(); // Reload the list
-    toast({
-      title: selectedDoctor ? "Doctor Updated" : "Doctor Added",
-      description: `Doctor ${doctor.firstname} ${doctor.lastname} has been ${selectedDoctor ? "updated" : "added"} successfully.`,
-    });
+    refreshDoctors();
   };
 
-  const filteredDoctors = doctors.filter(doctor => {
-    if (!searchValue) return true;
-    
-    const searchLower = searchValue.toLowerCase();
-    return (
-      doctor.firstname.toLowerCase().includes(searchLower) ||
-      doctor.lastname.toLowerCase().includes(searchLower) ||
-      (doctor.email && doctor.email.toLowerCase().includes(searchLower)) ||
-      (doctor.uid && doctor.uid.toLowerCase().includes(searchLower))
-    );
-  });
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight * 1.5 && !loading && hasMore) {
+      loadMore();
+    }
+  };
+
+  const handlePublishDoctor = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+    setShowOnboardingForm(true);
+  };
+
+  const handleOnboardingSubmit = async (doctor: Doctor) => {
+    try {
+      console.log(doctor)
+      const response = await doctorService.saveOrUpdateDoctor(doctor);
+      if (response.status) {
+        toast.success("Doctor published online successfully!");
+        setShowOnboardingForm(false);
+        refreshDoctors();
+      } else {
+        toast.error("Error publishing doctor!");
+      }
+    } catch (error) {
+      console.error("Error publishing doctor:", error);
+      toast.error("Error publishing doctor online!");
+    }
+  };
+
+  const handleVerifyClick = (doctor: Doctor) => {
+    setReviewDoctor(doctor);
+    setShowReviewDialog(true);
+  };
+
+  const handleDoctorVerify = async (doctor: Doctor) => {
+    try {
+      const updatedDoctor = { ...doctor, verified: true };
+      const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
+      if (resp.status) {
+        toast.success("Doctor verified!");
+        setShowReviewDialog(false);
+        setReviewDoctor(null);
+        refreshDoctors();
+      } else {
+        toast.error("Error verifying doctor!");
+      }
+    } catch (e) {
+      toast.error("Failed to verify doctor!");
+    }
+  };
 
   return (
     <AdminLayout>
-      <PageHeader 
-        title="Doctors" 
-        description="Manage your clinic's doctors"
-        showAddButton={true}
-        addButtonLabel="Add Doctor"
-        onAddButtonClick={handleAddDoctor}
-        onViewModeToggle={handleViewModeToggle}
-        viewMode={viewMode}
-        onRefreshClick={loadDoctors}
-        onSearchChange={handleSearchChange}
-        searchValue={searchValue}
-        loadedElements={filteredDoctors.length}
-        totalElements={doctors.length}
-      />
+      <div className="h-full flex flex-col" onScroll={handleScroll}>
+        <PageHeader
+          title="Doctors"
+          description="Manage your clinic's doctors"
+          showAddButton={true}
+          addButtonLabel="Add Doctor"
+          onAddButtonClick={handleAddDoctor}
+          onViewModeToggle={handleViewModeToggle}
+          viewMode={viewMode}
+          onRefreshClick={refreshDoctors}
+          onSearchChange={handleSearchChange}
+          loadedElements={loadedElements}
+          totalElements={totalElements}
+        />
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-lg">Loading doctors...</span>
-        </div>
-      ) : (
-        <>
+        <div className="flex-1 overflow-auto">
           {viewMode === 'grid' ? (
-            <DoctorGrid 
-              doctors={filteredDoctors} 
-              loading={loading} 
+            <DoctorGrid
+              doctors={doctors}
+              loading={loading}
               onDoctorClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
             />
           ) : (
-            <DoctorTable 
-              doctors={filteredDoctors} 
+            <DoctorTable
+              doctors={doctors}
               loading={loading}
               onViewClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
+              onPublishClick={handlePublishDoctor}
+              onVerifyClick={handleVerifyClick}
             />
           )}
-        </>
-      )}
+        </div>
+      </div>
 
       {showForm && (
         <DoctorForm
@@ -164,6 +186,27 @@ const DoctorList = () => {
             setShowViewModal(false);
             handleEditDoctor(selectedDoctor);
           }}
+        />
+      )}
+
+      {showOnboardingForm && selectedDoctor && (
+        <DoctorOnboardingForm
+          isOpen={showOnboardingForm}
+          onClose={() => setShowOnboardingForm(false)}
+          onSubmit={handleOnboardingSubmit}
+          doctor={selectedDoctor}
+        />
+      )}
+
+      {showReviewDialog && reviewDoctor && (
+        <ReviewDoctorDialog
+          open={showReviewDialog}
+          doctor={reviewDoctor}
+          onClose={() => {
+            setShowReviewDialog(false);
+            setReviewDoctor(null);
+          }}
+          onVerify={handleDoctorVerify}
         />
       )}
     </AdminLayout>

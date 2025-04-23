@@ -1,7 +1,8 @@
 import http from "@/lib/JwtInterceptor";
 import { Country } from "../../types/Country";
+import { getEnvVariable } from "@/utils/envUtils";
 
-const apiUrl = process.env.REACT_APP_API_URL;
+const apiUrl = getEnvVariable('API_URL');
 
 const CountryService = {
   list: () => {

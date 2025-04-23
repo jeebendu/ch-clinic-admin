@@ -54,7 +54,7 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
               <CardHeader className="pb-2">
                 <div className="flex flex-col items-center text-center">
                   <Avatar className="h-24 w-24 mb-2">
-                    <AvatarImage src={doctor.image} />
+                    <AvatarImage src={doctor?.user?.image} />
                     <AvatarFallback className="text-2xl">
                       {getInitials(doctor.firstname, doctor.lastname)}
                     </AvatarFallback>
@@ -64,8 +64,8 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                   </CardTitle>
                   <CardDescription>{doctor.desgination}</CardDescription>
                   <div className="mt-2">
-                    <Badge variant={doctor.status === "Active" ? "success" : "destructive"}>
-                      {doctor.status}
+                    <Badge variant={doctor.verified ? "success" : "destructive"}>
+                      {doctor.verified? "Verified" : "Not Verified"}
                     </Badge>
                     {doctor.external && (
                       <Badge variant="outline" className="ml-2">
@@ -106,7 +106,7 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                     <Phone className="h-5 w-5 text-muted-foreground mr-2" />
                     <div>
                       <div className="text-sm text-muted-foreground">Phone</div>
-                      <div>{doctor.phone || "Not provided"}</div>
+                      <div>{doctor.phone?doctor.phone:doctor?.user?.phone || "Not provided"}</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -123,9 +123,9 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                       <div>
                         {[
                           doctor.city,
-                          doctor.district?.name,
-                          doctor.state?.name,
-                          doctor.country?.name,
+                          doctor?.district?.name,
+                          doctor?.state?.name,
+                          doctor?.country?.name,
                         ]
                           .filter(Boolean)
                           .join(", ") || "Not provided"}

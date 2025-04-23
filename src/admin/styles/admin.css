@@ -15,6 +15,23 @@
   background-color: var(--admin-sidebar-bg, #ffffff);
   border-right: 1px solid var(--admin-border-color, #e5e7eb);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background-color: #e5e7eb;
+  border-radius: 20px;
 }
 
 .admin-sidebar-right {
@@ -197,6 +214,7 @@
 /* Rounded sidebar */
 .admin-sidebar-rounded {
   border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
 }
 
 /* Fixed header for scrolling */
@@ -426,4 +444,41 @@
     margin-left: 0;
     flex: 0 0 auto;
   }
+}
+
+/* Theme switching styles */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-toggle-icon {
+  color: var(--text-muted, #6b7280);
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-icon.active {
+  color: var(--brand-primary, #9b87f5);
+}
+
+/* Custom scrollbar for sidebar menu */
+.sidebar-menu {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+  max-height: calc(100vh - 175px); /* Adjust based on header height */
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
 }

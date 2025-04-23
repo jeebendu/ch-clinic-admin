@@ -1,12 +1,13 @@
+
 import { Doctor } from "../types/Doctor";
-import { Specialization } from "../submodules/specialization/types/Specialization";
+import { PaginatedResponse } from "@/types/common";
 
 export const DoctorMockService = {
 
   generateMockDoctors: (size: number): Doctor[] => {
     const mockDoctors: Doctor[] = [];
     for (let i = 1; i <= size; i++) {
-      const specializationList: Specialization[] = [
+      const specializationList = [
         { id: 1, name: "Cardiology" },
         { id: 2, name: "Neurology" },
         { id: 3, name: "Pediatrics" }
@@ -24,8 +25,23 @@ export const DoctorMockService = {
         qualification: "MD",
         joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
         external: i % 3 === 0,
+        publishedOnline: i % 7 === 0,
+        registrationNumber: i % 7 === 0 ? `REG-${i*1000}` : undefined,
+        additionalInfoDoctor: i % 7 === 0 ? {
+          id: i,
+          registationNumber: `REG-${i*1000}`,
+          registationCouncil: "Medical Council of India",
+          registationYear: "2018",
+          degreeCollege: "AIIMS",
+          yearCompletionDegree: "2015",
+          establishmentName: "Healthcare Center",
+          establishmentCity: "Mumbai",
+          state: null,
+          district: null
+        } : undefined,
         user: {
           id: i,
+          uid: `USR-${i}`,
           branch: {
             id: i % 3 + 1,
             name: `Branch ${i % 3 + 1}`,
@@ -96,19 +112,41 @@ export const DoctorMockService = {
     return Promise.resolve(DoctorMockService.generateMockDoctors(100));
   },
 
-  fetchPaginated: (page: number, size: number): Promise<{ content: Doctor[]; totalElements: number; totalPages: number; }> => {
-    const mockDoctors = DoctorMockService.generateMockDoctors(size);
-    const totalElements = mockDoctors.length;
+  fetchPaginated: (
+    page: number, 
+    size: number, 
+    filter: { value: string; doctorType: string | null; specialization: string | null }
+  ): Promise<PaginatedResponse<Doctor>> => {
+    const mockDoctors = DoctorMockService.generateMockDoctors(100);
+    
+    const filteredDoctors = mockDoctors.filter((doctor) => {
+      const matchesValue = filter.value
+        ? doctor.firstname.toLowerCase().includes(filter.value.toLowerCase()) || 
+          doctor.lastname.toLowerCase().includes(filter.value.toLowerCase())
+        : true;
+      const matchesDoctorType = filter.doctorType ? doctor.desgination === filter.doctorType : true;
+      const matchesSpecialization = filter.specialization
+        ? doctor.specializationList.some((spec) => spec.name === filter.specialization)
+        : true;
+
+      return matchesValue && matchesDoctorType && matchesSpecialization;
+    });
+
+    const totalElements = filteredDoctors.length;
     const totalPages = Math.ceil(totalElements / size);
     const startIndex = page * size;
     const endIndex = startIndex + size;
-
-    const paginatedDoctors = mockDoctors.slice(startIndex, endIndex);
+    const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
 
     return Promise.resolve({
       content: paginatedDoctors,
       totalElements,
       totalPages,
+      size,
+      number: page,
+      first: page === 0,
+      last: page === totalPages - 1,
+      numberOfElements: paginatedDoctors.length,
     });
   }
 };

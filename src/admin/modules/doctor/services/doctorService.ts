@@ -1,28 +1,22 @@
+
 import http from "@/lib/JwtInterceptor";
 import { Doctor } from "../types/Doctor";
 import { isProduction } from "@/utils/envUtils";
 import { DoctorMockService } from "./doctorMockService";
+import { PaginatedResponse } from "@/types/common";
 
-// Define a type for the paginated response
-interface PaginatedResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number; // Current page number (0-based index)
-  first: boolean;
-  last: boolean;
-  numberOfElements: number;
-}
-
-export const DoctorService = {
-  list: async (): Promise<Doctor[]> => {
-    if (!isProduction()) {
+// Real implementation would use these endpoints
+ const doctorService = {
+  getAllDoctors: async (): Promise<Doctor[]> => {
+    try {
+      const response = await http.get<Doctor[]>('/v1/doctor/list');
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+      // Fallback to mock data for development
       const { DoctorMockService } = await import("./doctorMockService");
       return DoctorMockService.list();
     }
-    const response = await http.get<Doctor[]>('/v1/doctor');
-    return response.data;
   },
 
   getById: async (id: number): Promise<Doctor> => {
@@ -30,58 +24,46 @@ export const DoctorService = {
     return response.data;
   },
 
-  create: async (doctor: Doctor): Promise<Doctor> => {
-    const response = await http.post<Doctor>('/v1/doctor', doctor);
-    return response.data;
+   saveOrUpdateDoctor: async (doctor: Doctor): Promise<any> => {
+    try {
+      const response = await http.post<any>('/v1/doctor/saveOrUpdate', doctor);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating doctor:", error);
+      throw error;
+    }
   },
 
-  update: async (doctor: Doctor): Promise<Doctor> => {
-    const response = await http.put<Doctor>(`/v1/doctor/${doctor.id}`, doctor);
-    return response.data;
-  },
+  // updateDoctor: async (doctor: Doctor): Promise<Doctor> => {
+  //   try {
+  //     const response = await http.put<Doctor>(`/v1/doctor/${doctor.id}`, doctor);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error(`Error updating doctor with ID ${doctor.id}:`, error);
+  //     throw error;
+  //   }
+  // },
 
   delete: async (id: number): Promise<void> => {
     await http.delete(`/v1/doctor/${id}`);
   },
 
-  fetchPaginated: (
+  fetchPaginated: async (
     page: number,
     size: number,
     filter: { value: string; doctorType: string | null; specialization: string | null }
   ): Promise<PaginatedResponse<Doctor>> => {
-    const mockDoctors = DoctorMockService.generateMockDoctors(size);
-
-    // Apply filtering logic (if needed)
-    const filteredDoctors = mockDoctors.filter((doctor) => {
-      const matchesValue = filter.value
-        ? doctor.firstname.includes(filter.value) || doctor.lastname.includes(filter.value)
-        : true;
-      const matchesDoctorType = filter.doctorType ? doctor.desgination === filter.doctorType : true;
-      const matchesSpecialization = filter.specialization
-        ? doctor.specializationList.some((spec) => spec.name === filter.specialization)
-        : true;
-
-      return matchesValue && matchesDoctorType && matchesSpecialization;
-    });
-
-    const totalElements = filteredDoctors.length;
-    const totalPages = Math.ceil(totalElements / size);
-    const startIndex = page * size;
-    const endIndex = startIndex + size;
-
-    const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
-
-    return Promise.resolve({
-      content: paginatedDoctors,
-      totalElements,
-      totalPages,
-      size,
-      number: page,
-      first: page === 0,
-      last: page === totalPages - 1,
-      numberOfElements: paginatedDoctors.length,
-    });
+    if (!isProduction()) {
+      const { DoctorMockService } = await import("./doctorMockService");
+      return DoctorMockService.fetchPaginated(page, size, filter);
+    }
+    const response = await http.post<PaginatedResponse<Doctor>>(
+      `/v1/doctor/filter/${page}/${size}`,
+      filter
+    );
+    return response.data;
   }
 };
 
-export default DoctorService;
+
+export default doctorService;

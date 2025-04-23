@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Eye, Edit, Star, ExternalLink } from 'lucide-react';
+import { Eye, Edit, Star, ExternalLink, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Doctor } from '../types/Doctor';
@@ -13,13 +12,17 @@ interface DoctorTableProps {
   loading: boolean;
   onViewClick: (doctor: Doctor) => void;
   onEditClick: (doctor: Doctor) => void;
+  onPublishClick?: (doctor: Doctor) => void;
+  onVerifyClick?: (doctor: Doctor) => void;
 }
 
 const DoctorTable: React.FC<DoctorTableProps> = ({ 
   doctors, 
   loading,
   onViewClick,
-  onEditClick
+  onEditClick,
+  onPublishClick,
+  onVerifyClick
 }) => {
   const getInitials = (firstname: string, lastname: string) => {
     return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
@@ -75,13 +78,14 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={doctor.image} />
+                        <AvatarImage src={doctor?.user?.image} />
                         <AvatarFallback>{getInitials(doctor.firstname, doctor.lastname)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium flex items-center">
                           {doctor.firstname} {doctor.lastname}
                           {doctor.external && <ExternalLink className="h-3 w-3 ml-1 text-muted-foreground" />}
+                          {doctor.publishedOnline && <Globe className="h-3 w-3 ml-1 text-green-500" aria-label="Published Online" />}
                         </div>
                         <div className="text-sm text-muted-foreground">{doctor.uid}</div>
                       </div>
@@ -104,7 +108,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                   <TableCell>
                     <div className="text-sm">
                       <div>{doctor.email}</div>
-                      <div className="text-muted-foreground">{doctor.phone}</div>
+                      <div className="text-muted-foreground">{doctor.phone ? doctor.phone : doctor?.user?.phone}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -124,8 +128,8 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={doctor.status === 'Active' ? 'success' : 'destructive'}>
-                      {doctor.status}
+                    <Badge variant={doctor.verified ? 'success' : 'destructive'}>
+                      {doctor.verified ? "verified" : "Not Verified"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -136,6 +140,29 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                       <Button variant="ghost" size="icon" onClick={() => onEditClick(doctor)}>
                         <Edit className="h-4 w-4" />
                       </Button>
+                      {!doctor.external && !doctor.publishedOnline && onPublishClick && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs bg-green-50 text-green-600 border-green-200 hover:bg-green-100 hover:text-green-700"
+                          onClick={() => onPublishClick(doctor)}
+                        >
+                          Publish Online
+                        </Button>
+                      )}
+                      {onVerifyClick && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onVerifyClick(doctor);
+                          }}
+                        >
+                          Verify
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

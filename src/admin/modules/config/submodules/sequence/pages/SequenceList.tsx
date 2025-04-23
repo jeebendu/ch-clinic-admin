@@ -250,7 +250,7 @@ const SequenceList = () => {
     <AdminLayout>
       <div className="space-y-4">
         <PageHeader 
-          title="Sequences" 
+          title="Sequence" 
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
           showAddButton={true}
