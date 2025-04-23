@@ -229,10 +229,8 @@ const navItems = [
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   const userRole: UserRole = AuthService.getUserRole() as UserRole;
-  const [themeColor, setThemeColor] = useState("#00b8ab");
-  const { toast } = useToast();
-  const { tenant } = useTenant();
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
+  const { tenant } = useTenant();
 
   const toggleSubmenu = (label: string) => {
     setOpenSubmenus(prev => 
@@ -253,36 +251,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     return () => {
       document.removeEventListener('open-quick-form', handleQuickForm);
     };
-  }, []);
-
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newColor = e.target.value;
-    setThemeColor(newColor);
-  };
-
-  const applyTheme = () => {
-    const colorPalette = generateColorPalette(themeColor);
-    updateCSSVariables(colorPalette);
-    
-    localStorage.setItem('themeColor', themeColor);
-    
-    toast({
-      title: "Theme Updated",
-      description: "Your brand color has been updated successfully.",
-    });
-  };
-
-  React.useEffect(() => {
-    const savedTheme = localStorage.getItem('themeColor');
-    if (savedTheme) {
-      setThemeColor(savedTheme);
-      const colorPalette = generateColorPalette(savedTheme);
-      updateCSSVariables(colorPalette);
-    } else {
-      const defaultTheme = "#00b8ab";
-      const colorPalette = generateColorPalette(defaultTheme);
-      updateCSSVariables(colorPalette);
-    }
   }, []);
 
   const filteredNavItems = navItems.filter(item => 
@@ -417,130 +385,6 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
           ))}
         </nav>
       </ScrollArea>
-
-      <div className="p-4 mt-auto border-t border-sidebar-border">
-        {!collapsed ? (
-          <div className="space-y-4">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full flex gap-2 bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground">
-                  <Palette className="h-4 w-4" />
-                  <span>Change Theme</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Brand Color</DialogTitle>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="colorPicker">Primary Color</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        type="color" 
-                        id="colorPicker" 
-                        value={themeColor} 
-                        onChange={handleColorChange} 
-                        className="h-10 w-10 p-1 cursor-pointer"
-                      />
-                      <Input 
-                        type="text" 
-                        value={themeColor} 
-                        onChange={handleColorChange} 
-                        className="flex-1"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Preview</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(generateColorPalette(themeColor)).map(([key, value]) => (
-                        <div key={key} className="relative group">
-                          <div 
-                            className="w-10 h-10 rounded-md border cursor-pointer"
-                            style={{ backgroundColor: value }}
-                            title={`${key}: ${value}`}
-                          />
-                          <div className="absolute -bottom-6 left-0 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-white p-1 rounded shadow">
-                            {key}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button type="button" onClick={applyTheme} className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
-                    Apply Theme
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-            
-            <div className="bg-sidebar-accent rounded-lg p-3 text-sm">
-              <p className="text-sidebar-primary font-medium">Need Help?</p>
-              <p className="text-sidebar-foreground text-xs mt-1">Contact support for assistance</p>
-            </div>
-          </div>
-        ) : (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="icon" className="w-full h-10 flex justify-center bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground">
-                <Palette className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Brand Color</DialogTitle>
-              </DialogHeader>
-              <div className="py-4 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="colorPicker">Primary Color</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      type="color" 
-                      id="colorPicker" 
-                      value={themeColor} 
-                      onChange={handleColorChange} 
-                      className="h-10 w-10 p-1 cursor-pointer"
-                    />
-                    <Input 
-                      type="text" 
-                      value={themeColor} 
-                      onChange={handleColorChange} 
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Preview</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(generateColorPalette(themeColor)).map(([key, value]) => (
-                      <div key={key} className="relative group">
-                        <div 
-                          className="w-10 h-10 rounded-md border cursor-pointer"
-                          style={{ backgroundColor: value }}
-                          title={`${key}: ${value}`}
-                        />
-                        <div className="absolute -bottom-6 left-0 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-white p-1 rounded shadow">
-                          {key}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button type="button" onClick={applyTheme} className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
-                  Apply Theme
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
     </aside>
   );
 };

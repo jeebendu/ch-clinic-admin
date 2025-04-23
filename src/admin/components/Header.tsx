@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,8 @@ import {
   Settings, 
   UserCircle,
   Moon,
-  Sun
+  Sun,
+  Palette
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -20,6 +20,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import BranchFilter from "./BranchFilter";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input, Label } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -34,25 +37,18 @@ const Header = ({
 }: HeaderProps) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [themeColor, setThemeColor] = useState("#00b8ab");
   const profileRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Get user data from localStorage
-  const userDataStr = localStorage.getItem('user');
-  const userData = userDataStr ? JSON.parse(userDataStr) : { name: 'User', email: 'user@example.com' };
-
-  // Load and apply theme
   useEffect(() => {
-    // Check if theme exists in localStorage
     const currentTheme = localStorage.getItem('theme') || 'light';
     setIsDarkMode(currentTheme === 'dark');
-    
-    // Apply theme to document
     document.documentElement.classList.toggle('dark', currentTheme === 'dark');
   }, []);
 
-  // Toggle theme
   const toggleTheme = () => {
     const newTheme = isDarkMode ? 'light' : 'dark';
     setIsDarkMode(!isDarkMode);
@@ -60,7 +56,6 @@ const Header = ({
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
-  // Close profile dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -82,14 +77,26 @@ const Header = ({
   };
 
   const handleLogout = () => {
-    // Clear all localStorage items
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
     localStorage.removeItem('selectedClinic');
     localStorage.removeItem('selectedBranch');
-    
-    // Redirect to login page
     navigate('/login');
+  };
+
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newColor = e.target.value;
+    setThemeColor(newColor);
+  };
+
+  const applyTheme = () => {
+    const colorPalette = generateColorPalette(themeColor);
+    updateCSSVariables(colorPalette);
+    localStorage.setItem('themeColor', themeColor);
+    toast({
+      title: "Theme Updated",
+      description: "Your brand color has been updated successfully.",
+    });
   };
 
   return (
@@ -104,19 +111,80 @@ const Header = ({
           <Menu className="h-5 w-5" />
         </Button>
         
-        {/* Add the BranchFilter here */}
         {!isMobile && <BranchFilter className="ml-4" />}
       </div>
 
       <div className="flex items-center space-x-2 md:space-x-4">
-        {/* Mobile view for BranchFilter */}
         {isMobile && (
           <div className="mr-2">
             <BranchFilter />
           </div>
         )}
         
-        {/* Theme Toggle */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-gray-600 rounded-full"
+            >
+              <Palette className="h-5 w-5" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Brand Color</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="colorPicker">Primary Color</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="color" 
+                    id="colorPicker" 
+                    value={themeColor} 
+                    onChange={handleColorChange} 
+                    className="h-10 w-10 p-1 cursor-pointer"
+                  />
+                  <Input 
+                    type="text" 
+                    value={themeColor} 
+                    onChange={handleColorChange} 
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Preview</Label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(generateColorPalette(themeColor)).map(([key, value]) => (
+                    <div key={key} className="relative group">
+                      <div 
+                        className="w-10 h-10 rounded-md border cursor-pointer"
+                        style={{ backgroundColor: value }}
+                        title={`${key}: ${value}`}
+                      />
+                      <div className="absolute -bottom-6 left-0 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-white p-1 rounded shadow">
+                        {key}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button 
+                type="button" 
+                onClick={applyTheme} 
+                className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+              >
+                Apply Theme
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <div className="flex items-center mr-2">
           <Button 
             variant="ghost" 
@@ -136,7 +204,6 @@ const Header = ({
           <HelpCircle className="h-5 w-5" />
         </Button>
         
-        {/* Profile dropdown */}
         <div className="relative" ref={profileRef}>
           <Button 
             variant="ghost" 
