@@ -65,7 +65,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
     const onSubmit = async (data: FormValues) => {
         try {
             // Create a properly structured user object that matches the User type
-            const userData: User = {
+            const userData: Staff = {
                 id: user?.id || Date.now(), // Use existing ID or generate a new one
                 uid: user?.uId?.toString() || "new-user-" + Date.now(),
                 username: data.username,

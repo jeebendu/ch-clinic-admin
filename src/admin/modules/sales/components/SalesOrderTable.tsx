@@ -11,16 +11,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash } from "lucide-react";
-import { Staff, User } from "../types/User";
 import { format } from "date-fns";
+import { Order } from "../types/SalesOrder";
 
-interface UserTableProps {
-    user: Staff[];
+interface OrderTableProps {
+    order: Order[];
     onDelete: (id: number) => void;
-    onEdit: (user: Staff) => void;
+    onEdit: (order: Order) => void;
 }
 
-const UserTable = ({ user, onDelete, onEdit }: UserTableProps) => {
+const SalesOrderTable = ({ order, onDelete, onEdit }: OrderTableProps) => {
     const [selectedMapUrl, setSelectedMapUrl] = useState<string | null>(null);
     const [mapModalOpen, setMapModalOpen] = useState(false);
 
@@ -37,41 +37,35 @@ const UserTable = ({ user, onDelete, onEdit }: UserTableProps) => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Uid</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Phone</TableHead>
-                            <TableHead>Effective Period</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead>UID</TableHead>
+                            <TableHead>Customer Name</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Payment Type</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Remark</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {user.length === 0 ? (
+                        {order.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                                    No user found
+                                    No expenses found
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            user.map((user) => (
+                            order.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell className="font-medium">{user.uid}</TableCell>
-                                    <TableCell className="font-medium">{user.firstname} {user.lastname}</TableCell>
-                                    <TableCell>{user?.user?.role?.name}</TableCell>
-                                    <TableCell>{user?.user?.email}</TableCell>
-                                    <TableCell>{user?.user?.phone}</TableCell>
+                                    <TableCell className="font-medium">{user.customer?.firstName} {user.customer?.lastName}</TableCell>
+                                    <TableCell>{user.paidAmount}</TableCell>
+                                    <TableCell>{user.paymentType?.name}</TableCell>
                                     <TableCell>
-                                        {format(user?.user.effectiveFrom, 'yyyy-MM-dd')}
+                                        <div className="text-sm text-muted-foreground">
+                                            {user.createdTime ? format(new Date(user.createdTime), 'PPP') : ''}
+                                        </div>
                                     </TableCell>
-
-
-                                    <TableCell>
-                                        <span className={`px-2 py-1 text-xs rounded-full ${user?.user?.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {user?.user?.status ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </TableCell>
+                                    <TableCell>{user.remark}</TableCell>
                                     <TableCell className="text-right space-x-2">
                                         <Button
                                             variant="ghost"
@@ -96,31 +90,8 @@ const UserTable = ({ user, onDelete, onEdit }: UserTableProps) => {
                     </TableBody>
                 </Table>
             </div>
-
-            {/* Map Modal */}
-            <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
-                <DialogContent className="max-w-4xl h-[80vh]">
-                    <DialogHeader className="border-b pb-4">
-                        <DialogTitle className="text-clinic-primary">Branch Location</DialogTitle>
-                    </DialogHeader>
-                    <div className="h-full w-full">
-                        {selectedMapUrl && (
-                            <iframe
-                                src={selectedMapUrl}
-                                width="100%"
-                                height="100%"
-                                style={{ border: 0, minHeight: "400px" }}
-                                allowFullScreen={true}
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                className="rounded"
-                            ></iframe>
-                        )}
-                    </div>
-                </DialogContent>
-            </Dialog>
         </>
     );
 };
 
-export default UserTable;
+export default SalesOrderTable;

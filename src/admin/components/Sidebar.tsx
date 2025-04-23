@@ -145,6 +145,18 @@ const navItems = [
     roles: ["Admin"] 
   },
   { 
+    icon: <ShoppingBasket className="h-5 w-5" />, 
+    label: "Sales Order",
+    href: "/admin/salesOrder",  
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <ShoppingBasket className="h-5 w-5" />, 
+    label: "Purchase Order",
+    href: "/admin/purchaseOrder",  
+    roles: ["Admin"] 
+  },
+  { 
     icon: <AlignVerticalDistributeCenterIcon className="h-5 w-5" />, 
     label: "Distributor", 
     href: "/admin/distributor", 

@@ -1,5 +1,5 @@
 import { Customer } from "../../customer/types/Customer";
-import { PaymentType } from "../../patient/submodules/repair/types/Repair";
+import { PaymentType } from "../../expense/types/expense";
 import { Product } from "../../patient/types/Product";
 
 
