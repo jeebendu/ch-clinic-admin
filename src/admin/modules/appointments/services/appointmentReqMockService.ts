@@ -60,7 +60,8 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     doctor: { id: 1, uId: "D001" } as Doctor,
     appointmentType: { id: 1, name: "Regular" },
     visitType: { id: 1, name: "New" }
-  },
+  }
+];
 
 // Function with the correct getDoctor implementation
 export const getDoctor = (id: number): Doctor => {
@@ -91,6 +92,26 @@ export const getDoctor = (id: number): Doctor => {
     rating: 4.5
   };
 };
+
+export const appointmentRequestMockService = {
+  getAppointmentRequests: (
+    page: number = 0,
+    size: number = 10,
+    searchValue: string = "",
+    status: "pending" | "accepted" | "rejected" | "all" = "all"
+  ) => {
+    let filteredRequests = mockAppointmentRequests.filter((req) => {
+      const matchesValue =
+        searchValue === "" ||
+        req.firstName.toLowerCase().includes(searchValue.toLowerCase()) ||
+        req.lastName.toLowerCase().includes(searchValue.toLowerCase()) ||
+        req.email.toLowerCase().includes(searchValue.toLowerCase());
+
+      const matchesStatus =
+        status === "all" ||
+        (status === "pending" && !req.isAccept && !req.isReject) ||
+        (status === "accepted" && req.isAccept) ||
+        (status === "rejected" && req.isReject);
 
       return matchesValue && matchesStatus;
     });

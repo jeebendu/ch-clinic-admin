@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,9 +17,8 @@ import {
   UserCog,
   PanelLeft,
   X,
-  Palette,
-  UserPlus,
   Package,
+  UserPlus,
   ChevronRight,
   MessageSquare,
   AlignVerticalDistributeCenterIcon,
@@ -34,12 +34,7 @@ import {
   ShoppingBasket,
   Image,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { generateColorPalette, updateCSSVariables } from "@/utils/themeUtils";
+import { NavLink, useLocation } from "react-router-dom";
 import AuthService from "@/services/authService";
 import { useTenant } from "@/hooks/use-tenant";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
@@ -138,7 +133,7 @@ const navItems = [
   },
   { 
     icon: <Settings2Icon className="h-5 w-5" />, 
-    label: "Reapir Company", 
+    label: "Repair Company", 
     href: "/admin/repair-company", 
     roles: ["Admin"] 
   },
@@ -231,6 +226,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   const userRole: UserRole = AuthService.getUserRole() as UserRole;
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
   const { tenant } = useTenant();
+  const location = useLocation();
 
   const toggleSubmenu = (label: string) => {
     setOpenSubmenus(prev => 
@@ -253,6 +249,22 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     };
   }, []);
 
+  // Auto-open submenu based on current route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    navItems.forEach(item => {
+      if (item.submenu) {
+        const hasActiveSubmenu = item.submenu.some(subItem => 
+          currentPath.includes(subItem.href)
+        );
+        
+        if (hasActiveSubmenu && !openSubmenus.includes(item.label)) {
+          setOpenSubmenus(prev => [...prev, item.label]);
+        }
+      }
+    });
+  }, [location.pathname]);
+
   const filteredNavItems = navItems.filter(item => 
     item.roles.includes(userRole)
   );
@@ -262,11 +274,11 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
       "text-sidebar-foreground h-full transition-all duration-300 flex flex-col",
       collapsed ? "w-[70px]" : "w-64"
     )}>
-      <div className="p-4 flex-none border-b">
+      <div className="p-4 flex-none border-b flex items-center">
         {tenantLogoUrl && (
           <div className={cn(
-            "w-full flex items-center justify-center mb-2",
-            collapsed ? "mx-auto" : ""
+            "flex items-center",
+            collapsed ? "justify-center w-full" : ""
           )}>
             <img 
               src={tenantLogoUrl} 
@@ -276,18 +288,16 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
           </div>
         )}
         
-        
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="md:hidden text-sidebar-foreground"
+          className="md:hidden text-sidebar-foreground ml-auto"
         >
           <X className="h-5 w-5" />
         </Button>
       </div>
 
-      
       <ScrollArea className="flex-1">
         <nav>
           {filteredNavItems.map((item) => (
@@ -314,19 +324,22 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    {!collapsed && item.submenu.map(subItem => (
-                      <NavLink
-                        key={subItem.href}
-                        to={subItem.href}
-                        className={({ isActive }) => cn(
-                          "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors text-sm",
-                          isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
-                        )}
-                        onClick={onClose}
-                      >
-                        {subItem.label}
-                      </NavLink>
-                    ))}
+                    {!collapsed && item.submenu.map(subItem => {
+                      const isActive = location.pathname.includes(subItem.href);
+                      return (
+                        <NavLink
+                          key={subItem.href}
+                          to={subItem.href}
+                          className={({ isActive }) => cn(
+                            "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors text-sm",
+                            isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                          )}
+                          onClick={onClose}
+                        >
+                          {subItem.label}
+                        </NavLink>
+                      );
+                    })}
                   </CollapsibleContent>
                 </Collapsible>
               ) : (
