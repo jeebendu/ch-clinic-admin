@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { 
   Home, 
-  Users, 
+  Users,
   Calendar,
   Settings,
   Clock,
@@ -16,25 +18,27 @@ import {
   X,
   Palette,
   UserPlus,
-  Image,
+  Package,
+  ChevronRight,
+  MessageSquare,
+  AlignVerticalDistributeCenterIcon,
+  Martini,
+  Filter,
+  CopyMinusIcon,
+  LucideMartini,
+  MessageCircleQuestionIcon,
   ArrowLeftCircle,
   ArrowUpRightFromCircle,
   ArrowDownRightFromCircle,
   Settings2Icon,
   ShoppingBasket,
-  AlignVerticalDistributeCenterIcon,
-  Martini,
-  Filter,
-  MessageSquare,
-  CopyMinusIcon,
-  LucideMartini,
-  MessageCircleQuestionIcon,
+  Image,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { generateColorPalette, updateCSSVariables } from "@/utils/themeUtils";
 import AuthService from "@/services/authService";
 import { useTenant } from "@/hooks/use-tenant";
@@ -163,30 +167,32 @@ const navItems = [
     roles: ["Admin"] 
   },
   { 
-    icon: <Martini className="h-5 w-5" />, 
-    label: "Product", 
-    href: "/admin/product", 
-    roles: ["Admin"] 
+    icon: <Package className="h-5 w-5" />, 
+    label: "Product",
+    roles: ["Admin"],
+    submenu: [
+      {
+        label: "Product List",
+        href: "/admin/product",
+        roles: ["Admin"]
+      },
+      {
+        label: "Brand",
+        href: "/admin/brand",
+        roles: ["Admin"]
+      },
+      {
+        label: "Category",
+        href: "/admin/category",
+        roles: ["Admin"]
+      },
+      {
+        label: "Type",
+        href: "/admin/product-type",
+        roles: ["Admin"]
+      }
+    ]
   },
-  { 
-    icon: <Filter className="h-5 w-5" />, 
-    label: "Category", 
-    href: "/admin/category", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <CopyMinusIcon className="h-5 w-5" />, 
-    label: "Brand", 
-    href: "/admin/brand", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <MessageCircleQuestionIcon className="h-5 w-5" />, 
-    label: "Product-Type", 
-    href: "/admin/product-type", 
-    roles: ["Admin"] 
-  },
-
   { 
     icon: <UserCog className="h-5 w-5" />, 
     label: "Customers", 
@@ -226,10 +232,15 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   const [themeColor, setThemeColor] = useState("#00b8ab");
   const { toast } = useToast();
   const { tenant } = useTenant();
+  const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
 
-  const filteredNavItems = navItems.filter(item => 
-    item.roles.includes(userRole)
-  );
+  const toggleSubmenu = (label: string) => {
+    setOpenSubmenus(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
+    );
+  };
 
   const tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
 
@@ -274,12 +285,16 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     }
   }, []);
 
+  const filteredNavItems = navItems.filter(item => 
+    item.roles.includes(userRole)
+  );
+
   return (
     <aside className={cn(
-      "bg-sidebar text-sidebar-foreground h-full transition-all duration-300",
+      "bg-sidebar text-sidebar-foreground h-full transition-all duration-300 flex flex-col",
       collapsed ? "w-[70px]" : "w-64"
     )}>
-      <div className="p-4 flex flex-col items-center justify-between h-auto border-b border-sidebar-border">
+      <div className="p-4 flex-none border-b border-sidebar-border">
         {tenantLogoUrl && (
           <div className={cn(
             "w-full flex items-center justify-center mb-2",
@@ -320,7 +335,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
         </Button>
       </div>
 
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 flex-none">
         {!collapsed && (
           <div className="text-xs font-semibold uppercase text-sidebar-foreground/70 mb-2 tracking-wider">
             Main Menu
@@ -328,38 +343,80 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
         )}
       </div>
 
-      <nav className="flex-1">
-        {filteredNavItems.map((item) => (
-          <NavLink
-            key={item.label}
-            to={item.href}
-            className={({ isActive }) => cn(
-              "flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
-              isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-l-4 border-sidebar-primary",
-              !isActive && "border-l-4 border-transparent",
-              collapsed && "justify-center"
-            )}
-            onClick={(e) => {
-              if (item.onClick) {
-                e.preventDefault();
-                item.onClick();
-              }
-              
-              if (window.innerWidth < 768 && onClose) {
-                onClose();
-              }
-            }}
-          >
-            <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
-            {!collapsed && <span>{item.label}</span>}
-            {!collapsed && (item.label.includes("Dashboard") || item.label === "Appointments" || item.label === "Doctors" || item.label === "Patients") && (
-              <span className="ml-auto">
-                <PanelLeft className="h-4 w-4 rotate-180" />
-              </span>
-            )}
-          </NavLink>
-        ))}
-      </nav>
+      <ScrollArea className="flex-1">
+        <nav>
+          {filteredNavItems.map((item) => (
+            <React.Fragment key={item.label}>
+              {item.submenu ? (
+                <Collapsible
+                  open={openSubmenus.includes(item.label)}
+                  onOpenChange={() => toggleSubmenu(item.label)}
+                >
+                  <CollapsibleTrigger className={cn(
+                    "flex w-full items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                    openSubmenus.includes(item.label) && "bg-sidebar-accent text-sidebar-accent-foreground",
+                    collapsed && "justify-center"
+                  )}>
+                    <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
+                    {!collapsed && (
+                      <>
+                        <span className="flex-1">{item.label}</span>
+                        <ChevronRight className={cn(
+                          "h-4 w-4 transition-transform",
+                          openSubmenus.includes(item.label) && "rotate-90"
+                        )} />
+                      </>
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    {!collapsed && item.submenu.map(subItem => (
+                      <NavLink
+                        key={subItem.href}
+                        to={subItem.href}
+                        className={({ isActive }) => cn(
+                          "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors text-sm",
+                          isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                        )}
+                        onClick={onClose}
+                      >
+                        {subItem.label}
+                      </NavLink>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              ) : (
+                <NavLink
+                  to={item.href}
+                  className={({ isActive }) => cn(
+                    "flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                    isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-l-4 border-sidebar-primary",
+                    !isActive && "border-l-4 border-transparent",
+                    collapsed && "justify-center"
+                  )}
+                  onClick={(e) => {
+                    if (item.onClick) {
+                      e.preventDefault();
+                      item.onClick();
+                    }
+                    
+                    if (window.innerWidth < 768 && onClose) {
+                      onClose();
+                    }
+                  }}
+                >
+                  <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
+                  {!collapsed && <span>{item.label}</span>}
+                  {!collapsed && (item.label.includes("Dashboard") || item.label === "Appointments" || item.label === "Doctors" || item.label === "Patients") && (
+                    <span className="ml-auto">
+                      <PanelLeft className="h-4 w-4 rotate-180" />
+                    </span>
+                  )}
+                </NavLink>
+              )}
+            </React.Fragment>
+          ))}
+        </nav>
+      </ScrollArea>
 
       <div className="p-4 mt-auto border-t border-sidebar-border">
         {!collapsed ? (
