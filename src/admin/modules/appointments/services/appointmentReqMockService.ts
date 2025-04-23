@@ -1,80 +1,161 @@
+
 import { AppointmentRequest } from "../types/AppointmentRequest";
-import { Doctor } from "../../doctor/DoctorTypes";
+import { PaginatedResponse } from "@/types/common";
 
-const mockAppointmentRequests: AppointmentRequest[] = [
-  {
-    id: 1,
-    patientId: 101,
-    doctorId: 1,
-    branchId: 1,
-    appointmentTime: new Date(),
-    reason: "General checkup",
-    status: "Scheduled",
-    notes: "Patient reports occasional headaches.",
+export const AppointmentReqMockService = {
+  generateMockAppointmentRequests: (size: number): AppointmentRequest[] => {
+    const mockAppointmentRequests: AppointmentRequest[] = [];
+    for (let i = 1; i <= size; i++) {
+      mockAppointmentRequests.push({
+        id: i,
+        firstName: `Patient${i}`,
+        lastName: `Last${i}`,
+        email: `patient${i}@example.com`,
+        phone: i * 10000000,
+        dob: new Date(1980, i % 12, (i % 28) + 1),
+        gender: i % 2,
+        district: null,
+        state: null,
+        country: null,
+        city: `City ${i}`,
+        appointmentDate: `2023-${(i % 12) + 1}-${(i % 28) + 1}`,
+        isAccept: i % 3 === 0,
+        isReject: i % 3 === 1,
+        doctor: {
+          id: i,
+          firstname: `Doctor${i}`,
+          lastname: `Last${i}`,
+          email: `doctor${i}@example.com`,
+          phone: `+123456789${i}`,
+          desgination: "Senior Physician",
+          specializationList: [
+            { id: 1, name: "Cardiology" },
+            { id: 2, name: "Neurology" },
+          ],
+          qualification: "MD",
+          joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
+          external: i % 3 === 0,
+          publishedOnline: i % 7 === 0,
+          user: {
+            id: i,
+            uid: `USR-${i + 100}`,
+            name: `User ${i + 100}`,
+            username: `user${i + 100}`,
+            email: `user${i + 100}@example.com`,
+            phone: `+123456789${i + 100}`,
+            password: `password${i + 100}`,
+            effectiveTo: new Date(2025, i % 12, (i % 28) + 1),
+            effectiveFrom: new Date(2024, i % 12, (i % 28) + 1),
+            role: {
+              id: 2,
+              name: "Doctor",
+              permissions: [],
+            },
+            image: "",
+            branch: {
+              id: 1,
+              name: "Main Branch",
+              code: "BR-001",
+              location: "Downtown",
+              active: true,
+              state: null,
+              district: null,
+              country: null,
+              city: "New York",
+              mapurl: "",
+              pincode: 10001,
+              image: "",
+              latitude: 40.7128,
+              longitude: -74.0060,
+            },
+          },
+          status: i % 2 === 0 ? "Active" : "Inactive",
+          about: `About doctor ${i}`,
+          image: "",
+          expYear: i % 10,
+          city: `City ${i}`,
+          pincode: `${100000 + i}`,
+          biography: `Bio for doctor ${i}`,
+          gender: i % 2,
+          verified: i % 2 === 0,
+          percentages: [],
+          serviceList: [],
+          branchList: [],
+          languageList: [],
+          district: null,
+          state: null,
+          country: null,
+          consultationFee: i * 100,
+          reviewCount: i % 5,
+          rating: (i % 5) + 1,
+        },
+        appointmentType: {
+          id: i % 3 + 1,
+          name: i % 3 === 0 ? "Regular" : i % 3 === 1 ? "Emergency" : "Follow-up"
+        },
+        visitType: {
+          id: i % 2 + 1,
+          name: i % 2 === 0 ? "In-person" : "Virtual"
+        }
+      });
+    }
+
+    return mockAppointmentRequests;
   },
-  {
-    id: 2,
-    patientId: 102,
-    doctorId: 2,
-    branchId: 2,
-    appointmentTime: new Date(),
-    reason: "Follow-up consultation",
-    status: "Completed",
-    notes: "Discussed treatment options and next steps.",
+
+  getById: (id: number): Promise<AppointmentRequest> => {
+    const mockAppointmentRequests = AppointmentReqMockService.generateMockAppointmentRequests(100);
+    const appointmentRequest = mockAppointmentRequests.find(req => req.id === id);
+    
+    if (!appointmentRequest) {
+      return Promise.reject(new Error("Appointment request not found"));
+    }
+    
+    return Promise.resolve(appointmentRequest);
   },
-  {
-    id: 3,
-    patientId: 103,
-    doctorId: 1,
-    branchId: 1,
-    appointmentTime: new Date(),
-    reason: "Vaccination",
-    status: "Scheduled",
-    notes: "Administer flu vaccine.",
+  
+  list: (): Promise<AppointmentRequest[]> => {
+    return Promise.resolve(AppointmentReqMockService.generateMockAppointmentRequests(100));
   },
-];
 
-// Function that needs the fix:
-export const getDoctor = (id: number): Doctor => {
-  // Adding the uid property to the doctor object
-  return {
-    id: 1,
-    uId: "D001", // Added missing uid property
-    firstname: "John",
-    lastname: "Doe",
-    email: "john.doe@example.com",
-    phone: "1234567890",
-    desgination: "Senior Doctor",
-    specializationList: [{ id: 1, name: "General" }],
-    qualification: "MBBS, MD",
-    joiningDate: "2020-01-01",
-    address: "123 Main Street",
-    city: "New York",
-    state: "NY",
-    zipCode: "10001",
-    gender: "Male",
-    dateOfBirth: "1980-01-01",
-    bloodGroup: "O+",
-    emergencyContactName: "Jane Doe",
-    emergencyContactPhone: "9876543210",
-    biography: "Experienced general practitioner.",
-    profilePicture: "url",
-    active: true,
-    branchId: 1,
-    rating: 4.5
-  };
-};
+  fetchPaginated: (
+    page: number, 
+    size: number, 
+    filter: { value: string; status: string | null; }
+  ): Promise<PaginatedResponse<AppointmentRequest>> => {
+    const mockAppointmentRequests = AppointmentReqMockService.generateMockAppointmentRequests(100);
+    
+    const filteredRequests = mockAppointmentRequests.filter((request) => {
+      const matchesValue = filter.value
+        ? request.firstName.toLowerCase().includes(filter.value.toLowerCase()) || 
+          request.lastName.toLowerCase().includes(filter.value.toLowerCase()) ||
+          request.doctor.firstname.toLowerCase().includes(filter.value.toLowerCase()) ||
+          request.doctor.lastname.toLowerCase().includes(filter.value.toLowerCase())
+        : true;
+      const matchesStatus = filter.status 
+        ? (filter.status === "accepted" && request.isAccept) ||
+          (filter.status === "rejected" && request.isReject) ||
+          (filter.status === "pending" && !request.isAccept && !request.isReject)
+        : true;
 
-export const getAppointmentRequests = () => {
-  return mockAppointmentRequests;
-};
+      return matchesValue && matchesStatus;
+    });
 
-export const getAppointmentRequest = (id: number) => {
-  return mockAppointmentRequests.find((request) => request.id === id);
-};
+    const totalElements = filteredRequests.length;
+    const totalPages = Math.ceil(totalElements / size);
+    const startIndex = page * size;
+    const endIndex = startIndex + size;
+    const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
 
-export default {
-  getAppointmentRequests,
-  getAppointmentRequest,
-  getDoctor,
+    return Promise.resolve({
+      content: paginatedRequests,
+      totalElements,
+      totalPages,
+      size,
+      number: page,
+      first: page === 0,
+      last: page === totalPages - 1,
+      numberOfElements: paginatedRequests.length,
+    });
+  }
 };
