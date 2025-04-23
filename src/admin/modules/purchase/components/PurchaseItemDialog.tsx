@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { Product } from "../types/PurchaseOrder";
 import { X } from "lucide-react";
 
 export interface PurchaseItemDialogProps {

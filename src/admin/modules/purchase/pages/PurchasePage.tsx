@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -128,7 +127,11 @@ export default function PurchasePage() {
               <Input
                 type="date"
                 value={form.watch("orderTime") ? format(new Date(form.watch("orderTime")), 'yyyy-MM-dd') : ""}
-                onChange={e => form.setValue("orderTime", e.target.value)}
+                onChange={e => {
+                  // Convert string date to Date object
+                  const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                  form.setValue("orderTime", dateValue);
+                }}
                 className="pr-10"
               />
               <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />

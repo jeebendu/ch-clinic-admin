@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 import "./styles/admin.css";
 import DashboardRoutes from "./modules/dashboard/routes/DashboardRoutes";
@@ -33,7 +34,6 @@ const AdminRoutes = () => {
       <Route path="/courier/*" element={<CourierRoutes />} />
       <Route path="/distributor/*" element={<DistributorRoutes />} />
       <Route path="/product/*" element={<ProductRoutes/>} />
-      <Route path="/category/*" element={<CategoryRoutes/>} />
       <Route path="/category/*" element={<CategoryRoutes/>} />
       <Route path="/brand/*" element={<BrandRoutes />} />
       <Route path="/product-type/*" element={<ProductTypeRoutes />} />
