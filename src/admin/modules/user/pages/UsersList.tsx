@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -110,13 +111,14 @@ const UsersList = () => {
   };
 
   const handleSaveUser = (userData: User) => {
+    // Modified to match param type
     const staffData: Staff = {
       ...userData,
       firstname: userData.name?.split(' ')[0] || '',
       lastname: userData.name?.split(' ')[1] || '',
-      uId: parseInt(userData.uid || '0'),
+      uId: userData.id || 0,
       dob: new Date(),
-      whatsappNo: parseInt(userData.phone || '0'),
+      whatsappNo: userData.phone ? parseInt(userData.phone) : 0,
       age: '0',
       gender: 'Male',
       lastVisitedOn: new Date(),
@@ -208,7 +210,7 @@ const UsersList = () => {
               <DrawerTitle className="text-clinic-primary">Add New User</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm onSave={handleSaveUser} onClose={handleCloseForm} user={null} />
+              <UserForm user={null} onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -222,7 +224,7 @@ const UsersList = () => {
             <DialogTitle className="text-clinic-primary">Add New User</DialogTitle>
             <DialogDescription>Add a new User to your clinic network.</DialogDescription>
           </DialogHeader>
-          <UserForm onSave={handleSaveUser} onClose={handleCloseForm} user={null} />
+          <UserForm user={null} onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );
@@ -231,12 +233,21 @@ const UsersList = () => {
   const renderEditForm = () => {
     if (!userToEdit) return null;
     
+    // Convert Staff to User for the form
     const userData: User = {
-      ...userToEdit.user,
       id: userToEdit.id,
       uid: userToEdit.uId.toString(),
       name: `${userToEdit.firstname} ${userToEdit.lastname}`,
-      username: userToEdit.user?.username || ''
+      username: userToEdit.user?.username || '',
+      branch: userToEdit.user?.branch,
+      role: userToEdit.user?.role,
+      password: userToEdit.user?.password || '',
+      email: userToEdit.user?.email || '',
+      phone: userToEdit.user?.phone || '',
+      effectiveFrom: userToEdit.user?.effectiveFrom,
+      effectiveTo: userToEdit.user?.effectiveTo,
+      image: userToEdit.user?.image || '',
+      status: userToEdit.user?.status
     };
     
     if (isMobile) {
@@ -247,7 +258,7 @@ const UsersList = () => {
               <DrawerTitle className="text-clinic-primary">Edit User</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm user={userData} onSave={handleSaveUser} onClose={handleCloseForm} />
+              <UserForm user={userData} onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -261,7 +272,7 @@ const UsersList = () => {
             <DialogTitle className="text-clinic-primary">Edit User</DialogTitle>
             <DialogDescription>Update branch information.</DialogDescription>
           </DialogHeader>
-          <UserForm user={userData} onSave={handleSaveUser} onClose={handleCloseForm} />
+          <UserForm user={userData} onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );

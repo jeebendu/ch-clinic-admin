@@ -18,7 +18,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     appointmentDate: "2023-04-23",
     isAccept: false,
     isReject: false,
-    doctor: { id: 1, uId: "D001" } as Doctor,
+    doctor: getDoctor(1), // Use the getDoctor function here
     appointmentType: { id: 1, name: "Regular" },
     visitType: { id: 1, name: "New" }
   },
@@ -37,7 +37,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     appointmentDate: "2023-04-24",
     isAccept: true,
     isReject: false,
-    doctor: { id: 2, uId: "D002" } as Doctor,
+    doctor: getDoctor(2), // Use the getDoctor function here
     appointmentType: { id: 2, name: "Emergency" },
     visitType: { id: 2, name: "Follow-up" }
   },
@@ -56,7 +56,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     appointmentDate: "2023-04-25",
     isAccept: false,
     isReject: false,
-    doctor: { id: 1, uId: "D001" } as Doctor,
+    doctor: getDoctor(1), // Use the getDoctor function here
     appointmentType: { id: 1, name: "Regular" },
     visitType: { id: 1, name: "New" }
   }
@@ -65,12 +65,13 @@ const mockAppointmentRequests: AppointmentRequest[] = [
 // Function with the correct getDoctor implementation
 export const getDoctor = (id: number): Doctor => {
   return {
-    id: 1,
-    uId: "D001", 
+    id: id,
+    uId: "D00" + id, 
+    uid: "D00" + id, // Add uid property to match Doctor type
     firstname: "John",
     lastname: "Doe",
     email: "john.doe@example.com",
-    phone: "1234567890",
+    phone: "1234567890", // Changed to string to match Doctor type
     desgination: "Senior Doctor",
     specializationList: [{ id: 1, name: "General" }],
     qualification: "MBBS, MD",
@@ -88,7 +89,10 @@ export const getDoctor = (id: number): Doctor => {
     profilePicture: "url",
     active: true,
     branchId: 1,
-    rating: 4.5
+    rating: 4.5,
+    // Add other required properties to match Doctor type
+    external: false,
+    name: "John Doe"
   };
 };
 

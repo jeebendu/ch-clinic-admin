@@ -48,7 +48,7 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
   const [districtList, setDistrictList] = useState<District[]>([]);
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [relationshipList, setRelationShipList] = useState<Relationship[]>([]);
-const [isLoading,setIsLoading]=useState(false);
+  const [isLoading,setIsLoading]=useState(false);
 
   useEffect(() => {
     getCountryList();
@@ -60,7 +60,6 @@ const [isLoading,setIsLoading]=useState(false);
     getDistrictList();
   }, []);
 
-
   const getDistrictList = async () => {
     try {
       const response = await DistrictService.listDistrict();
@@ -70,7 +69,6 @@ const [isLoading,setIsLoading]=useState(false);
       console.error('Error fetching district list:', error);
     }
   }
-
 
   const getStffList = async () => {
     try {
@@ -124,10 +122,9 @@ const [isLoading,setIsLoading]=useState(false);
     }
   };
 
-
   const form = useForm({
     defaultValues: {
-      id:enquiry?.id,
+      id: enquiry?.id,
       firstName: enquiry?.firstName || '',
       lastName: enquiry?.lastName || '',
       mobile: enquiry?.mobile || '',
@@ -150,16 +147,16 @@ const [isLoading,setIsLoading]=useState(false);
     },
   });
 
-  const  saveEnquiry=async(enquiryObj:Enquiry)=>{
+  const saveEnquiry = async (enquiryObj: Enquiry) => {
     setIsLoading(true);
-    const res=await enquiryService.saveOrUpdate(enquiryObj);
-    if(res.status){
+    const res = await enquiryService.saveOrUpdate(enquiryObj);
+    if (res.status) {
       onSuccess();
       toast({
         title: `Enquiry ${enquiry?.id ? 'updated' : 'created'} successfully`,
       });
       setIsLoading(false);
-    }else{
+    } else {
       setIsLoading(false);
       toast({
         title: 'Error',
@@ -167,12 +164,11 @@ const [isLoading,setIsLoading]=useState(false);
         variant: 'destructive',
       });
     }
-
   };
 
   const onSubmit = (data: any) => {
     saveEnquiry(data);
-    console.log(data)
+    console.log(data);
   };
 
   return (
@@ -194,9 +190,9 @@ const [isLoading,setIsLoading]=useState(false);
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Service*</label>
-                    <Select value={field.value?.id} // Use the `id` of the selected object for the `value`
+                    <Select value={field.value?.id?.toString()} 
                       onValueChange={(id) => {
-                        const selectedService = relationshipList.find((service) => String(service.id) == id);
+                        const selectedService = relationshipList.find((service) => service.id.toString() === id);
                         field.onChange(selectedService);
                       }}>
                       <SelectTrigger>
@@ -204,7 +200,7 @@ const [isLoading,setIsLoading]=useState(false);
                       </SelectTrigger>
                       <SelectContent>
                         {relationshipList && relationshipList.map((service) =>
-                          <SelectItem value={service.id} key={service?.id}>{service.name}</SelectItem>
+                          <SelectItem value={service.id.toString()} key={service?.id}>{service.name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -222,9 +218,9 @@ const [isLoading,setIsLoading]=useState(false);
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Relationship*</label>
-                    <Select value={field.value?.id} // Use the `id` of the selected object for the `value`
+                    <Select value={field.value?.id?.toString()} 
                       onValueChange={(id) => {
-                        const relation = relationshipList.find((rel) => String(rel.id) == id);
+                        const relation = relationshipList.find((rel) => rel.id.toString() === id);
                         field.onChange(relation);
                       }}>
                       <SelectTrigger>
@@ -232,7 +228,7 @@ const [isLoading,setIsLoading]=useState(false);
                       </SelectTrigger>
                       <SelectContent>
                         {relationshipList && relationshipList.map((rel) =>
-                          <SelectItem value={rel.id} key={rel?.id}>{rel.name}</SelectItem>
+                          <SelectItem value={rel.id.toString()} key={rel?.id}>{rel.name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -247,9 +243,9 @@ const [isLoading,setIsLoading]=useState(false);
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Assign To*</label>
-                    <Select value={field.value?.id} // Use the `id` of the selected object for the `value`
+                    <Select value={field.value?.id?.toString()} 
                       onValueChange={(id) => {
-                        const staff = staffList.find((rel) => String(rel.id) == id);
+                        const staff = staffList.find((rel) => rel.id.toString() === id);
                         field.onChange(staff);
                       }}>
                       <SelectTrigger>
@@ -257,7 +253,7 @@ const [isLoading,setIsLoading]=useState(false);
                       </SelectTrigger>
                       <SelectContent>
                         {staffList && staffList.map(staff =>
-                          <SelectItem value={staff.id} key={staff?.id}>{staff.firstname} {staff.lastname}</SelectItem>
+                          <SelectItem value={staff.id.toString()} key={staff?.id}>{staff.firstname} {staff.lastname}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -275,9 +271,9 @@ const [isLoading,setIsLoading]=useState(false);
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Country*</label>
-                    <Select value={field.value?.id} // Use the `id` of the selected object for the `value`
+                    <Select value={field.value?.id?.toString()} 
                       onValueChange={(id) => {
-                        const country = countryList.find((rel) => String(rel.id) == id);
+                        const country = countryList.find((rel) => rel.id.toString() === id);
                         field.onChange(country);
                       }}>
                       <SelectTrigger>
@@ -285,7 +281,7 @@ const [isLoading,setIsLoading]=useState(false);
                       </SelectTrigger>
                       <SelectContent>
                         {countryList && countryList.map(country =>
-                          <SelectItem value={country.id} key={country?.id}>{country.name}</SelectItem>
+                          <SelectItem value={country.id.toString()} key={country?.id}>{country.name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -300,9 +296,9 @@ const [isLoading,setIsLoading]=useState(false);
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">State*</label>
-                    <Select value={field.value?.id} // Use the `id` of the selected object for the `value`
+                    <Select value={field.value?.id?.toString()} 
                       onValueChange={(id) => {
-                        const state = stateList.find((rel) => String(rel.id) == id);
+                        const state = stateList.find((rel) => rel.id.toString() === id);
                         field.onChange(state);
                       }}>
                       <SelectTrigger>
@@ -310,7 +306,7 @@ const [isLoading,setIsLoading]=useState(false);
                       </SelectTrigger>
                       <SelectContent>
                         {stateList && stateList.map(state =>
-                          <SelectItem value={state.id} key={state?.id}>{state.name}</SelectItem>
+                          <SelectItem value={state.id.toString()} key={state?.id}>{state.name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -328,9 +324,9 @@ const [isLoading,setIsLoading]=useState(false);
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">District*</label>
-                    <Select value={field.value?.id} // Use the `id` of the selected object for the `value`
+                    <Select value={field.value?.id?.toString()} 
                       onValueChange={(id) => {
-                        const district = districtList.find((rel) => String(rel.id) == id);
+                        const district = districtList.find((rel) => rel.id.toString() === id);
                         field.onChange(district);
                       }}>
                       <SelectTrigger>
@@ -338,7 +334,7 @@ const [isLoading,setIsLoading]=useState(false);
                       </SelectTrigger>
                       <SelectContent>
                         {districtList && districtList.map(district =>
-                          <SelectItem value={district.id} key={district?.id}>{district.name}</SelectItem>
+                          <SelectItem value={district.id.toString()} key={district?.id}>{district.name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -357,9 +353,9 @@ const [isLoading,setIsLoading]=useState(false);
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Source*</label>
-                    <Select value={field.value?.id} // Use the `id` of the selected object for the `value`
+                    <Select value={field.value?.id?.toString()} 
                       onValueChange={(id) => {
-                        const source = sourceList.find((rel) => String(rel.id) == id);
+                        const source = sourceList.find((rel) => rel.id.toString() === id);
                         field.onChange(source);
                       }}>
                       <SelectTrigger>
@@ -367,7 +363,7 @@ const [isLoading,setIsLoading]=useState(false);
                       </SelectTrigger>
                       <SelectContent>
                         {sourceList && sourceList.map(src =>
-                          <SelectItem value={src.id} key={src?.id}>{src.name}</SelectItem>
+                          <SelectItem value={src.id.toString()} key={src?.id}>{src.name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -388,9 +384,9 @@ const [isLoading,setIsLoading]=useState(false);
                 render={({ field }) => (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Status*</label>
-                    <Select value={field.value?.id} // Use the `id` of the selected object for the `value`
+                    <Select value={field.value?.id?.toString()} 
                       onValueChange={(id) => {
-                        const status = relationshipList.find((rel) => String(rel.id) == id);
+                        const status = relationshipList.find((rel) => rel.id.toString() === id);
                         field.onChange(status);
                       }}>
                       <SelectTrigger>
@@ -398,7 +394,7 @@ const [isLoading,setIsLoading]=useState(false);
                       </SelectTrigger>
                       <SelectContent>
                         {relationshipList && relationshipList.map((stat) =>
-                          <SelectItem value={stat.id} key={stat?.id}>{stat.name}</SelectItem>
+                          <SelectItem value={stat.id.toString()} key={stat?.id}>{stat.name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
