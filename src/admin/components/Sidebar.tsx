@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -19,20 +18,12 @@ import {
   X,
   Package,
   UserPlus,
-  ChevronRight,
   MessageSquare,
-  AlignVerticalDistributeCenterIcon,
-  Martini,
-  Filter,
-  CopyMinusIcon,
-  LucideMartini,
-  MessageCircleQuestionIcon,
-  ArrowLeftCircle,
-  ArrowUpRightFromCircle,
   ArrowDownRightFromCircle,
   Settings2Icon,
   ShoppingBasket,
-  Image,
+  Truck,
+  ChevronRight,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import AuthService from "@/services/authService";
@@ -52,18 +43,6 @@ const navItems = [
     label: "Admin Dashboard", 
     href: "/admin/dashboard/admin", 
     roles: ["Admin"] 
-  },
-  { 
-    icon: <Home className="h-5 w-5" />, 
-    label: "Doctor Dashboard", 
-    href: "/admin/dashboard/doctor", 
-    roles: ["Doctor", "Admin"] 
-  },
-  { 
-    icon: <Home className="h-5 w-5" />, 
-    label: "Staff Dashboard", 
-    href: "/admin/dashboard/staff", 
-    roles: ["Staff", "Admin"] 
   },
   { 
     icon: <Calendar className="h-5 w-5" />, 
@@ -92,26 +71,41 @@ const navItems = [
   { 
     icon: <UserCircle className="h-5 w-5" />, 
     label: "Doctors", 
-    href: "/admin/doctor", 
-    roles: ["Admin"] ,
+    roles: ["Admin"],
+    submenu: [
+      {
+        label: "Doctor List",
+        href: "/admin/doctor",
+        roles: ["Admin"]
+      },
+      {
+        label: "Speciality",
+        href: "/admin/doctor/speciality",
+        roles: ["Admin"]
+      }
+    ]
   },
   { 
-    icon: <UserCircle className="h-5 w-5" />, 
-    label: "Login-History", 
-    href: "/admin/users/login-history", 
-    roles: ["Admin"] ,
-  },
-  { 
-    icon: <UserCircle className="h-5 w-5" />, 
-    label: "Expenses", 
-    href: "/admin/expense", 
-    roles: ["Admin"] ,
-  },
-  { 
-    icon: <UserCircle className="h-5 w-5" />, 
-    label: "Speciality", 
-    href: "/admin/doctor/speciality", 
-    roles: ["Admin"] ,
+    icon: <UserCog className="h-5 w-5" />, 
+    label: "Users", 
+    roles: ["Admin"],
+    submenu: [
+      {
+        label: "User List",
+        href: "/admin/users",
+        roles: ["Admin"]
+      },
+      {
+        label: "Roles",
+        href: "/admin/users/roles",
+        roles: ["Admin"]
+      },
+      {
+        label: "Login History",
+        href: "/admin/users/login-history",
+        roles: ["Admin"]
+      }
+    ]
   },
   { 
     icon: <Building2 className="h-5 w-5" />, 
@@ -120,46 +114,10 @@ const navItems = [
     roles: ["Admin"] 
   },
   { 
-    icon: <Building2 className="h-5 w-5" />, 
-    label: "Roles", 
-    href: "/admin/users/roles", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <ArrowDownRightFromCircle className="h-5 w-5" />, 
-    label: "Sequence", 
-    href: "/admin/sequence", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <Settings2Icon className="h-5 w-5" />, 
-    label: "Repair Company", 
-    href: "/admin/repair-company", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <ShoppingBasket className="h-5 w-5" />, 
-    label: "Courier", 
-    href: "/admin/courier", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <ShoppingBasket className="h-5 w-5" />, 
-    label: "Sales Order",
-    href: "/admin/salesOrder",  
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <ShoppingBasket className="h-5 w-5" />, 
-    label: "Purchase Order",
-    href: "/admin/purchaseOrder",  
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <AlignVerticalDistributeCenterIcon className="h-5 w-5" />, 
-    label: "Distributor", 
-    href: "/admin/distributor", 
-    roles: ["Admin"] 
+    icon: <MessageSquare className="h-5 w-5" />, 
+    label: "Enquiries", 
+    href: "/admin/enquiry", 
+    roles: ["Admin", "Doctor", "Staff"] 
   },
   { 
     icon: <Package className="h-5 w-5" />, 
@@ -189,36 +147,36 @@ const navItems = [
     ]
   },
   { 
-    icon: <UserCog className="h-5 w-5" />, 
-    label: "Customers", 
-    href: "/admin/customer", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <FileBox className="h-5 w-5" />, 
-    label: "Users", 
-    href: "/admin/users", 
-    roles: ["Admin"] 
-  },
-  { 
     icon: <Settings className="h-5 w-5" />, 
     label: "Settings", 
-    href: "/admin/settings", 
-    roles: ["Admin"] 
-  },
-  
-  { 
-    icon: <UserPlus className="h-5 w-5" />, 
-    label: "Quick Patient Form", 
-    href: "/admin/dashboard/staff", 
-    roles: ["Staff"], 
-    onClick: () => document.dispatchEvent(new CustomEvent('open-quick-form'))
-  },
-  { 
-    icon: <MessageSquare className="h-5 w-5" />, 
-    label: "Enquiries", 
-    href: "/admin/enquiry", 
-    roles: ["Admin", "Doctor", "Staff"] 
+    roles: ["Admin"],
+    submenu: [
+      {
+        label: "Settings",
+        href: "/admin/settings",
+        roles: ["Admin"]
+      },
+      {
+        label: "Sequence",
+        href: "/admin/sequence",
+        roles: ["Admin"]
+      },
+      {
+        label: "Repair Company",
+        href: "/admin/repair-company",
+        roles: ["Admin"]
+      },
+      {
+        label: "Courier",
+        href: "/admin/courier",
+        roles: ["Admin"]
+      },
+      {
+        label: "Distributor",
+        href: "/admin/distributor",
+        roles: ["Admin"]
+      }
+    ]
   },
 ];
 

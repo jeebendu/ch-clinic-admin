@@ -1,4 +1,3 @@
-
 import { AppointmentRequest } from "../types/AppointmentRequest";
 import { Doctor } from "../../doctor/types/Doctor";
 import { Country, District, State } from "../../core/types/Address";
@@ -9,7 +8,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     firstName: "John",
     lastName: "Doe",
     email: "john.doe@example.com",
-    phone: 1234567890,
+    phone: "1234567890",
     dob: new Date(),
     gender: 1,
     district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
@@ -19,7 +18,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     appointmentDate: "2023-04-23",
     isAccept: false,
     isReject: false,
-    doctor: { id: 1, uId: "D001" } as Doctor,
+    doctor: getDoctor(1),
     appointmentType: { id: 1, name: "Regular" },
     visitType: { id: 1, name: "New" }
   },
