@@ -7,7 +7,7 @@ import { District } from "../../core/types/District";
 /**
  * Generate mock branches data for development
  */
-export const getMockBranches = (page: number, size: number, searchTerm?: string) => {
+export  const getMockBranches = (page: number, size: number, searchTerm?: string) => {
   const mockBranches: Branch[] = [];
 
   // Generate 50 mock branches

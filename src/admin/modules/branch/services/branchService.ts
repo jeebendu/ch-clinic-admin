@@ -4,8 +4,7 @@ import { getEnvVariable } from "@/utils/envUtils";
 import { Branch } from "../types/Branch";
 
 const apiUrl = getEnvVariable('API_URL');
-
-export const BranchService = {
+ const BranchService = {
   list: () => {
     return http.get<Branch[]>(`${apiUrl}/v1/branch/list`);
   },
@@ -18,7 +17,9 @@ export const BranchService = {
     return http.get<Branch>(`${apiUrl}/v1/branch/id/${id}`);
   },
 
-  saveOrUpdate: (branch: Branch) => {
+  saveOrUpdate: (branch: any) => {
     return http.post<any>(`${apiUrl}/v1/branch/saveOrUpdate`, branch);
   }
 };
+
+export default BranchService;
