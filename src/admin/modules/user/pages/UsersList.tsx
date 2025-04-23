@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -11,7 +10,7 @@ import UserService from "../services/userService";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Staff } from "../types/User";
+import { Staff, User } from "../types/User";
 import UserTable from "../components/UserTable";
 import UserForm from "../components/UserForm";
 
@@ -32,7 +31,6 @@ const UsersList = () => {
   const [userToEdit, setUserToEdit] = useState<Staff | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
-  // Define filter options
   const [filters, setFilters] = useState<FilterOption[]>([
     {
       id: 'status',
@@ -69,26 +67,20 @@ const UsersList = () => {
     },
   });
 
-  // Extract branches from the response
   const branches = Array.isArray(data) ? data : [];
-  
 
-  // Filter branches based on search term and filters
   const filteredUsers = branches.filter(user => {
-    // Filter by search term
     if (searchTerm && !user.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
         !user.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !user.location.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
-    // Filter by status
     if (selectedFilters.status.length > 0) {
       const statusMatch = selectedFilters.status.includes(user.active ? 'active' : 'inactive');
       if (!statusMatch) return false;
     }
 
-    // Filter by location
     if (selectedFilters.location.length > 0) {
       const locationMatch = selectedFilters.location.includes(user.location.toLowerCase());
       if (!locationMatch) return false;
@@ -115,6 +107,42 @@ const UsersList = () => {
     setIsEditFormOpen(false);
     setUserToEdit(null);
     refetch();
+  };
+
+  const handleSaveUser = (userData: User) => {
+    const staffData: Staff = {
+      ...userData,
+      firstname: userData.name?.split(' ')[0] || '',
+      lastname: userData.name?.split(' ')[1] || '',
+      uId: parseInt(userData.uid || '0'),
+      dob: new Date(),
+      whatsappNo: parseInt(userData.phone || '0'),
+      age: '0',
+      gender: 'Male',
+      lastVisitedOn: new Date(),
+      name: userData.name || '',
+      branchList: [],
+      user: userData,
+      id: userData.id
+    };
+    
+    UserService.saveOrUpdate(staffData)
+      .then(() => {
+        toast({
+          title: "Success",
+          description: `User ${userData.id ? "updated" : "created"} successfully`,
+          className: "bg-clinic-primary text-white",
+        });
+        handleCloseForm();
+      })
+      .catch((error) => {
+        console.error("Error saving user:", error);
+        toast({
+          title: "Error",
+          description: `Failed to ${userData.id ? "update" : "create"} user`,
+          variant: "destructive",
+        });
+      });
   };
 
   const handleEditUser = (user: Staff) => {
@@ -154,10 +182,8 @@ const UsersList = () => {
       const newFilters = {...prev};
       
       if (newFilters[filterId].includes(optionId)) {
-        // Remove filter if already selected
         newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
       } else {
-        // Add filter if not already selected
         newFilters[filterId] = [...newFilters[filterId], optionId];
       }
       
@@ -182,7 +208,7 @@ const UsersList = () => {
               <DrawerTitle className="text-clinic-primary">Add New User</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm onSuccess={handleCloseForm} />
+              <UserForm onSave={handleSaveUser} onClose={handleCloseForm} user={null} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -196,7 +222,7 @@ const UsersList = () => {
             <DialogTitle className="text-clinic-primary">Add New User</DialogTitle>
             <DialogDescription>Add a new User to your clinic network.</DialogDescription>
           </DialogHeader>
-          <UserForm onSuccess={handleCloseForm} />
+          <UserForm onSave={handleSaveUser} onClose={handleCloseForm} user={null} />
         </DialogContent>
       </Dialog>
     );
@@ -204,6 +230,14 @@ const UsersList = () => {
 
   const renderEditForm = () => {
     if (!userToEdit) return null;
+    
+    const userData: User = {
+      ...userToEdit.user,
+      id: userToEdit.id,
+      uid: userToEdit.uId.toString(),
+      name: `${userToEdit.firstname} ${userToEdit.lastname}`,
+      username: userToEdit.user?.username || ''
+    };
     
     if (isMobile) {
       return (
@@ -213,7 +247,7 @@ const UsersList = () => {
               <DrawerTitle className="text-clinic-primary">Edit User</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm user={userToEdit} onSuccess={handleCloseForm} />
+              <UserForm user={userData} onSave={handleSaveUser} onClose={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -227,7 +261,7 @@ const UsersList = () => {
             <DialogTitle className="text-clinic-primary">Edit User</DialogTitle>
             <DialogDescription>Update branch information.</DialogDescription>
           </DialogHeader>
-          <UserForm user={userToEdit} onSuccess={handleCloseForm} />
+          <UserForm user={userData} onSave={handleSaveUser} onClose={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );

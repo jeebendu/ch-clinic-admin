@@ -1,14 +1,23 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import FormField from "@/admin/components/FormField";
-import { Staff, User } from "../types/User";
-import UserService from "../services/userService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RoleService } from "../services/RoleService";
+import { Role } from "../submodules/roles/types/Role";
+import { User } from "../types/User";
+import { BranchService } from "../../branch/services/BranchService";
+import { Branch } from "../../branch/types/Branch";
+import { Staff } from "../types/User";
 
 interface UserFormProps {
     user?: Staff;
@@ -32,11 +41,16 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const GENDER_OPTIONS = [
-    { value: "", label: "Select Gender" },
-    { value: "Male", label: "Male" },
-    { value: "Female", label: "Female" },
-];
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: user?.username || "",
+      password: user?.password || "",
+      roleId: user?.role?.id?.toString() || "",
+      branchId: user?.branchId?.toString() || "",
+      email: user?.email || "",
+    },
+  });
 
 const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
     const { toast } = useToast();
@@ -99,21 +113,17 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
                 effectiveTo: data.effectiveTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1))
             };
 
-            await UserService.saveOrUpdate(userData);
-
-            toast({
-                title: `User ${isEditing ? "updated" : "added"} successfully`,
-            });
-
-            onSuccess();
-        } catch (error) {
-            console.error("Error saving user:", error);
-            toast({
-                title: "Error",
-                description: `Failed to ${isEditing ? "update" : "add"} user. Please try again.`,
-                variant: "destructive",
-            });
-        }
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    const userData: User = {
+      ...user,
+      username: data.username,
+      password: data.password,
+      role: { id: parseInt(data.roleId), name: '' },
+      branchId: parseInt(data.branchId),
+      email: data.email,
+      id: user?.id || 0,
+      uid: user?.uid || '',
+      name: user?.name || ''
     };
 
     return (

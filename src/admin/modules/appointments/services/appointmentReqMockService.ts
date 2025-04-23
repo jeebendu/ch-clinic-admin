@@ -1,6 +1,6 @@
 
 import { AppointmentRequest } from "../types/AppointmentRequest";
-import { PaginatedResponse } from "@/types/common";
+import { Doctor } from "../../doctor/types/Doctor";
 
 export const AppointmentReqMockService = {
   generateMockAppointmentRequests: (size: number): AppointmentRequest[] => {
@@ -101,6 +101,7 @@ export const AppointmentReqMockService = {
     }
 
     return mockAppointmentRequests;
+    branchId: 1
   },
 
   getById: (id: number): Promise<AppointmentRequest> => {
@@ -112,10 +113,12 @@ export const AppointmentReqMockService = {
     }
     
     return Promise.resolve(appointmentRequest);
+    branchId: 2
   },
   
   list: (): Promise<AppointmentRequest[]> => {
     return Promise.resolve(AppointmentReqMockService.generateMockAppointmentRequests(100));
+    branchId: 1
   },
 
   fetchPaginated: (

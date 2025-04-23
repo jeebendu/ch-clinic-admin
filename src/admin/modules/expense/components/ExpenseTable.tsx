@@ -1,4 +1,3 @@
-
 import {
     Table,
     TableBody,
@@ -12,7 +11,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash } from "lucide-react";
 import { format } from "date-fns";
-import { Expense } from "../types/Expense";
+import { Expense } from "../types/expense";
 
 interface ExpenseTableProps {
     expense: Expense[];
