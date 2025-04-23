@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Calendar, Plus, Save, X, Printer } from "lucide-react";
+import { Calendar, Plus, Save, X } from "lucide-react";
 import { format } from "date-fns";
 import PurchaseItemDialog from "../components/PurchaseItemDialog";
 import { Order, OrderItem } from "../types/PurchaseOrder";
@@ -100,7 +99,6 @@ function PurchasePageContent() {
     <div className="bg-[#f5f7fb] min-h-screen flex flex-col">
       <div className="md:ml-0 flex-1 flex flex-col relative max-w-[1200px] mx-auto" style={{ zIndex: 2 }}>
         <PurchaseBreadcrumbs />
-        {/* Responsive/scrolled area, extra bg and border for focus */}
         <form
           className="flex flex-col rounded-b-lg rounded-tr-lg bg-white px-8 py-6 shadow mt-2 gap-6"
           onSubmit={form.handleSubmit(onSubmit)}
@@ -153,6 +151,9 @@ function PurchasePageContent() {
             </label>
           </div>
           <div className="rounded-lg overflow-x-auto mb-4 border border-[#e7e8ed] bg-[#fafbfc] relative">
+            <div className="px-4 py-2 text-sm text-gray-400">
+              Click the <Save className="inline-block w-4 h-4" /> icon to edit items in the order.
+            </div>
             <table className="w-full min-w-max border-separate border-spacing-0">
               <thead className="bg-[#f2f3f8]">
                 <tr className="text-gray-700 text-base font-semibold">
@@ -184,9 +185,11 @@ function PurchasePageContent() {
                       <div className="flex items-center gap-2">
                         <Button size="icon" type="button" variant="ghost" onClick={() => handleEditRow(idx)}>
                           <Save className="w-4 h-4" />
+                          <span className="sr-only">Edit Item</span>
                         </Button>
                         <Button size="icon" type="button" variant="destructive" onClick={() => handleRemoveRow(idx)}>
                           <X className="w-4 h-4" />
+                          <span className="sr-only">Remove Item</span>
                         </Button>
                       </div>
                     </td>
@@ -250,9 +253,6 @@ function PurchasePageContent() {
           <div className="w-full flex justify-end gap-4 mt-12 pb-4">
             <Button type="button" variant="destructive" className="bg-red-700 text-white text-lg px-8 py-3 rounded-full shadow-none">Cancel</Button>
             <Button type="submit" className="bg-blue-700 text-white text-lg px-8 py-3 rounded-full shadow-none">Submit</Button>
-            <Button type="button" className="bg-blue-700 text-white text-lg px-8 py-3 flex gap-2 rounded-full shadow-none">
-              <Printer className="w-5 h-5" /> Print
-            </Button>
           </div>
         </form>
       </div>
@@ -266,7 +266,6 @@ function PurchasePageContent() {
   );
 }
 
-// Now wrap with AdminLayout for consistent sidebar UI
 export default function PurchasePage() {
   return (
     <AdminLayout>
