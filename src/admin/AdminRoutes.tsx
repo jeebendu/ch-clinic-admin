@@ -18,6 +18,7 @@ import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/route
 import EnquiryRoutes from "./modules/enquiry/routes/EnquiryRoutes";
 import BrandRoutes from "./modules/inventory/brand/routes/BrandRoutes";
 import ProductTypeRoutes from "./modules/inventory/product-type/routes/ProductTypeRoutes";
+import PurchasePage from "./modules/purchase/pages/PurchasePage";
 
 const AdminRoutes = () => {
   return (
@@ -42,6 +43,7 @@ const AdminRoutes = () => {
       <Route path="/core/*" element={<CoreRoutes />} />
       <Route path="/:section" element={<DashboardRoutes />} />
       <Route path="/enquiry/*" element={<EnquiryRoutes />} />
+      <Route path="/purchase" element={<PurchasePage />} />
     </Routes>
   );
 };
