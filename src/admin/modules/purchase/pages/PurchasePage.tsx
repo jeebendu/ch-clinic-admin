@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Plus, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import PurchaseForm from "../components/PurchaseForm";
 import PurchaseTable from "../components/PurchaseTable";
 import { Order } from "../types/PurchaseOrder";
+import PurchaseLayout from "../components/PurchaseLayout";
 
 const mockPurchases: Order[] = [
   {
@@ -48,7 +48,6 @@ const PurchasePage = () => {
     setEditPurchase(null);
   };
 
-  // Placeholders for actual CRUD logic
   const handleSave = (order: Order) => {
     if (order.id) {
       setPurchases(purchases.map(p => p.id === order.id ? order : p));
@@ -59,23 +58,25 @@ const PurchasePage = () => {
   };
 
   return (
-    <div>
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold mb-4 md:mb-0">Purchase Orders</h1>
-        <Button onClick={handleAdd} className="bg-primary text-primary-foreground">
-          <Plus className="mr-2" /> Add Purchase
-        </Button>
+    <PurchaseLayout>
+      <div>
+        <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold mb-4 md:mb-0">Purchase Orders</h1>
+          <Button onClick={handleAdd} className="bg-primary text-primary-foreground">
+            <Plus className="mr-2" /> Add Purchase
+          </Button>
+        </div>
+        <PurchaseTable purchases={purchases} onEdit={handleEdit} />
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{editPurchase ? "Edit Purchase" : "Add Purchase"}</DialogTitle>
+            </DialogHeader>
+            <PurchaseForm purchase={editPurchase} onSave={handleSave} onClose={handleFormClose} />
+          </DialogContent>
+        </Dialog>
       </div>
-      <PurchaseTable purchases={purchases} onEdit={handleEdit} />
-      <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editPurchase ? "Edit Purchase" : "Add Purchase"}</DialogTitle>
-          </DialogHeader>
-          <PurchaseForm purchase={editPurchase} onSave={handleSave} onClose={handleFormClose} />
-        </DialogContent>
-      </Dialog>
-    </div>
+    </PurchaseLayout>
   );
 };
 
