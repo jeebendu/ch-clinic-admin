@@ -126,15 +126,13 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
         <div className="grid grid-cols-2 gap-4">
           <FormField control={form.control} name="mobile" label="Mobile*" />
 
-          <Controller
-            control={form.control}
-            name="enquiryServiceType"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="enquiryServiceType"
-                label="Service*"
-                render={({ field }) => (
+          <div>
+            <Controller
+              control={form.control}
+              name="enquiryServiceType"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Service*</label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Service" />
@@ -145,22 +143,20 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                )}
-              />
-            )}
-          />
+                </div>
+              )}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Controller
-            control={form.control}
-            name="relationship"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="relationship"
-                label="Relationship*"
-                render={({ field }) => (
+          <div>
+            <Controller
+              control={form.control}
+              name="relationship"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Relationship*</label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Relationship" />
@@ -171,19 +167,17 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                )}
-              />
-            )}
-          />
-          <Controller
-            control={form.control}
-            name="assignTo"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="assignTo"
-                label="Assign To*"
-                render={({ field }) => (
+                </div>
+              )}
+            />
+          </div>
+          <div>
+            <Controller
+              control={form.control}
+              name="assignTo"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Assign To*</label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Staff to Assign" />
@@ -194,22 +188,20 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                )}
-              />
-            )}
-          />
+                </div>
+              )}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Controller
-            control={form.control}
-            name="country"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="country"
-                label="Country*"
-                render={({ field }) => (
+          <div>
+            <Controller
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Country*</label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Country" />
@@ -220,19 +212,17 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                )}
-              />
-            )}
-          />
-          <Controller
-            control={form.control}
-            name="state"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="state"
-                label="State*"
-                render={({ field }) => (
+                </div>
+              )}
+            />
+          </div>
+          <div>
+            <Controller
+              control={form.control}
+              name="state"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">State*</label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select State" />
@@ -243,22 +233,20 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                )}
-              />
-            )}
-          />
+                </div>
+              )}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Controller
-            control={form.control}
-            name="district"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="district"
-                label="District*"
-                render={({ field }) => (
+          <div>
+            <Controller
+              control={form.control}
+              name="district"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">District*</label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select District" />
@@ -269,23 +257,21 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                )}
-              />
-            )}
-          />
+                </div>
+              )}
+            />
+          </div>
           <FormField control={form.control} name="city" label="City / Locality*" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Controller
-            control={form.control}
-            name="source"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="source"
-                label="Source*"
-                render={({ field }) => (
+          <div>
+            <Controller
+              control={form.control}
+              name="source"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Source*</label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Source" />
@@ -296,25 +282,23 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                )}
-              />
-            )}
-          />
+                </div>
+              )}
+            />
+          </div>
           <FormField control={form.control} name="needs" label="Needs" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField control={form.control} name="notes" label="Notes" />
 
-          <Controller
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="status"
-                label="Status*"
-                render={({ field }) => (
+          <div>
+            <Controller
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status*</label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Status" />
@@ -325,22 +309,20 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       )}
                     </SelectContent>
                   </Select>
-                )}
-              />
-            )}
-          />
+                </div>
+              )}
+            />
+          </div>
         </div>
         
         <div className="grid grid-cols-4 gap-4">
-          <Controller
-            control={form.control}
-            name="leadDate"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="leadDate"
-                label="Lead Date"
-                render={({ field }) => (
+          <div>
+            <Controller
+              control={form.control}
+              name="leadDate"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Lead Date</label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -364,21 +346,19 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       />
                     </PopoverContent>
                   </Popover>
-                )}
-              />
-            )}
-          />
+                </div>
+              )}
+            />
+          </div>
           <FormField control={form.control} name="leadTime" label="Lead Time" type="time" />
 
-          <Controller
-            control={form.control}
-            name="nextFollowUpDate"
-            render={({ field }) => (
-              <FormField
-                control={form.control}
-                name="nextFollowUpDate"
-                label="Next Follow Up Date"
-                render={({ field }) => (
+          <div>
+            <Controller
+              control={form.control}
+              name="nextFollowUpDate"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Next Follow Up Date</label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -402,10 +382,10 @@ const EnquiryForm = ({ enquiry, onSuccess }: EnquiryFormProps) => {
                       />
                     </PopoverContent>
                   </Popover>
-                )}
-              />
-            )}
-          />
+                </div>
+              )}
+            />
+          </div>
           <FormField control={form.control} name="nextFollowUpTime" label="Time" type="time" />
         </div>
         

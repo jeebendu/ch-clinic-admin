@@ -8,7 +8,6 @@ export const AppointmentReqMockService = {
     for (let i = 1; i <= size; i++) {
       mockAppointmentRequests.push({
         id: i,
-        uid: `APR-${i}`,
         firstName: `Patient${i}`,
         lastName: `Last${i}`,
         email: `patient${i}@example.com`,
@@ -24,7 +23,6 @@ export const AppointmentReqMockService = {
         isReject: i % 3 === 1,
         doctor: {
           id: i,
-          uid: `DOC-${i}`,
           firstname: `Doctor${i}`,
           lastname: `Last${i}`,
           email: `doctor${i}@example.com`,
