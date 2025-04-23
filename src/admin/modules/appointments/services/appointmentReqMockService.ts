@@ -1,7 +1,6 @@
 
 import { AppointmentRequest } from "../types/AppointmentRequest";
 import { Doctor } from "../../doctor/types/Doctor";
-import { Country, District, State } from "../../core/types/Address";
 
 const mockAppointmentRequests: AppointmentRequest[] = [
   {
@@ -60,7 +59,8 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     doctor: { id: 1, uId: "D001" } as Doctor,
     appointmentType: { id: 1, name: "Regular" },
     visitType: { id: 1, name: "New" }
-  },
+  }
+];
 
 // Function with the correct getDoctor implementation
 export const getDoctor = (id: number): Doctor => {
@@ -91,6 +91,21 @@ export const getDoctor = (id: number): Doctor => {
     rating: 4.5
   };
 };
+
+export const appointmentRequestService = {
+  getAppointmentRequests: (page: number, size: number, searchValue: string, statusFilter: string) => {
+    const filteredRequests = mockAppointmentRequests.filter(request => {
+      const matchesValue = searchValue
+        ? request.firstName.toLowerCase().includes(searchValue.toLowerCase()) ||
+          request.lastName.toLowerCase().includes(searchValue.toLowerCase()) ||
+          request.email.toLowerCase().includes(searchValue.toLowerCase())
+        : true;
+
+      const matchesStatus = statusFilter
+        ? (statusFilter === 'accepted' && request.isAccept) ||
+          (statusFilter === 'rejected' && request.isReject) ||
+          (statusFilter === 'pending' && !request.isAccept && !request.isReject)
+        : true;
 
       return matchesValue && matchesStatus;
     });
