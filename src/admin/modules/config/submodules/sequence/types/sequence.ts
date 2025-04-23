@@ -9,7 +9,7 @@ export interface Sequence {
   incrementLastFinal: string;
   incrementLastId: number;
   incrementPadChar: string;
-  incrementPadLength: number;
+  incrementPadLength: string;
   incrementPrefix: string;
   module?: Module;
 }
