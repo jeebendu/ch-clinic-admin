@@ -28,7 +28,7 @@ const UserService = {
     return http.get(`${apiUrl}/v1/staff/id/${id}`);
   },
 
-  saveOrUpdate: (userData:Staff) => {
+  saveOrUpdate: (userData:User) => {
     return http.post(`${apiUrl}/v1/staff/saveOrUpdate`, userData);
   },
 

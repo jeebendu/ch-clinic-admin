@@ -1,28 +1,20 @@
-import React, { useState, useEffect } from "react";
+ 
+import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { RoleService } from "../services/RoleService";
-import { Role } from "../submodules/roles/types/Role";
-import { User } from "../types/User";
-import { BranchService } from "../../branch/services/branchService";
-import { Branch } from "../../branch/types/Branch";
-import { Staff } from "../types/User";
-
+import { Form } from "@/components/ui/form";
+import FormField from "@/admin/components/FormField";
+import { Staff, User } from "../types/User";
+import UserService from "../services/userService";
+ 
 interface UserFormProps {
     user?: Staff;
     onSuccess: () => void;
 }
-
+ 
 // Define the form schema with zod
 const formSchema = z.object({
     firstname: z.string().min(1, "First name is required"),
@@ -37,24 +29,19 @@ const formSchema = z.object({
     effectiveTo: z.date().optional(),
     active: z.boolean().optional(),
 });
-
+ 
 type FormValues = z.infer<typeof formSchema>;
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: user?.username || "",
-      password: user?.password || "",
-      roleId: user?.role?.id?.toString() || "",
-      branchId: user?.branchId?.toString() || "",
-      email: user?.email || "",
-    },
-  });
-
+ 
+const GENDER_OPTIONS = [
+    { value: "", label: "Select Gender" },
+    { value: "Male", label: "Male" },
+    { value: "Female", label: "Female" },
+];
+ 
 const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
     const { toast } = useToast();
     const isEditing = !!user;
-
+ 
     // Set default values for the form
     const defaultValues: Partial<FormValues> = {
         firstname: user?.firstname || "",
@@ -69,62 +56,53 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
         effectiveTo: user?.user?.effectiveTo ? new Date(user.user.effectiveTo) : undefined,
         active: user?.user?.status ?? true,
     };
-
+ 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues,
     });
-
+ 
     const onSubmit = async (data: FormValues) => {
         try {
-            // Create a formatted user object that includes the required uid and username fields
+            // Create a properly structured user object that matches the User type
             const userData: User = {
-                id: user?.id,
-                uid: user?.user?.uid || `USR-${Date.now()}`, // Generate a UID if not editing
+                id: user?.id || Date.now(), // Use existing ID or generate a new one
+                uid: user?.uId?.toString() || "new-user-" + Date.now(),
                 username: data.username,
                 name: `${data.firstname} ${data.lastname}`,
                 email: data.email || "",
                 phone: data.phone || "",
-                password: "",  // This would typically be handled separately
+                // Add required properties with default values if not provided
+                branch: user?.user?.branch,
                 role: {
-                    id: 1, // This would need to be properly mapped
+                    id: 1,
                     name: data.role,
                     permissions: []
                 },
-                branch: {
-                    id: 1, // Default branch
-                    name: "Main Branch",
-                    code: "MB-001",
-                    location: "Main Location",
-                    active: true,
-                    city: "Default City",
-                    state: null,
-                    district: null,
-                    country: null,
-                    pincode: 12345,
-                    mapurl: "",
-                    image: "",
-                    latitude: 0,
-                    longitude: 0
-                },
-                image: "",
-                effectiveFrom: data.effectiveFrom || new Date(),
-                effectiveTo: data.effectiveTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                password: user?.user?.password || "",
+                effectiveFrom: data.effectiveFrom,
+                effectiveTo: data.effectiveTo,
+                image: user?.user?.image || "",
+                status: data.active
             };
-
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    const userData: User = {
-      ...user,
-      username: data.username,
-      password: data.password,
-      role: { id: parseInt(data.roleId), name: '', permissions: [] },
-      branchId: parseInt(data.branchId),
-      email: data.email,
-      id: user?.id || 0,
-      uid: user?.uid || '',
-      name: user?.name || ''
+ 
+            await UserService.saveOrUpdate(userData);
+ 
+            toast({
+                title: `User ${isEditing ? "updated" : "added"} successfully`,
+            });
+ 
+            onSuccess();
+        } catch (error) {
+            console.error("Error saving user:", error);
+            toast({
+                title: "Error",
+                description: `Failed to ${isEditing ? "update" : "add"} user. Please try again.`,
+                variant: "destructive",
+            });
+        }
     };
-
+ 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -135,7 +113,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
                     <FormField control={form.control} name="role" label="Role" />
                     <FormField control={form.control} name="email" label="Email" />
                     <FormField control={form.control} name="phone" label="Phone" />
-
+ 
                     {/* Gender Field */}
                     <Controller
                         control={form.control}
@@ -155,29 +133,24 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
                             </div>
                         )}
                     />
-
+ 
                     {/* Date of Birth Field */}
                     <Controller
                         control={form.control}
                         name="dob"
                         render={({ field }) => (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Date of Birth
-                                </label>
-                                <input
-                                    type="date"
-                                    className="form-input block w-full mt-1"
-                                    onChange={(e) => field.onChange(new Date(e.target.value))} // Convert string to Date
-                                    onBlur={field.onBlur}
-                                    value={field.value ? field.value.toISOString().split('T')[0] : ''} // Convert Date to string
-                                    name={field.name}
-                                    ref={field.ref}
-                                />
-                            </div>
+                            <input
+                                type="date"
+                                className="form-input block w-full mt-1"
+                                onChange={(e) => field.onChange(new Date(e.target.value))} // Convert string to Date
+                                onBlur={field.onBlur}
+                                value={field.value ? field.value.toISOString().split('T')[0] : ''} // Convert Date to string
+                                name={field.name}
+                                ref={field.ref}
+                            />
                         )}
                     />
-
+ 
                     <Controller
                         control={form.control}
                         name="effectiveFrom"
@@ -196,7 +169,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
                             </div>
                         )}
                     />
-
+ 
                     {/* Effective To Field */}
                     <Controller
                         control={form.control}
@@ -217,7 +190,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
                         )}
                     />
                 </div>
-
+ 
                 <div className="flex justify-end space-x-2">
                     <Button
                         variant="outline"
@@ -235,5 +208,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
         </Form>
     );
 };
-
+ 
 export default UserForm;
+ 
+ 
