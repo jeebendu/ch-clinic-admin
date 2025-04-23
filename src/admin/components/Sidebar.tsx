@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -273,7 +274,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                     <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
                     {!collapsed && (
                       <>
-                        <span className="flex-1">{item.label}</span>
+                        <span className="flex-1 text-left">{item.label}</span>
                         <ChevronRight className={cn(
                           "h-4 w-4 transition-transform",
                           openSubmenus.includes(item.label) && "rotate-90"
@@ -283,14 +284,14 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     {!collapsed && item.submenu.map(subItem => {
-                      const isActive = location.pathname.includes(subItem.href);
                       return (
                         <NavLink
                           key={subItem.href}
                           to={subItem.href}
                           className={({ isActive }) => cn(
-                            "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors text-sm",
-                            isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                            "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent/10 transition-colors text-sm",
+                            isActive && "bg-sidebar-accent/20", // Normalized active color
+                            "text-left" // Ensure left alignment
                           )}
                           onClick={onClose}
                         >
@@ -338,3 +339,4 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
 };
 
 export default Sidebar;
+
