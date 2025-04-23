@@ -12,7 +12,6 @@ import PurchaseOrderService from "../service/PurchaseOrderService";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
 
-// Dummy Data for select dropdowns (in real use fetch from API)
 const distributors = [
   { id: 1, name: "Provider A" }, { id: 2, name: "Provider B" }
 ];
@@ -48,7 +47,6 @@ export default function PurchasePage() {
     }
   });
 
-  // Price calculation logic (for simplicity, assumed structure)
   const calcTotals = () => {
     let subtotal = 0, totalDiscount = 0, totalGst = 0, grandTotal = 0;
     items.forEach((item) => {
@@ -84,7 +82,6 @@ export default function PurchasePage() {
   }
 
   function onSubmit(data: any) {
-    // Attach items and totals to form data
     const payload = { ...data, items, ...totals };
     console.log("Submit purchase order", payload);
     PurchaseOrderService.saveOrUpdate(payload)
@@ -92,7 +89,6 @@ export default function PurchasePage() {
       .catch(() => alert("Error saving purchase!"));
   }
 
-  // Handle modal closing for add/edit
   function closeDialog() {
     setDialogOpen(false);
     setEditIndex(null);
@@ -100,13 +96,10 @@ export default function PurchasePage() {
 
   return (
     <form className="h-full flex flex-col md:p-4" onSubmit={form.handleSubmit(onSubmit)}>
-
-      {/* Scrollable Form Area */}
       <ScrollArea className="flex-1 min-h-0 p-4 overflow-y-auto max-h-[calc(100vh-30px)] rounded-lg bg-white">
-        {/* Top: Vendor and Date */}
         <div className="flex flex-col md:flex-row md:justify-between gap-4">
           <div className="flex-1">
-            <label className="block mb-1 font-medium">Provider Name</label>
+            <label className="block mb-1 font-medium">Provider Name <span className="text-red-500">*</span></label>
             <Select
               value={form.watch("vendor")?.name || ""}
               onValueChange={value => form.setValue("vendor", distributors.find(d => d.name === value))}
@@ -114,37 +107,42 @@ export default function PurchasePage() {
               <SelectTrigger>
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-white">
                 {distributors.map(d => (
                   <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {form.formState.errors.vendor && (
+              <div className="text-red-500 text-xs mt-1">Provider is required</div>
+            )}
           </div>
           <div className="flex-1">
-            <label className="block mb-1 font-medium">Purchase Date*</label>
+            <label className="block mb-1 font-medium">Purchase Date <span className="text-red-500">*</span></label>
             <div className="flex items-center gap-2 relative">
               <Input
                 type="date"
+                placeholder="YYYY-MM-DD"
                 value={form.watch("orderTime") ? format(new Date(form.watch("orderTime")), 'yyyy-MM-dd') : ""}
                 onChange={e => {
-                  // Convert string date to Date object
                   const dateValue = e.target.value ? new Date(e.target.value) : undefined;
                   form.setValue("orderTime", dateValue);
                 }}
-                className="pr-10"
+                className="pr-10 border border-gray-300 rounded"
               />
               <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
+            {form.formState.errors.orderTime && (
+              <div className="text-red-500 text-xs mt-1">Date is required</div>
+            )}
           </div>
         </div>
         <div className="my-4">
           <label className="inline-flex items-center gap-2 cursor-pointer">
             <input type="checkbox" className="accent-primary" />
-            Overall Gst/Discount
+            <span className="text-gray-700">Overall Gst/Discount</span>
           </label>
         </div>
-        {/* Items Table */}
         <Table>
           <TableHeader>
             <TableRow>
@@ -191,20 +189,19 @@ export default function PurchasePage() {
             )}
           </TableBody>
         </Table>
-        {/* Floating add button */}
         <Button
           size="icon"
           type="button"
           className="fixed right-8 bottom-20 md:right-12 md:bottom-20 z-40 shadow-lg bg-blue-700 text-white hover:bg-blue-800"
           onClick={() => setDialogOpen(true)}
+          aria-label="Add Item"
         >
           <Plus className="w-6 h-6" />
         </Button>
-        {/* Lower: Payment, Remark, Sidebar */}
         <div className="flex flex-col md:flex-row mt-8 gap-8">
           <div className="flex-1 flex flex-col gap-4">
             <div>
-              <label className="block mb-1 font-medium">Payment Type</label>
+              <label className="block mb-1 font-medium">Payment Type <span className="text-red-500">*</span></label>
               <Select
                 value={form.watch("paymentType")?.name || ""}
                 onValueChange={value => form.setValue("paymentType", paymentTypes.find(pt => pt.name === value))}
@@ -212,19 +209,21 @@ export default function PurchasePage() {
                 <SelectTrigger>
                   <SelectValue placeholder="Select payment type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50 bg-white">
                   {paymentTypes.map(pt => (
                     <SelectItem key={pt.id} value={pt.name}>{pt.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {form.formState.errors.paymentType && (
+                <div className="text-red-500 text-xs mt-1">Payment type is required</div>
+              )}
             </div>
             <div>
               <label className="block mb-1 font-medium">Remark</label>
-              <Input type="text" {...form.register("remark")} placeholder="Enter remarks" />
+              <Input type="text" {...form.register("remark")} placeholder="Enter remarks, delivery details, etc." className="border border-gray-300 rounded" />
             </div>
           </div>
-          {/* Sidebar totals box */}
           <div className="flex-1 max-w-sm md:ml-auto border rounded-lg shadow bg-gray-50 p-6">
             <div className="text-xl font-semibold mb-4 text-center">Price Details</div>
             <div className="flex flex-col gap-2 text-lg">
@@ -236,14 +235,12 @@ export default function PurchasePage() {
             </div>
           </div>
         </div>
-        {/* Footer: actions */}
         <div className="w-full flex justify-end gap-4 mt-8 pb-4">
           <Button type="button" variant="destructive" className="bg-red-700 text-white">Cancel</Button>
           <Button type="submit" className="bg-blue-700 text-white">Submit</Button>
           <Button type="button" className="bg-blue-700 text-white flex gap-2"><Printer className="w-4 h-4" /> Print</Button>
         </div>
       </ScrollArea>
-      {/* Item Dialog */}
       <PurchaseItemDialog
         open={dialogOpen}
         onClose={closeDialog}

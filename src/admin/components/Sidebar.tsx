@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -30,7 +29,7 @@ import {
   CopyMinusIcon,
   LucideMartini,
   MessageCircleQuestionIcon,
-} from "lucide-react"; // Fixed the missing comma here
+} from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -135,8 +134,8 @@ const navItems = [
   },
   { 
     icon: <ShoppingBasket className="h-5 w-5" />, 
-    label: "Courier", 
-    href: "/admin/courier", 
+    label: "Purchase Order", 
+    href: "/admin/purchase", 
     roles: ["Admin"] 
   },
   { 
