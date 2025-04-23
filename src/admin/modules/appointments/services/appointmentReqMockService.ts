@@ -1,6 +1,7 @@
 
 import { AppointmentRequest } from "../types/AppointmentRequest";
 import { Doctor } from "../../doctor/types/Doctor";
+import { Country, District, State } from "../../core/types/Address";
 
 const mockAppointmentRequests: AppointmentRequest[] = [
   {
@@ -18,7 +19,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     appointmentDate: "2023-04-23",
     isAccept: false,
     isReject: false,
-    doctor: getDoctor(1), // Use the getDoctor function here
+    doctor: { id: 1, uId: "D001" } as Doctor,
     appointmentType: { id: 1, name: "Regular" },
     visitType: { id: 1, name: "New" }
   },
@@ -37,7 +38,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     appointmentDate: "2023-04-24",
     isAccept: true,
     isReject: false,
-    doctor: getDoctor(2), // Use the getDoctor function here
+    doctor: { id: 2, uId: "D002" } as Doctor,
     appointmentType: { id: 2, name: "Emergency" },
     visitType: { id: 2, name: "Follow-up" }
   },
@@ -56,22 +57,20 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     appointmentDate: "2023-04-25",
     isAccept: false,
     isReject: false,
-    doctor: getDoctor(1), // Use the getDoctor function here
+    doctor: { id: 1, uId: "D001" } as Doctor,
     appointmentType: { id: 1, name: "Regular" },
     visitType: { id: 1, name: "New" }
-  }
-];
+  },
 
 // Function with the correct getDoctor implementation
 export const getDoctor = (id: number): Doctor => {
   return {
-    id: id,
-    uId: "D00" + id, 
-    uid: "D00" + id, // Add uid property to match Doctor type
+    id: 1,
+    uId: "D001", 
     firstname: "John",
     lastname: "Doe",
     email: "john.doe@example.com",
-    phone: "1234567890", // Changed to string to match Doctor type
+    phone: "1234567890",
     desgination: "Senior Doctor",
     specializationList: [{ id: 1, name: "General" }],
     qualification: "MBBS, MD",
@@ -89,27 +88,9 @@ export const getDoctor = (id: number): Doctor => {
     profilePicture: "url",
     active: true,
     branchId: 1,
-    rating: 4.5,
-    // Add other required properties to match Doctor type
-    external: false,
-    name: "John Doe"
+    rating: 4.5
   };
 };
-
-export const appointmentRequestService = {
-  getAppointmentRequests: (page: number, size: number, searchValue: string, statusFilter: string) => {
-    const filteredRequests = mockAppointmentRequests.filter(request => {
-      const matchesValue = searchValue
-        ? request.firstName.toLowerCase().includes(searchValue.toLowerCase()) ||
-          request.lastName.toLowerCase().includes(searchValue.toLowerCase()) ||
-          request.email.toLowerCase().includes(searchValue.toLowerCase())
-        : true;
-
-      const matchesStatus = statusFilter
-        ? (statusFilter === 'accepted' && request.isAccept) ||
-          (statusFilter === 'rejected' && request.isReject) ||
-          (statusFilter === 'pending' && !request.isAccept && !request.isReject)
-        : true;
 
       return matchesValue && matchesStatus;
     });

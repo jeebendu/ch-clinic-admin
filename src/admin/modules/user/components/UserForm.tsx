@@ -1,4 +1,4 @@
-
+ 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +11,7 @@ import { Staff, User } from "../types/User";
 import UserService from "../services/userService";
  
 interface UserFormProps {
-    user?: User | null;
+    user?: Staff;
     onSuccess: () => void;
 }
  
@@ -44,17 +44,17 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
  
     // Set default values for the form
     const defaultValues: Partial<FormValues> = {
-        firstname: user ? user.name?.split(' ')[0] || "" : "",
-        lastname: user ? user.name?.split(' ')[1] || "" : "",
-        username: user?.username || "",
-        role: user?.role?.name || "",
-        email: user?.email || "",
-        phone: user?.phone || "",
-        gender: "Male", // Default value
-        dob: new Date(), // Default value
-        effectiveFrom: user?.effectiveFrom ? new Date(user.effectiveFrom) : undefined,
-        effectiveTo: user?.effectiveTo ? new Date(user.effectiveTo) : undefined,
-        active: user?.status ?? true,
+        firstname: user?.firstname || "",
+        lastname: user?.lastname || "",
+        username: user?.user?.username || "",
+        role: user?.user?.role?.name || "",
+        email: user?.user?.email || "",
+        phone: user?.user?.phone || "",
+        gender: user?.gender || "",
+        dob: user?.dob ? new Date(user.dob) : undefined,
+        effectiveFrom: user?.user?.effectiveFrom ? new Date(user.user.effectiveFrom) : undefined,
+        effectiveTo: user?.user?.effectiveTo ? new Date(user.user.effectiveTo) : undefined,
+        active: user?.user?.status ?? true,
     };
  
     const form = useForm<FormValues>({
@@ -67,22 +67,22 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
             // Create a properly structured user object that matches the User type
             const userData: User = {
                 id: user?.id || Date.now(), // Use existing ID or generate a new one
-                uid: user?.uid || "new-user-" + Date.now(),
+                uid: user?.uId?.toString() || "new-user-" + Date.now(),
                 username: data.username,
                 name: `${data.firstname} ${data.lastname}`,
                 email: data.email || "",
                 phone: data.phone || "",
                 // Add required properties with default values if not provided
-                branch: user?.branch,
+                branch: user?.user?.branch,
                 role: {
                     id: 1,
                     name: data.role,
                     permissions: []
                 },
-                password: user?.password || "",
+                password: user?.user?.password || "",
                 effectiveFrom: data.effectiveFrom,
                 effectiveTo: data.effectiveTo,
-                image: user?.image || "",
+                image: user?.user?.image || "",
                 status: data.active
             };
  
@@ -139,20 +139,15 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
                         control={form.control}
                         name="dob"
                         render={({ field }) => (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Date of Birth
-                                </label>
-                                <input
-                                    type="date"
-                                    className="form-input block w-full mt-1"
-                                    onChange={(e) => field.onChange(new Date(e.target.value))} // Convert string to Date
-                                    onBlur={field.onBlur}
-                                    value={field.value ? field.value.toISOString().split('T')[0] : ''} // Convert Date to string
-                                    name={field.name}
-                                    ref={field.ref}
-                                />
-                            </div>
+                            <input
+                                type="date"
+                                className="form-input block w-full mt-1"
+                                onChange={(e) => field.onChange(new Date(e.target.value))} // Convert string to Date
+                                onBlur={field.onBlur}
+                                value={field.value ? field.value.toISOString().split('T')[0] : ''} // Convert Date to string
+                                name={field.name}
+                                ref={field.ref}
+                            />
                         )}
                     />
  
@@ -215,3 +210,5 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
 };
  
 export default UserForm;
+ 
+ 

@@ -1,60 +1,70 @@
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Branch } from "@/admin/modules/branch/types/Branch";
-import branchService from "@/admin/modules/branch/services/branchService";
+import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Branch } from '@/admin/modules/branch/types/Branch';
+import { useToast } from './use-toast';
+import BranchService from '@/admin/modules/branch/services/BranchService';
 
 export function useBranchFilter() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [selectedBranches, setSelectedBranches] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
+  // Load selected branch from localStorage on initial render
   useEffect(() => {
-    const branchParam = searchParams.get("branches");
-    if (branchParam) {
-      setSelectedBranches(branchParam.split(",").map((id) => parseInt(id)));
+    const saved = localStorage.getItem('selectedBranch');
+    if (saved) {
+      setSelectedBranch(saved);
     }
+  }, []);
 
-    fetchBranches();
-  }, [searchParams]);
+  // Fetch branches with React Query
+  const { isLoading, error } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      try {
+        const data = await BranchService.list();
+        setBranches(data || []);
+        return data;
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+        throw error;
+      }
+    },
+  });
 
-  const fetchBranches = async () => {
-    try {
-      setIsLoading(true);
-      const response = await branchService.list();
-      setBranches(response.data);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching branches:", error);
-      setIsLoading(false);
-    }
-  };
-
-  const handleBranchChange = (branchId: number) => {
-    let updatedBranches: number[];
-
-    if (selectedBranches.includes(branchId)) {
-      updatedBranches = selectedBranches.filter((id) => id !== branchId);
-    } else {
-      updatedBranches = [...selectedBranches, branchId];
-    }
-
-    setSelectedBranches(updatedBranches);
-
-    // Update URL search params
-    if (updatedBranches.length > 0) {
-      searchParams.set("branches", updatedBranches.join(","));
-    } else {
-      searchParams.delete("branches");
-    }
-    setSearchParams(searchParams);
+  // Handle branch selection without page reload
+  const handleBranchChange = (branchId: string) => {
+    setSelectedBranch(branchId);
+    
+    // Save to localStorage
+    localStorage.setItem('selectedBranch', branchId);
+    
+    // Show success toast
+    toast({
+      title: "Branch Updated",
+      description: "Your selected branch has been updated.",
+    });
+    
+    // Instead of reloading the page, invalidate relevant queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    queryClient.invalidateQueries({ queryKey: ['patients'] });
+    queryClient.invalidateQueries({ queryKey: ['doctors'] });
+    // Add any other query keys that should be refreshed when branch changes
+    
+    // You can also dispatch a custom event for components that need to react to branch changes
+    const branchChangeEvent = new CustomEvent('branch-change', { 
+      detail: { branchId } 
+    });
+    document.dispatchEvent(branchChangeEvent);
   };
 
   return {
     branches,
-    selectedBranches,
-    handleBranchChange,
-    isLoading
+    selectedBranch,
+    isLoading,
+    error,
+    handleBranchChange
   };
 }
