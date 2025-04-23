@@ -25,7 +25,7 @@ import {
   AlignVerticalDistributeCenterIcon,
   Martini,
   Filter,
-  MessageSquare
+  MessageSquare,
   CopyMinusIcon,
   LucideMartini,
   MessageCircleQuestionIcon,
@@ -142,6 +142,18 @@ const navItems = [
     icon: <ShoppingBasket className="h-5 w-5" />, 
     label: "Courier", 
     href: "/admin/courier", 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <ShoppingBasket className="h-5 w-5" />, 
+    label: "Sales Order",
+    href: "/admin/salesOrder",  
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <ShoppingBasket className="h-5 w-5" />, 
+    label: "Purchase Order",
+    href: "/admin/purchaseOrder",  
     roles: ["Admin"] 
   },
   { 

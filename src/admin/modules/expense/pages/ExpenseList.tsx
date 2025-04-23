@@ -21,7 +21,7 @@ import {
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import ExpenseService from "../service/ExpenseService";
 import ExpenseTable from "../components/ExpenseTable";
-import { Expense } from "../types/Expense";
+import { Expense } from "../types/expense";
 
 const ExpenseList = () => {
   const navigate = useNavigate();

@@ -65,7 +65,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
     const onSubmit = async (data: FormValues) => {
         try {
             // Create a formatted user object that includes the required uid and username fields
-            const userData: User = {
+            const userData: Staff = {
                 id: user?.id,
                 uid: user?.user?.uid || `USR-${Date.now()}`, // Generate a UID if not editing
                 username: data.username,

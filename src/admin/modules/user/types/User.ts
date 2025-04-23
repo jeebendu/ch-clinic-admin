@@ -36,7 +36,7 @@ export interface Staff {
   firstname: string;
   lastname: string;
   id: number;
-  uId: number;
+  uid: string;
   dob: Date;
   whatsappNo: number;
   age: string;
