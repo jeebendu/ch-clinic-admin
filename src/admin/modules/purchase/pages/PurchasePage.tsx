@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import PurchaseOrderService from "../service/PurchaseOrderService";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import PurchaseBreadcrumbs from "../components/PurchaseBreadcrumbs";
+import AdminLayout from "@/admin/components/AdminLayout";
 
 const distributors = [
   { id: 1, name: "Provider A" }, { id: 2, name: "Provider B" }
@@ -19,7 +21,7 @@ const paymentTypes = [
   { id: 1, name: "Cash" }, { id: 2, name: "Card" }
 ];
 
-export default function PurchasePage() {
+function PurchasePageContent() {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -98,9 +100,13 @@ export default function PurchasePage() {
     <div className="bg-[#f5f7fb] min-h-screen flex flex-col">
       <div className="md:ml-0 flex-1 flex flex-col relative max-w-[1200px] mx-auto" style={{ zIndex: 2 }}>
         <PurchaseBreadcrumbs />
-        <form className="flex flex-col rounded-b-lg rounded-tr-lg bg-white px-8 py-6 shadow mt-2" onSubmit={form.handleSubmit(onSubmit)}>
+        {/* Responsive/scrolled area, extra bg and border for focus */}
+        <form
+          className="flex flex-col rounded-b-lg rounded-tr-lg bg-white px-8 py-6 shadow mt-2 gap-6"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <div className="flex flex-col md:flex-row md:items-center gap-8 mb-4">
-            <div className="flex-1">
+            <div className="flex-1 min-w-[220px]">
               <label className="block mb-1 font-semibold text-[#362E5C] text-lg">Provider Name <span className="text-red-500">*</span></label>
               <Select
                 value={form.watch("vendor")?.name || ""}
@@ -119,7 +125,7 @@ export default function PurchasePage() {
                 <div className="text-red-500 text-xs mt-1">Provider is required</div>
               )}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-[220px]">
               <label className="block mb-1 font-semibold text-[#362E5C] text-lg">Purchase Date <span className="text-red-500">*</span></label>
               <div className="flex items-center gap-2 relative">
                 <Input
@@ -140,13 +146,13 @@ export default function PurchasePage() {
               )}
             </div>
           </div>
-          <div className="my-4">
+          <div className="my-2">
             <label className="inline-flex items-center gap-2 cursor-pointer text-base font-medium text-[#362E5C]">
               <input type="checkbox" className="accent-primary h-5 w-5" />
-              <span className="">Overall Gst/Discount</span>
+              <span>Overall Gst/Discount</span>
             </label>
           </div>
-          <div className="rounded-lg overflow-hidden mb-4 border border-[#e7e8ed] bg-[#fafbfc]">
+          <div className="rounded-lg overflow-x-auto mb-4 border border-[#e7e8ed] bg-[#fafbfc] relative">
             <table className="w-full min-w-max border-separate border-spacing-0">
               <thead className="bg-[#f2f3f8]">
                 <tr className="text-gray-700 text-base font-semibold">
@@ -257,5 +263,14 @@ export default function PurchasePage() {
         onSubmit={handleAddEditItem}
       />
     </div>
+  );
+}
+
+// Now wrap with AdminLayout for consistent sidebar UI
+export default function PurchasePage() {
+  return (
+    <AdminLayout>
+      <PurchasePageContent />
+    </AdminLayout>
   );
 }
