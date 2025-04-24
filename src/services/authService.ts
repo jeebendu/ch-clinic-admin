@@ -47,6 +47,39 @@ const AuthService = {
   },
 
   /**
+   * Re-authenticate with existing username and new password
+   */
+  reAuthenticate: async (username: string, password: string) => {
+    try {
+      // This is similar to login but specifically for session re-authentication
+      const encryptedPassword = EncryptionService.encrypt(password);
+      const tenantId = getTenantId();
+      
+      const headers = {
+        tenant: tenantId
+      };
+
+      const response = await http.post('/api/v1/auth/signin', 
+        {
+          username,
+          password: encryptedPassword
+        },
+        { headers }
+      );
+      
+      if (response.data) {
+        // Update token only, preserve other user data
+        localStorage.setItem('auth_token', response.data.token);
+      }
+      
+      return response.data as User;
+    } catch (error) {
+      console.error("Re-authentication error:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Forgot password request
    */
   forgotPassword: async (email: string) => {
@@ -77,6 +110,7 @@ const AuthService = {
   logout: () => {
     localStorage.removeItem('user');
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_role');
   },
 
   /**
