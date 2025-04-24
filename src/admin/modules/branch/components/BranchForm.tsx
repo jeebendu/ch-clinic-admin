@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Branch } from "../types/Branch";
 // Fix the casing in the import to match the actual filename
-import BranchService from '@/admin/modules/branch/services/BranchService';
+import BranchService from '@/admin/modules/branch/services/branchService';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
