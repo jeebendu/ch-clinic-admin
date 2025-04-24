@@ -28,6 +28,7 @@ const doctorFormSchema = z.object({
   // status: z.enum(["Active", "Inactive"]),
   biography: z.string().optional(),
   city: z.string().optional(),
+  consultationFee: z.string().min(0, "Consultation fee must be a positive number"),
 });
 
 type DoctorFormValues = z.infer<typeof doctorFormSchema>;
@@ -60,6 +61,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       external: false,
       verified: false,
       // status: "Active",
+      consultationFee: "0",
       biography: "",
       city: "",
     },
@@ -82,6 +84,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
         verified: doctor.verified || false,
         // status: (doctor.status || "Active") as "Active" | "Inactive",
         biography: doctor.biography || "",
+        consultationFee: doctor.consultationFee || "0",
         city: doctor.city || "",
       });
     }
@@ -91,7 +94,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
     // Convert form values to Doctor object
     const doctorData = {
       ...doctor,
-      id: doctor?.id || Date.now(),
+      id: doctor?.id || null,
       uid: doctor?.uid || `DOC-${Date.now()}`,
       firstname: data.firstname,
       lastname: data.lastname,
@@ -106,9 +109,10 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       // status: data.status,
       biography: data.biography || "",
       city: data.city || "",
+      consultationFee: data?.consultationFee || 0,
       joiningDate: doctor?.joiningDate || new Date().toISOString(),
       user: doctor?.user || {
-        id: doctor?.id || Date.now(),
+        id: doctor?.id || null,
         branch: null,
         name: `${data.firstname} ${data.lastname}`,
         username: data.email.split('@')[0],
@@ -135,7 +139,6 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       image: doctor?.user?.image || "",
       pincode: doctor?.pincode || "",
       verified: doctor?.verified,
-      consultationFee: doctor?.consultationFee || 0,
       reviewCount: doctor?.reviewCount || 0,
       rating: doctor?.rating || 0,
     } as Doctor;
@@ -249,6 +252,20 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
                     <FormLabel>Designation*</FormLabel>
                     <FormControl>
                       <Input placeholder="Senior Physician, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="consultationFee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Consultation Fees*</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="Consultation Fees" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

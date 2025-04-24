@@ -1,5 +1,4 @@
 import http from "@/lib/JwtInterceptor";
-import { Source } from "../../user/types/Source";
 
 const SourceService = {
 

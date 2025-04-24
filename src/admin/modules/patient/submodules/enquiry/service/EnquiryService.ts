@@ -44,7 +44,7 @@ const enquiryService = {
 
   paginatedList: async (
     pageNumber: number,
-    pageSize: number,
+    pageSize: number| 10,
     search: any
   ): Promise<PaginatedResponse<Enquiry>> => {
     const response = await http.post<PaginatedResponse<Enquiry>>(

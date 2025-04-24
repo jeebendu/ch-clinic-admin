@@ -2,12 +2,8 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EnquiryForm from './EnquiryForm';
-import { Enquiry, Relationship, Status } from '../types/Enquiry';
-import { Country } from '../../core/types/Country';
-import { State } from '../../core/types/State';
-import { Source } from '../../user/types/Source';
-import { District } from '../../core/types/District';
-import { Staff } from '../../user/types/User';
+import { Enquiry} from '../types/Enquiry';
+
 
 interface EnquiryDialogProps {
   open: boolean;
