@@ -58,7 +58,7 @@ export const useIdleTimeout = () => {
         throw new Error('User information not found. Please log in again.');
       }
       
-      await AuthService.login(username, password);
+      await AuthService.reAuthenticate(username, password);
       setShowLockScreen(false);
       setPassword('');
       resetActivity();
