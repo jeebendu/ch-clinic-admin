@@ -1,40 +1,57 @@
 import { Appointment } from "../types/Appointment";
+import { Doctor } from "../../doctor/types/Doctor";
 
-/**
- * Generate mock appointment requests data for development
- */
 export const getMockAppointmentRequests = (page: number, size: number, searchTerm?: string) => {
   const mockAppointmentRequests: Appointment[] = [];
 
   // Generate 50 mock appointment requests
   for (let i = 0; i < 50; i++) {
+    const mockDoctor: Doctor = {
+      id: i % 3 + 1,
+      name: `Doctor ${i % 3 + 1}`,
+      speciality: `Speciality ${i % 3 + 1}`,
+      // ... other required Doctor properties would go here
+    };
+
     const mockAppointmentRequest: Appointment = {
       id: i + 1,
-      patientName: `Patient ${i + 1}`,
-      phone: `123-456-${i.toString().padStart(4, '0')}`, // phone number as string
-      date: new Date(),
-      time: '10:00 AM',
-      branch: `Branch ${i % 5 + 1}`,
-      doctor: `Doctor ${i % 3 + 1}`,
-      service: `Service ${i % 4 + 1}`,
+      isAccept: false,
       status: 'Pending',
-      notes: `Notes for appointment ${i + 1}`,
+      appointmentDate: new Date(),
+      appointmentType: 'direct-visit',
+      patient: {
+        id: i + 1,
+        name: `Patient ${i + 1}`,
+        phone: `123-456-${i.toString().padStart(4, '0')}`,
+        // ... other required Patient properties would go here
+      },
+      doctor: mockDoctor,
+      slot: {
+        id: i + 1,
+        startTime: '10:00',
+        endTime: '11:00',
+        // ... other required Slot properties would go here
+      },
+      familyMember: null,
+      doctorClinic: {
+        id: i + 1,
+        name: `Clinic ${i + 1}`,
+        // ... other required DoctorClinic properties would go here
+      }
     };
 
     mockAppointmentRequests.push(mockAppointmentRequest);
   }
 
-  // Apply search filter
+  // Apply search filter if provided
   let filteredAppointmentRequests = [...mockAppointmentRequests];
   if (searchTerm) {
     const term = searchTerm.toLowerCase();
     filteredAppointmentRequests = filteredAppointmentRequests.filter(
       (appointment) =>
-        appointment.patientName.toLowerCase().includes(term) ||
-        appointment.phone.toLowerCase().includes(term) ||
-        appointment.branch.toLowerCase().includes(term) ||
-        appointment.doctor.toLowerCase().includes(term) ||
-        appointment.service.toLowerCase().includes(term) ||
+        appointment.patient.name.toLowerCase().includes(term) ||
+        appointment.patient.phone.toLowerCase().includes(term) ||
+        appointment.doctor.name.toLowerCase().includes(term) ||
         appointment.status.toLowerCase().includes(term)
     );
   }
@@ -53,9 +70,4 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
       last: startIndex + size >= filteredAppointmentRequests.length,
     },
   });
-};
-
-// Fix type error by converting string to number where needed
-const convertPhoneToNumber = (phone: string): number => {
-  return phone ? parseInt(phone.replace(/\D/g, '')) : 0;
 };
