@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Branch } from '@/admin/modules/branch/types/Branch';
 import { useToast } from './use-toast';
-import BranchService from '@/admin/modules/branch/services/BranchService';
+import BranchService from '@/admin/modules/branch/services/branchService';
 
 export function useBranchFilter() {
   const [branches, setBranches] = useState<Branch[]>([]);
