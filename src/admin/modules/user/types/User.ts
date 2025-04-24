@@ -1,4 +1,3 @@
-
 import { Branch } from "@/admin/modules/branch/types/Branch";
 import { Role } from "../submodules/roles/types/Role";
 
@@ -13,13 +12,17 @@ export interface User {
   password?: string;
   effectiveTo?: Date;
   effectiveFrom?: Date;
-  role?: Role ;
+  role?: Role;
   roleobj?: Role;
   image?: string;
   token?: string;
   branchId?: number;
   branchIds?: number[];
   status?: boolean;
+  firstname?: string;
+  lastname?: string;
+  gender?: string;
+  dob?: Date;
 }
 
 export interface AuthUser {
@@ -30,7 +33,6 @@ export interface AuthUser {
   authToken: string | null;
   phone: string | null;
 }
-
 
 export interface Staff {
   firstname: string;

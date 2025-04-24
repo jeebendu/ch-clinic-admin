@@ -39,7 +39,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     firstName: "John",
     lastName: "Doe",
     email: "john.doe@example.com",
-    phone: 1234567890,
+    phone: "1234567890", // Changed from number to string
     dob: new Date(),
     gender: 1,
     district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },
@@ -58,7 +58,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     firstName: "Jane",
     lastName: "Smith",
     email: "jane.smith@example.com",
-    phone: 9876543210, // Changed from string to number
+    phone: "9876543210", // Changed from number to string
     dob: new Date(),
     gender: 2,
     district: { id: 2, name: "District 2", state: { id: 2, name: "State 2", country: { id: 2, name: "Country 2", code: "C2", status: true } } },
@@ -77,7 +77,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     firstName: "Alice",
     lastName: "Johnson",
     email: "alice.johnson@example.com",
-    phone: 5555555555, // Changed from string to number
+    phone: "5555555555", // Changed from number to string
     dob: new Date(),
     gender: 2,
     district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },

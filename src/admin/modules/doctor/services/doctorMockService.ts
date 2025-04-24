@@ -1,3 +1,4 @@
+
 import { Doctor } from "../types/Doctor";
 import { PaginatedResponse } from "@/types/common";
 
@@ -74,7 +75,7 @@ export const DoctorMockService = {
         about: `About doctor ${i}`,
         image: "",
         city: `City ${i % 5 + 1}`,
-        pincode: `${100000 + i}`,
+        pincode: `${100000 + i}`, // Changed from number to string
         biography: `Biography of doctor ${i}`,
         gender: i % 2,
         verified: i % 2 === 0,

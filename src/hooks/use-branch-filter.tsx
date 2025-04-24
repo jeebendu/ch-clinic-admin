@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-// Fix import casing to match the actual file
+// Fixed import casing to match the actual file
 import BranchService from '@/admin/modules/branch/services/BranchService';
 import { Branch } from '@/admin/modules/branch/types/Branch';
 
