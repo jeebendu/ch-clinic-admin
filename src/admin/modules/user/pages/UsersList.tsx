@@ -28,7 +28,7 @@ const UsersList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   
-  const [userToEdit, setUserToEdit] = useState<Staff | null>(null);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   const [filters, setFilters] = useState<FilterOption[]>([
@@ -110,23 +110,7 @@ const UsersList = () => {
   };
 
   const handleSaveUser = (userData: User) => {
-    const staffData: Staff = {
-      ...userData,
-      firstname: userData.name?.split(' ')[0] || '',
-      lastname: userData.name?.split(' ')[1] || '',
-      uId: parseInt(userData.uid || '0'),
-      dob: new Date(),
-      whatsappNo: parseInt(userData.phone || '0'),
-      age: '0',
-      gender: 'Male',
-      lastVisitedOn: new Date(),
-      name: userData.name || '',
-      branchList: [],
-      user: userData,
-      id: userData.id
-    };
-    
-    UserService.saveOrUpdate(staffData)
+    UserService.saveOrUpdate(userData)
       .then(() => {
         toast({
           title: "Success",
@@ -146,7 +130,25 @@ const UsersList = () => {
   };
 
   const handleEditUser = (user: Staff) => {
-    setUserToEdit(user);
+    const userData: User = {
+      id: user.id,
+      uid: user.uid,
+      name: `${user.firstname} ${user.lastname}`,
+      username: user.user?.username || '',
+      email: user.user?.email,
+      phone: user.user?.phone,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      branch: user.user?.branch,
+      role: user.user?.role,
+      password: user.user?.password,
+      effectiveFrom: user.user?.effectiveFrom,
+      effectiveTo: user.user?.effectiveTo,
+      image: user.user?.image,
+      status: user.user?.status
+    };
+    
+    setUserToEdit(userData);
     setIsEditFormOpen(true);
   };
 
@@ -208,7 +210,7 @@ const UsersList = () => {
               <DrawerTitle className="text-clinic-primary">Add New User</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm onSave={handleSaveUser} onClose={handleCloseForm} user={null} />
+              <UserForm user={null} onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -222,7 +224,7 @@ const UsersList = () => {
             <DialogTitle className="text-clinic-primary">Add New User</DialogTitle>
             <DialogDescription>Add a new User to your clinic network.</DialogDescription>
           </DialogHeader>
-          <UserForm onSave={handleSaveUser} onClose={handleCloseForm} user={null} />
+          <UserForm user={null} onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );
@@ -230,14 +232,6 @@ const UsersList = () => {
 
   const renderEditForm = () => {
     if (!userToEdit) return null;
-    
-    const userData: User = {
-      ...userToEdit.user,
-      id: userToEdit.id,
-      uid: userToEdit.uId.toString(),
-      name: `${userToEdit.firstname} ${userToEdit.lastname}`,
-      username: userToEdit.user?.username || ''
-    };
     
     if (isMobile) {
       return (
@@ -247,7 +241,7 @@ const UsersList = () => {
               <DrawerTitle className="text-clinic-primary">Edit User</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm user={userData} onSave={handleSaveUser} onClose={handleCloseForm} />
+              <UserForm user={userToEdit} onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -259,9 +253,9 @@ const UsersList = () => {
         <DialogContent className="max-w-3xl">
           <DialogHeader className="border-b border-clinic-accent pb-4">
             <DialogTitle className="text-clinic-primary">Edit User</DialogTitle>
-            <DialogDescription>Update branch information.</DialogDescription>
+            <DialogDescription>Update user information.</DialogDescription>
           </DialogHeader>
-          <UserForm user={userData} onSave={handleSaveUser} onClose={handleCloseForm} />
+          <UserForm user={userToEdit} onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );

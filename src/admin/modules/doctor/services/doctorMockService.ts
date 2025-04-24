@@ -18,7 +18,7 @@ export const DoctorMockService = {
         firstname: `First${i}`,
         lastname: `Last${i}`,
         email: `doctor${i}@example.com`,
-        uid: `DOC-${i}`,
+        uid: `DOC-${i}`,  // Changed from number to string
         phone: `+123456789${i}`,
         desgination: "Senior Physician",
         specializationList: specializationList,
