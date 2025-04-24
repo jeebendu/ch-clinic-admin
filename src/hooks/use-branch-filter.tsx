@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BranchService } from '@/admin/modules/branch/services/BranchService';
+import BranchService from '@/admin/modules/branch/services/branchService';
 
 export const useBranchFilter = () => {
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);

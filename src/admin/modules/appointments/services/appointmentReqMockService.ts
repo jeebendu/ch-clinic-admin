@@ -1,3 +1,4 @@
+
 import { Appointment } from "../types/Appointment";
 import { Doctor } from "../../doctor/types/Doctor";
 
@@ -8,9 +9,16 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
   for (let i = 0; i < 50; i++) {
     const mockDoctor: Doctor = {
       id: i % 3 + 1,
-      name: `Doctor ${i % 3 + 1}`,
+      // Only include properties that exist in the Doctor type
       speciality: `Speciality ${i % 3 + 1}`,
-      // ... other required Doctor properties would go here
+      // Add required Doctor properties
+      email: `doctor${i%3+1}@example.com`,
+      firstName: `Doctor`,
+      lastName: `${i % 3 + 1}`,
+      mobile: `123456789${i%3}`,
+      publishedOnline: false,
+      additionalInfoDoctor: null,
+      branchList: []
     };
 
     const mockAppointmentRequest: Appointment = {
@@ -21,22 +29,29 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
       appointmentType: 'direct-visit',
       patient: {
         id: i + 1,
-        name: `Patient ${i + 1}`,
-        phone: `123-456-${i.toString().padStart(4, '0')}`,
-        // ... other required Patient properties would go here
+        // Only include properties that exist in the Patient type
+        firstName: `Patient`,
+        lastName: `${i + 1}`,
+        mobile: `123456${i.toString().padStart(4, '0')}`,
+        // Add other required Patient properties
+        email: `patient${i+1}@example.com`
       },
       doctor: mockDoctor,
       slot: {
         id: i + 1,
         startTime: '10:00',
         endTime: '11:00',
-        // ... other required Slot properties would go here
+        // Add required availableSlots property
+        availableSlots: []
       },
       familyMember: null,
       doctorClinic: {
         id: i + 1,
-        name: `Clinic ${i + 1}`,
-        // ... other required DoctorClinic properties would go here
+        // Only include properties that exist in DoctorClinic type
+        clinicName: `Clinic ${i + 1}`,
+        // Add other required DoctorClinic properties
+        branch: null,
+        doctor: null
       }
     };
 
@@ -49,9 +64,9 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
     const term = searchTerm.toLowerCase();
     filteredAppointmentRequests = filteredAppointmentRequests.filter(
       (appointment) =>
-        appointment.patient.name.toLowerCase().includes(term) ||
-        appointment.patient.phone.toLowerCase().includes(term) ||
-        appointment.doctor.name.toLowerCase().includes(term) ||
+        `${appointment.patient.firstName} ${appointment.patient.lastName}`.toLowerCase().includes(term) ||
+        appointment.patient.mobile.toLowerCase().includes(term) ||
+        `${appointment.doctor.firstName} ${appointment.doctor.lastName}`.toLowerCase().includes(term) ||
         appointment.status.toLowerCase().includes(term)
     );
   }

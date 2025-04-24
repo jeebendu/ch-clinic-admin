@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Branch } from "../types/Branch";
-// Fix the casing in the import to match the actual filename
+// Updated import with correct casing
 import BranchService from '@/admin/modules/branch/services/branchService';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
