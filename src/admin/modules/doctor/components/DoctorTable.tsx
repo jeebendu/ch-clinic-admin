@@ -25,6 +25,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
   onVerifyClick
 }) => {
   const getInitials = (firstname: string, lastname: string) => {
+    if(!firstname || !lastname) return 'N/A';
     return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
   };
 
