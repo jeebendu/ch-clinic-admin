@@ -17,9 +17,16 @@ export const usePatients = (initialParams: PatientQueryParams) => {
   const fetchPatientsData = async (params: PatientQueryParams, append = false) => {
     setLoading(true);
     setError(null);
-    
+    const filter={
+      ...params,
+      inputValue: params.searchTerm || "",
+      gender:params.gender || null,
+      lastVisit:params.lastVisit || null
+
+    }
+
     try {
-      const response = await PatientService.list(params.page, params.size, params);
+      const response = await PatientService.list(params.page, params.size, filter);
       const newPatients = response.content || (Array.isArray(response) ? response : []);
       
       if (append) {
