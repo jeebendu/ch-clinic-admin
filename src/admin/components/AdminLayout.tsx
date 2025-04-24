@@ -36,7 +36,7 @@ export const AdminLayout = ({
   const [isScrolled, setIsScrolled] = useState(false); // State to track scroll position
   const [userProfileOpen, setUserProfileOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
-  const { isLocked } = useIdleTimeout();
+  const { IdleWarningDialog, LockScreenDialog, isLocked } = useIdleTimeout();
   
   // Save sidebar state to localStorage
   useEffect(() => {
@@ -144,7 +144,7 @@ export const AdminLayout = ({
         sidebarOpen ? "open" : "",
         sidebarCollapsed ? "md:w-[70px]" : "md:w-64",
         "bg-white shadow-sm",
-        isLocked && "blur-sm pointer-events-none"
+        isLocked ? "blur-sm pointer-events-none" : ""
       )}>
         {sidebarComponent}
       </div>
@@ -156,7 +156,7 @@ export const AdminLayout = ({
           className={cn(
             "flex-1 overflow-auto p-4 mt-0 relative transition-all duration-300 ease-in-out",
             isScrolled ? "pt-0" : "pt-4",
-            isLocked && "blur-sm pointer-events-none"
+            isLocked ? "blur-sm pointer-events-none" : ""
           )}
         >
           {children}
@@ -167,7 +167,7 @@ export const AdminLayout = ({
               onClick={onAddButtonClick}
               className={cn(
                 "appointment-add-button bg-clinic-primary hover:bg-clinic-primary/90 text-white",
-                isLocked && "pointer-events-none opacity-50"
+                isLocked ? "pointer-events-none opacity-50" : ""
               )}
             >
               <Plus className="h-6 w-6" />
@@ -182,11 +182,15 @@ export const AdminLayout = ({
           "appointment-sidebar admin-sidebar-right bg-white",
           rightSidebarOpen || !isMobile ? "open" : "",
           "md:static md:h-auto md:w-80 md:transform-none",
-          isLocked && "blur-sm pointer-events-none"
+          isLocked ? "blur-sm pointer-events-none" : ""
         )}>
           {rightSidebar}
         </div>
       )}
+
+      {/* Render idle warning and lock screen dialogs */}
+      {IdleWarningDialog}
+      {LockScreenDialog}
     </div>
   );
 };

@@ -86,7 +86,7 @@ const Header = ({
     <>
       <header className={cn(
         "admin-header h-14 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 bg-white shadow-sm",
-        isLocked && "blur-sm pointer-events-none"
+        isLocked ? "blur-sm pointer-events-none" : ""
       )}>
         <div className="flex items-center gap-4">
           <Button 
@@ -169,10 +169,6 @@ const Header = ({
           </div>
         </div>
       </header>
-
-      {/* Render idle warning and lock screen dialogs */}
-      {IdleWarningDialog}
-      {LockScreenDialog}
     </>
   );
 };
