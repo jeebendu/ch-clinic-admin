@@ -187,6 +187,7 @@ const ProcessAppointment = () => {
         try {
           const appointmentData = await getAppointmentById(appointmentId);
           setAppointment(appointmentData.data);
+          setPatient(appointmentData.data.patient);
         } catch (error) {
           console.error("Failed to fetch appointment:", error);
           toast.error("Failed to fetch appointment details.");
@@ -197,21 +198,6 @@ const ProcessAppointment = () => {
     }
   }, [appointmentId]);
 
-  useEffect(() => {
-    if (appointment?.patient?.id) {
-      const fetchPatient = async () => {
-        try {
-          const patientData = await patientMockService.getMockPatientById(appointment.patient.id);
-          setPatient(patientData);
-        } catch (error) {
-          console.error("Failed to fetch patient:", error);
-          toast.error("Failed to fetch patient details.");
-        }
-      };
-
-      fetchPatient();
-    }
-  }, [appointment]);
 
   const handleGoBack = () => {
     navigate("/admin/appointments");
@@ -310,7 +296,7 @@ const ProcessAppointment = () => {
                 <Separator className="my-2" />
                 <div className="flex items-center gap-4">
                   <img
-                    src={patient.photoUrl}
+                    src={patient?.user?.image}
                     alt="Patient"
                     className="rounded-full w-16 h-16"
                   />
@@ -326,11 +312,11 @@ const ProcessAppointment = () => {
                 <Separator className="my-2" />
                 <p className="text-sm">
                   <span className="font-medium">Date:</span>{" "}
-                  {format(new Date(appointment.appointmentDate), "PPP")}
+                  {format(new Date(appointment?.slot?.date), "MM/dd/yyyy")}
                 </p>
                 <p className="text-sm">
                   <span className="font-medium">Time:</span>{" "}
-                  {format(new Date(appointment.appointmentDate), "p")}
+                  {appointment?.slot?.startTime && format(new Date(`1970-01-01T${appointment.slot.startTime}`), "hh:mm a")}
                 </p>
                 <p className="text-sm">
                   <span className="font-medium">Type:</span> General Checkup
