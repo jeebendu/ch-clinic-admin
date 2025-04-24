@@ -15,11 +15,11 @@ import DistributorRoutes from "./modules/config/submodules/distributor/routes/Di
 import ProductRoutes from "./modules/inventory/product/routes/ProductRoutes";
 import CategoryRoutes from "./modules/inventory/category/routes/CategoryRoutes";
 import RepairCompanyRoutes from "./modules/config/submodules/repairCompany/routes/RepairCompanyRoutes";
-import EnquiryRoutes from "./modules/enquiry/routes/EnquiryRoutes";
 import BrandRoutes from "./modules/inventory/brand/routes/BrandRoutes";
 import ProductTypeRoutes from "./modules/inventory/product-type/routes/ProductTypeRoutes";
 import SalesOrderList from "./modules/sales/pages/SalesOrderList";
 import PurchaseOrderList from "./modules/purchase/pages/PurchaseOrderList";
+import EnquiryRoutes from "./modules/patient/submodules/enquiry/routes/EnquiryRoutes";
 
 const AdminRoutes = () => {
   return (

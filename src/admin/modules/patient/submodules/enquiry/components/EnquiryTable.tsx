@@ -15,12 +15,13 @@ const EnquiryTable = ({ data, isLoading, onEdit }: EnquiryTableProps) => {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  
+ 
   return (
-    <div className="bg-white border rounded-lg overflow-hidden">
+    <div className="bg-white border shadow rounded-lg overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[40px]">#</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Mobile</TableHead>
             <TableHead>Lead Date</TableHead>
@@ -30,8 +31,9 @@ const EnquiryTable = ({ data, isLoading, onEdit }: EnquiryTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((enquiry) => (
+          {data.map((enquiry,index) => (
             <TableRow key={enquiry.id}>
+                <TableCell>{index + 1}</TableCell>
               <TableCell>{`${enquiry.firstName} ${enquiry.lastName}`}</TableCell>
               <TableCell>{enquiry.mobile}</TableCell>
               <TableCell>{new Date(enquiry.leadDate).toLocaleDateString()}</TableCell>
