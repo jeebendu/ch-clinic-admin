@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 // For testing purposes
-const IDLE_TIMEOUT = 60 * 1000; // 1 minute in milliseconds
-const WARNING_TIME = 30 * 1000; // 30 seconds in milliseconds
+const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minute in milliseconds
+const WARNING_TIME = 60 * 1000; // 60 seconds in milliseconds
 
 export const useIdleTimeout = () => {
   const [lastActivity, setLastActivity] = useState(Date.now());
