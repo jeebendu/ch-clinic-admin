@@ -1,14 +1,12 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  Search, 
   Bell, 
   HelpCircle, 
   User, 
   Menu, 
-  LogOut, 
+  LogOut,
   Settings, 
   UserCircle,
   Moon,
@@ -19,8 +17,8 @@ import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import BranchFilter from "./BranchFilter";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { useIdleTimeout } from "@/hooks/use-idle-timeout";
+import AuthService from "@/services/authService";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -39,21 +37,18 @@ const Header = ({
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
-  // Get user data from localStorage
+  useIdleTimeout();
+
   const userDataStr = localStorage.getItem('user');
   const userData = userDataStr ? JSON.parse(userDataStr) : { name: 'User', email: 'user@example.com' };
 
-  // Load and apply theme
   useEffect(() => {
-    // Check if theme exists in localStorage
     const currentTheme = localStorage.getItem('theme') || 'light';
     setIsDarkMode(currentTheme === 'dark');
     
-    // Apply theme to document
     document.documentElement.classList.toggle('dark', currentTheme === 'dark');
   }, []);
 
-  // Toggle theme
   const toggleTheme = () => {
     const newTheme = isDarkMode ? 'light' : 'dark';
     setIsDarkMode(!isDarkMode);
@@ -61,7 +56,6 @@ const Header = ({
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
-  // Close profile dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -83,13 +77,7 @@ const Header = ({
   };
 
   const handleLogout = () => {
-    // Clear all localStorage items
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('selectedClinic');
-    localStorage.removeItem('selectedBranch');
-    
-    // Redirect to login page
+    AuthService.logout();
     navigate('/login');
   };
 
@@ -105,19 +93,16 @@ const Header = ({
           <Menu className="h-5 w-5" />
         </Button>
         
-        {/* Add the BranchFilter here */}
         {!isMobile && <BranchFilter className="ml-4" />}
       </div>
 
       <div className="flex items-center space-x-2 md:space-x-4">
-        {/* Mobile view for BranchFilter */}
         {isMobile && (
           <div className="mr-2">
             <BranchFilter />
           </div>
         )}
         
-        {/* Theme Toggle */}
         <div className="flex items-center mr-2">
           <Button 
             variant="ghost" 
@@ -137,7 +122,6 @@ const Header = ({
           <HelpCircle className="h-5 w-5" />
         </Button>
         
-        {/* Profile dropdown */}
         <div className="relative" ref={profileRef}>
           <Button 
             variant="ghost" 
@@ -159,18 +143,18 @@ const Header = ({
                 <p className="text-sm font-medium">{userData.name}</p>
                 <p className="text-xs text-gray-500 truncate">{userData.email}</p>
               </div>
-              <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                 <UserCircle className="h-4 w-4 mr-2" />
                 Your Profile
-              </a>
-              <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              </button>
+              <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
-              </a>
+              </button>
               <div className="border-t border-gray-100 my-1"></div>
               <button 
                 onClick={handleLogout}
-                className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign out
