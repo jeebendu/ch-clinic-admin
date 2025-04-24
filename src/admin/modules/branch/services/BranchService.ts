@@ -4,7 +4,7 @@ import { Branch } from "../types/Branch";
  
 const apiUrl = getEnvVariable('API_URL');
  
-export const BranchService2 = {
+export const BranchService = {
   list: async () => {
     try {
       const response = await http.get(`${apiUrl}/v1/branch/list`);
@@ -28,5 +28,5 @@ export const BranchService2 = {
   },
 };
  
-export default BranchService2;
+export default BranchService;
  
