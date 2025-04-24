@@ -42,6 +42,7 @@ export const usePatients = (initialParams: PatientQueryParams) => {
       // Check if there are more patients to load
       setHasMore(response.totalElements > (params.page + 1) * params.size);
       
+      return newPatients; // Return the loaded patients for scroll position handling
     } catch (err: any) {
       setError(err.message || 'Failed to fetch patients');
       toast({
@@ -49,19 +50,21 @@ export const usePatients = (initialParams: PatientQueryParams) => {
         description: 'Failed to fetch patients. Please try again.',
         variant: 'destructive'
       });
+      return [];
     } finally {
       setLoading(false);
     }
   };
 
-  // Load more patients
-  const loadMore = () => {
+  // Load more patients and return the newly loaded patients
+  const loadMore = async () => {
     if (!loading && hasMore) {
       const nextPage = queryParams.page + 1;
       const nextParams = { ...queryParams, page: nextPage };
       setQueryParams(nextParams);
-      fetchPatientsData(nextParams, true);
+      return fetchPatientsData(nextParams, true);
     }
+    return [];
   };
 
   // Refresh patients

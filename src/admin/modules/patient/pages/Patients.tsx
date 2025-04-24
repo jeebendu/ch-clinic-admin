@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
 import { usePatients } from "../hooks/usePatients";
@@ -16,6 +16,9 @@ const PatientsAdmin = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showFilters, setShowFilters] = useState(true);
   const { toast } = useToast();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const prevScrollHeightRef = useRef<number>(0);
+  const scrollPosRef = useRef<number>(0);
 
   // Filter states
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
@@ -133,16 +136,39 @@ const PatientsAdmin = () => {
     });
   };
 
-  // Handle infinite scrolling
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  // Save scroll position before loading more data
+  const saveScrollPosition = () => {
+    if (scrollContainerRef.current) {
+      prevScrollHeightRef.current = scrollContainerRef.current.scrollHeight;
+      scrollPosRef.current = scrollContainerRef.current.scrollTop;
+    }
+  };
+
+  // Restore scroll position after new data is loaded
+  useEffect(() => {
+    if (scrollContainerRef.current && prevScrollHeightRef.current > 0) {
+      const newScrollHeight = scrollContainerRef.current.scrollHeight;
+      const heightDifference = newScrollHeight - prevScrollHeightRef.current;
+      
+      // Adjust scroll position to maintain relative position
+      scrollContainerRef.current.scrollTop = scrollPosRef.current + heightDifference;
+      
+      // Reset after applying
+      prevScrollHeightRef.current = 0;
+    }
+  }, [patients.length]);
+
+  // Handle infinite scrolling with improved scroll position handling
+  const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
     if (scrollHeight - scrollTop <= clientHeight * 1.5 && hasMore && !loading) {
-      const currentScrollPosition = scrollTop;
-      loadMore().then(() => {
-        if (e.currentTarget) {
-          e.currentTarget.scrollTop = currentScrollPosition;
-        }
-      });
+      // Save position before loading more
+      saveScrollPosition();
+      
+      // Load more data
+      await loadMore();
+      
+      // Scroll position will be restored by the useEffect above
     }
   };
 
@@ -182,6 +208,7 @@ const PatientsAdmin = () => {
 
      
       <div 
+        ref={scrollContainerRef}
         className="overflow-auto flex-1 pb-6" 
         onScroll={handleScroll}
         style={{ maxHeight: 'calc(100vh - 220px)' }}
@@ -190,14 +217,12 @@ const PatientsAdmin = () => {
           <PatientTable 
             patients={patients}
             onDelete={(id) => console.log('Delete patient:', id)}
-            onPatientClick={handlePatientClick}
             loading={loading}
           />
         ) : (
           <PatientGrid 
             patients={patients}
             loading={loading}
-            onPatientClick={handlePatientClick}
           />
         )}
         

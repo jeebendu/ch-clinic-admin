@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Patient } from "../types/Patient";
 import { Button } from "@/components/ui/button";
@@ -33,11 +34,8 @@ const PatientTable = ({
   const navigate = useNavigate();
 
   const handlePatientClick = (patient: Patient) => {
-    if (onPatientClick) {
-      onPatientClick(patient);
-    } else {
-      navigate(`/admin/patients/${patient.id}`);
-    }
+    // Always navigate to the patient view page instead of using onPatientClick
+    navigate(`/admin/patients/view/${patient.id}`);
   };
 
   return (
