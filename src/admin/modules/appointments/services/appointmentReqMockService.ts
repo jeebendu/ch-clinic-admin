@@ -1,4 +1,3 @@
-
 import { Appointment } from "../types/Appointment";
 import { Doctor } from "../../doctor/types/Doctor";
 
@@ -9,16 +8,40 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
   for (let i = 0; i < 50; i++) {
     const mockDoctor: Doctor = {
       id: i % 3 + 1,
-      // Only include properties that exist in the Doctor type
-      speciality: `Speciality ${i % 3 + 1}`,
-      // Add required Doctor properties
+      // Using the correct property names from Doctor type
+      firstname: `Doctor`,
+      lastname: `${i % 3 + 1}`,
       email: `doctor${i%3+1}@example.com`,
-      firstName: `Doctor`,
-      lastName: `${i % 3 + 1}`,
-      mobile: `123456789${i%3}`,
+      phone: `123456789${i%3}`,
       publishedOnline: false,
       additionalInfoDoctor: null,
-      branchList: []
+      branchList: [],
+      // Other required Doctor properties
+      uid: `doctor-uid-${i}`,
+      expYear: 5,
+      external: false,
+      desgination: 'Senior Doctor',
+      qualification: 'MD',
+      joiningDate: '2022-01-01',
+      about: 'Experienced doctor',
+      image: '',
+      pincode: '123456',
+      city: 'City',
+      biography: '',
+      gender: 1,
+      verified: true,
+      percentages: [],
+      specializationList: [],
+      serviceList: [],
+      languageList: [],
+      user: null,
+      district: null,
+      state: null,
+      country: null,
+      consultationFee: '500',
+      reviewCount: 0,
+      rating: 4.5,
+      status: 'active'
     };
 
     const mockAppointmentRequest: Appointment = {
@@ -29,29 +52,41 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
       appointmentType: 'direct-visit',
       patient: {
         id: i + 1,
-        // Only include properties that exist in the Patient type
-        firstName: `Patient`,
-        lastName: `${i + 1}`,
-        mobile: `123456${i.toString().padStart(4, '0')}`,
+        // Using correct property names from Patient type
+        firstname: `Patient`,
+        lastname: `${i + 1}`,
+        email: `patient${i+1}@example.com`,
         // Add other required Patient properties
-        email: `patient${i+1}@example.com`
+        uid: `patient-uid-${i}`,
+        gender: 'Male',
+        dob: new Date(),
+        age: 30,
+        address: 'Address',
+        refDoctor: null,
+        user: null,
+        state: null,
+        district: null
       },
       doctor: mockDoctor,
       slot: {
         id: i + 1,
         startTime: '10:00',
         endTime: '11:00',
-        // Add required availableSlots property
-        availableSlots: []
+        // Correct type for availableSlots
+        availableSlots: 5 // Changed from undefined[] to a number
       },
       familyMember: null,
       doctorClinic: {
         id: i + 1,
-        // Only include properties that exist in DoctorClinic type
-        clinicName: `Clinic ${i + 1}`,
-        // Add other required DoctorClinic properties
-        branch: null,
-        doctor: null
+        // Using correct properties for DoctorClinic
+        doctor: mockDoctor,
+        clinic: {
+          id: i + 1,
+          name: `Clinic ${i + 1}`,
+          location: 'Location',
+          address: 'Address',
+          contactNo: '123456789'
+        } 
       }
     };
 
@@ -64,9 +99,9 @@ export const getMockAppointmentRequests = (page: number, size: number, searchTer
     const term = searchTerm.toLowerCase();
     filteredAppointmentRequests = filteredAppointmentRequests.filter(
       (appointment) =>
-        `${appointment.patient.firstName} ${appointment.patient.lastName}`.toLowerCase().includes(term) ||
-        appointment.patient.mobile.toLowerCase().includes(term) ||
-        `${appointment.doctor.firstName} ${appointment.doctor.lastName}`.toLowerCase().includes(term) ||
+        `${appointment.patient.firstname} ${appointment.patient.lastname}`.toLowerCase().includes(term) ||
+        appointment.patient.email.toLowerCase().includes(term) ||
+        `${appointment.doctor.firstname} ${appointment.doctor.lastname}`.toLowerCase().includes(term) ||
         appointment.status.toLowerCase().includes(term)
     );
   }
