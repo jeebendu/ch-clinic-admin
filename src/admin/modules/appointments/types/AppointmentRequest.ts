@@ -1,5 +1,4 @@
 
-
 import { Country, District, State } from "../../core/types/Address";
 import { Doctor } from "../../doctor/types/Doctor";
 
@@ -8,7 +7,7 @@ export interface AppointmentRequest {
     firstName: string;
     lastName: string;
     email: string;
-    phone: number;
+    phone: string; // Changed from number to string
     dob: Date;
     gender: number;
     district: District;

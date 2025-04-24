@@ -75,7 +75,7 @@ export const DoctorMockService = {
         about: `About doctor ${i}`,
         image: "",
         city: `City ${i % 5 + 1}`,
-        pincode: `${100000 + i}`, // Changed from number to string
+        pincode: `${100000 + i}`,
         biography: `Biography of doctor ${i}`,
         gender: i % 2,
         verified: i % 2 === 0,
@@ -87,7 +87,7 @@ export const DoctorMockService = {
         district: null,
         state: null,
         country: null,
-        consultationFee: i * 100,
+        consultationFee: (i * 100).toString(), // Convert to string
         reviewCount: i % 50,
         rating: (i % 5) + 1,
       });
