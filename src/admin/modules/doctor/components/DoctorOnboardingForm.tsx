@@ -12,13 +12,11 @@ import StateService from "@/admin/modules/core/services/state/stateService";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
 import { Branch } from "../../branch/types/Branch";
 import BranchService from '@/admin/modules/branch/services/branchService';
-// EstablishmentType values: "own" (I own...) or "visit" (I visit...)
+
 const establishmentTypeOptions = [
-  // { value: "own", label: "I own a establishment" },
   { value: "visit", label: "I visit a establishment" }
 ];
 
-// Zod schema: add establishmentType
 const doctorOnboardingSchema = z.object({
   registationNumber: z.string().min(1, "Registration number is required"),
   registationCouncil: z.string().min(1, "Registration council is required"),
@@ -31,8 +29,8 @@ const doctorOnboardingSchema = z.object({
   }),
   establishmentName: z.string().min(1, "Establishment name required"),
   establishmentCity: z.string().min(1, "Establishment city required"),
-  district: z.any(), // for simplicity; you may replace with correct zod schema for District
-  state: z.any(), // for simplicity; you may replace with correct zod schema for State
+  district: z.any(),
+  state: z.any(),
 });
 
 type DoctorOnboardingFormValues = z.infer<typeof doctorOnboardingSchema>;
@@ -48,7 +46,6 @@ const registrationCouncilOptions = [
   { value: "Dental Council of India (DCI)", label: "Dental Council of India (DCI)" },
   { value: "Medical Council of India (MCI)", label: "Medical Council of India (MCI)" },
   { value: "State Medical Council", label: "State Medical Council" },
-  // Add more as needed
 ];
 
 const yearOptions = Array.from({ length: new Date().getFullYear() - 1950 + 1 }, (_, idx) => {
@@ -60,7 +57,6 @@ const instituteOptions = [
   { value: "Christian Medical College, Vellore", label: "Christian Medical College, Vellore" },
   { value: "AIIMS Delhi", label: "AIIMS Delhi" },
   { value: "PGI Chandigarh", label: "PGI Chandigarh" },
-  // Add more as needed
 ];
 
 const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
@@ -79,14 +75,11 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   const handleBranchChange = (branchId: number, isChecked: boolean) => {
     const selectedBranch = branches.find((branch) => branch.id === branchId);
     if (isChecked && selectedBranch) {
-      // Add branch to branchList
       setBranchList((prev) => [...prev, selectedBranch]);
     } else {
-      // Remove branch from branchList
       setBranchList((prev) => prev.filter((branch) => branch.id !== branchId));
     }
   };
-
 
   useEffect(() => {
     getStateList();
@@ -96,7 +89,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
 
   useEffect(() => {
     setBranchList(doctor.branchList || []);
-    console.log(doctor)
     if (doctor?.additionalInfoDoctor) {
       form.reset({
         ...doctor.additionalInfoDoctor
@@ -136,7 +128,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   const handleSubmit = (data: AdditionalInfoDoctor) => {
 
     const additionalInfoDoctor = {
-      id: data.id, // New/add default as appropriate
+      id: data.id,
       registationNumber: data.registationNumber,
       registationYear: data.registationYear,
       registationCouncil: data.registationCouncil,
@@ -266,7 +258,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
-              {/* Additional establishment fields */}
               <FormField
                 control={form.control}
                 name="establishmentName"
@@ -292,7 +283,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                         <option value="">Select City</option>
                         <option value="Mumbai">Mumbai</option>
                         <option value="Bangalore">Bangalore</option>
-                        {/* ...add more as needed */}
                       </select>
                     </FormControl>
                     <FormMessage />
@@ -309,10 +299,10 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                     <FormControl>
                       <select
                         {...field}
-                        value={field.value?.name || ""} // Bind the value to the selected district's name
+                        value={field.value?.name || ""}
                         onChange={(e) => {
                           const selectedDistrict = districts.find((d) => d.name === e.target.value);
-                          field.onChange(selectedDistrict); // Set the entire district object
+                          field.onChange(selectedDistrict);
                         }}
                         className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input"
                       >
@@ -337,10 +327,10 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                     <FormControl>
                       <select
                         {...field}
-                        value={field.value?.name || ""} // Bind the value to the selected state's name
+                        value={field.value?.name || ""}
                         onChange={(e) => {
                           const selectedState = states.find((s) => s.name === e.target.value);
-                          field.onChange(selectedState); // Set the entire state object
+                          field.onChange(selectedState);
                         }}
                         className="w-full bg-gray-50 rounded-md px-3 py-2 border border-input"
                       >
@@ -383,7 +373,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
               <FormMessage>{form.formState.errors.establishmentType?.message}</FormMessage>
             </div>
 
-
             <div>
               <FormLabel className="mb-2 block font-semibold">Please select Branches:</FormLabel>
               <div className="flex flex-col gap-2">
@@ -395,7 +384,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                     <input
                       type="checkbox"
                       value={option.id}
-                      checked={branchList.some((branch) => branch.id === option.id)} // Check if branch is already in branchList
+                      checked={branchList.some((branch) => branch.id === option.id)}
                       onChange={(e) => handleBranchChange(option.id, e.target.checked)}
                       className="accent-brand-primary"
                     />
@@ -407,7 +396,6 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                 Note: You can add multiple branches by selecting them.
               </div>
             </div>
-
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
