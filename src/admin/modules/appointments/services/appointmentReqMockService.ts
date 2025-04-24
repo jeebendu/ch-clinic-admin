@@ -68,7 +68,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     appointmentDate: "2023-04-24",
     isAccept: true,
     isReject: false,
-    doctor: getDoctor(2),
+    doctor: getDoctor(1),
     appointmentType: { id: 2, name: "Emergency" },
     visitType: { id: 2, name: "Follow-up" }
   },

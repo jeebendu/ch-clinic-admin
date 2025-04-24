@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import "../styles/admin.css"; // Import the CSS file for styles
+import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 
 type AdminLayoutProps = {
   children: React.ReactNode;
@@ -35,6 +36,7 @@ export const AdminLayout = ({
   const [isScrolled, setIsScrolled] = useState(false); // State to track scroll position
   const [userProfileOpen, setUserProfileOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const { isLocked } = useIdleTimeout();
   
   // Save sidebar state to localStorage
   useEffect(() => {
@@ -141,7 +143,8 @@ export const AdminLayout = ({
         "admin-sidebar z-40 transition-all duration-300 ease-in-out md:static", 
         sidebarOpen ? "open" : "",
         sidebarCollapsed ? "md:w-[70px]" : "md:w-64",
-        "bg-white shadow-sm"
+        "bg-white shadow-sm",
+        isLocked && "blur-sm pointer-events-none"
       )}>
         {sidebarComponent}
       </div>
@@ -152,7 +155,8 @@ export const AdminLayout = ({
           ref={mainRef}
           className={cn(
             "flex-1 overflow-auto p-4 mt-0 relative transition-all duration-300 ease-in-out",
-            isScrolled ? "pt-0" : "pt-4"
+            isScrolled ? "pt-0" : "pt-4",
+            isLocked && "blur-sm pointer-events-none"
           )}
         >
           {children}
@@ -161,7 +165,10 @@ export const AdminLayout = ({
           {showAddButton && isMobile && (
             <Button 
               onClick={onAddButtonClick}
-              className="appointment-add-button bg-clinic-primary hover:bg-clinic-primary/90 text-white"
+              className={cn(
+                "appointment-add-button bg-clinic-primary hover:bg-clinic-primary/90 text-white",
+                isLocked && "pointer-events-none opacity-50"
+              )}
             >
               <Plus className="h-6 w-6" />
             </Button>
@@ -174,7 +181,8 @@ export const AdminLayout = ({
         <div className={cn(
           "appointment-sidebar admin-sidebar-right bg-white",
           rightSidebarOpen || !isMobile ? "open" : "",
-          "md:static md:h-auto md:w-80 md:transform-none"
+          "md:static md:h-auto md:w-80 md:transform-none",
+          isLocked && "blur-sm pointer-events-none"
         )}>
           {rightSidebar}
         </div>
