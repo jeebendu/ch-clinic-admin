@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -138,7 +137,12 @@ const PatientsAdmin = () => {
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
     if (scrollHeight - scrollTop <= clientHeight * 1.5 && hasMore && !loading) {
-      loadMore();
+      const currentScrollPosition = scrollTop;
+      loadMore().then(() => {
+        if (e.currentTarget) {
+          e.currentTarget.scrollTop = currentScrollPosition;
+        }
+      });
     }
   };
 

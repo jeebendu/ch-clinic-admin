@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Patient } from "../types/Patient";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface PatientTableProps {
   patients: Patient[];
@@ -22,7 +22,24 @@ interface PatientTableProps {
   onPatientClick?: (patient: Patient) => void;
 }
 
-const PatientTable = ({ patients, onDelete, onEdit, onView, loading, onPatientClick }: PatientTableProps) => {
+const PatientTable = ({ 
+  patients, 
+  onDelete, 
+  onEdit, 
+  onView, 
+  loading,
+  onPatientClick 
+}: PatientTableProps) => {
+  const navigate = useNavigate();
+
+  const handlePatientClick = (patient: Patient) => {
+    if (onPatientClick) {
+      onPatientClick(patient);
+    } else {
+      navigate(`/admin/patients/${patient.id}`);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
       <Table>
@@ -74,8 +91,8 @@ const PatientTable = ({ patients, onDelete, onEdit, onView, loading, onPatientCl
             patients.map((patient) => (
               <TableRow 
                 key={patient.id}
-                className={onPatientClick ? "cursor-pointer" : ""}
-                onClick={onPatientClick ? () => onPatientClick(patient) : undefined}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => handlePatientClick(patient)}
               >
                 <TableCell className="font-medium">
                   {patient.fullName || `${patient.firstname} ${patient.lastname}`}
@@ -87,7 +104,6 @@ const PatientTable = ({ patients, onDelete, onEdit, onView, loading, onPatientCl
                   {patient.lastVisit ? format(new Date(patient.lastVisit), 'dd MMM yyyy') : 'No visits'}
                 </TableCell>
                 <TableCell>
-                  {/* Using a boolean value for status display */}
                   <span className={`px-2 py-1 text-xs rounded-full ${patient.createdTime ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {patient.createdTime ? 'Active' : 'Inactive'}
                   </span>
