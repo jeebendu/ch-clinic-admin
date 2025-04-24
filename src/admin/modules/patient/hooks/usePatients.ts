@@ -15,15 +15,16 @@ export const usePatients = (initialParams: PatientQueryParams) => {
   const { toast } = useToast();
 
   const fetchPatientsData = async (params: PatientQueryParams, append = false) => {
+    if (loading) return; // Prevent multiple simultaneous requests
+    
     setLoading(true);
     setError(null);
-    const filter={
+    const filter = {
       ...params,
       inputValue: params.searchTerm || "",
-      gender:params.gender || null,
-      lastVisit:params.lastVisit || null
-
-    }
+      gender: params.gender || null,
+      lastVisit: params.lastVisit || null
+    };
 
     try {
       const response = await PatientService.list(params.page, params.size, filter);
