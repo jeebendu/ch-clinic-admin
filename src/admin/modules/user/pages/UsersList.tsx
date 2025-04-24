@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -139,6 +140,8 @@ const UsersList = () => {
       phone: user.user?.phone,
       firstname: user.firstname,
       lastname: user.lastname,
+      gender: user.gender,
+      dob: user.dob,
       branch: user.user?.branch,
       role: user.user?.role,
       password: user.user?.password,

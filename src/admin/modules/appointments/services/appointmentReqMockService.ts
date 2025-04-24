@@ -39,7 +39,7 @@ const mockAppointmentRequests: AppointmentRequest[] = [
     firstName: "John",
     lastName: "Doe",
     email: "john.doe@example.com",
-    phone: 1234567890, // Changed from string to number
+    phone: 1234567890,
     dob: new Date(),
     gender: 1,
     district: { id: 1, name: "District 1", state: { id: 1, name: "State 1", country: { id: 1, name: "Country 1", code: "C1", status: true } } },

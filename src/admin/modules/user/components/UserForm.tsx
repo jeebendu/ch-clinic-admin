@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -65,15 +66,16 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess }) => {
         try {
             // Create a properly structured user object that matches the User type
             const userData: User = {
-                id: user?.id || Date.now(), // Use existing ID or generate a new one
+                id: user?.id || Date.now(),
                 uid: user?.uid || `new-user-${Date.now()}`,
                 username: data.username,
                 name: `${data.firstname} ${data.lastname}`,
                 email: data.email || "",
                 phone: data.phone || "",
-                firstname: data.firstname, // Add firstname and lastname for Staff compatibility
+                firstname: data.firstname,
                 lastname: data.lastname,
-                // Add required properties with default values if not provided
+                gender: data.gender,
+                dob: data.dob,
                 branch: user?.branch,
                 role: {
                     id: 1,

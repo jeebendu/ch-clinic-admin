@@ -11,7 +11,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash } from "lucide-react";
 import { format } from "date-fns";
-import { Expense } from "../types/expense";
+import { Expense } from "../types/Expense";
 
 interface ExpenseTableProps {
     expense: Expense[];

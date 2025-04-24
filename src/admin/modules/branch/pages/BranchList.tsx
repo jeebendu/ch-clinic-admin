@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
-import BranchService from '@/admin/modules/branch/services/branchService';
+import BranchService from '@/admin/modules/branch/services/BranchService';
 import { Branch } from "../types/Branch";
 import BranchTable from "../components/BranchTable";
 import BranchCardList from "../components/BranchCardList";
@@ -42,7 +41,6 @@ const BranchList = () => {
   const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
-  // Define filter options
   const [filters, setFilters] = useState<FilterOption[]>([
     {
       id: 'status',
@@ -79,26 +77,21 @@ const BranchList = () => {
     },
   });
 
-  // Extract branches from the response
   const branches = Array.isArray(data) ? data : [];
   console.log("Extracted branches:", branches);
 
-  // Filter branches based on search term and filters
   const filteredBranches = branches.filter(branch => {
-    // Filter by search term
     if (searchTerm && !branch.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
         !branch.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !branch.location.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
-    // Filter by status
     if (selectedFilters.status.length > 0) {
       const statusMatch = selectedFilters.status.includes(branch.active ? 'active' : 'inactive');
       if (!statusMatch) return false;
     }
 
-    // Filter by location
     if (selectedFilters.location.length > 0) {
       const locationMatch = selectedFilters.location.includes(branch.location.toLowerCase());
       if (!locationMatch) return false;
@@ -164,10 +157,8 @@ const BranchList = () => {
       const newFilters = {...prev};
       
       if (newFilters[filterId].includes(optionId)) {
-        // Remove filter if already selected
         newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
       } else {
-        // Add filter if not already selected
         newFilters[filterId] = [...newFilters[filterId], optionId];
       }
       

@@ -20,7 +20,7 @@ import {
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import ExpenseService from "../service/ExpenseService";
 import ExpenseTable from "../components/ExpenseTable";
-import { Expense } from "../types/expense";
+import { Expense } from "../types/Expense";
 
 const ExpenseList = () => {
   const navigate = useNavigate();

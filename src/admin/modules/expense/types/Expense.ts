@@ -1,5 +1,5 @@
-import { Staff } from "../../user/types/User";
 
+import { Staff } from "../../user/types/User";
 
 export interface Expense {
     id: number;
@@ -15,21 +15,20 @@ export interface Expense {
     discount: number;
     grandTotal: number;
     approved: boolean;
-    approvedBy:Staff;
+    approvedBy: Staff;
     createdBy: string;
     approvedTime: Date;
-  }
+}
   
-  export interface ExpenseItem {
+export interface ExpenseItem {
     id: number;
     description: string;
     price: number;
     qty: number;
     total: number;
-  }
+}
   
-  export interface PaymentType {
-      id:number;
-      name:string;
-  }
-  
+export interface PaymentType {
+    id: number;
+    name: string;
+}

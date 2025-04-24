@@ -1,7 +1,6 @@
 import { Customer } from "../../customer/types/Customer";
-import { PaymentType } from "../../expense/types/expense";
+import { PaymentType } from "../../expense/types/Expense";
 import { Product } from "../../patient/types/Product";
-
 
 export interface Order {
     id: number;

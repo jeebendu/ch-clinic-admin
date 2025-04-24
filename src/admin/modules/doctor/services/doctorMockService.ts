@@ -1,9 +1,7 @@
-
 import { Doctor } from "../types/Doctor";
 import { PaginatedResponse } from "@/types/common";
 
 export const DoctorMockService = {
-
   generateMockDoctors: (size: number): Doctor[] => {
     const mockDoctors: Doctor[] = [];
     for (let i = 1; i <= size; i++) {
@@ -18,7 +16,7 @@ export const DoctorMockService = {
         firstname: `First${i}`,
         lastname: `Last${i}`,
         email: `doctor${i}@example.com`,
-        uid: `DOC-${i}`,  // Changed from number to string
+        uid: `DOC-${i}`,  // Ensure it's a string
         phone: `+123456789${i}`,
         desgination: "Senior Physician",
         specializationList: specializationList,
