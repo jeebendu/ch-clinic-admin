@@ -49,7 +49,7 @@ export interface Doctor {
   state: State;
   country: Country;
   education?: Education[];
-  consultationFee: any;
+  consultationFee: string;
   reviewCount: number;
   rating: number;
   status: string;

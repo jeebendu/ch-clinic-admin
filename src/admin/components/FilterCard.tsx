@@ -56,7 +56,7 @@ const FilterCard = ({
           type="text" 
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Filter by keyword"
+          placeholder="Filter by name, city, phone..."
         />
       </div>
       

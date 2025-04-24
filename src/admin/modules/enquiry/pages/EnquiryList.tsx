@@ -17,27 +17,32 @@ const EnquiryList = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
-const [enquiries,setEnquiries] = useState<Enquiry[]>([]);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [filterObj, setFilterObj] = useState<any>({
+    staffId: null,
+    statusId: null,
+    typeId: null,
+    searchKey: null,
+  });
 
 
   useEffect(() => {
-    fetchEnquiries();
+    fetchEnquiries(0,filterObj);
   }, []);
 
 
-const fetchEnquiries = async () => {
-  setIsLoading(true);
-  try {
-    const response = await enquiryService.list();
-    setEnquiries(response);
-  } catch (error) {
-    console.error('Error fetching enquiries:', error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const fetchEnquiries = async (pageNO:number,filterObj:any) => {
+    setIsLoading(true);
+    try {
+      const response = await enquiryService.paginatedList(pageNO,50,filterObj);
+      setEnquiries(response.content);
+    } catch (error) {
+      console.error('Error fetching enquiries:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   const filterOptions: FilterOption[] = [
@@ -64,12 +69,27 @@ const fetchEnquiries = async () => {
   const handleClearFilters = () => {
     setSelectedFilters({});
     setSearchTerm('');
+    setFilterObj({
+      staffId: null,
+      statusId: null,
+      typeId: null,
+      searchKey: null});
   };
 
   const handleEditEnquiry = (enquiry: any) => {
     setSelectedEnquiry(enquiry);
     setShowAddDialog(true);
   };
+
+  const searchValueChange = (value: string) => {
+    setSearchTerm(value);
+    setFilterObj((prev:any)=>({...prev, searchKey: value}));
+    const filter:any={
+      ...filterObj,
+      searchKey: value,
+    }
+    fetchEnquiries(0,filter);
+  }
 
   return (
     <AdminLayout>
@@ -78,7 +98,7 @@ const fetchEnquiries = async () => {
           title="Enquiries"
           showAddButton
           addButtonLabel="Add Enquiry"
-          onAddButtonClick={() => (setShowAddDialog(true),setSelectedEnquiry(null))}
+          onAddButtonClick={() => (setShowAddDialog(true), setSelectedEnquiry(null))}
           showFilter
           onFilterToggle={() => setShowFilter(!showFilter)}
         />
@@ -86,7 +106,7 @@ const fetchEnquiries = async () => {
         {showFilter && (
           <FilterCard
             searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
+            onSearchChange={searchValueChange}
             filters={filterOptions}
             selectedFilters={selectedFilters}
             onFilterChange={handleFilterChange}
