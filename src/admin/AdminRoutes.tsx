@@ -20,6 +20,8 @@ import ProductTypeRoutes from "./modules/inventory/product-type/routes/ProductTy
 import SalesOrderList from "./modules/sales/pages/SalesOrderList";
 import PurchaseOrderList from "./modules/purchase/pages/PurchaseOrderList";
 import EnquiryRoutes from "./modules/patient/submodules/enquiry/routes/EnquiryRoutes";
+import MedicalCouncilList from "./modules/doctor/submodules/medical-council/pages/MedicalCouncilList";
+import MedicalDegreeList from "./modules/doctor/submodules/medical-degree/pages/MedicalDegreeList";
 
 const AdminRoutes = () => {
   return (
@@ -46,6 +48,8 @@ const AdminRoutes = () => {
       <Route path="/enquiry/*" element={<EnquiryRoutes />} />
       <Route path="/salesOrder/*" element={<SalesOrderList />} />
       <Route path="/purchaseOrder/*" element={<PurchaseOrderList />} />
+      <Route path="/medical-council/*" element={<MedicalCouncilList />} />
+      <Route path="/medical-degree/*" element={<MedicalDegreeList />} />
     </Routes>
   );
 };
