@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { X, ChevronDown, Filter as FilterIcon, Check } from "lucide-react";
 import { 
   DropdownMenu,
@@ -56,7 +56,7 @@ const FilterCard = ({
           type="text" 
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Filter by name, city, phone..."
+          placeholder="Filter by keyword..."
         />
       </div>
       

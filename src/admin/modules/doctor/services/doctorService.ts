@@ -51,7 +51,7 @@ import { PaginatedResponse } from "@/types/common";
   fetchPaginated: async (
     page: number,
     size: number,
-    filter: { value: string; doctorType: string | null; specialization: string | null }
+    filter: { value: string|null; doctorType: boolean | null; specialization: string | null }
   ): Promise<PaginatedResponse<Doctor>> => {
     if (!isProduction()) {
       const { DoctorMockService } = await import("./doctorMockService");

@@ -19,6 +19,7 @@ export const useBranchFilter = () => {
 
   const handleBranchChange = (branchId: string) => {
     setSelectedBranch(branchId);
+    localStorage.setItem('selectedBranch', branchId);
   };
 
   return {

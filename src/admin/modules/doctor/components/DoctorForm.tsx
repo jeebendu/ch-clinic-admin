@@ -28,7 +28,7 @@ const doctorFormSchema = z.object({
   // status: z.enum(["Active", "Inactive"]),
   biography: z.string().optional(),
   city: z.string().optional(),
-  consultationFee: z.string().min(0, "Consultation fee must be a positive number"),
+  consultationFee: z.string().optional(),
 });
 
 type DoctorFormValues = z.infer<typeof doctorFormSchema>;
@@ -84,7 +84,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
         verified: doctor.verified || false,
         // status: (doctor.status || "Active") as "Active" | "Inactive",
         biography: doctor.biography || "",
-        consultationFee: doctor.consultationFee || "0",
+        consultationFee: doctor?.consultationFee? doctor?.consultationFee.toString():"0",
         city: doctor.city || "",
       });
     }
@@ -109,7 +109,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       // status: data.status,
       biography: data.biography || "",
       city: data.city || "",
-      consultationFee: data?.consultationFee || 0,
+      consultationFee: data?.consultationFee || "0",
       joiningDate: doctor?.joiningDate || new Date().toISOString(),
       user: doctor?.user || {
         id: doctor?.id || null,

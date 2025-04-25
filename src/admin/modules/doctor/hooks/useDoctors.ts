@@ -31,7 +31,7 @@ export const useDoctors = (initialParams: DoctorQueryParams) => {
         params.size,
         { 
           value: params.searchTerm || '',
-          doctorType: params.doctorType,
+          doctorType: params.doctorType? params.doctorType=="external"?true:false : null,
           specialization: params.specialization
         }
       );

@@ -98,19 +98,19 @@ const PatientsAdmin = () => {
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedFilters({
-      gender: [],
-      ageGroup: [],
-      lastVisit: [],
-      insuranceProvider: []
+      gender: null,
+      ageGroup: null,
+      lastVisit: null,
+      insuranceProvider: null
     });
     
     // Reset filters and fetch patients
     updateFilters({
       searchTerm: "", 
-      gender: [], 
-      ageGroup: [], 
-      lastVisit: [], 
-      insuranceProvider: []
+      gender: null, 
+      ageGroup: null, 
+      lastVisit: null, 
+      insuranceProvider: null,
     });
   };
 

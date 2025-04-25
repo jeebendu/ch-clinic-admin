@@ -114,7 +114,7 @@ export const DoctorMockService = {
   fetchPaginated: (
     page: number, 
     size: number, 
-    filter: { value: string; doctorType: string | null; specialization: string | null }
+    filter: { value: string; doctorType: boolean | null; specialization: string | null }
   ): Promise<PaginatedResponse<Doctor>> => {
     const mockDoctors = DoctorMockService.generateMockDoctors(100);
     
@@ -127,7 +127,7 @@ export const DoctorMockService = {
 
       // Filter by doctor type (internal/external)
       const matchesDoctorType = filter.doctorType 
-        ? (filter.doctorType === 'external' ? doctor.external : !doctor.external)
+        ? (filter.doctorType === true ? doctor.external : !doctor.external)
         : true;
 
       // Filter by specialization
