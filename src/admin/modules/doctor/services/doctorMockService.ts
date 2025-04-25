@@ -119,13 +119,22 @@ export const DoctorMockService = {
     const mockDoctors = DoctorMockService.generateMockDoctors(100);
     
     const filteredDoctors = mockDoctors.filter((doctor) => {
+      // Filter by search term
       const matchesValue = filter.value
         ? doctor.firstname.toLowerCase().includes(filter.value.toLowerCase()) || 
           doctor.lastname.toLowerCase().includes(filter.value.toLowerCase())
         : true;
-      const matchesDoctorType = filter.doctorType ? doctor.desgination === filter.doctorType : true;
+
+      // Filter by doctor type (internal/external)
+      const matchesDoctorType = filter.doctorType 
+        ? (filter.doctorType === 'external' ? doctor.external : !doctor.external)
+        : true;
+
+      // Filter by specialization
       const matchesSpecialization = filter.specialization
-        ? doctor.specializationList.some((spec) => spec.name === filter.specialization)
+        ? doctor.specializationList.some((spec) => 
+            spec.name.toLowerCase() === filter.specialization?.toLowerCase()
+          )
         : true;
 
       return matchesValue && matchesDoctorType && matchesSpecialization;

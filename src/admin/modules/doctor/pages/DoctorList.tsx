@@ -3,26 +3,56 @@ import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import DoctorGrid from "../components/DoctorGrid";
 import DoctorTable from "../components/DoctorTable";
-import { Doctor } from "../types/Doctor";
 import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
 import { useDoctors } from "../hooks/useDoctors";
-import doctorService from "../services/doctorService";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import DoctorOnboardingForm from "../components/DoctorOnboardingForm";
 import ReviewDoctorDialog from "../components/ReviewDoctorDialog";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 
 const DoctorList = () => {
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [showForm, setShowForm] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
-  const [reviewDoctor, setReviewDoctor] = useState<Doctor | null>(null);
+  const [reviewDoctor, setReviewDoctor] = useState(null);
+  const [showFilters, setShowFilters] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Add filter states
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+    doctorType: [],
+    specialization: []
+  });
+
+  // Define filter options
+  const filterOptions: FilterOption[] = [
+    {
+      id: 'doctorType',
+      label: 'Doctor Type',
+      options: [
+        { id: 'internal', label: 'Internal' },
+        { id: 'external', label: 'External' }
+      ]
+    },
+    {
+      id: 'specialization',
+      label: 'Specialization',
+      options: [
+        { id: 'general', label: 'General Medicine' },
+        { id: 'cardiology', label: 'Cardiology' },
+        { id: 'pediatrics', label: 'Pediatrics' },
+        { id: 'orthopedics', label: 'Orthopedics' },
+        { id: 'neurology', label: 'Neurology' }
+      ]
+    }
+  ];
 
   const {
     doctors,
@@ -41,12 +71,50 @@ const DoctorList = () => {
     specialization: null
   });
 
-  const handleViewModeToggle = () => {
-    setViewMode(viewMode === 'list' ? 'grid' : 'list');
+  const handleFilterChange = (filterId: string, optionId: string) => {
+    setSelectedFilters(prev => {
+      const newFilters = { ...prev };
+      if (newFilters[filterId]?.includes(optionId)) {
+        newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
+      } else {
+        newFilters[filterId] = [...(newFilters[filterId] || []), optionId];
+      }
+      
+      // Update the filters using the updateFilters function
+      updateFilters({
+        doctorType: newFilters.doctorType[0] || null,
+        specialization: newFilters.specialization[0] || null,
+        searchTerm: searchTerm
+      });
+      
+      return newFilters;
+    });
   };
 
-  const handleSearchChange = (value: string) => {
-    updateFilters({ searchTerm: value });
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+    updateFilters({
+      searchTerm: term,
+      doctorType: selectedFilters.doctorType[0] || null,
+      specialization: selectedFilters.specialization[0] || null
+    });
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedFilters({
+      doctorType: [],
+      specialization: []
+    });
+    updateFilters({
+      searchTerm: "",
+      doctorType: null,
+      specialization: null
+    });
+  };
+
+  const handleViewModeToggle = () => {
+    setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
   const handleAddDoctor = () => {
@@ -54,12 +122,12 @@ const DoctorList = () => {
     setShowForm(true);
   };
 
-  const handleEditDoctor = (doctor: Doctor) => {
+  const handleEditDoctor = (doctor: any) => {
     setSelectedDoctor(doctor);
     setShowForm(true);
   };
 
-  const handleViewDoctor = (doctor: Doctor) => {
+  const handleViewDoctor = (doctor: any) => {
     setSelectedDoctor(doctor);
       setShowViewModal(true);
   };
@@ -68,15 +136,19 @@ const DoctorList = () => {
     setSelectedDoctor(null);
   };
 
-  const handleFormSubmit = async (doctor: Doctor) => {
-    const response = await doctorService.saveOrUpdateDoctor(doctor);
-    if (response.status) {
-      toast.success("Doctor saved successfully!");
-    } else {
-      toast.error("Error saving doctor!");
-    }
-    setShowForm(false);
-    refreshDoctors();
+  const handleFormSubmit = async (doctor: any) => {
+    // try {
+    //   const resp = await doctorService.saveOrUpdateDoctor(doctor);
+    //   if (resp.status) {
+    //     toast.success("Doctor saved!");
+    //   } else {
+    //     toast.error("Error, unable to save doctor!");
+    //   }
+    // } catch (e) {
+    //   toast.error("Failed to save doctor!");
+    // }
+    // setShowForm(false);
+    // refreshDoctors();
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -94,14 +166,14 @@ const DoctorList = () => {
   const handleOnboardingSubmit = async (doctor: Doctor) => {
     try {
       console.log(doctor)
-      const response = await doctorService.saveOrUpdateDoctor(doctor);
-      if (response.status) {
-        toast.success("Doctor published online successfully!");
-        setShowOnboardingForm(false);
-        refreshDoctors();
-      } else {
-        toast.error("Error publishing doctor!");
-      }
+      // const response = await doctorService.saveOrUpdateDoctor(doctor);
+      // if (response.status) {
+      //   toast.success("Doctor published online successfully!");
+      //   setShowOnboardingForm(false);
+      //   refreshDoctors();
+      // } else {
+      //   toast.error("Error publishing doctor!");
+      // }
     } catch (error) {
       console.error("Error publishing doctor:", error);
       toast.error("Error publishing doctor online!");
@@ -116,15 +188,15 @@ const DoctorList = () => {
   const handleDoctorVerify = async (doctor: Doctor) => {
     try {
       const updatedDoctor = { ...doctor, verified: true };
-      const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
-      if (resp.status) {
-        toast.success("Doctor verified!");
-        setShowReviewDialog(false);
-        setReviewDoctor(null);
-        refreshDoctors();
-      } else {
-        toast.error("Error verifying doctor!");
-      }
+      // const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
+      // if (resp.status) {
+      //   toast.success("Doctor verified!");
+      //   setShowReviewDialog(false);
+      //   setReviewDoctor(null);
+      //   refreshDoctors();
+      // } else {
+      //   toast.error("Error verifying doctor!");
+      // }
     } catch (e) {
       toast.error("Failed to verify doctor!");
     }
@@ -132,7 +204,7 @@ const DoctorList = () => {
 
   return (
     <AdminLayout>
-      <div className="h-full flex flex-col" onScroll={handleScroll}>
+      <div className="h-full flex flex-col">
         <PageHeader
           title="Doctors"
           description="Manage your clinic's doctors"
@@ -145,7 +217,20 @@ const DoctorList = () => {
           onSearchChange={handleSearchChange}
           loadedElements={loadedElements}
           totalElements={totalElements}
+          onFilterToggle={() => setShowFilters(!showFilters)}
+          showFilter={showFilters}
         />
+
+        {showFilters && (
+          <FilterCard
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            filters={filterOptions}
+            selectedFilters={selectedFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={clearFilters}
+          />
+        )}
 
         <div className="flex-1 overflow-auto">
           {viewMode === 'grid' ? (
