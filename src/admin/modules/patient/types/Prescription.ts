@@ -17,7 +17,8 @@ export interface Prescription {
   previousHistory: string;
   previousClinicNote: String;
   clinicNotes: string;
-  laboratoryTests: String;
+  // laboratoryTests: String;
+  laoratoryTestList: LabTest[];
   complaints: string;
   advice: string;
   followUp: Date;
@@ -39,5 +40,4 @@ export interface Medicines {
 export interface  LabTest{
   name: any;
   instructions: any;
-
 }

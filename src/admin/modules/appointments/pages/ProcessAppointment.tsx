@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -9,24 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import {
   ArrowLeft,
   Save,
-  Clock,
-  ChevronDown,
-  ChevronUp,
   Plus,
-  X,
-  Pill,
   XCircle,
-  CalendarIcon,
-  FileText,
-  Printer
-} from "lucide-react";
+  CalendarIcon} from "lucide-react";
 import { toast } from "sonner";
 import {
   Form,
@@ -36,13 +27,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -56,29 +40,29 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { getAppointmentById, updateAppointmentStatus } from "../services/appointmentService";
-import patientMockService from "../services/patientMockService";
+import { getAppointmentById } from "../services/appointmentService";
 import { Appointment } from "../types/Appointment";
 import { Patient } from "../../patient/types/Patient";
-import { LabTest, Medicines } from "../../patient/types/Prescription";
+import { LabTest, Medicines, Prescription } from "../../patient/types/Prescription";
 import PrintAppointmentButton from "../components/PrintAppointmentButton";
+import { createPrescription } from "../services/PrescriptionService";
 
 const consultationSchema = z.object({
-  vitals: z.object({
-    temperature: z.string().optional(),
-    pulse: z.string().optional(),
-    respiratoryRate: z.string().optional(),
-    spo2: z.string().optional(),
-    height: z.string().optional(),
-    weight: z.string().optional(),
-    bmi: z.string().optional(),
-  }),
-  consultation: z.object({
-    symptoms: z.string().min(3, "Symptoms are required"),
-    diagnosis: z.string().min(3, "Diagnosis is required"),
-    followUpDate: z.string().optional(),
-    complaints: z.string().min(3, "Complaints are required")
-  }),
+  temperature: z.string().optional(),
+  pulse: z.string().optional(),
+  respiratory: z.string().optional(),
+  spo2: z.string().optional(),
+  height: z.string().optional(),
+  weight: z.string().optional(),
+  bmi: z.string().optional(),
+  bsa: z.string().optional(),
+  waist: z.string().optional(),
+  symptoms: z.string().min(3, "Symptoms are required"),
+  diagnosis: z.string().min(3, "Diagnosis is required"),
+  previousClinicNote: z.string().optional(),
+  clinicNotes: z.string().optional(),
+  complaints: z.string().min(3, "Complaints are required"),
+
   medications: z.array(
     z.object({
       name: z.string().min(1, "Medication name is required"),
@@ -87,7 +71,7 @@ const consultationSchema = z.object({
       duration: z.string().min(1, "Duration is required"),
     })
   ).optional(),
-  labTests: z.array(
+  laoratoryTestList: z.array(
     z.object({
       name: z.string().min(1, "Test name is required"),
       instructions: z.string().optional(),
@@ -96,10 +80,7 @@ const consultationSchema = z.object({
   notes: z.string().optional(),
   previousHistory: z.string().optional(),
   advice: z.string().optional(),
-  followUp: z.object({
-    date: z.date().optional(),
-    notes: z.string().optional(),
-  }).optional(),
+  followUp: z.string().optional(),
 });
 
 const medicationSchema = z.object({
@@ -134,30 +115,26 @@ const ProcessAppointment = () => {
   const form = useForm<ConsultationFormValues>({
     resolver: zodResolver(consultationSchema),
     defaultValues: {
-      vitals: {
-        temperature: "",
-        pulse: "",
-        respiratoryRate: "",
-        spo2: "",
-        height: "",
-        weight: "",
-        bmi: "",
-      },
-      consultation: {
-        symptoms: "",
-        diagnosis: "",
-        followUpDate: "",
-        complaints: ""
-      },
+      temperature: "",
+      pulse: "",
+      respiratory: "",
+      spo2: "",
+      height: "",
+      weight: "",
+      bmi: "",
+      waist: "",
+      bsa: "",
+      symptoms: "",
+      diagnosis: "",
+      previousClinicNote: "",
+      clinicNotes: "",
+      complaints: "",
       medications: [],
-      labTests: [],
+      laoratoryTestList: [],
       notes: "",
       previousHistory: "",
       advice: "",
-      followUp: {
-        date: undefined,
-        notes: "",
-      },
+      followUp: undefined,
     },
   });
 
@@ -204,7 +181,16 @@ const ProcessAppointment = () => {
   };
 
   const onSubmit = async (values: ConsultationFormValues) => {
-    console.log("Form values:", values);
+    const appointmentObj={
+      ...values,
+      id:null,
+      medicines: medications,
+      laoratoryTestList: labTests,
+      doctor:appointment.doctorClinic.doctor,
+      patient:appointment.patient
+    } 
+  const response=await  createPrescription(appointment.id,appointmentObj);
+  handleGoBack();
     toast.success("Consultation saved successfully!");
   };
 
@@ -227,6 +213,7 @@ const ProcessAppointment = () => {
       instruction: values.instruction
     };
     setMedications([...medications, newMedication]);
+    
     setIsAddMedicationDialogOpen(false);
     medicationForm.reset();
     toast.success("Medication added successfully!");
@@ -268,7 +255,7 @@ const ProcessAppointment = () => {
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    form.setValue("consultation.followUpDate", date ? format(date, "yyyy-MM-dd") : "");
+    form.setValue("followUp", date ? format(date, "yyyy-MM-dd") : "");
   };
 
   if (!appointment || !patient) {
@@ -335,7 +322,7 @@ const ProcessAppointment = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
-                    name="vitals.temperature"
+                    name="temperature"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Temperature</FormLabel>
@@ -348,7 +335,7 @@ const ProcessAppointment = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="vitals.pulse"
+                    name="pulse"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Pulse</FormLabel>
@@ -361,7 +348,7 @@ const ProcessAppointment = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="vitals.respiratoryRate"
+                    name="respiratory"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Respiratory Rate</FormLabel>
@@ -374,7 +361,7 @@ const ProcessAppointment = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="vitals.spo2"
+                    name="spo2"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>SpO2</FormLabel>
@@ -387,7 +374,7 @@ const ProcessAppointment = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="vitals.height"
+                    name="height"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Height</FormLabel>
@@ -400,7 +387,7 @@ const ProcessAppointment = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="vitals.weight"
+                    name="weight"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Weight</FormLabel>
@@ -413,7 +400,7 @@ const ProcessAppointment = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="vitals.bmi"
+                    name="bmi"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>BMI</FormLabel>
@@ -424,6 +411,33 @@ const ProcessAppointment = () => {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="bsa"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>BSA</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter BSA" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="waist"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Waist</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter Waist" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                 </div>
               </CardContent>
             </Card>
@@ -434,7 +448,7 @@ const ProcessAppointment = () => {
                 <Separator className="my-2" />
                 <FormField
                   control={form.control}
-                  name="consultation.complaints"
+                  name="complaints"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Complaints</FormLabel>
@@ -447,7 +461,7 @@ const ProcessAppointment = () => {
                 />
                 <FormField
                   control={form.control}
-                  name="consultation.symptoms"
+                  name="symptoms"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Symptoms</FormLabel>
@@ -460,7 +474,7 @@ const ProcessAppointment = () => {
                 />
                 <FormField
                   control={form.control}
-                  name="consultation.diagnosis"
+                  name="diagnosis"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Diagnosis</FormLabel>
@@ -475,7 +489,7 @@ const ProcessAppointment = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="consultation.followUpDate"
+                    name="followUp"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Follow-up Date</FormLabel>
@@ -614,6 +628,63 @@ const ProcessAppointment = () => {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="advice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Advice</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Write Advice" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="clinicNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Clinic Notes</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter Clinic Notes" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="previousClinicNote"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Previous Clinic Note</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter Previous Clinic Note" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="previousHistory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Previous History</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter Previous History" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
               </CardContent>
             </Card>
 
@@ -771,3 +842,5 @@ const ProcessAppointment = () => {
 };
 
 export default ProcessAppointment;
+
+
