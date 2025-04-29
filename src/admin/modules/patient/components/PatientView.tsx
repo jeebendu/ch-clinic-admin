@@ -1,8 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +28,7 @@ import { AdminLayout } from '@/admin/components/AdminLayout';
 import { Separator } from '@/components/ui/separator';
 import PatientVisitTimeline from './PatientVisitTimeline';
 import PatientInfoCard from './PatientInfoCard';
+import PatientReportSection from './PatientReportSection';
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
@@ -149,7 +149,7 @@ const PatientView = () => {
           </div>
         </div>
 
-        {/* Patient Info Card */}
+        {/* Patient Info Card with consolidated information */}
         <PatientInfoCard patient={patient} formatDate={formatDate} getInitials={getInitials} />
 
         <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -213,25 +213,7 @@ const PatientView = () => {
           </TabsContent>
           
           <TabsContent value="reports" className="mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="text-lg">Test Reports</CardTitle>
-                    <CardDescription>Lab tests, imaging, and other diagnostics</CardDescription>
-                  </div>
-                  <Button size="sm" variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Report
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No reports found</p>
-                </div>
-              </CardContent>
-            </Card>
+            <PatientReportSection patientId={patient.id} />
           </TabsContent>
         </Tabs>
       </div>
