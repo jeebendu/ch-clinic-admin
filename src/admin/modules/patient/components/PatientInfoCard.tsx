@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Patient } from '../types/Patient';
-import { Calendar, Mail, MapPin, Phone, User } from 'lucide-react';
+import { Calendar, Mail, MapPin, Phone } from 'lucide-react';
 
 interface PatientInfoCardProps {
   patient: Patient;
@@ -46,10 +46,9 @@ const PatientInfoCard = ({ patient, formatDate, getInitials }: PatientInfoCardPr
             </div>
           </div>
 
-          {/* Contact & Address Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          {/* Contact & Address Info - Consolidated */}
+          <div className="flex flex-wrap gap-4 text-sm">
             <div className="space-y-1">
-              <h3 className="font-medium text-muted-foreground text-xs">Contact Information</h3>
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                 <span>{patient.user?.phone || 'Not provided'}</span>
@@ -58,35 +57,10 @@ const PatientInfoCard = ({ patient, formatDate, getInitials }: PatientInfoCardPr
                 <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                 <span>{patient.user?.email || 'Not provided'}</span>
               </div>
-              {patient.whatsappNo && (
-                <div className="flex items-center gap-2">
-                  <span className="h-3.5 w-3.5 flex items-center justify-center text-green-600 font-bold">W</span>
-                  <span>{patient.whatsappNo}</span>
-                </div>
-              )}
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-medium text-muted-foreground text-xs">Address & Medical</h3>
               {patient.address && (
                 <div className="flex items-start gap-2">
                   <MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <span>{patient.address}</span>
-                    {patient.city && (
-                      <div className="text-xs text-muted-foreground">
-                        {patient.city}, {patient.state?.name || 'N/A'}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {patient.insuranceProvider && (
-                <div className="flex items-center gap-2">
-                  <span className="h-3.5 w-3.5 flex items-center justify-center text-blue-600 font-bold">I</span>
-                  <span>
-                    Insurance: {patient.insuranceProvider}
-                    {patient.insurancePolicyNumber && ` (${patient.insurancePolicyNumber})`}
-                  </span>
+                  <span>{patient.address}{patient.city && `, ${patient.city}`}{patient.state?.name && `, ${patient.state.name}`}</span>
                 </div>
               )}
               {patient.lastVisit && (
@@ -99,16 +73,16 @@ const PatientInfoCard = ({ patient, formatDate, getInitials }: PatientInfoCardPr
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4">
-        {patient.medicalHistory && (
+      {patient.medicalHistory && (
+        <CardContent className="p-4">
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-muted-foreground">Medical History</h3>
             <div className="text-sm bg-muted/30 p-3 rounded-md">
               {patient.medicalHistory}
             </div>
           </div>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 };

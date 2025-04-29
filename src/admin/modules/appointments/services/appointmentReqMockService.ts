@@ -1,208 +1,368 @@
-
-import { AppointmentRequest } from "../types/AppointmentRequest";
-import { Patient } from "../../patient/types/Patient";
-import { Doctor } from "../../doctor/types/Doctor";
-import { Slot } from "../types/Slot";
-import { DoctorClinic } from "../types/DoctorClinic";
+import { AppointmentRequest } from "../types/appointmentRequest";
+import { DoctorClinic } from "../../doctor/types/DoctorClinic";
+import { Service } from "../../service/types/Service";
 import { Branch } from "../../branch/types/Branch";
 
-class AppointmentReqMockService {
-  getAll() {
-    const mockDoctors: Doctor[] = [
-      {
+const mockAppointmentRequests: AppointmentRequest[] = [
+  {
+    id: 1,
+    uid: "APT-001",
+    patientName: "John Doe",
+    patientAge: 30,
+    patientGender: "Male",
+    phone: "123-456-7890",
+    email: "john.doe@example.com",
+    address: "123 Main St",
+    problem: "Headache",
+    appointmentTime: new Date(),
+    status: "Pending",
+    doctorClinic: {
+      id: 1,
+      clinic: {
         id: 1,
-        firstname: "John",
-        lastname: "Doe",
-        gender: 0, // Using numeric values for gender: 0=Male, 1=Female, 2=Other
-        dob: new Date("1980-01-01"),
-        photoUrl: "/placeholder.svg",
-        address: "123 Main St",
-        isExternal: false, // This should be "external" but keeping to match Doctor type
-        external: false,   // Added this to match Doctor type
-        state: { id: 1, name: "California", country: null },
-        district: { id: 1, name: "Los Angeles", state: null },
-        user: {
-          id: 1,
-          email: "john.doe@example.com",
-          phone: "1234567890",
-          roles: [],
-          uid: "USR001",
-          name: "John Doe",
-          username: "john.doe",
-          password: "",
-          branch: null,
-          image: "",
-          effectiveFrom: new Date(),
-          effectiveTo: new Date()
-        }
+        name: "City Clinic",
+        address: "456 Oak St",
+        city: "Anytown",
+        state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+        pincode: "54321",
+        latitude: 34.0522,
+        longitude: -118.2437,
+        active: true,
+        branchList: [],
+        image: "",
+        district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+        country: { id: 1, name: "India" }
       },
-      {
-        id: 2,
+      doctor: {
+        id: 1,
+        uid: "DOC-001",
         firstname: "Jane",
         lastname: "Smith",
-        gender: 1, // 1=Female
-        dob: new Date("1985-05-15"),
-        photoUrl: "/placeholder.svg",
-        address: "456 Oak Ave",
-        isExternal: true, // This should be "external" but keeping to match Doctor type
-        external: true,   // Added this to match Doctor type
-        state: { id: 2, name: "New York", country: null },
-        district: { id: 2, name: "Manhattan", state: null },
+        email: "jane.smith@example.com",
+        phone: "987-654-3210",
+        desgination: "Cardiologist",
+        specializationList: [],
+        qualification: "MD",
+        joiningDate: new Date().toISOString(),
         user: {
-          id: 2,
-          email: "jane.smith@example.com",
-          phone: "9876543210",
-          roles: [],
-          uid: "USR002",
+          id: 1,
+          uid: "USR-001",
           name: "Jane Smith",
-          username: "jane.smith",
-          password: "",
-          branch: null,
+          username: "janesmith",
+          email: "jane.smith@example.com",
+          phone: "987-654-3210",
+          role: { id: 1, name: "Doctor", permissions: [] },
+          branch: {
+            id: 1,
+            name: "Main Branch",
+            code: "MB001",
+            location: "Main St",
+            active: true,
+            city: "Anytown",
+            pincode: 12345,
+            image: "",
+            latitude: 0,
+            longitude: 0,
+            state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+            district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+            country: { id: 1, name: "India" }
+          },
           image: "",
-          effectiveFrom: new Date(),
-          effectiveTo: new Date()
-        }
-      },
-    ];
-
-    const mockPatients: Patient[] = [
-      {
-        id: 101,
-        uid: "PT001",
-        firstname: "Alice",
-        lastname: "Johnson",
-        gender: "Female",
-        dob: new Date("1990-03-20"),
-        age: 32,
-        address: "789 Pine Rd",
-        user: {
-          id: 3,
-          phone: "5551234567",
-          email: "alice@example.com",
-          roles: [],
-          uid: "USR003",
-          name: "Alice Johnson",
-          username: "alice.johnson",
-          password: "",
-          branch: null,
-          image: "",
+          password: "password",
           effectiveFrom: new Date(),
           effectiveTo: new Date()
         },
-        state: { id: 1, name: "California", country: null },
-        district: { id: 1, name: "Los Angeles", state: null }
-      },
-      {
-        id: 102,
-        uid: "PT002",
-        firstname: "Bob",
-        lastname: "Miller",
-        gender: "Male",
-        dob: new Date("1985-11-15"),
-        age: 37,
-        address: "101 Elm St",
-        user: {
-          id: 4,
-          phone: "5559876543",
-          email: "bob@example.com",
-          roles: [],
-          uid: "USR004",
-          name: "Bob Miller",
-          username: "bob.miller",
-          password: "",
-          branch: null,
-          image: "",
-          effectiveFrom: new Date(),
-          effectiveTo: new Date()
-        },
-        state: { id: 2, name: "New York", country: null },
-        district: { id: 2, name: "Brooklyn", state: null }
-      },
-    ];
-
-    const mockClinic: Branch = {
-      id: 201,
-      name: "Main Street Clinic",
-      code: "MSC",
-      active: true,
-      city: "Los Angeles",
-      state: { id: 1, name: "California", country: null },
-      district: { id: 1, name: "Downtown", state: null },
-      address: "555 Main St",
-      timings: "9:00 AM - 5:00 PM",
-      location: "Central",
-      user: { 
-        id: 5, 
-        email: "clinic@example.com", 
-        phone: "5551112222",
-        roles: [],
-        uid: "USR005",
-        name: "Clinic User",
-        username: "clinic.user",
-        password: "",
-        branch: null,
+        external: false,
+        publishedOnline: false,
+        expYear: 5,
+        about: "",
         image: "",
-        effectiveFrom: new Date(),
-        effectiveTo: new Date()
+        pincode: "",
+        city: "",
+        biography: "",
+        gender: 1,
+        verified: true,
+        percentages: [],
+        serviceList: [],
+        branchList: [],
+        languageList: [],
+        district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+        state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+        country: { id: 1, name: "India" },
+        consultationFee: 500,
+        reviewCount: 4,
+        rating: 4.5,
+        status: "Active",
+        medicalDegree: { id: 1, name: "MBBS", createdTime: "", modifiedTime: "" }
       },
-      country: null,
+      available: true,
+      fees: 500,
+      serviceList: [],
+      branch: {
+        id: 1,
+        name: "Main Branch",
+        code: "MB001",
+        location: "Main St",
+        active: true,
+        city: "Anytown",
+        pincode: 12345,
+        image: "",
+        latitude: 0,
+        longitude: 0,
+        state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+        district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+        country: { id: 1, name: "India" }
+      }
+    },
+    service: { id: 1, name: "Consultation" },
+    branch: {
+      id: 1,
+      name: "Main Branch",
+      code: "MB001",
+      location: "Main St",
+      active: true,
+      city: "Anytown",
       pincode: 12345,
       image: "",
       latitude: 0,
-      longitude: 0
-    };
-
-    const mockDoctorClinic: DoctorClinic = {
-      id: 301,
-      doctor: mockDoctors[0],
-      branch: mockClinic,
-      appointmentDuration: 30,
-      availableSlots: [1, 2, 3],
-      active: true,
-      consulting: true
-    };
-
-    const mockRequests: AppointmentRequest[] = [
-      {
+      longitude: 0,
+      state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+      district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+      country: { id: 1, name: "India" }
+    },
+    state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+    district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+    user: {
+      id: 1,
+      uid: "USR-002",
+      name: "John Doe",
+      username: "johndoe",
+      email: "john.doe@example.com",
+      phone: "123-456-7890",
+      role: { id: 1, name: "Patient", permissions: [] },
+      branch: {
         id: 1,
-        patient: mockPatients[0],
-        doctor: mockDoctors[0],
-        date: new Date("2023-06-01"),
-        slot: { id: 1, startTime: "09:00", endTime: "09:30" } as Slot,
-        branch: mockClinic,
-        doctorClinic: mockDoctorClinic,
-        status: "PENDING",
-        appointmentType: "CONSULTATION",
-        bookingType: "ONLINE",
-        createdAt: new Date("2023-05-25"),
-        patientName: `${mockPatients[0].firstname} ${mockPatients[0].lastname}`,
-        patientContact: mockPatients[0].user.phone,
-        doctorName: `${mockDoctors[0].firstname} ${mockDoctors[0].lastname}`,
-        visitReason: "General checkup",
-        followUp: false,
+        name: "Main Branch",
+        code: "MB001",
+        location: "Main St",
+        active: true,
+        city: "Anytown",
+        pincode: 12345,
+        image: "",
+        latitude: 0,
+        longitude: 0,
+        state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+        district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+        country: { id: 1, name: "India" }
       },
-      {
+      image: "",
+      password: "password",
+      effectiveFrom: new Date(),
+      effectiveTo: new Date()
+    },
+    createdTime: new Date(),
+    modifiedTime: new Date()
+  },
+  {
+    id: 2,
+    uid: "APT-002",
+    patientName: "Alice Smith",
+    patientAge: 25,
+    patientGender: "Female",
+    phone: "456-789-0123",
+    email: "alice.smith@example.com",
+    address: "789 Pine St",
+    problem: "Fever",
+    appointmentTime: new Date(),
+    status: "Confirmed",
+    doctorClinic: {
+      id: 2,
+      clinic: {
         id: 2,
-        patient: mockPatients[1],
-        doctor: mockDoctors[1],
-        date: new Date("2023-06-02"),
-        slot: { id: 2, startTime: "10:00", endTime: "10:30" } as Slot,
-        branch: mockClinic,
-        doctorClinic: mockDoctorClinic,
-        status: "CONFIRMED",
-        appointmentType: "FOLLOWUP",
-        bookingType: "WALK_IN",
-        createdAt: new Date("2023-05-26"),
-        patientName: `${mockPatients[1].firstname} ${mockPatients[1].lastname}`,
-        patientContact: mockPatients[1].user.phone,
-        doctorName: `${mockDoctors[1].firstname} ${mockDoctors[1].lastname}`,
-        visitReason: "Follow-up checkup",
-        followUp: true,
+        name: "General Hospital",
+        address: "321 Elm St",
+        city: "Anytown",
+        state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+        pincode: "67890",
+        latitude: 34.0522,
+        longitude: -118.2437,
+        active: true,
+        branchList: [],
+        image: "",
+        district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+        country: { id: 1, name: "India" }
       },
-    ];
+      doctor: {
+        id: 2,
+        uid: "DOC-002",
+        firstname: "Bob",
+        lastname: "Johnson",
+        email: "bob.johnson@example.com",
+        phone: "321-098-7654",
+        desgination: "Pediatrician",
+        specializationList: [],
+        qualification: "MD",
+        joiningDate: new Date().toISOString(),
+        user: {
+          id: 2,
+          uid: "USR-003",
+          name: "Bob Johnson",
+          username: "bobjohnson",
+          email: "bob.johnson@example.com",
+          phone: "321-098-7654",
+          role: { id: 1, name: "Doctor", permissions: [] },
+          branch: {
+            id: 1,
+            name: "Main Branch",
+            code: "MB001",
+            location: "Main St",
+            active: true,
+            city: "Anytown",
+            pincode: 12345,
+            image: "",
+            latitude: 0,
+            longitude: 0,
+            state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+            district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+            country: { id: 1, name: "India" }
+          },
+          image: "",
+          password: "password",
+          effectiveFrom: new Date(),
+          effectiveTo: new Date()
+        },
+        external: false,
+        publishedOnline: false,
+        expYear: 8,
+        about: "",
+        image: "",
+        pincode: "",
+        city: "",
+        biography: "",
+        gender: 0,
+        verified: true,
+        percentages: [],
+        serviceList: [],
+        branchList: [],
+        languageList: [],
+        district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+        state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+        country: { id: 1, name: "India" },
+        consultationFee: 600,
+        reviewCount: 5,
+        rating: 4.8,
+        status: "Active",
+        medicalDegree: { id: 1, name: "MD", createdTime: "", modifiedTime: "" }
+      },
+      available: true,
+      fees: 600,
+      serviceList: [],
+      branch: {
+        id: 1,
+        name: "Main Branch",
+        code: "MB001",
+        location: "Main St",
+        active: true,
+        city: "Anytown",
+        pincode: 12345,
+        image: "",
+        latitude: 0,
+        longitude: 0,
+        state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+        district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+        country: { id: 1, name: "India" }
+      }
+    },
+    service: { id: 2, name: "Checkup" },
+    branch: {
+      id: 1,
+      name: "Main Branch",
+      code: "MB001",
+      location: "Main St",
+      active: true,
+      city: "Anytown",
+      pincode: 12345,
+      image: "",
+      latitude: 0,
+      longitude: 0,
+      state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+      district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+      country: { id: 1, name: "India" }
+    },
+    state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+    district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+    user: {
+      id: 2,
+      uid: "USR-004",
+      name: "Alice Smith",
+      username: "alicesmith",
+      email: "alice.smith@example.com",
+      phone: "456-789-0123",
+      role: { id: 1, name: "Patient", permissions: [] },
+      branch: {
+        id: 1,
+        name: "Main Branch",
+        code: "MB001",
+        location: "Main St",
+        active: true,
+        city: "Anytown",
+        pincode: 12345,
+        image: "",
+        latitude: 0,
+        longitude: 0,
+        state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } },
+        district: { id: 1, name: "Bangalore", state: { id: 1, name: "Karnataka", country: { id: 1, name: "India" } } },
+        country: { id: 1, name: "India" }
+      },
+      image: "",
+      password: "password",
+      effectiveFrom: new Date(),
+      effectiveTo: new Date()
+    },
+    createdTime: new Date(),
+    modifiedTime: new Date()
+  },
+];
 
-    return mockRequests;
-  }
-}
-
-export default new AppointmentReqMockService();
+export default {
+  getAllRequests: () => {
+    return Promise.resolve({ data: mockAppointmentRequests });
+  },
+  getRequests: (pageNumber: number, pageSize: number) => {
+    const start = (pageNumber - 1) * pageSize;
+    const end = start + pageSize;
+    const paginatedRequests = mockAppointmentRequests.slice(start, end);
+    return Promise.resolve({
+      data: {
+        content: paginatedRequests,
+        totalElements: mockAppointmentRequests.length,
+        totalPages: Math.ceil(mockAppointmentRequests.length / pageSize),
+        size: pageSize,
+        number: pageNumber,
+      },
+    });
+  },
+  getRequestById: (id: number) => {
+    const request = mockAppointmentRequests.find((req) => req.id === id);
+    if (request) {
+      return Promise.resolve({ data: request });
+    }
+    return Promise.resolve({ data: null });
+  },
+  updateRequest: (id: number, updatedRequest: AppointmentRequest) => {
+    const index = mockAppointmentRequests.findIndex((req) => req.id === id);
+    if (index !== -1) {
+      mockAppointmentRequests[index] = { ...mockAppointmentRequests[index], ...updatedRequest };
+      return Promise.resolve({ data: mockAppointmentRequests[index] });
+    }
+    return Promise.reject(new Error("Request not found"));
+  },
+  deleteRequest: (id: number) => {
+    const index = mockAppointmentRequests.findIndex((req) => req.id === id);
+    if (index !== -1) {
+      mockAppointmentRequests.splice(index, 1);
+      return Promise.resolve({ data: true });
+    }
+    return Promise.reject(new Error("Request not found"));
+  },
+};

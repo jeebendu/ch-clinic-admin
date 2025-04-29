@@ -13,4 +13,5 @@ export interface PatientReport {
   patient: Patient;
   createdTime: string;
   modifiedTime: string;
+  reportType?: string; // Added field to track report type
 }

@@ -71,8 +71,13 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     reviewCount: 0,
     rating: 0,
     status: "Active",
-    // Fixed issue: Using proper object instead of string for medicalDegree
-    medicalDegree: { id: 1, name: "MBBS", createdTime: "", modifiedTime: "" }
+    // Fix for medicalDegree - properly define it with all required properties
+    medicalDegree: { 
+      id: 1, 
+      name: "MBBS", 
+      createdTime: new Date().toISOString(), 
+      modifiedTime: new Date().toISOString() 
+    }
   };
 
   // Convert mock data to Patient type with all required properties
