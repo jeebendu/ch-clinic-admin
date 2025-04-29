@@ -13,5 +13,5 @@ export interface PatientReport {
   patient: Patient;
   createdTime: string;
   modifiedTime: string;
-  reportType?: string; // Added field to track report type
+  reportType?: string; // Type can be 'audiometry', 'dental', 'laboratory', 'radiography', 'speech', 'general'
 }

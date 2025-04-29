@@ -1,162 +1,153 @@
-
 import { Doctor } from "../types/Doctor";
-import { PaginatedResponse } from "@/types/common";
+import { MedicalDegree } from "../types/MedicalDegree";
+import { MedicalCouncil } from "../types/MedicalCouncil";
 
-export const DoctorMockService = {
-  generateMockDoctors: (size: number): Doctor[] => {
-    const mockDoctors: Doctor[] = [];
-    for (let i = 1; i <= size; i++) {
-      const specializationList = [
-        { id: 1, name: "Cardiology" },
-        { id: 2, name: "Neurology" },
-        { id: 3, name: "Pediatrics" }
-      ];
+const medicalDegrees: MedicalDegree[] = [
+    {
+        id: 1,
+        name: "MBBS"
+    },
+    {
+        id: 2,
+        name: "MD"
+    },
+    {
+        id: 3,
+        name: "DO"
+    }
+]
 
-      mockDoctors.push({
-        id: i,
-        firstname: `First${i}`,
-        lastname: `Last${i}`,
-        email: `doctor${i}@example.com`,
-        uid: `DOC-${i}`,
-        phone: `+123456789${i}`,
-        desgination: "Senior Physician",
-        specializationList: specializationList,
-        qualification: "MD",
-        joiningDate: new Date(2020, i % 12, (i % 28) + 1).toISOString(),
-        external: i % 3 === 0,
-        publishedOnline: i % 7 === 0,
-        registrationNumber: i % 7 === 0 ? `REG-${i*1000}` : undefined,
-        medicalDegree: "MD",
-        additionalInfoDoctor: i % 7 === 0 ? {
-          id: i,
-          registrationNumber: `REG-${i*1000}`,
-          medicalCouncil: "Medical Council of India",
-          registrationYear: "2018",
-          degreeCollege: "AIIMS",
-          yearCompletionDegree: "2015",
-          establishmentName: "Healthcare Center",
-          establishmentCity: "Mumbai",
-          state: null,
-          district: null,
-          establishmentType: "own" as "own" | "visit"
-        } : undefined,
-        user: {
-          id: i,
-          uid: `USR-${i}`,
-          branch: {
-            id: i % 3 + 1,
-            name: `Branch ${i % 3 + 1}`,
-            code: `BR-${i % 3 + 1}`,
-            location: `Location ${i % 3 + 1}`,
-            active: true,
-            state: null,
-            district: null,
-            country: null,
-            city: `City ${i % 3 + 1}`,
-            mapurl: "",
-            pincode: 12345,
-            image: "",
-            latitude: 0,
-            longitude: 0,
-          },
-          name: `User ${i}`,
-          username: `user${i}`,
-          email: `user${i}@example.com`,
-          phone: `+123456789${i}`,
-          password: `password${i}`,
-          effectiveTo: new Date(2025, i % 12, (i % 28) + 1),
-          effectiveFrom: new Date(2024, i % 12, (i % 28) + 1),
-          role: {
-            id: 1,
-            name: "Doctor",
-            permissions: [],
-          },
-          image: "",
+const medicalCouncils: MedicalCouncil[] = [
+    {
+        id: 1,
+        name: "Medical Council of India"
+    },
+    {
+        id: 2,
+        name: "Medical Council of UK"
+    },
+    {
+        id: 3,
+        name: "Medical Council of USA"
+    }
+]
+
+const doctors: Doctor[] = [
+    {
+        id: 1,
+        uid: "DOC-001",
+        firstname: "John",
+        lastname: "Doe",
+        email: "john.doe@example.com",
+        phone: "123-456-7890",
+        gender: "Male",
+        dob: "1980-01-01",
+        address: "123 Main St",
+        city: "Anytown",
+        state: "CA",
+        zip: "12345",
+        country: "USA",
+        speciality: "Cardiologist",
+        medicalDegree: "MBBS",
+        medicalCouncil: "Medical Council of India",
+        additionalInfo: {
+            registationNumber: "REG-001",
+            registationYear: "2005",
+            experience: "15",
+            biography: "John Doe is a cardiologist with 15 years of experience.",
         },
-        status: i % 2 === 0 ? "Active" : "Inactive",
-        about: `About doctor ${i}`,
-        image: "",
-        city: `City ${i % 5 + 1}`,
-        pincode: `${100000 + i}`,
-        biography: `Biography of doctor ${i}`,
-        gender: i % 2,
-        verified: i % 2 === 0,
-        expYear: i % 20 + 1,
-        percentages: [],
-        serviceList: [],
-        branchList: [],
-        languageList: [],
-        district: null,
-        state: null,
-        country: null,
-        consultationFee: (i * 100).toString(), // Convert to string
-        reviewCount: i % 50,
-        rating: (i % 5) + 1,
-      });
+        branchId: 1,
+        createdTime: "2021-01-01T00:00:00.000Z",
+        modifiedTime: "2021-01-01T00:00:00.000Z"
+    },
+    {
+        id: 2,
+        uid: "DOC-002",
+        firstname: "Jane",
+        lastname: "Smith",
+        email: "jane.smith@example.com",
+        phone: "987-654-3210",
+        gender: "Female",
+        dob: "1985-05-15",
+        address: "456 Elm St",
+        city: "Springfield",
+        state: "IL",
+        zip: "67890",
+        country: "USA",
+        speciality: "Dermatologist",
+        medicalDegree: "MD",
+        medicalCouncil: "Medical Council of UK",
+        additionalInfo: {
+            registationNumber: "REG-002",
+            registationYear: "2010",
+            experience: "10",
+            biography: "Jane Smith is a dermatologist with 10 years of experience.",
+        },
+        branchId: 2,
+        createdTime: "2021-02-15T00:00:00.000Z",
+        modifiedTime: "2021-02-15T00:00:00.000Z"
+    },
+    {
+        id: 3,
+        uid: "DOC-003",
+        firstname: "Mike",
+        lastname: "Johnson",
+        email: "mike.johnson@example.com",
+        phone: "555-123-4567",
+        gender: "Male",
+        dob: "1978-11-20",
+        address: "789 Oak St",
+        city: "Hill Valley",
+        state: "WA",
+        zip: "54321",
+        country: "USA",
+        speciality: "Pediatrician",
+        medicalDegree: "DO",
+        medicalCouncil: "Medical Council of USA",
+        additionalInfo: {
+            registationNumber: "REG-003",
+            registationYear: "2003",
+            experience: "17",
+            biography: "Mike Johnson is a pediatrician with 17 years of experience.",
+        },
+        branchId: 1,
+        createdTime: "2021-03-10T00:00:00.000Z",
+        modifiedTime: "2021-03-10T00:00:00.000Z"
     }
+]
 
-    return mockDoctors;
-  },
-
-  getById: (id: number): Promise<Doctor> => {
-    const mockDoctors = DoctorMockService.generateMockDoctors(100);
-    const doctor = mockDoctors.find(doc => doc.id === id);
-    
-    if (!doctor) {
-      return Promise.reject(new Error("Doctor not found"));
+export const doctorMockService = {
+    getAll: async (): Promise<Doctor[]> => {
+        return doctors;
+    },
+    getById: async (id: number): Promise<Doctor | undefined> => {
+        return doctors.find(doctor => doctor.id === id);
+    },
+    create: async (doctor: Doctor): Promise<Doctor> => {
+        doctor.id = doctors.length + 1;
+        doctors.push(doctor);
+        return doctor;
+    },
+    update: async (id: number, updatedDoctor: Doctor): Promise<Doctor | undefined> => {
+        const index = doctors.findIndex(doctor => doctor.id === id);
+        if (index !== -1) {
+            doctors[index] = { ...doctors[index], ...updatedDoctor };
+            return doctors[index];
+        }
+        return undefined;
+    },
+    delete: async (id: number): Promise<boolean> => {
+        const index = doctors.findIndex(doctor => doctor.id === id);
+        if (index !== -1) {
+            doctors.splice(index, 1);
+            return true;
+        }
+        return false;
+    },
+    getMedicalDegrees: async (): Promise<MedicalDegree[]> => {
+        return medicalDegrees;
+    },
+    getMedicalCouncils: async (): Promise<MedicalCouncil[]> => {
+        return medicalCouncils;
     }
-    
-    return Promise.resolve(doctor);
-  },
-  
-  list: (): Promise<Doctor[]> => {
-    return Promise.resolve(DoctorMockService.generateMockDoctors(100));
-  },
-
-  fetchPaginated: (
-    page: number, 
-    size: number, 
-    filter: { value: string; doctorType: boolean | null; specialization: string | null }
-  ): Promise<PaginatedResponse<Doctor>> => {
-    const mockDoctors = DoctorMockService.generateMockDoctors(100);
-    
-    const filteredDoctors = mockDoctors.filter((doctor) => {
-      // Filter by search term
-      const matchesValue = filter.value
-        ? doctor.firstname.toLowerCase().includes(filter.value.toLowerCase()) || 
-          doctor.lastname.toLowerCase().includes(filter.value.toLowerCase())
-        : true;
-
-      // Filter by doctor type (internal/external)
-      const matchesDoctorType = filter.doctorType 
-        ? (filter.doctorType === true ? doctor.external : !doctor.external)
-        : true;
-
-      // Filter by specialization
-      const matchesSpecialization = filter.specialization
-        ? doctor.specializationList.some((spec) => 
-            spec.name.toLowerCase() === filter.specialization?.toLowerCase()
-          )
-        : true;
-
-      return matchesValue && matchesDoctorType && matchesSpecialization;
-    });
-
-    const totalElements = filteredDoctors.length;
-    const totalPages = Math.ceil(totalElements / size);
-    const startIndex = page * size;
-    const endIndex = startIndex + size;
-    const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
-
-    return Promise.resolve({
-      content: paginatedDoctors,
-      totalElements,
-      totalPages,
-      size,
-      number: page,
-      first: page === 0,
-      last: page === totalPages - 1,
-      numberOfElements: paginatedDoctors.length,
-    });
-  }
 };

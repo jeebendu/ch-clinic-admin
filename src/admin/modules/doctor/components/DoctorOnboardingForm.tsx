@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,9 +19,9 @@ const establishmentTypeOptions = [
 ];
 
 const doctorOnboardingSchema = z.object({
-  registrationNumber: z.string().min(1, "Registration number is required"),
+  registationNumber: z.string().min(1, "Registration number is required"),
   medicalCouncil: z.string().min(1, "Registration council is required"),
-  registrationYear: z.string().min(4, "Registration year is required"),
+  registationYear: z.string().min(4, "Registration year is required"),
   specialityDegree: z.string().optional(),
   degreeCollege: z.string().min(1, "Institute is required"),
   yearCompletionDegree: z.string().optional(),
@@ -93,9 +92,9 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
     setBranchList(doctor.branchList || []);
     if (doctor?.additionalInfoDoctor) {
       form.reset({
-        registrationNumber: doctor.additionalInfoDoctor?.registrationNumber || "",
+        registationNumber: doctor.additionalInfoDoctor?.registationNumber || "",
         medicalCouncil: doctor.additionalInfoDoctor?.medicalCouncil || "",
-        registrationYear: doctor.additionalInfoDoctor?.registrationYear || "",
+        registationYear: doctor.additionalInfoDoctor?.registationYear || "",
         degreeCollege: doctor.additionalInfoDoctor?.degreeCollege || "",
         yearCompletionDegree: doctor.additionalInfoDoctor?.yearCompletionDegree || "",
         establishmentType: doctor.additionalInfoDoctor?.establishmentType || undefined,
@@ -124,8 +123,8 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
     resolver: zodResolver(doctorOnboardingSchema),
     defaultValues: {
       medicalCouncil: doctor?.additionalInfoDoctor?.medicalCouncil || "",
-      registrationYear: doctor?.additionalInfoDoctor?.registrationYear || "",
-      registrationNumber: doctor?.additionalInfoDoctor?.registrationNumber || "",
+      registationYear: doctor?.additionalInfoDoctor?.registationYear || "",
+      registationNumber: doctor?.additionalInfoDoctor?.registationNumber || "",
       degreeCollege: doctor?.additionalInfoDoctor?.degreeCollege || "",
       yearCompletionDegree: doctor?.additionalInfoDoctor?.yearCompletionDegree || "",
       establishmentType: doctor?.additionalInfoDoctor?.establishmentType || undefined,
@@ -140,8 +139,8 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
 
     const additionalInfoDoctor = {
       id: doctor.additionalInfoDoctor?.id || 0,
-      registrationNumber: data.registrationNumber,
-      registrationYear: data.registrationYear,
+      registationNumber: data.registationNumber,
+      registationYear: data.registationYear,
       medicalCouncil: data.medicalCouncil,
       degreeCollege: data.degreeCollege,
       yearCompletionDegree: data.yearCompletionDegree,
@@ -173,7 +172,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="registrationNumber"
+                name="registationNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Registration Number*</FormLabel>
@@ -204,7 +203,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
               />
               <FormField
                 control={form.control}
-                name="registrationYear"
+                name="registationYear"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Registration Year*</FormLabel>

@@ -70,7 +70,7 @@ export class Puretone {
   bcm: Dataset[];
   nor: Dataset[];
 
-  constructor(labels: string[]) {
+  constructor(labels: string[] = FREQUENCY_LABELS) {
     this.acu = labels.map(item => new Dataset(item, null));
     this.acm = labels.map(item => new Dataset(item, null));
     this.bcu = labels.map(item => new Dataset(item, null));
@@ -100,12 +100,11 @@ export class Audiogram {
   visitId?: string;
 
   constructor() {
-    const lineChartLabels = ['250', '500', '1000', '2000', '3000', '4000', '6000', '8000'];
-    const freqLabelList = ["PTA", "SAT", "SRT", "SDS", "MCL", "UCL"];
-    const earLabelList = ["RINNE", "WEBER"];
+    const freqLabelList = EAR_TEST_LABELS;
+    const earLabelList = EAR_LABEL_LIST;
     
-    this.puretoneLeft = new Puretone(lineChartLabels);
-    this.puretoneRight = new Puretone(lineChartLabels);
+    this.puretoneLeft = new Puretone(FREQUENCY_LABELS);
+    this.puretoneRight = new Puretone(FREQUENCY_LABELS);
     this.earLeft = freqLabelList.map(item => new DataMap(item, null));
     this.earRight = freqLabelList.map(item => new DataMap(item, null));
     this.testLeft = earLabelList.map(item => new DataMap(item, null));
@@ -137,4 +136,32 @@ export const AUDIOMETRY_CHART_OPTIONS: ChartOptions = {
       display: false
     }
   }
+};
+
+// Helper functions for creating chart datasets
+export const createBaseChartData = (
+  label: string,
+  pointStyle: string | HTMLImageElement,
+  color: string,
+  borderDash?: number[]
+): ChartDataset => {
+  const dataset: ChartDataset = {
+    data: [],
+    label: label,
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+    pointRadius: 8,
+    pointBackgroundColor: 'transparent',
+    tension: 0,
+    spanGaps: true,
+    borderColor: color,
+    pointBorderColor: color,
+    pointStyle: pointStyle,
+  };
+
+  if (borderDash) {
+    dataset.borderDash = borderDash;
+  }
+
+  return dataset;
 };
