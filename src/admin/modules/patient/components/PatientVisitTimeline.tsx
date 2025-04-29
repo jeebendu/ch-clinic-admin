@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +8,7 @@ import {
   FilePlus, 
   FileText, 
   TestTube, 
-  Prescription, 
+  FileBarChart, 
   ArrowRightLeft, 
   CheckCheck,
   ChevronDown,
@@ -215,7 +214,7 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                           color={visit.status === 'open' ? "text-amber-600" : "text-green-600"}
                         />
                         <VisitTimelineItem 
-                          icon={<Prescription className="h-4 w-4" />}
+                          icon={<FileBarChart className="h-4 w-4" />}
                           label="Prescription" 
                           status="Issued" 
                           color="text-green-600"
@@ -240,7 +239,7 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                           Add Test
                         </Button>
                         <Button size="sm" variant="outline">
-                          <Prescription className="mr-2 h-4 w-4" />
+                          <FileBarChart className="mr-2 h-4 w-4" />
                           Add Prescription
                         </Button>
                         <Button size="sm" variant="default">

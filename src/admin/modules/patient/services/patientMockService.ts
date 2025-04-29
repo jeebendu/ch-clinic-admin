@@ -70,7 +70,8 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     consultationFee: undefined,
     reviewCount: 0,
     rating: 0,
-    status: "Active"
+    status: "Active",
+    medicalDegree: "MBBS"
   };
 
   // Convert mock data to Patient type with all required properties

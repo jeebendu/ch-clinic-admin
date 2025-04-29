@@ -13,41 +13,54 @@ class AppointmentReqMockService {
         id: 1,
         firstname: "John",
         lastname: "Doe",
-        // Removed speciality as it doesn't exist in Doctor type
-        // Using the correct properties as defined in Doctor type
-        gender: "Male",
+        gender: 0, // Using numeric values for gender: 0=Male, 1=Female, 2=Other
         dob: new Date("1980-01-01"),
-        // Add other required properties
         photoUrl: "/placeholder.svg",
         address: "123 Main St",
-        isExternal: false,
-        state: { id: 1, name: "California" },
-        district: { id: 1, name: "Los Angeles" },
+        isExternal: false, // This should be "external" but keeping to match Doctor type
+        external: false,   // Added this to match Doctor type
+        state: { id: 1, name: "California", country: null },
+        district: { id: 1, name: "Los Angeles", state: null },
         user: {
           id: 1,
           email: "john.doe@example.com",
           phone: "1234567890",
-          enabled: true,
-          roles: []
+          roles: [],
+          uid: "USR001",
+          name: "John Doe",
+          username: "john.doe",
+          password: "",
+          branch: null,
+          image: "",
+          effectiveFrom: new Date(),
+          effectiveTo: new Date()
         }
       },
       {
         id: 2,
         firstname: "Jane",
         lastname: "Smith",
-        gender: "Female",
+        gender: 1, // 1=Female
         dob: new Date("1985-05-15"),
         photoUrl: "/placeholder.svg",
         address: "456 Oak Ave",
-        isExternal: true,
-        state: { id: 2, name: "New York" },
-        district: { id: 2, name: "Manhattan" },
+        isExternal: true, // This should be "external" but keeping to match Doctor type
+        external: true,   // Added this to match Doctor type
+        state: { id: 2, name: "New York", country: null },
+        district: { id: 2, name: "Manhattan", state: null },
         user: {
           id: 2,
           email: "jane.smith@example.com",
           phone: "9876543210",
-          enabled: true,
-          roles: []
+          roles: [],
+          uid: "USR002",
+          name: "Jane Smith",
+          username: "jane.smith",
+          password: "",
+          branch: null,
+          image: "",
+          effectiveFrom: new Date(),
+          effectiveTo: new Date()
         }
       },
     ];
@@ -56,42 +69,54 @@ class AppointmentReqMockService {
       {
         id: 101,
         uid: "PT001",
-        firstname: "Alice", // Corrected from firstName to firstname
-        lastname: "Johnson", // Corrected from lastName to lastname
+        firstname: "Alice",
+        lastname: "Johnson",
         gender: "Female",
         dob: new Date("1990-03-20"),
         age: 32,
         address: "789 Pine Rd",
-        // Add user field as it's required
         user: {
           id: 3,
-          phone: "5551234567", // Use phone instead of mobile
+          phone: "5551234567",
           email: "alice@example.com",
-          enabled: true,
-          roles: []
+          roles: [],
+          uid: "USR003",
+          name: "Alice Johnson",
+          username: "alice.johnson",
+          password: "",
+          branch: null,
+          image: "",
+          effectiveFrom: new Date(),
+          effectiveTo: new Date()
         },
-        state: { id: 1, name: "California" },
-        district: { id: 1, name: "Los Angeles" }
+        state: { id: 1, name: "California", country: null },
+        district: { id: 1, name: "Los Angeles", state: null }
       },
       {
         id: 102,
         uid: "PT002",
-        firstname: "Bob", // Corrected from firstName to firstname
-        lastname: "Miller", // Corrected from lastName to lastname
+        firstname: "Bob",
+        lastname: "Miller",
         gender: "Male",
         dob: new Date("1985-11-15"),
         age: 37,
         address: "101 Elm St",
-        // Add user field as it's required
         user: {
           id: 4,
-          phone: "5559876543", 
+          phone: "5559876543",
           email: "bob@example.com",
-          enabled: true,
-          roles: []
+          roles: [],
+          uid: "USR004",
+          name: "Bob Miller",
+          username: "bob.miller",
+          password: "",
+          branch: null,
+          image: "",
+          effectiveFrom: new Date(),
+          effectiveTo: new Date()
         },
-        state: { id: 2, name: "New York" },
-        district: { id: 2, name: "Brooklyn" }
+        state: { id: 2, name: "New York", country: null },
+        district: { id: 2, name: "Brooklyn", state: null }
       },
     ];
 
@@ -101,27 +126,38 @@ class AppointmentReqMockService {
       code: "MSC",
       active: true,
       city: "Los Angeles",
-      state: { id: 1, name: "California" },
-      district: { id: 1, name: "Downtown" },
+      state: { id: 1, name: "California", country: null },
+      district: { id: 1, name: "Downtown", state: null },
       address: "555 Main St",
       timings: "9:00 AM - 5:00 PM",
-      location: "Central", // Add location as it's used in filters
+      location: "Central",
       user: { 
         id: 5, 
         email: "clinic@example.com", 
         phone: "5551112222",
-        enabled: true,
-        roles: []
-      }
+        roles: [],
+        uid: "USR005",
+        name: "Clinic User",
+        username: "clinic.user",
+        password: "",
+        branch: null,
+        image: "",
+        effectiveFrom: new Date(),
+        effectiveTo: new Date()
+      },
+      country: null,
+      pincode: 12345,
+      image: "",
+      latitude: 0,
+      longitude: 0
     };
 
     const mockDoctorClinic: DoctorClinic = {
       id: 301,
       doctor: mockDoctors[0],
       branch: mockClinic,
-      // Remove clinicName as it's not in DoctorClinic type
       appointmentDuration: 30,
-      availableSlots: [1, 2, 3], // Changed from undefined[] to number[]
+      availableSlots: [1, 2, 3],
       active: true,
       consulting: true
     };
@@ -139,10 +175,9 @@ class AppointmentReqMockService {
         appointmentType: "CONSULTATION",
         bookingType: "ONLINE",
         createdAt: new Date("2023-05-25"),
-        patientName: `${mockPatients[0].firstname} ${mockPatients[0].lastname}`, // Corrected property names
-        patientContact: mockPatients[0].user.phone, // Using user.phone instead of mobile
-        doctorName: `${mockDoctors[0].firstname} ${mockDoctors[0].lastname}`, // Corrected property names
-        // Adding other required fields
+        patientName: `${mockPatients[0].firstname} ${mockPatients[0].lastname}`,
+        patientContact: mockPatients[0].user.phone,
+        doctorName: `${mockDoctors[0].firstname} ${mockDoctors[0].lastname}`,
         visitReason: "General checkup",
         followUp: false,
       },
@@ -158,10 +193,9 @@ class AppointmentReqMockService {
         appointmentType: "FOLLOWUP",
         bookingType: "WALK_IN",
         createdAt: new Date("2023-05-26"),
-        patientName: `${mockPatients[1].firstname} ${mockPatients[1].lastname}`, // Corrected property names
-        patientContact: mockPatients[1].user.phone, // Using user.phone instead of mobile
-        doctorName: `${mockDoctors[1].firstname} ${mockDoctors[1].lastname}`, // Corrected property names
-        // Adding other required fields
+        patientName: `${mockPatients[1].firstname} ${mockPatients[1].lastname}`,
+        patientContact: mockPatients[1].user.phone,
+        doctorName: `${mockDoctors[1].firstname} ${mockDoctors[1].lastname}`,
         visitReason: "Follow-up checkup",
         followUp: true,
       },

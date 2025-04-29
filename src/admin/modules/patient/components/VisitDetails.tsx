@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -9,7 +8,7 @@ import {
   Printer, 
   FileText, 
   TestTube, 
-  Prescription, 
+  FileBarChart, 
   ArrowRightLeft, 
   CheckCheck,
   UserCheck,
@@ -139,7 +138,7 @@ const VisitDetails = () => {
                   completed={tests.some(t => t.status === 'Completed')}
                 />
                 <VisitStepBadge 
-                  icon={<Prescription className="h-4 w-4" />} 
+                  icon={<FileBarChart className="h-4 w-4" />} 
                   label="Prescription" 
                   completed={prescriptions.length > 0}
                 />
@@ -177,7 +176,7 @@ const VisitDetails = () => {
             <TabsTrigger value="details"><Stethoscope className="h-4 w-4 mr-2" /> Details</TabsTrigger>
             <TabsTrigger value="vitals"><ThermometerSnowflake className="h-4 w-4 mr-2" /> Vitals</TabsTrigger>
             <TabsTrigger value="tests"><TestTube className="h-4 w-4 mr-2" /> Tests</TabsTrigger>
-            <TabsTrigger value="prescriptions"><Prescription className="h-4 w-4 mr-2" /> Prescriptions</TabsTrigger>
+            <TabsTrigger value="prescriptions"><FileBarChart className="h-4 w-4 mr-2" /> Prescriptions</TabsTrigger>
           </TabsList>
           
           <TabsContent value="details" className="mt-4 space-y-4">

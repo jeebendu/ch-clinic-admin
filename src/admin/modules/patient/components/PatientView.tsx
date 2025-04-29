@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,7 +18,7 @@ import {
   FilePlus,
   FileText, 
   TestTube, 
-  Prescription, 
+  FileBarChart, 
   ArrowRightLeft,
   CheckCheck,
   UserCheck,
@@ -144,7 +143,7 @@ const PatientView = () => {
               New Visit
             </Button>
             <Button onClick={handlePrescriptionClick} className="bg-clinic-primary hover:bg-clinic-primary/90">
-              <Prescription className="mr-2 h-4 w-4" />
+              <FileBarChart className="mr-2 h-4 w-4" />
               Create Prescription
             </Button>
           </div>

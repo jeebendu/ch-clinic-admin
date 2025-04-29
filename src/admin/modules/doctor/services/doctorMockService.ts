@@ -17,7 +17,7 @@ export const DoctorMockService = {
         firstname: `First${i}`,
         lastname: `Last${i}`,
         email: `doctor${i}@example.com`,
-        uid: `DOC-${i}`,  // Ensure it's a string
+        uid: `DOC-${i}`,
         phone: `+123456789${i}`,
         desgination: "Senior Physician",
         specializationList: specializationList,
@@ -26,17 +26,19 @@ export const DoctorMockService = {
         external: i % 3 === 0,
         publishedOnline: i % 7 === 0,
         registrationNumber: i % 7 === 0 ? `REG-${i*1000}` : undefined,
+        medicalDegree: "MD",
         additionalInfoDoctor: i % 7 === 0 ? {
           id: i,
-          registationNumber: `REG-${i*1000}`,
-          registationCouncil: "Medical Council of India",
-          registationYear: "2018",
+          registrationNumber: `REG-${i*1000}`,
+          medicalCouncil: "Medical Council of India",
+          registrationYear: "2018",
           degreeCollege: "AIIMS",
           yearCompletionDegree: "2015",
           establishmentName: "Healthcare Center",
           establishmentCity: "Mumbai",
           state: null,
-          district: null
+          district: null,
+          establishmentType: "own" as "own" | "visit"
         } : undefined,
         user: {
           id: i,
