@@ -51,9 +51,6 @@ const DoctorList = () => {
     }
   ]);
 
-
-
-
   const {
     doctors,
     loading,
@@ -103,7 +100,7 @@ const DoctorList = () => {
 
   useEffect(() => {
     fetchSpecializations();
-}, []);
+  }, []);
 
   const fetchSpecializations = async () => {
     try {
@@ -132,7 +129,6 @@ const DoctorList = () => {
     }
   };
 
-
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedFilters({
@@ -146,11 +142,10 @@ const DoctorList = () => {
     });
   };
 
-
   const handleViewModeToggle = () => {
     setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
- 
+
   const handleAddDoctor = () => {
     setSelectedDoctor(null);
     setShowForm(true);
@@ -163,8 +158,9 @@ const DoctorList = () => {
 
   const handleViewDoctor = (doctor: any) => {
     setSelectedDoctor(doctor);
-      setShowViewModal(true);
+    setShowViewModal(true);
   };
+
   const handleFormClose = () => {
     setShowForm(false);
     setSelectedDoctor(null);
@@ -236,6 +232,31 @@ const DoctorList = () => {
     }
   };
 
+  const filteredDoctors = (Array.isArray(doctors) ? doctors : []).filter((doctor: Doctor) => {
+    // Name filter
+    if (searchTerm && !`${doctor.firstname} ${doctor.lastname}`.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // Doctor type filter
+    if (selectedFilters.doctorType.length > 0) {
+      const typeMatch = selectedFilters.doctorType.includes(doctor.isExternal ? 'external' : 'internal');
+      if (!typeMatch) return false;
+    }
+
+    // Specialization filter
+    if (selectedFilters.specialization.length > 0) {
+      const specializationMatch = doctor.specialization 
+        ? selectedFilters.specialization.some((spec: string) => 
+            doctor.specialization?.some((docSpec: any) => docSpec.name.toLowerCase() === spec.toLowerCase())
+          )
+        : false;
+      if (!specializationMatch) return false;
+    }
+
+    return true;
+  });
+
   return (
     <AdminLayout>
       <div className="h-full flex flex-col" onScroll={handleScroll}>
@@ -269,14 +290,14 @@ const DoctorList = () => {
         <div className="flex-1 overflow-auto">
           {viewMode === 'grid' ? (
             <DoctorGrid
-              doctors={doctors}
+              doctors={filteredDoctors}
               loading={loading}
               onDoctorClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
             />
           ) : (
             <DoctorTable
-              doctors={doctors}
+              doctors={filteredDoctors}
               loading={loading}
               onViewClick={handleViewDoctor}
               onEditClick={handleEditDoctor}

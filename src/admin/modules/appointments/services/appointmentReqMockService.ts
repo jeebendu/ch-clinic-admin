@@ -1,123 +1,174 @@
-import { Appointment } from "../types/Appointment";
+
+import { AppointmentRequest } from "../types/AppointmentRequest";
+import { Patient } from "../../patient/types/Patient";
 import { Doctor } from "../../doctor/types/Doctor";
+import { Slot } from "../types/Slot";
+import { DoctorClinic } from "../types/DoctorClinic";
+import { Branch } from "../../branch/types/Branch";
 
-export const getMockAppointmentRequests = (page: number, size: number, searchTerm?: string) => {
-  const mockAppointmentRequests: Appointment[] = [];
-
-  // Generate 50 mock appointment requests
-  for (let i = 0; i < 50; i++) {
-    const mockDoctor: Doctor = {
-      id: i % 3 + 1,
-      // Using the correct property names from Doctor type
-      firstname: `Doctor`,
-      lastname: `${i % 3 + 1}`,
-      email: `doctor${i%3+1}@example.com`,
-      phone: `123456789${i%3}`,
-      publishedOnline: false,
-      additionalInfoDoctor: null,
-      branchList: [],
-      // Other required Doctor properties
-      uid: `doctor-uid-${i}`,
-      expYear: 5,
-      external: false,
-      desgination: 'Senior Doctor',
-      qualification: 'MD',
-      joiningDate: '2022-01-01',
-      about: 'Experienced doctor',
-      image: '',
-      pincode: '123456',
-      city: 'City',
-      biography: '',
-      gender: 1,
-      verified: true,
-      percentages: [],
-      specializationList: [],
-      serviceList: [],
-      languageList: [],
-      user: null,
-      district: null,
-      state: null,
-      country: null,
-      consultationFee: '500',
-      reviewCount: 0,
-      rating: 4.5,
-      status: 'active'
-    };
-
-    const mockAppointmentRequest: Appointment = {
-      id: i + 1,
-      isAccept: false,
-      status: 'Pending',
-      appointmentDate: new Date(),
-      appointmentType: 'direct-visit',
-      patient: {
-        id: i + 1,
-        // Using correct property names from Patient type
-        firstname: `Patient`,
-        lastname: `${i + 1}`,
-        email: `patient${i+1}@example.com`,
-        // Add other required Patient properties
-        uid: `patient-uid-${i}`,
-        gender: 'Male',
-        dob: new Date(),
-        age: 30,
-        address: 'Address',
-        refDoctor: null,
-        user: null,
-        state: null,
-        district: null
+class AppointmentReqMockService {
+  getAll() {
+    const mockDoctors: Doctor[] = [
+      {
+        id: 1,
+        firstname: "John",
+        lastname: "Doe",
+        // Removed speciality as it doesn't exist in Doctor type
+        // Using the correct properties as defined in Doctor type
+        gender: "Male",
+        dob: new Date("1980-01-01"),
+        // Add other required properties
+        photoUrl: "/placeholder.svg",
+        address: "123 Main St",
+        isExternal: false,
+        state: { id: 1, name: "California" },
+        district: { id: 1, name: "Los Angeles" },
+        user: {
+          id: 1,
+          email: "john.doe@example.com",
+          phone: "1234567890",
+          enabled: true,
+          roles: []
+        }
       },
-      doctor: mockDoctor,
-      slot: {
-        id: i + 1,
-        startTime: '10:00',
-        endTime: '11:00',
-        // Correct type for availableSlots
-        availableSlots: 5 // Changed from undefined[] to a number
+      {
+        id: 2,
+        firstname: "Jane",
+        lastname: "Smith",
+        gender: "Female",
+        dob: new Date("1985-05-15"),
+        photoUrl: "/placeholder.svg",
+        address: "456 Oak Ave",
+        isExternal: true,
+        state: { id: 2, name: "New York" },
+        district: { id: 2, name: "Manhattan" },
+        user: {
+          id: 2,
+          email: "jane.smith@example.com",
+          phone: "9876543210",
+          enabled: true,
+          roles: []
+        }
       },
-      familyMember: null,
-      doctorClinic: {
-        id: i + 1,
-        // Using correct properties for DoctorClinic
-        doctor: mockDoctor,
-        clinic: {
-          id: i + 1,
-          name: `Clinic ${i + 1}`,
-          location: 'Location',
-          address: 'Address',
-          contactNo: '123456789'
-        } 
+    ];
+
+    const mockPatients: Patient[] = [
+      {
+        id: 101,
+        uid: "PT001",
+        firstname: "Alice", // Corrected from firstName to firstname
+        lastname: "Johnson", // Corrected from lastName to lastname
+        gender: "Female",
+        dob: new Date("1990-03-20"),
+        age: 32,
+        address: "789 Pine Rd",
+        // Add user field as it's required
+        user: {
+          id: 3,
+          phone: "5551234567", // Use phone instead of mobile
+          email: "alice@example.com",
+          enabled: true,
+          roles: []
+        },
+        state: { id: 1, name: "California" },
+        district: { id: 1, name: "Los Angeles" }
+      },
+      {
+        id: 102,
+        uid: "PT002",
+        firstname: "Bob", // Corrected from firstName to firstname
+        lastname: "Miller", // Corrected from lastName to lastname
+        gender: "Male",
+        dob: new Date("1985-11-15"),
+        age: 37,
+        address: "101 Elm St",
+        // Add user field as it's required
+        user: {
+          id: 4,
+          phone: "5559876543", 
+          email: "bob@example.com",
+          enabled: true,
+          roles: []
+        },
+        state: { id: 2, name: "New York" },
+        district: { id: 2, name: "Brooklyn" }
+      },
+    ];
+
+    const mockClinic: Branch = {
+      id: 201,
+      name: "Main Street Clinic",
+      code: "MSC",
+      active: true,
+      city: "Los Angeles",
+      state: { id: 1, name: "California" },
+      district: { id: 1, name: "Downtown" },
+      address: "555 Main St",
+      timings: "9:00 AM - 5:00 PM",
+      location: "Central", // Add location as it's used in filters
+      user: { 
+        id: 5, 
+        email: "clinic@example.com", 
+        phone: "5551112222",
+        enabled: true,
+        roles: []
       }
     };
 
-    mockAppointmentRequests.push(mockAppointmentRequest);
+    const mockDoctorClinic: DoctorClinic = {
+      id: 301,
+      doctor: mockDoctors[0],
+      branch: mockClinic,
+      // Remove clinicName as it's not in DoctorClinic type
+      appointmentDuration: 30,
+      availableSlots: [1, 2, 3], // Changed from undefined[] to number[]
+      active: true,
+      consulting: true
+    };
+
+    const mockRequests: AppointmentRequest[] = [
+      {
+        id: 1,
+        patient: mockPatients[0],
+        doctor: mockDoctors[0],
+        date: new Date("2023-06-01"),
+        slot: { id: 1, startTime: "09:00", endTime: "09:30" } as Slot,
+        branch: mockClinic,
+        doctorClinic: mockDoctorClinic,
+        status: "PENDING",
+        appointmentType: "CONSULTATION",
+        bookingType: "ONLINE",
+        createdAt: new Date("2023-05-25"),
+        patientName: `${mockPatients[0].firstname} ${mockPatients[0].lastname}`, // Corrected property names
+        patientContact: mockPatients[0].user.phone, // Using user.phone instead of mobile
+        doctorName: `${mockDoctors[0].firstname} ${mockDoctors[0].lastname}`, // Corrected property names
+        // Adding other required fields
+        visitReason: "General checkup",
+        followUp: false,
+      },
+      {
+        id: 2,
+        patient: mockPatients[1],
+        doctor: mockDoctors[1],
+        date: new Date("2023-06-02"),
+        slot: { id: 2, startTime: "10:00", endTime: "10:30" } as Slot,
+        branch: mockClinic,
+        doctorClinic: mockDoctorClinic,
+        status: "CONFIRMED",
+        appointmentType: "FOLLOWUP",
+        bookingType: "WALK_IN",
+        createdAt: new Date("2023-05-26"),
+        patientName: `${mockPatients[1].firstname} ${mockPatients[1].lastname}`, // Corrected property names
+        patientContact: mockPatients[1].user.phone, // Using user.phone instead of mobile
+        doctorName: `${mockDoctors[1].firstname} ${mockDoctors[1].lastname}`, // Corrected property names
+        // Adding other required fields
+        visitReason: "Follow-up checkup",
+        followUp: true,
+      },
+    ];
+
+    return mockRequests;
   }
+}
 
-  // Apply search filter if provided
-  let filteredAppointmentRequests = [...mockAppointmentRequests];
-  if (searchTerm) {
-    const term = searchTerm.toLowerCase();
-    filteredAppointmentRequests = filteredAppointmentRequests.filter(
-      (appointment) =>
-        `${appointment.patient.firstname} ${appointment.patient.lastname}`.toLowerCase().includes(term) ||
-        appointment.patient.email.toLowerCase().includes(term) ||
-        `${appointment.doctor.firstname} ${appointment.doctor.lastname}`.toLowerCase().includes(term) ||
-        appointment.status.toLowerCase().includes(term)
-    );
-  }
-
-  // Paginate
-  const startIndex = page * size;
-  const paginatedAppointmentRequests = filteredAppointmentRequests.slice(startIndex, startIndex + size);
-
-  return Promise.resolve({
-    data: {
-      content: paginatedAppointmentRequests,
-      totalElements: filteredAppointmentRequests.length,
-      totalPages: Math.ceil(filteredAppointmentRequests.length / size),
-      size: size,
-      number: page,
-      last: startIndex + size >= filteredAppointmentRequests.length,
-    },
-  });
-};
+export default new AppointmentReqMockService();
