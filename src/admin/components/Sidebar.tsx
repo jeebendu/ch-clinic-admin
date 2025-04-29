@@ -96,7 +96,17 @@ const navItems: NavItem[] = [
         label: "Speciality",
         href: "/admin/doctor/speciality",
         roles: ["Admin"]
-      }
+      },
+      {
+        label: "Medical Council",
+        href: "/admin/medical-council",
+        roles: ["Admin"]
+      },
+      {
+        label: "Degree",
+        href: "/admin/medical-degree",
+        roles: ["Admin"]
+      },
     ]
   },
   { 
