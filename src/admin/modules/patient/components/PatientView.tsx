@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Patient } from '../types/Patient';
 import { format } from 'date-fns';
-import { ArrowLeft, Calendar, Mail, MapPin, Phone, User } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Calendar, 
+  Mail, 
+  MapPin, 
+  Phone, 
+  Plus,
+  FilePlus,
+  FileText, 
+  TestTube, 
+  Prescription, 
+  ArrowRightLeft,
+  CheckCheck,
+  UserCheck,
+  Thermometer
+} from 'lucide-react';
 import PatientService from '../services/patientService';
-import PatientVisits from './tabs/PatientVisits';
-import PatientDiagnosis from './tabs/PatientDiagnosis';
-import PatientReports from './tabs/PatientReports';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { Separator } from '@/components/ui/separator';
+import PatientVisitTimeline from './PatientVisitTimeline';
+import PatientInfoCard from './PatientInfoCard';
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +37,7 @@ const PatientView = () => {
   const { toast } = useToast();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('timeline');
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -74,6 +88,14 @@ const PatientView = () => {
     navigate(`/admin/patients/prescription/${id}`);
   };
 
+  const handleNewVisitClick = () => {
+    // In a real app, this would create a new visit and redirect to it
+    toast({
+      title: "New visit",
+      description: "Creating a new patient visit...",
+    });
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -113,246 +135,104 @@ const PatientView = () => {
             <h2 className="text-2xl font-bold">Patient Details</h2>
           </div>
           <div className="flex gap-2">
+            <Button 
+              onClick={handleNewVisitClick} 
+              variant="outline"
+              className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+            >
+              <FilePlus className="mr-2 h-4 w-4" />
+              New Visit
+            </Button>
             <Button onClick={handlePrescriptionClick} className="bg-clinic-primary hover:bg-clinic-primary/90">
+              <Prescription className="mr-2 h-4 w-4" />
               Create Prescription
             </Button>
           </div>
         </div>
 
-        {/* Main Patient Info Card */}
-        <Card>
-          <CardHeader className="bg-muted/50 pb-2">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-2 border-white">
-                  <AvatarImage src={patient.photoUrl} />
-                  <AvatarFallback className="text-lg bg-primary text-primary-foreground">
-                    {getInitials(patient.fullName || `${patient.firstname} ${patient.lastname}`)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-xl">{patient.firstname} {patient.lastname}</CardTitle>
-                  <div className="text-sm text-muted-foreground">{patient.uid}</div>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <Badge variant="outline">{patient.gender}</Badge>
-                    <Badge variant="outline">{patient.age} years</Badge>
-                    {patient.insuranceProvider && (
-                      <Badge variant="outline" className="bg-blue-50 text-blue-800 hover:bg-blue-100">
-                        {patient.insuranceProvider}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  Edit Patient
-                </Button>
-                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                  Delete
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            {/* Essential Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Basic Contact Info */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{patient.user?.phone || 'No phone'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{patient.user?.email || 'No email'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>DOB: {formatDate(patient.dob)}</span>
-                </div>
-              </div>
-              
-              {/* Address */}
-              <div className="space-y-2">
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-                  <div>
-                    {patient.address || 'No address'}
-                    {patient.city && (
-                      <div className="text-sm text-muted-foreground">
-                        {patient.city}, {patient.state?.name || 'N/A'}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+        {/* Patient Info Card */}
+        <PatientInfoCard patient={patient} formatDate={formatDate} getInitials={getInitials} />
 
-              {/* Medical Summary */}
-              <div className="space-y-2">
-                <span className="text-sm font-medium">Insurance: </span>
-                <span className="text-sm">{patient.insuranceProvider || 'None'}</span>
-                {patient.lastVisit && (
-                  <div className="text-sm">
-                    <span className="font-medium">Last Visit: </span>
-                    {formatDate(patient.lastVisit)}
-                  </div>
-                )}
-                {patient.refDoctor && (
-                  <div className="text-sm">
-                    <span className="font-medium">Ref Doctor: </span>
-                    Dr. {patient.refDoctor.firstname} {patient.refDoctor.lastname}
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="visits">Visits</TabsTrigger>
-            <TabsTrigger value="diagnosis">Diagnosis</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
+            <TabsTrigger value="timeline">Visit Timeline</TabsTrigger>
+            <TabsTrigger value="medical">Medical Records</TabsTrigger>
+            <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+            <TabsTrigger value="reports">Reports & Tests</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview" className="mt-4">
+          <TabsContent value="timeline" className="mt-4">
+            <PatientVisitTimeline patientId={patient.id.toString()} />
+          </TabsContent>
+          
+          <TabsContent value="medical" className="mt-4">
             <Card>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Personal Information */}
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Medical History</CardTitle>
+                <CardDescription>Medical records and diagnoses</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {patient.medicalHistory ? (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Personal Details</h3>
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="font-medium text-muted-foreground">Full Name:</span>
-                        <span className="col-span-2">{patient.firstname} {patient.lastname}</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="font-medium text-muted-foreground">Gender:</span>
-                        <span className="col-span-2">{patient.gender}</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="font-medium text-muted-foreground">Age:</span>
-                        <span className="col-span-2">{patient.age} years</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="font-medium text-muted-foreground">Patient ID:</span>
-                        <span className="col-span-2">{patient.uid}</span>
-                      </div>
-                      
-                      {patient.problem && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-muted-foreground">Problem:</span>
-                          <span className="col-span-2">{patient.problem}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <Separator />
-
-                    {/* Additional Contact Info */}
-                    <h3 className="text-lg font-medium">Contact Details</h3>
-                    <div className="space-y-2">
-                      {patient.whatsappNo && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-muted-foreground">WhatsApp:</span>
-                          <span className="col-span-2">{patient.whatsappNo}</span>
-                        </div>
-                      )}
-                      
-                      {patient.user?.email && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-muted-foreground">Email:</span>
-                          <span className="col-span-2">{patient.user.email}</span>
-                        </div>
-                      )}
-                      
-                      {patient.user?.phone && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-muted-foreground">Phone:</span>
-                          <span className="col-span-2">{patient.user.phone}</span>
-                        </div>
-                      )}
-                      
-                      {patient.createdTime && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-muted-foreground">Registered On:</span>
-                          <span className="col-span-2">{formatDate(patient.createdTime)}</span>
-                        </div>
-                      )}
+                    <div className="p-4 bg-muted/40 rounded-md">
+                      <p className="text-sm">{patient.medicalHistory}</p>
                     </div>
                   </div>
-
-                  {/* Medical Information */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Medical Information</h3>
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="font-medium text-muted-foreground">Insurance:</span>
-                        <span className="col-span-2">
-                          {patient.insuranceProvider || 'None'}
-                          {patient.insurancePolicyNumber && (
-                            <span className="ml-1 text-sm text-muted-foreground">
-                              (Policy: {patient.insurancePolicyNumber})
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                      
-                      {patient.refDoctor && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-muted-foreground">Referring Doctor:</span>
-                          <span className="col-span-2">
-                            Dr. {patient.refDoctor.firstname} {patient.refDoctor.lastname}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {patient.lastVisit && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-muted-foreground">Last Visit:</span>
-                          <span className="col-span-2">{formatDate(patient.lastVisit)}</span>
-                        </div>
-                      )}
-
-                      {patient.branch && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-muted-foreground">Branch:</span>
-                          <span className="col-span-2">{patient.branch.name}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {patient.medicalHistory && (
-                      <>
-                        <Separator />
-                        <h3 className="text-lg font-medium">Medical History</h3>
-                        <div className="p-3 bg-muted/40 rounded-md">
-                          {patient.medicalHistory}
-                        </div>
-                      </>
-                    )}
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No medical history recorded</p>
+                    <Button variant="outline" className="mt-2">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Medical History
+                    </Button>
                   </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="prescriptions" className="mt-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-lg">Prescription History</CardTitle>
+                    <CardDescription>All prescriptions issued to the patient</CardDescription>
+                  </div>
+                  <Button size="sm" onClick={handlePrescriptionClick}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Prescription
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No prescriptions found</p>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
           
-          <TabsContent value="visits" className="mt-4">
-            <PatientVisits patientId={patient.id.toString()} />
-          </TabsContent>
-          
-          <TabsContent value="diagnosis" className="mt-4">
-            <PatientDiagnosis patientId={patient.id.toString()} />
-          </TabsContent>
-          
           <TabsContent value="reports" className="mt-4">
-            <PatientReports patientId={patient.id.toString()} />
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-lg">Test Reports</CardTitle>
+                    <CardDescription>Lab tests, imaging, and other diagnostics</CardDescription>
+                  </div>
+                  <Button size="sm" variant="outline">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Report
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No reports found</p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
