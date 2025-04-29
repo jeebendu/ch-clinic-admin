@@ -15,6 +15,7 @@ import PatientVisits from './tabs/PatientVisits';
 import PatientDiagnosis from './tabs/PatientDiagnosis';
 import PatientReports from './tabs/PatientReports';
 import { AdminLayout } from '@/admin/components/AdminLayout';
+import { Separator } from '@/components/ui/separator';
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
@@ -69,6 +70,10 @@ const PatientView = () => {
     navigate(-1);
   };
 
+  const handlePrescriptionClick = () => {
+    navigate(`/admin/patients/prescription/${id}`);
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -99,16 +104,24 @@ const PatientView = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleBackClick}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <h2 className="text-2xl font-bold">Patient Details</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleBackClick}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <h2 className="text-2xl font-bold">Patient Details</h2>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handlePrescriptionClick} className="bg-clinic-primary hover:bg-clinic-primary/90">
+              Create Prescription
+            </Button>
+          </div>
         </div>
 
+        {/* Main Patient Info Card */}
         <Card>
-          <CardHeader className="bg-muted/50">
+          <CardHeader className="bg-muted/50 pb-2">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16 border-2 border-white">
@@ -141,6 +154,59 @@ const PatientView = () => {
               </div>
             </div>
           </CardHeader>
+          <CardContent className="p-4">
+            {/* Essential Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Basic Contact Info */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{patient.user?.phone || 'No phone'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span>{patient.user?.email || 'No email'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>DOB: {formatDate(patient.dob)}</span>
+                </div>
+              </div>
+              
+              {/* Address */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                  <div>
+                    {patient.address || 'No address'}
+                    {patient.city && (
+                      <div className="text-sm text-muted-foreground">
+                        {patient.city}, {patient.state?.name || 'N/A'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Medical Summary */}
+              <div className="space-y-2">
+                <span className="text-sm font-medium">Insurance: </span>
+                <span className="text-sm">{patient.insuranceProvider || 'None'}</span>
+                {patient.lastVisit && (
+                  <div className="text-sm">
+                    <span className="font-medium">Last Visit: </span>
+                    {formatDate(patient.lastVisit)}
+                  </div>
+                )}
+                {patient.refDoctor && (
+                  <div className="text-sm">
+                    <span className="font-medium">Ref Doctor: </span>
+                    Dr. {patient.refDoctor.firstname} {patient.refDoctor.lastname}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -155,86 +221,122 @@ const PatientView = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Personal Information */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Personal Information</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">Full Name:</span>
-                        <span>{patient.firstname} {patient.lastname}</span>
+                    <h3 className="text-lg font-medium">Personal Details</h3>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Full Name:</span>
+                        <span className="col-span-2">{patient.firstname} {patient.lastname}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">Date of Birth:</span>
-                        <span>{formatDate(patient.dob)}</span>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Gender:</span>
+                        <span className="col-span-2">{patient.gender}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className="h-5 rounded-full">{patient.gender}</Badge>
-                        <Badge className="h-5 rounded-full">{patient.age} years</Badge>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Age:</span>
+                        <span className="col-span-2">{patient.age} years</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">Address:</span>
-                        <span>{patient.address || 'Not provided'}</span>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Patient ID:</span>
+                        <span className="col-span-2">{patient.uid}</span>
                       </div>
-                      {patient.city && (
-                        <div className="flex items-start gap-2">
-                          <span className="font-medium ml-6">City/State:</span>
-                          <span>{patient.city}, {patient.state?.name || 'N/A'}</span>
+                      
+                      {patient.problem && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Problem:</span>
+                          <span className="col-span-2">{patient.problem}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Additional Contact Info */}
+                    <h3 className="text-lg font-medium">Contact Details</h3>
+                    <div className="space-y-2">
+                      {patient.whatsappNo && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">WhatsApp:</span>
+                          <span className="col-span-2">{patient.whatsappNo}</span>
+                        </div>
+                      )}
+                      
+                      {patient.user?.email && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Email:</span>
+                          <span className="col-span-2">{patient.user.email}</span>
+                        </div>
+                      )}
+                      
+                      {patient.user?.phone && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Phone:</span>
+                          <span className="col-span-2">{patient.user.phone}</span>
+                        </div>
+                      )}
+                      
+                      {patient.createdTime && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Registered On:</span>
+                          <span className="col-span-2">{formatDate(patient.createdTime)}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
+                  {/* Medical Information */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Contact Information</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">Email:</span>
-                        <span>{patient.user?.email || 'Not provided'}</span>
+                    <h3 className="text-lg font-medium">Medical Information</h3>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Insurance:</span>
+                        <span className="col-span-2">
+                          {patient.insuranceProvider || 'None'}
+                          {patient.insurancePolicyNumber && (
+                            <span className="ml-1 text-sm text-muted-foreground">
+                              (Policy: {patient.insurancePolicyNumber})
+                            </span>
+                          )}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">Phone:</span>
-                        <span>{patient.user?.phone || 'Not provided'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">WhatsApp:</span>
-                        <span>{patient.whatsappNo || 'Not provided'}</span>
-                      </div>
-                    </div>
+                      
+                      {patient.refDoctor && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Referring Doctor:</span>
+                          <span className="col-span-2">
+                            Dr. {patient.refDoctor.firstname} {patient.refDoctor.lastname}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {patient.lastVisit && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Last Visit:</span>
+                          <span className="col-span-2">{formatDate(patient.lastVisit)}</span>
+                        </div>
+                      )}
 
-                    <h3 className="text-lg font-medium mt-6">Medical Information</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <span className="font-medium">Insurance:</span>
-                        <span className="ml-2">{patient.insuranceProvider || 'None'}</span>
-                        {patient.insurancePolicyNumber && (
-                          <div className="ml-6 text-sm text-muted-foreground">
-                            Policy: {patient.insurancePolicyNumber}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <span className="font-medium">Referring Doctor:</span>
-                        <span className="ml-2">{patient.refDoctor ? `Dr. ${patient.refDoctor.firstname} ${patient.refDoctor.lastname}` : 'None'}</span>
-                      </div>
-                      
-                      <div>
-                        <span className="font-medium">Last Visit:</span>
-                        <span className="ml-2">{patient.lastVisit ? formatDate(patient.lastVisit) : 'No previous visits'}</span>
-                      </div>
-                      
-                      {patient.medicalHistory && (
-                        <div>
-                          <span className="font-medium">Medical History:</span>
-                          <p className="mt-1 text-sm p-3 bg-muted rounded-md">{patient.medicalHistory}</p>
+                      {patient.branch && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Branch:</span>
+                          <span className="col-span-2">{patient.branch.name}</span>
                         </div>
                       )}
                     </div>
+
+                    {patient.medicalHistory && (
+                      <>
+                        <Separator />
+                        <h3 className="text-lg font-medium">Medical History</h3>
+                        <div className="p-3 bg-muted/40 rounded-md">
+                          {patient.medicalHistory}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
