@@ -18,7 +18,7 @@ const doctorMockService = {
         phone: "1234567890",
         gender: "Male",
         dob: new Date(1980, 5, 15).toISOString(),
-        additionalInfo: {
+        additionalInfoDoctor: {
           id: 1,
           registationNumber: "REG12345",
           registationYear: "2010",
@@ -52,8 +52,11 @@ const doctorMockService = {
           { id: 1, name: "Cardiology" },
           { id: 2, name: "General Medicine" }
         ],
+        verified: true,
         active: true,
-        external: false
+        external: false,
+        desgination: "Senior Consultant",
+        expYear: 15
       },
       {
         id: 2,
@@ -64,7 +67,7 @@ const doctorMockService = {
         phone: "0987654321",
         gender: "Female",
         dob: new Date(1985, 3, 22).toISOString(),
-        additionalInfo: {
+        additionalInfoDoctor: {
           id: 2,
           registationNumber: "REG54321",
           registationYear: "2015",
@@ -98,8 +101,11 @@ const doctorMockService = {
           { id: 3, name: "Pediatrics" },
           { id: 4, name: "Neonatology" }
         ],
+        verified: true,
         active: true,
-        external: true
+        external: true,
+        desgination: "Consultant",
+        expYear: 8
       },
       {
         id: 3,
@@ -110,7 +116,7 @@ const doctorMockService = {
         phone: "5556667777",
         gender: "Male",
         dob: new Date(1975, 8, 10).toISOString(),
-        additionalInfo: {
+        additionalInfoDoctor: {
           id: 3,
           registationNumber: "REG78901",
           registationYear: "2005",
@@ -144,8 +150,11 @@ const doctorMockService = {
           { id: 5, name: "Orthopedics" },
           { id: 6, name: "Sports Medicine" }
         ],
-        active: true,
-        external: false
+        verified: false,
+        active: false,
+        external: false,
+        desgination: "Senior Specialist",
+        expYear: 20
       }
     ]);
   },
@@ -162,7 +171,7 @@ const doctorMockService = {
         phone: "1234567890",
         gender: "Male",
         dob: new Date(1980, 5, 15).toISOString(),
-        additionalInfo: {
+        additionalInfoDoctor: {
           id: 1,
           registationNumber: "REG12345",
           registationYear: "2010",
@@ -196,10 +205,13 @@ const doctorMockService = {
           { id: 1, name: "Cardiology" },
           { id: 2, name: "General Medicine" }
         ],
+        verified: true,
         active: true,
-        external: false
+        external: false,
+        desgination: "Senior Consultant",
+        expYear: 15
       }
-    ];
+    ] as Doctor[];
     
     const foundDoctor = doctors.find(doctor => doctor.id === id);
     return Promise.resolve(foundDoctor || doctors[0]);

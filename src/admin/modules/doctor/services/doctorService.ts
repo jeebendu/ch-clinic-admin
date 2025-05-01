@@ -57,7 +57,6 @@ const DoctorService = {
         first: page === 1,
         last: page === Math.ceil(filteredDoctors.length / pageSize),
         numberOfElements: filteredDoctors.slice(start, end).length,
-        empty: filteredDoctors.length === 0,
       };
     }
     

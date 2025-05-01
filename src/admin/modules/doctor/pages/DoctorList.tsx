@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/admin/components/AdminLayout';
 import PageHeader from '@/admin/components/PageHeader';
@@ -184,7 +183,7 @@ const DoctorList = () => {
                         ))}
                       </TableCell>
                       <TableCell>
-                        {doctor.active ? (
+                        {doctor.verified ? (
                           <Badge variant="outline">Active</Badge>
                         ) : (
                           <Badge variant="destructive">Inactive</Badge>
@@ -240,10 +239,12 @@ const DoctorList = () => {
           </div>
           <Pagination>
             <PaginationContent>
-              <PaginationPrevious href="#" onClick={() => handlePageChange(page - 1)} disabled={page === 1} />
+              <PaginationPrevious href="#" onClick={() => handlePageChange(page - 1)} aria-disabled={page === 1} />
               {/* Display page numbers */}
               {Array.from({ length: Math.ceil(total / perPage) }, (_, i) => i + 1).map((pageNumber) => (
-                <PaginationItem key={pageNumber} active={pageNumber === page}>
+                <PaginationItem key={pageNumber} className={cn({
+                  "is-active": pageNumber === page,
+                })}>
                   <PaginationLink
                     href="#"
                     onClick={() => handlePageChange(pageNumber)}
@@ -255,7 +256,7 @@ const DoctorList = () => {
                   </PaginationLink>
                 </PaginationItem>
               ))}
-              <PaginationNext href="#" onClick={() => handlePageChange(page + 1)} disabled={page === Math.ceil(total / perPage)} />
+              <PaginationNext href="#" onClick={() => handlePageChange(page + 1)} aria-disabled={page === Math.ceil(total / perPage)} />
             </PaginationContent>
           </Pagination>
         </div>

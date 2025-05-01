@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,15 +15,15 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 interface ReviewDoctorDialogProps {
   open: boolean;
   doctor: Doctor | null;
-  onClose: () => void;
-  onVerify: (doctor: Doctor) => void;
+  onOpenChange: (open: boolean) => void;
+  onVerify?: (doctor: Doctor) => void;
   loading?: boolean;
 }
 
 const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
   open,
   doctor,
-  onClose,
+  onOpenChange,
   onVerify,
   loading = false,
 }) => {
@@ -34,9 +33,13 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
   const infoItem = "flex items-baseline gap-2";
 
   const addInfo = doctor.additionalInfoDoctor;
+  
+  const handleClose = () => {
+    if (onOpenChange) onOpenChange(false);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[680px] max-h-[88vh] overflow-y-auto shadow-lg border-0 bg-gradient-to-br from-white via-indigo-50 to-purple-50 p-0">
         <DialogHeader className="p-6 pb-3 border-b bg-purple-50/60 rounded-t-lg">
           <DialogTitle className="flex items-center gap-2 text-xl font-bold text-darkPurple">
@@ -157,15 +160,15 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
                 <SectionTitle>Additional Info</SectionTitle>
                 <div className={infoItem}>
                   <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration No.:</span>
-                  <span>{addInfo.registrationNumber || "—"}</span>
+                  <span>{addInfo.registationNumber || "—"}</span>
                 </div>
                 <div className={infoItem}>
                   <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration Council:</span>
-                  <span>{addInfo.medicalCouncil || "—"}</span>
+                  <span>{addInfo.medicalCouncil?.name || "—"}</span>
                 </div>
                 <div className={infoItem}>
                   <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration Year:</span>
-                  <span>{addInfo.registrationYear || "—"}</span>
+                  <span>{addInfo.registationYear || "—"}</span>
                 </div>
                 <div className={infoItem}>
                   <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Degree College:</span>
@@ -212,13 +215,13 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
           </div>
         </div>
         <DialogFooter className="mt-3 px-6 pb-6 pt-2 bg-purple-50/60 rounded-b-lg">
-          <Button variant="outline" onClick={onClose} className="min-w-[100px]">Close</Button>
-          {!doctor.verified && (
+          <Button variant="outline" onClick={handleClose} className="min-w-[100px]">Close</Button>
+          {!doctor.verified && onVerify && (
             <Button
               disabled={loading}
               onClick={() => onVerify(doctor)}
               className="bg-vividPurple hover:bg-primary text-white font-bold min-w-[160px] shadow-md hover-scale transition-transform duration-200"
-              style={{ boxShadow: "0 2px 8px rgba(65, 65, 66, 0.13)",color:"black"}}
+              style={{ boxShadow: "0 2px 8px rgba(65, 65, 66, 0.13)", color: "black" }}
             >
               <Check className="mr-2 h-4 w-4" /> Verify Doctor
             </Button>

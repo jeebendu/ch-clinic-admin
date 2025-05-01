@@ -11,8 +11,8 @@ import { useState, useEffect } from "react";
 import StateService from "@/admin/modules/core/services/state/stateService";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
 import { Branch } from "../../branch/types/Branch";
-// Updated import with correct casing
-import BranchService from '@/admin/modules/branch/services/branchService';
+import { MedicalCouncil } from "../types/MedicalCouncil";
+import { BranchService } from '@/admin/modules/branch/services/branchService';
 
 const establishmentTypeOptions = [
   { value: "visit", label: "I visit a establishment" }
@@ -93,7 +93,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
     if (doctor?.additionalInfoDoctor) {
       form.reset({
         registationNumber: doctor.additionalInfoDoctor?.registationNumber || "",
-        medicalCouncil: doctor.additionalInfoDoctor?.medicalCouncil || "",
+        medicalCouncil: doctor.additionalInfoDoctor?.medicalCouncil?.name || "",
         registationYear: doctor.additionalInfoDoctor?.registationYear || "",
         degreeCollege: doctor.additionalInfoDoctor?.degreeCollege || "",
         yearCompletionDegree: doctor.additionalInfoDoctor?.yearCompletionDegree || "",
@@ -122,7 +122,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   const form = useForm<DoctorOnboardingFormValues>({
     resolver: zodResolver(doctorOnboardingSchema),
     defaultValues: {
-      medicalCouncil: doctor?.additionalInfoDoctor?.medicalCouncil || "",
+      medicalCouncil: doctor?.additionalInfoDoctor?.medicalCouncil?.name || "",
       registationYear: doctor?.additionalInfoDoctor?.registationYear || "",
       registationNumber: doctor?.additionalInfoDoctor?.registationNumber || "",
       degreeCollege: doctor?.additionalInfoDoctor?.degreeCollege || "",
@@ -137,11 +137,11 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
 
   const handleSubmit = (data: DoctorOnboardingFormValues) => {
 
-    const additionalInfoDoctor = {
+    const additionalInfoDoctor: AdditionalInfoDoctor = {
       id: doctor.additionalInfoDoctor?.id || 0,
       registationNumber: data.registationNumber,
       registationYear: data.registationYear,
-      medicalCouncil: data.medicalCouncil,
+      medicalCouncil: { id: 0, name: data.medicalCouncil } as MedicalCouncil,
       degreeCollege: data.degreeCollege,
       yearCompletionDegree: data.yearCompletionDegree,
       establishmentName: data.establishmentName,
