@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -34,6 +35,7 @@ import PatientLabTestsSection from './PatientLabTestsSection';
 import PatientPaymentsSection from './PatientPaymentsSection';
 import PatientReferralsSection from './PatientReferralsSection';
 import PatientRemindersSection from './PatientRemindersSection';
+import { RovingFocusGroup } from "@radix-ui/react-roving-focus";
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
@@ -182,36 +184,38 @@ const PatientView = () => {
         </div>
 
         <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 mb-4">
-            <TabsTrigger value="timeline">
-              <Calendar className="h-4 w-4 mr-2 hidden sm:inline" />
-              Timeline
-            </TabsTrigger>
-            <TabsTrigger value="vitals">
-              <Heart className="h-4 w-4 mr-2 hidden sm:inline" />
-              Vitals
-            </TabsTrigger>
-            <TabsTrigger value="medical">
-              <FileText className="h-4 w-4 mr-2 hidden sm:inline" />
-              Medical
-            </TabsTrigger>
-            <TabsTrigger value="prescriptions">
-              <FileBarChart className="h-4 w-4 mr-2 hidden sm:inline" />
-              Prescriptions
-            </TabsTrigger>
-            <TabsTrigger value="reports">
-              <FileText className="h-4 w-4 mr-2 hidden sm:inline" />
-              Reports
-            </TabsTrigger>
-            <TabsTrigger value="labs">
-              <TestTube className="h-4 w-4 mr-2 hidden sm:inline" />
-              Labs
-            </TabsTrigger>
-            <TabsTrigger value="billing">
-              <Receipt className="h-4 w-4 mr-2 hidden sm:inline" />
-              Billing
-            </TabsTrigger>
-          </TabsList>
+          <RovingFocusGroup asChild>
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 mb-4">
+              <TabsTrigger value="timeline">
+                <Calendar className="h-4 w-4 mr-2 hidden sm:inline" />
+                Timeline
+              </TabsTrigger>
+              <TabsTrigger value="vitals">
+                <Heart className="h-4 w-4 mr-2 hidden sm:inline" />
+                Vitals
+              </TabsTrigger>
+              <TabsTrigger value="medical">
+                <FileText className="h-4 w-4 mr-2 hidden sm:inline" />
+                Medical
+              </TabsTrigger>
+              <TabsTrigger value="prescriptions">
+                <FileBarChart className="h-4 w-4 mr-2 hidden sm:inline" />
+                Prescriptions
+              </TabsTrigger>
+              <TabsTrigger value="reports">
+                <FileText className="h-4 w-4 mr-2 hidden sm:inline" />
+                Reports
+              </TabsTrigger>
+              <TabsTrigger value="labs">
+                <TestTube className="h-4 w-4 mr-2 hidden sm:inline" />
+                Labs
+              </TabsTrigger>
+              <TabsTrigger value="billing">
+                <Receipt className="h-4 w-4 mr-2 hidden sm:inline" />
+                Billing
+              </TabsTrigger>
+            </TabsList>
+          </RovingFocusGroup>
           
           {/* Additional tabs for "More" dropdown */}
           <div className="hidden">

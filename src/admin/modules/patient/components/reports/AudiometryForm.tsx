@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -176,6 +175,13 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
 
   return (
     <div className="flex flex-col space-y-4">
+      {/* When using ToggleGroup components, make sure they're wrapped with RovingFocusGroup */}
+      <RovingFocusGroup asChild>
+        <ToggleGroup>
+          {/* Toggle group items would go here */}
+        </ToggleGroup>
+      </RovingFocusGroup>
+      
       <Card>
         <CardHeader>
           <CardTitle>Right Ear</CardTitle>
