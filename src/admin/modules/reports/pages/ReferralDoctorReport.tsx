@@ -9,13 +9,12 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
-import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import ReferralDoctorService from "../services/ReferralDoctorService";
 
 interface DailyReferrals {
@@ -40,6 +39,42 @@ const ReferralDoctorReport = () => {
   const [doctors, setDoctors] = useState<{id: number, name: string}[]>([]);
   const [dateRange, setDateRange] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFilter, setShowFilter] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Define filter options for doctors
+  const [filters, setFilters] = useState<FilterOption[]>([
+    {
+      id: 'doctor',
+      label: 'Doctor',
+      options: []
+    },
+    {
+      id: 'year',
+      label: 'Year',
+      options: Array.from({ length: 5 }, (_, i) => ({
+        id: (currentYear - 2 + i).toString(),
+        label: (currentYear - 2 + i).toString()
+      }))
+    },
+    {
+      id: 'month',
+      label: 'Month',
+      options: Array.from({ length: 12 }, (_, i) => {
+        const date = new Date(2000, i, 1);
+        return {
+          id: (i + 1).toString(),
+          label: format(date, "MMMM")
+        };
+      })
+    }
+  ]);
+  
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+    doctor: ['all'],
+    year: [currentYear.toString()],
+    month: [currentMonth.toString()]
+  });
 
   // Generate the range of days in the selected month
   useEffect(() => {
@@ -59,6 +94,27 @@ const ReferralDoctorReport = () => {
       const doctorsResponse = await ReferralDoctorService.getDoctors();
       setDoctors(doctorsResponse);
       
+      // Update filter options with fetched doctors
+      setFilters(prev => {
+        const updatedFilters = [...prev];
+        const doctorFilterIndex = updatedFilters.findIndex(f => f.id === 'doctor');
+        
+        if (doctorFilterIndex !== -1) {
+          updatedFilters[doctorFilterIndex] = {
+            ...updatedFilters[doctorFilterIndex],
+            options: [
+              { id: 'all', label: 'All Doctors' },
+              ...doctorsResponse.map(doc => ({ 
+                id: doc.id.toString(), 
+                label: doc.name
+              }))
+            ]
+          };
+        }
+        
+        return updatedFilters;
+      });
+      
       // Fetch referral data
       const referralsResponse = await ReferralDoctorService.getReferralStats(month, doctorId);
       setReferralData(referralsResponse);
@@ -69,16 +125,45 @@ const ReferralDoctorReport = () => {
     }
   };
 
-  const handleYearChange = (value: string) => {
-    setSelectedYear(parseInt(value));
+  const handleFilterChange = (filterId: string, optionId: string) => {
+    setSelectedFilters(prev => {
+      const newFilters = {...prev};
+      
+      // Special handling for doctor filter - only one can be selected
+      if (filterId === 'doctor') {
+        newFilters[filterId] = [optionId];
+        setSelectedDoctor(optionId);
+      }
+      // Special handling for year filter - only one can be selected
+      else if (filterId === 'year') {
+        newFilters[filterId] = [optionId];
+        setSelectedYear(parseInt(optionId));
+      }
+      // Special handling for month filter - only one can be selected
+      else if (filterId === 'month') {
+        newFilters[filterId] = [optionId];
+        setSelectedMonth(parseInt(optionId));
+      }
+      // For other filters, toggle selection
+      else {
+        if (newFilters[filterId].includes(optionId)) {
+          newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
+        } else {
+          newFilters[filterId] = [...newFilters[filterId], optionId];
+        }
+      }
+      
+      return newFilters;
+    });
   };
 
-  const handleMonthChange = (value: string) => {
-    setSelectedMonth(parseInt(value));
-  };
-
-  const handleDoctorChange = (value: string) => {
-    setSelectedDoctor(value);
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+    
+    // Filter referral data based on search term
+    if (term.trim() === '') {
+      fetchData(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`, selectedDoctor);
+    }
   };
 
   const handleExportReport = () => {
@@ -125,13 +210,40 @@ const ReferralDoctorReport = () => {
     document.body.removeChild(link);
   };
 
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedYear(currentYear);
+    setSelectedMonth(currentMonth);
+    setSelectedDoctor("all");
+    setSelectedFilters({
+      doctor: ['all'],
+      year: [currentYear.toString()],
+      month: [currentMonth.toString()]
+    });
+    
+    fetchData(`${currentYear}-${String(currentMonth).padStart(2, '0')}`, 'all');
+  };
+
+  // Filter referral data based on search term
+  const filteredReferralData = referralData.filter(summary => {
+    return searchTerm === '' || 
+      summary.doctorName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const totalElements = filteredReferralData.length || 0;
+  const loadedElements = filteredReferralData.length || 0;
+
   return (
     <AdminLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-4">
         <PageHeader 
           title="Referral Doctor Report" 
           description="Track patient referrals by doctor"
           onRefreshClick={() => fetchData(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`, selectedDoctor)}
+          onFilterToggle={() => setShowFilter(!showFilter)}
+          showFilter={showFilter}
+          loadedElements={loadedElements}
+          totalElements={totalElements}
           additionalActions={
             <Button 
               variant="outline" 
@@ -145,64 +257,16 @@ const ReferralDoctorReport = () => {
           }
         />
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Filter Options</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <Label htmlFor="year">Year</Label>
-                <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
-                  <SelectTrigger id="year" className="w-full">
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 5 }, (_, i) => currentYear - 2 + i).map((year) => (
-                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="month">Month</Label>
-                <Select value={selectedMonth.toString()} onValueChange={handleMonthChange}>
-                  <SelectTrigger id="month" className="w-full">
-                    <SelectValue placeholder="Select month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
-                      const date = new Date(2000, month - 1, 1);
-                      return (
-                        <SelectItem key={month} value={month.toString()}>
-                          {format(date, "MMMM")}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="doctor">Doctor</Label>
-                <Select value={selectedDoctor} onValueChange={handleDoctorChange}>
-                  <SelectTrigger id="doctor" className="w-full">
-                    <SelectValue placeholder="Select doctor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Doctors</SelectItem>
-                    {doctors.map(doctor => (
-                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                        {doctor.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {showFilter && (
+          <FilterCard 
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            filters={filters}
+            selectedFilters={selectedFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+          />
+        )}
 
         <Card>
           <CardHeader className="pb-3">
@@ -229,7 +293,7 @@ const ReferralDoctorReport = () => {
                         Loading data...
                       </TableCell>
                     </TableRow>
-                  ) : referralData.length === 0 ? (
+                  ) : filteredReferralData.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={dateRange.length + 2} className="text-center py-8 text-muted-foreground">
                         <div className="flex flex-col items-center justify-center">
@@ -239,7 +303,7 @@ const ReferralDoctorReport = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    referralData.map((summary) => (
+                    filteredReferralData.map((summary) => (
                       <TableRow key={summary.doctorId}>
                         <TableCell className="font-medium">
                           {summary.doctorName}
@@ -259,12 +323,12 @@ const ReferralDoctorReport = () => {
                       </TableRow>
                     ))
                   )}
-                  {referralData.length > 0 && (
+                  {filteredReferralData.length > 0 && (
                     <TableRow className="bg-muted/20">
                       <TableCell className="font-bold">Daily Total</TableCell>
                       {dateRange.map(date => {
                         const dateKey = format(date, "yyyy-MM-dd");
-                        const dailyTotal = referralData.reduce(
+                        const dailyTotal = filteredReferralData.reduce(
                           (sum, doctor) => sum + (doctor.dailyReferrals[dateKey] || 0),
                           0
                         );
@@ -275,7 +339,7 @@ const ReferralDoctorReport = () => {
                         );
                       })}
                       <TableCell className="text-center font-bold bg-muted/50">
-                        {referralData.reduce((sum, doctor) => sum + doctor.totalReferrals, 0)}
+                        {filteredReferralData.reduce((sum, doctor) => sum + doctor.totalReferrals, 0)}
                       </TableCell>
                     </TableRow>
                   )}
