@@ -1,402 +1,330 @@
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
+import React, { useState, useEffect, useCallback } from 'react';
+import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { useToast } from '@/hooks/use-toast';
-import { PatientReport } from '../../types/PatientReport';
-import PatientService from '../../services/patientService';
-import { useParams, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { useToast } from "@/hooks/use-toast"
+import { v4 as uuidv4 } from 'uuid';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { RovingFocusGroup } from "@radix-ui/react-roving-focus"
+import { cn } from "@/lib/utils"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { DateRange } from "react-day-picker"
+import { DialogClose } from "@/components/ui/dialog"
+import PatientReportService from '../../../services/patientReportService';
 
-const audiometryFormSchema = z.object({
-  leftEar: z.string().optional(),
-  rightEar: z.string().optional(),
-  recommendation: z.string().optional(),
-  impression: z.string().optional(),
-  lpf: z.string().optional(),
-  hpf: z.string().optional(),
-  reportno: z.string().optional(),
-  rightEarMasking: z.boolean().default(false),
-  leftEarMasking: z.boolean().default(false),
-  boneConductionRight: z.boolean().default(false),
-  boneConductionLeft: z.boolean().default(false),
-});
-
-interface AudiometryFormProps {
-  patientId: string;
-  reportId?: string;
-  onClose?: () => void;
+export interface AudiometryDataPoint {
+  frequency: number;
+  threshold: number;
 }
 
-const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, reportId, onClose }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formValues, setFormValues] = useState<z.infer<typeof audiometryFormSchema>>({
-    leftEar: '',
-    rightEar: '',
-    recommendation: '',
-    impression: '',
-    lpf: '',
-    hpf: '',
-    reportno: '',
-    rightEarMasking: false,
-    leftEarMasking: false,
-    boneConductionRight: false,
-    boneConductionLeft: false,
-  });
-  const { toast } = useToast();
-  const navigate = useNavigate();
+export interface AudiometryEarData {
+  airConduction: AudiometryDataPoint[];
+  boneConduction: AudiometryDataPoint[];
+}
 
-  const form = useForm<z.infer<typeof audiometryFormSchema>>({
-    resolver: zodResolver(audiometryFormSchema),
-    defaultValues: {
-      leftEar: '',
-      rightEar: '',
-      recommendation: '',
-      impression: '',
-      lpf: '',
-      hpf: '',
-      reportno: '',
-      rightEarMasking: false,
-      leftEarMasking: false,
-      boneConductionRight: false,
-      boneConductionLeft: false,
-    },
+export interface Audiogram {
+  id: string;
+  rightEar: AudiometryEarData;
+  leftEar: AudiometryEarData;
+  notes?: string;
+  date?: Date;
+}
+
+export interface AudiometryFormProps {
+  patientId?: number;
+  onCancel: () => void;
+  onSave: (audiogram: Audiogram) => void;
+  open: boolean;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const initialEarData = {
+  airConduction: [
+    { frequency: 250, threshold: 0 },
+    { frequency: 500, threshold: 0 },
+    { frequency: 1000, threshold: 0 },
+    { frequency: 2000, threshold: 0 },
+    { frequency: 4000, threshold: 0 },
+    { frequency: 8000, threshold: 0 },
+  ],
+  boneConduction: [
+    { frequency: 250, threshold: 0 },
+    { frequency: 500, threshold: 0 },
+    { frequency: 1000, threshold: 0 },
+    { frequency: 2000, threshold: 0 },
+    { frequency: 4000, threshold: 0 },
+  ],
+};
+
+const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, onSave, open, onOpenChange }) => {
+  const [audiogram, setAudiogram] = useState<Audiogram>({
+    id: uuidv4(),
+    rightEar: { ...initialEarData },
+    leftEar: { ...initialEarData },
   });
+  const [reportId, setReportId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const [date, setDate] = React.useState<Date | undefined>(new Date())
 
   useEffect(() => {
-    if (reportId) {
-      fetchReportDetails(reportId);
+    if (!open) {
+      setAudiogram({
+        id: uuidv4(),
+        rightEar: { ...initialEarData },
+        leftEar: { ...initialEarData },
+      });
+      setDate(new Date());
     }
+  }, [open]);
+
+  useEffect(() => {
+    const fetchReportData = async () => {
+      // Mock implementation for fetching report data
+      // Replace with your actual API call
+      // This is just an example, adapt it to your needs
+      if (reportId) {
+        try {
+          const reportData = await PatientReportService.getReportById(reportId);
+          console.log("Report Data:", reportData);
+          if (reportData) {
+            // Assuming the reportData structure matches the Audiogram structure
+            setAudiogram({
+              id: reportData.id,
+              rightEar: reportData.rightEar,
+              leftEar: reportData.leftEar,
+              notes: reportData.notes,
+            });
+            setDate(reportData.date ? new Date(reportData.date) : undefined);
+          }
+        } catch (error) {
+          console.error("Error fetching report:", error);
+        }
+      }
+    };
+    fetchReportData();
   }, [reportId]);
 
-  const fetchReportDetails = async (reportId: string) => {
-    try {
-      const report = await PatientService.getReportById(reportId);
-      if (report) {
-        setFormValues({
-          leftEar: report.leftEar || '',
-          rightEar: report.rightEar || '',
-          recommendation: report.recommendation || '',
-          impression: report.impression || '',
-          lpf: report.lpf || '',
-          hpf: report.hpf || '',
-          reportno: report.reportno?.toString() || '',
-          rightEarMasking: false, //report.rightEarMasking || false,
-          leftEarMasking: false, //report.leftEarMasking || false,
-          boneConductionRight: false, //report.boneConductionRight || false,
-          boneConductionLeft: false, // report.boneConductionLeft || false,
-        });
-        form.reset({
-          leftEar: report.leftEar || '',
-          rightEar: report.rightEar || '',
-          recommendation: report.recommendation || '',
-          impression: report.impression || '',
-          lpf: report.lpf || '',
-          hpf: report.hpf || '',
-          reportno: report.reportno?.toString() || '',
-          rightEarMasking: false, //report.rightEarMasking || false,
-          leftEarMasking: false, //report.leftEarMasking || false,
-          boneConductionRight: false, //report.boneConductionRight || false,
-          boneConductionLeft: false, // report.boneConductionLeft || false,
-        });
+  const handleThresholdChange = (ear: 'rightEar' | 'leftEar', type: 'airConduction' | 'boneConduction', frequency: number, threshold: number) => {
+    setAudiogram(prev => {
+      const updatedEar = { ...prev[ear] };
+      const dataPointIndex = updatedEar[type].findIndex(dp => dp.frequency === frequency);
+      if (dataPointIndex !== -1) {
+        updatedEar[type][dataPointIndex] = { frequency, threshold };
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch report details.",
-        variant: "destructive",
-      });
-    }
+      return { ...prev, [ear]: updatedEar };
+    });
   };
 
-  const onSubmit = async (values: z.infer<typeof audiometryFormSchema>) => {
-    try {
-      const reportData: PatientReport = {
-        id: reportId ? parseInt(reportId) : 0,
-        leftEar: values.leftEar || '',
-        rightEar: values.rightEar || '',
-        recommendation: values.recommendation || '',
-        impression: values.impression || '',
-        lpf: values.lpf || '',
-        hpf: values.hpf || '',
-        reportno: parseInt(values.reportno || '0'),
-        patient: { id: parseInt(patientId) } as any,
-        createdTime: new Date().toISOString(),
-        modifiedTime: new Date().toISOString(),
-        reportType: 'audiometry',
-      };
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setAudiogram(prev => ({ ...prev, notes: e.target.value }));
+  };
 
+  const handleDateChange = (newDate: Date | undefined) => {
+    setDate(newDate);
+  };
+
+  const handleSave = async () => {
+    try {
+      let savedReport;
       if (reportId) {
-        await PatientService.updateReport(reportData);
-        toast({
-          title: "Success",
-          description: "Audiometry report updated successfully.",
+        savedReport = await PatientReportService.updateReport({
+          id: audiogram.id,
+          type: "audiometry",
+          patientId: patientId,
+          rightEar: audiogram.rightEar,
+          leftEar: audiogram.leftEar,
+          notes: audiogram.notes,
+          date: date,
         });
       } else {
-        await PatientService.createReport(reportData);
-        toast({
-          title: "Success",
-          description: "Audiometry report created successfully.",
+        savedReport = await PatientReportService.createReport({
+          id: audiogram.id,
+          type: "audiometry",
+          patientId: patientId,
+          rightEar: audiogram.rightEar,
+          leftEar: audiogram.leftEar,
+          notes: audiogram.notes,
+          date: date,
         });
       }
 
-      if (onClose) {
-        onClose();
-      }
-      navigate(`/admin/patients/view/${patientId}`);
-    } catch (error) {
-      console.error("Error creating/updating report:", error);
       toast({
-        title: "Error",
-        description: "Failed to save the audiometry report.",
+        title: "Audiometry report saved",
+        description: `Report ${savedReport.id} has been saved successfully.`,
+      });
+      onSave(audiogram);
+      onCancel();
+    } catch (error) {
+      console.error("Error saving report:", error);
+      toast({
         variant: "destructive",
+        title: "Error saving audiometry report",
+        description: "There was an error saving the report. Please try again.",
       });
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Audiometry Report Form</CardTitle>
-        <CardDescription>Enter the details for the audiometry report.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="reportno"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Report Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter report number" type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="leftEar"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Left Ear</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter left ear details" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="rightEar"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Right Ear</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter right ear details" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+    <div className="flex flex-col space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Right Ear</CardTitle>
+          <CardDescription>Air Conduction</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            {audiogram.rightEar.airConduction.map((dataPoint) => (
+              <div key={`right-air-${dataPoint.frequency}`} className="flex items-center space-x-2">
+                <Label htmlFor={`right-air-${dataPoint.frequency}`}>{dataPoint.frequency} Hz</Label>
+                <Input
+                  type="number"
+                  id={`right-air-${dataPoint.frequency}`}
+                  value={dataPoint.threshold}
+                  onChange={(e) => handleThresholdChange('rightEar', 'airConduction', dataPoint.frequency, Number(e.target.value))}
+                />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="lpf"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>LPF</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter LPF details" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="hpf"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>HPF</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter HPF details" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Right Ear</CardTitle>
+          <CardDescription>Bone Conduction</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            {audiogram.rightEar.boneConduction.map((dataPoint) => (
+              <div key={`right-bone-${dataPoint.frequency}`} className="flex items-center space-x-2">
+                <Label htmlFor={`right-bone-${dataPoint.frequency}`}>{dataPoint.frequency} Hz</Label>
+                <Input
+                  type="number"
+                  id={`right-bone-${dataPoint.frequency}`}
+                  value={dataPoint.threshold}
+                  onChange={(e) => handleThresholdChange('rightEar', 'boneConduction', dataPoint.frequency, Number(e.target.value))}
+                />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="rightEarMasking"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-sm">Right Ear Masking</FormLabel>
-                      <FormDescription>
-                        Perform masking on the right ear?
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="leftEarMasking"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-sm">Left Ear Masking</FormLabel>
-                      <FormDescription>
-                        Perform masking on the left ear?
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Left Ear</CardTitle>
+          <CardDescription>Air Conduction</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            {audiogram.leftEar.airConduction.map((dataPoint) => (
+              <div key={`left-air-${dataPoint.frequency}`} className="flex items-center space-x-2">
+                <Label htmlFor={`left-air-${dataPoint.frequency}`}>{dataPoint.frequency} Hz</Label>
+                <Input
+                  type="number"
+                  id={`left-air-${dataPoint.frequency}`}
+                  value={dataPoint.threshold}
+                  onChange={(e) => handleThresholdChange('leftEar', 'airConduction', dataPoint.frequency, Number(e.target.value))}
+                />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="boneConductionRight"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-sm">Bone Conduction Right</FormLabel>
-                      <FormDescription>
-                        Check bone conduction for the right ear?
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="boneConductionLeft"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-sm">Bone Conduction Left</FormLabel>
-                      <FormDescription>
-                        Check bone conduction for the left ear?
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Left Ear</CardTitle>
+          <CardDescription>Bone Conduction</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            {audiogram.leftEar.boneConduction.map((dataPoint) => (
+              <div key={`left-bone-${dataPoint.frequency}`} className="flex items-center space-x-2">
+                <Label htmlFor={`left-bone-${dataPoint.frequency}`}>{dataPoint.frequency} Hz</Label>
+                <Input
+                  type="number"
+                  id={`left-bone-${dataPoint.frequency}`}
+                  value={dataPoint.threshold}
+                  onChange={(e) => handleThresholdChange('leftEar', 'boneConduction', dataPoint.frequency, Number(e.target.value))}
+                />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-            <FormField
-              control={form.control}
-              name="recommendation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Recommendation</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter recommendation details"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="impression"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Impression</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter impression details"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end">
-              <Button type="submit">Submit Report</Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Notes</CardTitle>
+          <CardDescription>Additional notes about the audiometry</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Input
+                type="textarea"
+                id="notes"
+                value={audiogram.notes}
+                onChange={handleNotesChange}
+              />
             </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Date</CardTitle>
+          <CardDescription>Date of the audiometry</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="date">Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-[240px] justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="center">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={handleDateChange}
+                    disabled={(date) =>
+                      date > new Date()
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end space-x-2">
+        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button onClick={handleSave}>Save</Button>
+      </div>
+    </div>
   );
 };
 

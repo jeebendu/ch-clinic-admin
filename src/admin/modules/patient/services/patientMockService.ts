@@ -1,4 +1,3 @@
-
 import { faker } from "@faker-js/faker";
 import { Patient } from "../types/Patient";
 import { Doctor } from "../../doctor/types/Doctor";
@@ -74,9 +73,7 @@ const mockPatients: Patient[] = Array.from({ length: 50 }, (_, i) => {
     // Fix for medicalDegree - properly define it with all required properties
     medicalDegree: { 
       id: 1, 
-      name: "MBBS", 
-      createdTime: new Date().toISOString(), 
-      modifiedTime: new Date().toISOString() 
+      name: "MBBS" 
     }
   };
 

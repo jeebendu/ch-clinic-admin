@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Doctor } from "../types/Doctor";
 import { Calendar, Clock, Mail, MapPin, Phone, Star, UserCheck, Briefcase, Award, Languages } from "lucide-react";
 import { format } from "date-fns";
+import { useQuery } from "react-query";
 
 interface DoctorViewProps {
   isOpen: boolean;
