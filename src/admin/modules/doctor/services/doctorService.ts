@@ -3,7 +3,7 @@ import http from "@/lib/JwtInterceptor";
 import { Doctor } from "../types/Doctor";
 import { isProduction } from "@/utils/envUtils";
 import { PaginatedResponse } from "@/types/common";
-import doctorMockService from "./doctorMockService";
+import * as doctorMockService from "./doctorMockService";
 
 // Real implementation would use these endpoints
 const doctorService = {

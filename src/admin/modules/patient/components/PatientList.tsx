@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
@@ -19,6 +19,7 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 
 const PatientList = () => {
   const { toast } = useToast();
@@ -30,19 +31,24 @@ const PatientList = () => {
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState<number | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { selectedBranch } = useBranchFilter();
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['patients', page, size, searchTerm],
+    queryKey: ['patients', page, size, searchTerm, selectedBranch],
     queryFn: async () => {
       const response = await PatientService.list(page, size, searchTerm);
-      console.log("Patient API response (direct):", response);
       return response;
     },
   });
 
+  // Effect to refetch data when branch changes
+  useEffect(() => {
+    refetch();
+  }, [selectedBranch, refetch]);
+
   // Extract patients from the response - handle different response formats
   const patients = data?.content || (Array.isArray(data) ? data : []);
-  console.log("Extracted patients:", patients);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -118,7 +124,7 @@ const PatientList = () => {
             <p className="text-destructive">Error loading patients. Please try again.</p>
           </div>
         ) : (
-          <div>
+          <div ref={contentRef} className="overflow-auto max-h-[calc(100vh-180px)]">
             {viewMode === 'grid' ? (
               <PatientTable 
                 patients={patients} 
