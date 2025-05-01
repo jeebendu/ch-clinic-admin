@@ -27,7 +27,7 @@ export interface ReferralSummary {
 }
 
 // Service implementation
-const ReferralDoctorService = {
+export const ReferralDoctorService = {
   // Get list of doctors for filtering
   getDoctors: async () => {
     try {
@@ -74,7 +74,7 @@ const ReferralDoctorService = {
           
           return {
             doctorId: item.doctor.id,
-            doctorName: item.doctor.name,
+            doctorName: item.doctor.firstname + " " + item.doctor.lastname,
             dailyReferrals,
             totalReferrals
           };

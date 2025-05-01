@@ -240,15 +240,15 @@ const DoctorList = () => {
 
     // Doctor type filter
     if (selectedFilters.doctorType.length > 0) {
-      const typeMatch = selectedFilters.doctorType.includes(doctor.isExternal ? 'external' : 'internal');
+      const typeMatch = selectedFilters.doctorType.includes(doctor.external ? 'external' : 'internal');
       if (!typeMatch) return false;
     }
 
     // Specialization filter
     if (selectedFilters.specialization.length > 0) {
-      const specializationMatch = doctor.specialization 
+      const specializationMatch = doctor.specializationList 
         ? selectedFilters.specialization.some((spec: string) => 
-            doctor.specialization?.some((docSpec: any) => docSpec.name.toLowerCase() === spec.toLowerCase())
+            doctor.specializationList?.some((docSpec: any) => docSpec.name.toLowerCase() === spec.toLowerCase())
           )
         : false;
       if (!specializationMatch) return false;
