@@ -1,153 +1,209 @@
+
 import { Doctor } from "../types/Doctor";
 import { MedicalDegree } from "../types/MedicalDegree";
 import { MedicalCouncil } from "../types/MedicalCouncil";
+import { State, Country } from "../../core/types/Address";
+import { faker } from '@faker-js/faker';
 
-const medicalDegrees: MedicalDegree[] = [
-    {
+// Mock implementation of Doctor service
+const doctorMockService = {
+  getDoctors: (): Promise<Doctor[]> => {
+    return Promise.resolve([
+      {
         id: 1,
-        name: "MBBS"
-    },
-    {
-        id: 2,
-        name: "MD"
-    },
-    {
-        id: 3,
-        name: "DO"
-    }
-]
-
-const medicalCouncils: MedicalCouncil[] = [
-    {
-        id: 1,
-        name: "Medical Council of India"
-    },
-    {
-        id: 2,
-        name: "Medical Council of UK"
-    },
-    {
-        id: 3,
-        name: "Medical Council of USA"
-    }
-]
-
-const doctors: Doctor[] = [
-    {
-        id: 1,
-        uid: "DOC-001",
         firstname: "John",
         lastname: "Doe",
+        uid: "DOC001",
         email: "john.doe@example.com",
-        phone: "123-456-7890",
+        phone: "1234567890",
         gender: "Male",
-        dob: "1980-01-01",
-        address: "123 Main St",
-        city: "Anytown",
-        state: "CA",
-        zip: "12345",
-        country: "USA",
-        speciality: "Cardiologist",
-        medicalDegree: "MBBS",
-        medicalCouncil: "Medical Council of India",
+        dob: new Date(1980, 5, 15).toISOString(),
         additionalInfo: {
-            registationNumber: "REG-001",
-            registationYear: "2005",
-            experience: "15",
-            biography: "John Doe is a cardiologist with 15 years of experience.",
+          id: 1,
+          registationNumber: "REG12345",
+          registationYear: "2010",
+          medicalCouncil: {
+            id: 1,
+            name: "State Medical Council"
+          } as MedicalCouncil,
+          degreeCollege: "Medical College",
+          yearCompletionDegree: "2005",
+          establishmentName: "City Hospital",
+          establishmentCity: "New York",
+          state: {
+            id: 1,
+            name: "New York"
+          } as State,
+          district: {
+            id: 1,
+            name: "Manhattan"
+          },
+          establishmentType: "own"
         },
-        branchId: 1,
-        createdTime: "2021-01-01T00:00:00.000Z",
-        modifiedTime: "2021-01-01T00:00:00.000Z"
-    },
-    {
+        country: {
+          id: 1,
+          name: "United States"
+        } as Country,
+        degree: {
+          id: 1,
+          name: "MBBS"
+        } as MedicalDegree,
+        specializationList: [
+          { id: 1, name: "Cardiology" },
+          { id: 2, name: "General Medicine" }
+        ],
+        active: true,
+        external: false
+      },
+      {
         id: 2,
-        uid: "DOC-002",
         firstname: "Jane",
         lastname: "Smith",
+        uid: "DOC002",
         email: "jane.smith@example.com",
-        phone: "987-654-3210",
+        phone: "0987654321",
         gender: "Female",
-        dob: "1985-05-15",
-        address: "456 Elm St",
-        city: "Springfield",
-        state: "IL",
-        zip: "67890",
-        country: "USA",
-        speciality: "Dermatologist",
-        medicalDegree: "MD",
-        medicalCouncil: "Medical Council of UK",
+        dob: new Date(1985, 3, 22).toISOString(),
         additionalInfo: {
-            registationNumber: "REG-002",
-            registationYear: "2010",
-            experience: "10",
-            biography: "Jane Smith is a dermatologist with 10 years of experience.",
+          id: 2,
+          registationNumber: "REG54321",
+          registationYear: "2015",
+          medicalCouncil: {
+            id: 2,
+            name: "National Medical Council"
+          } as MedicalCouncil,
+          degreeCollege: "State Medical University",
+          yearCompletionDegree: "2010",
+          establishmentName: "Community Clinic",
+          establishmentCity: "Los Angeles",
+          state: {
+            id: 2,
+            name: "California"
+          } as State,
+          district: {
+            id: 2,
+            name: "Los Angeles"
+          },
+          establishmentType: "visit"
         },
-        branchId: 2,
-        createdTime: "2021-02-15T00:00:00.000Z",
-        modifiedTime: "2021-02-15T00:00:00.000Z"
-    },
-    {
+        country: {
+          id: 1,
+          name: "United States"
+        } as Country,
+        degree: {
+          id: 2,
+          name: "MD"
+        } as MedicalDegree,
+        specializationList: [
+          { id: 3, name: "Pediatrics" },
+          { id: 4, name: "Neonatology" }
+        ],
+        active: true,
+        external: true
+      },
+      {
         id: 3,
-        uid: "DOC-003",
-        firstname: "Mike",
+        firstname: "Robert",
         lastname: "Johnson",
-        email: "mike.johnson@example.com",
-        phone: "555-123-4567",
+        uid: "DOC003",
+        email: "robert.johnson@example.com",
+        phone: "5556667777",
         gender: "Male",
-        dob: "1978-11-20",
-        address: "789 Oak St",
-        city: "Hill Valley",
-        state: "WA",
-        zip: "54321",
-        country: "USA",
-        speciality: "Pediatrician",
-        medicalDegree: "DO",
-        medicalCouncil: "Medical Council of USA",
+        dob: new Date(1975, 8, 10).toISOString(),
         additionalInfo: {
-            registationNumber: "REG-003",
-            registationYear: "2003",
-            experience: "17",
-            biography: "Mike Johnson is a pediatrician with 17 years of experience.",
+          id: 3,
+          registationNumber: "REG78901",
+          registationYear: "2005",
+          medicalCouncil: {
+            id: 1,
+            name: "State Medical Council"
+          } as MedicalCouncil,
+          degreeCollege: "University Medical College",
+          yearCompletionDegree: "2000",
+          establishmentName: "Advanced Healthcare",
+          establishmentCity: "Chicago",
+          state: {
+            id: 3,
+            name: "Illinois"
+          } as State,
+          district: {
+            id: 3,
+            name: "Cook County"
+          },
+          establishmentType: "own"
         },
-        branchId: 1,
-        createdTime: "2021-03-10T00:00:00.000Z",
-        modifiedTime: "2021-03-10T00:00:00.000Z"
-    }
-]
-
-export const doctorMockService = {
-    getAll: async (): Promise<Doctor[]> => {
-        return doctors;
-    },
-    getById: async (id: number): Promise<Doctor | undefined> => {
-        return doctors.find(doctor => doctor.id === id);
-    },
-    create: async (doctor: Doctor): Promise<Doctor> => {
-        doctor.id = doctors.length + 1;
-        doctors.push(doctor);
-        return doctor;
-    },
-    update: async (id: number, updatedDoctor: Doctor): Promise<Doctor | undefined> => {
-        const index = doctors.findIndex(doctor => doctor.id === id);
-        if (index !== -1) {
-            doctors[index] = { ...doctors[index], ...updatedDoctor };
-            return doctors[index];
-        }
-        return undefined;
-    },
-    delete: async (id: number): Promise<boolean> => {
-        const index = doctors.findIndex(doctor => doctor.id === id);
-        if (index !== -1) {
-            doctors.splice(index, 1);
-            return true;
-        }
-        return false;
-    },
-    getMedicalDegrees: async (): Promise<MedicalDegree[]> => {
-        return medicalDegrees;
-    },
-    getMedicalCouncils: async (): Promise<MedicalCouncil[]> => {
-        return medicalCouncils;
-    }
+        country: {
+          id: 1,
+          name: "United States"
+        } as Country,
+        degree: {
+          id: 3,
+          name: "MS"
+        } as MedicalDegree,
+        specializationList: [
+          { id: 5, name: "Orthopedics" },
+          { id: 6, name: "Sports Medicine" }
+        ],
+        active: true,
+        external: false
+      }
+    ]);
+  },
+  
+  getDoctorById: (id: number): Promise<Doctor> => {
+    // Example implementation of getDoctorById
+    const doctors = [
+      {
+        id: 1,
+        firstname: "John",
+        lastname: "Doe",
+        uid: "DOC001",
+        email: "john.doe@example.com",
+        phone: "1234567890",
+        gender: "Male",
+        dob: new Date(1980, 5, 15).toISOString(),
+        additionalInfo: {
+          id: 1,
+          registationNumber: "REG12345",
+          registationYear: "2010",
+          medicalCouncil: {
+            id: 1,
+            name: "State Medical Council"
+          } as MedicalCouncil,
+          degreeCollege: "Medical College",
+          yearCompletionDegree: "2005",
+          establishmentName: "City Hospital",
+          establishmentCity: "New York",
+          state: {
+            id: 1,
+            name: "New York"
+          } as State,
+          district: {
+            id: 1,
+            name: "Manhattan"
+          },
+          establishmentType: "own"
+        },
+        country: {
+          id: 1,
+          name: "United States"
+        } as Country,
+        degree: {
+          id: 1,
+          name: "MBBS"
+        } as MedicalDegree,
+        specializationList: [
+          { id: 1, name: "Cardiology" },
+          { id: 2, name: "General Medicine" }
+        ],
+        active: true,
+        external: false
+      }
+    ];
+    
+    const foundDoctor = doctors.find(doctor => doctor.id === id);
+    return Promise.resolve(foundDoctor || doctors[0]);
+  }
 };
+
+export default doctorMockService;

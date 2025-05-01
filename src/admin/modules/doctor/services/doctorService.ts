@@ -1,69 +1,71 @@
 
-import http from "@/lib/JwtInterceptor";
 import { Doctor } from "../types/Doctor";
-import { isProduction } from "@/utils/envUtils";
-import { DoctorMockService } from "./doctorMockService";
+import http from "@/lib/JwtInterceptor";
 import { PaginatedResponse } from "@/types/common";
+import doctorMockService from "./doctorMockService";
 
-// Real implementation would use these endpoints
- const doctorService = {
-  getAllDoctors: async (): Promise<Doctor[]> => {
-    try {
-      const response = await http.get<Doctor[]>('/v1/doctor/list');
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching doctors:", error);
-      // Fallback to mock data for development
-      const { DoctorMockService } = await import("./doctorMockService");
-      return DoctorMockService.list();
+// We'll use mock service for development
+const isDevelopment = true;
+
+const DoctorService = {
+  /**
+   * Get a list of all doctors
+   */
+  getDoctors: async (): Promise<Doctor[]> => {
+    if (isDevelopment) {
+      return doctorMockService.getDoctors();
     }
-  },
-
-  getById: async (id: number): Promise<Doctor> => {
-    const response = await http.get<Doctor>(`/v1/doctor/${id}`);
+    
+    const response = await http.get<Doctor[]>("/api/doctors");
     return response.data;
   },
 
-   saveOrUpdateDoctor: async (doctor: Doctor): Promise<any> => {
-    try {
-      const response = await http.post<any>('/v1/doctor/saveOrUpdate', doctor);
-      return response.data;
-    } catch (error) {
-      console.error("Error creating doctor:", error);
-      throw error;
+  /**
+   * Get a doctor by ID
+   */
+  getDoctorById: async (id: number): Promise<Doctor> => {
+    if (isDevelopment) {
+      return doctorMockService.getDoctorById(id);
     }
+    
+    const response = await http.get<Doctor>(`/api/doctors/${id}`);
+    return response.data;
   },
 
-  // updateDoctor: async (doctor: Doctor): Promise<Doctor> => {
-  //   try {
-  //     const response = await http.put<Doctor>(`/v1/doctor/${doctor.id}`, doctor);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error updating doctor with ID ${doctor.id}:`, error);
-  //     throw error;
-  //   }
-  // },
-
-  delete: async (id: number): Promise<void> => {
-    await http.delete(`/v1/doctor/${id}`);
-  },
-
-  fetchPaginated: async (
+  /**
+   * Get paginated doctors list
+   */
+  getPaginatedDoctors: async (
     page: number,
-    size: number,
-    filter: { value: string|null; doctorType: boolean | null; specialization: string | null }
+    pageSize: number,
+    filters?: any
   ): Promise<PaginatedResponse<Doctor>> => {
-    if (!isProduction()) {
-      const { DoctorMockService } = await import("./doctorMockService");
-      return DoctorMockService.fetchPaginated(page, size, filter);
+    if (isDevelopment) {
+      // Mock implementation for pagination
+      const doctors = await doctorMockService.getDoctors();
+      
+      const filteredDoctors = doctors;
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      
+      return {
+        content: filteredDoctors.slice(start, end),
+        totalElements: filteredDoctors.length,
+        number: page,
+        size: pageSize,
+        totalPages: Math.ceil(filteredDoctors.length / pageSize),
+        first: page === 1,
+        last: page === Math.ceil(filteredDoctors.length / pageSize),
+        numberOfElements: filteredDoctors.slice(start, end).length,
+        empty: filteredDoctors.length === 0,
+      };
     }
-    const response = await http.post<PaginatedResponse<Doctor>>(
-      `/v1/doctor/filter/${page}/${size}`,
-      filter
+    
+    const response = await http.get<PaginatedResponse<Doctor>>(
+      `/api/doctors?page=${page - 1}&size=${pageSize}`
     );
     return response.data;
   }
 };
 
-
-export default doctorService;
+export default DoctorService;

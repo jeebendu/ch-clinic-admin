@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -23,8 +22,7 @@ import {
   FileSearch,
   Ear,
   Heart,
-  User,
-  FileChart
+  User
 } from 'lucide-react';
 import PatientService from '../services/patientService';
 import { AdminLayout } from '@/admin/components/AdminLayout';
