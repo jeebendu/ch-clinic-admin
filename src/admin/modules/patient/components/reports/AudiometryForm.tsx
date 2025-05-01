@@ -19,13 +19,13 @@ interface AudiometryFormProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const AudiometryForm: React.FC<AudiometryFormProps> = ({ 
+const AudiometryForm = ({ 
   patient, 
   onCancel, 
   onSave, 
   open, 
   onOpenChange 
-}) => {
+}: AudiometryFormProps) => {
   const { toast } = useToast();
   const [audiogram, setAudiogram] = useState<Audiogram>(() => {
     const newAudiogram = new Audiogram();
@@ -68,10 +68,10 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({
     index: number,
     value: string
   ) => {
-    const numValue = value === '' ? null : value;
+    const newValue = value === '' ? null : value;
     setAudiogram(prev => {
       const newData = { ...prev };
-      newData[ear][index].value = numValue;
+      newData[ear][index].value = newValue;
       return newData;
     });
   };

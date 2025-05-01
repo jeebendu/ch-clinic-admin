@@ -9,26 +9,33 @@ import { Patient } from '../types/Patient';
 import { format } from 'date-fns';
 import { 
   ArrowLeft, 
-  Calendar, 
-  Mail, 
-  MapPin, 
-  Phone, 
-  Plus,
   FilePlus,
-  FileText, 
-  TestTube, 
-  FileBarChart, 
-  ArrowRightLeft,
-  CheckCheck,
-  UserCheck,
-  Thermometer
+  FileBarChart,
+  Calendar,
+  Thermometer,
+  FileText,
+  TestTube,
+  Receipt,
+  Users,
+  Bell,
+  Mail,
+  Phone,
+  FileSearch,
+  Ear,
+  Heart,
+  User,
+  FileChart
 } from 'lucide-react';
 import PatientService from '../services/patientService';
 import { AdminLayout } from '@/admin/components/AdminLayout';
-import { Separator } from '@/components/ui/separator';
 import PatientVisitTimeline from './PatientVisitTimeline';
 import PatientInfoCard from './PatientInfoCard';
 import PatientReportSection from './PatientReportSection';
+import PatientVitalsCard from './PatientVitalsCard';
+import PatientLabTestsSection from './PatientLabTestsSection';
+import PatientPaymentsSection from './PatientPaymentsSection';
+import PatientReferralsSection from './PatientReferralsSection';
+import PatientRemindersSection from './PatientRemindersSection';
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +44,7 @@ const PatientView = () => {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('timeline');
+  const [viewMode, setViewMode] = useState<'summary' | 'detailed'>('summary');
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -95,6 +103,10 @@ const PatientView = () => {
     });
   };
 
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'summary' ? 'detailed' : 'summary');
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -135,6 +147,14 @@ const PatientView = () => {
           </div>
           <div className="flex gap-2">
             <Button 
+              onClick={toggleViewMode} 
+              variant="outline"
+              className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+            >
+              <FileSearch className="mr-2 h-4 w-4" />
+              {viewMode === 'summary' ? 'Detailed View' : 'Summary View'}
+            </Button>
+            <Button 
               onClick={handleNewVisitClick} 
               variant="outline"
               className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
@@ -151,24 +171,83 @@ const PatientView = () => {
 
         {/* Patient Info Card with consolidated information */}
         <PatientInfoCard patient={patient} formatDate={formatDate} getInitials={getInitials} />
+        
+        {/* Quick Actions Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 md:gap-4">
+          <QuickActionButton icon={<User />} label="Consultation" onClick={() => setActiveTab('medical')} />
+          <QuickActionButton icon={<Thermometer />} label="Vitals" onClick={() => setActiveTab('vitals')} />
+          <QuickActionButton icon={<FileBarChart />} label="Prescriptions" onClick={() => setActiveTab('prescriptions')} />
+          <QuickActionButton icon={<TestTube />} label="Lab Tests" onClick={() => setActiveTab('labs')} /> 
+          <QuickActionButton icon={<Ear />} label="Audiometry" onClick={() => setActiveTab('reports')} />
+          <QuickActionButton icon={<Receipt />} label="Billing" onClick={() => setActiveTab('billing')} />
+          <QuickActionButton icon={<Bell />} label="Follow-ups" onClick={() => setActiveTab('followups')} />
+        </div>
 
         <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="timeline">Visit Timeline</TabsTrigger>
-            <TabsTrigger value="medical">Medical Records</TabsTrigger>
-            <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-            <TabsTrigger value="reports">Reports & Tests</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 mb-4">
+            <TabsTrigger value="timeline">
+              <Calendar className="h-4 w-4 mr-2 hidden sm:inline" />
+              Timeline
+            </TabsTrigger>
+            <TabsTrigger value="vitals">
+              <Heart className="h-4 w-4 mr-2 hidden sm:inline" />
+              Vitals
+            </TabsTrigger>
+            <TabsTrigger value="medical">
+              <FileText className="h-4 w-4 mr-2 hidden sm:inline" />
+              Medical
+            </TabsTrigger>
+            <TabsTrigger value="prescriptions">
+              <FileBarChart className="h-4 w-4 mr-2 hidden sm:inline" />
+              Prescriptions
+            </TabsTrigger>
+            <TabsTrigger value="reports">
+              <FileChart className="h-4 w-4 mr-2 hidden sm:inline" />
+              Reports
+            </TabsTrigger>
+            <TabsTrigger value="labs">
+              <TestTube className="h-4 w-4 mr-2 hidden sm:inline" />
+              Labs
+            </TabsTrigger>
+            <TabsTrigger value="billing">
+              <Receipt className="h-4 w-4 mr-2 hidden sm:inline" />
+              Billing
+            </TabsTrigger>
           </TabsList>
+          
+          {/* Additional tabs for "More" dropdown */}
+          <div className="hidden">
+            <TabsTrigger value="referrals">
+              <Users className="h-4 w-4 mr-2" />
+              Referrals
+            </TabsTrigger>
+            <TabsTrigger value="followups">
+              <Bell className="h-4 w-4 mr-2" />
+              Follow-ups
+            </TabsTrigger>
+          </div>
           
           <TabsContent value="timeline" className="mt-4">
             <PatientVisitTimeline patientId={patient.id.toString()} />
           </TabsContent>
           
+          <TabsContent value="vitals" className="mt-4">
+            <PatientVitalsCard patientId={patient.id} />
+          </TabsContent>
+          
           <TabsContent value="medical" className="mt-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Medical History</CardTitle>
-                <CardDescription>Medical records and diagnoses</CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-lg">Medical History</CardTitle>
+                    <CardDescription>Medical records and diagnoses</CardDescription>
+                  </div>
+                  <Button size="sm">
+                    <FilePlus className="mr-2 h-4 w-4" />
+                    Add Diagnosis
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {patient.medicalHistory ? (
@@ -181,7 +260,7 @@ const PatientView = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     <p>No medical history recorded</p>
                     <Button variant="outline" className="mt-2">
-                      <Plus className="mr-2 h-4 w-4" />
+                      <FilePlus className="mr-2 h-4 w-4" />
                       Add Medical History
                     </Button>
                   </div>
@@ -199,7 +278,7 @@ const PatientView = () => {
                     <CardDescription>All prescriptions issued to the patient</CardDescription>
                   </div>
                   <Button size="sm" onClick={handlePrescriptionClick}>
-                    <Plus className="mr-2 h-4 w-4" />
+                    <FilePlus className="mr-2 h-4 w-4" />
                     New Prescription
                   </Button>
                 </div>
@@ -215,9 +294,46 @@ const PatientView = () => {
           <TabsContent value="reports" className="mt-4">
             <PatientReportSection patientId={patient.id} />
           </TabsContent>
+          
+          <TabsContent value="labs" className="mt-4">
+            <PatientLabTestsSection patientId={patient.id} />
+          </TabsContent>
+          
+          <TabsContent value="billing" className="mt-4">
+            <PatientPaymentsSection patientId={patient.id} />
+          </TabsContent>
+          
+          <TabsContent value="referrals" className="mt-4">
+            <PatientReferralsSection patientId={patient.id} />
+          </TabsContent>
+          
+          <TabsContent value="followups" className="mt-4">
+            <PatientRemindersSection patientId={patient.id} />
+          </TabsContent>
         </Tabs>
       </div>
     </AdminLayout>
+  );
+};
+
+interface QuickActionButtonProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}
+
+const QuickActionButton = ({ icon, label, onClick }: QuickActionButtonProps) => {
+  return (
+    <Button 
+      variant="outline" 
+      className="flex flex-col items-center justify-center h-20 bg-white hover:bg-blue-50 border border-gray-200"
+      onClick={onClick}
+    >
+      <div className="text-blue-600 mb-1">
+        {icon}
+      </div>
+      <span className="text-xs font-medium">{label}</span>
+    </Button>
   );
 };
 
