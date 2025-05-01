@@ -25,6 +25,8 @@ import {
   ShoppingBasket,
   Truck,
   ChevronRight,
+  FileText,
+  BarChart2
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import AuthService from "@/services/authService";
@@ -105,6 +107,18 @@ const navItems: NavItem[] = [
       {
         label: "Degree",
         href: "/admin/medical-degree",
+        roles: ["Admin"]
+      },
+    ]
+  },
+  { 
+    icon: <BarChart2 className="h-5 w-5" />, 
+    label: "Reports", 
+    roles: ["Admin"],
+    submenu: [
+      {
+        label: "Referral Doctor",
+        href: "/admin/reports/referral-doctor",
         roles: ["Admin"]
       },
     ]

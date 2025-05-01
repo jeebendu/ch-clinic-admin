@@ -35,10 +35,10 @@ const PatientRoutes = () => {
       <Route path="/report/speech/:id" element={<SpeechReportView />} />
       
       {/* Report form routes - for creating new reports */}
-      <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm standalone={true} />} />
-      <Route path="/report/new/bera/:patientId" element={<BeraForm standalone={true} />} />
-      <Route path="/report/new/abr/:patientId" element={<ABRForm standalone={true} />} />
-      <Route path="/report/new/speech/:patientId" element={<SpeechForm standalone={true} />} />
+      <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm />} />
+      <Route path="/report/new/bera/:patientId" element={<BeraForm />} />
+      <Route path="/report/new/abr/:patientId" element={<ABRForm />} />
+      <Route path="/report/new/speech/:patientId" element={<SpeechForm />} />
     </Routes>
   );
 };

@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 import "./styles/admin.css";
 import DashboardRoutes from "./modules/dashboard/routes/DashboardRoutes";
@@ -22,6 +23,7 @@ import PurchaseOrderList from "./modules/purchase/pages/PurchaseOrderList";
 import EnquiryRoutes from "./modules/patient/submodules/enquiry/routes/EnquiryRoutes";
 import MedicalCouncilList from "./modules/doctor/submodules/medical-council/pages/MedicalCouncilList";
 import MedicalDegreeList from "./modules/doctor/submodules/medical-degree/pages/MedicalDegreeList";
+import ReportsRoutes from "./modules/reports/routes/ReportsRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -37,13 +39,13 @@ const AdminRoutes = () => {
       <Route path="/distributor/*" element={<DistributorRoutes />} />
       <Route path="/product/*" element={<ProductRoutes/>} />
       <Route path="/category/*" element={<CategoryRoutes/>} />
-      <Route path="/category/*" element={<CategoryRoutes/>} />
       <Route path="/brand/*" element={<BrandRoutes />} />
       <Route path="/product-type/*" element={<ProductTypeRoutes />} />
       <Route path="/doctor/*" element={<DoctorRoutes />} />
       <Route path="/users/*" element={<UserRoutes />} />
       <Route path="/expense/*" element={<ExpenseRoutes/>} />
       <Route path="/core/*" element={<CoreRoutes />} />
+      <Route path="/reports/*" element={<ReportsRoutes />} />
       <Route path="/:section" element={<DashboardRoutes />} />
       <Route path="/enquiry/*" element={<EnquiryRoutes />} />
       <Route path="/salesOrder/*" element={<SalesOrderList />} />
