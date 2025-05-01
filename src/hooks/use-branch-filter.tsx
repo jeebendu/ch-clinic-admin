@@ -38,13 +38,6 @@ export const useBranchFilter = () => {
   const handleBranchChange = (branchId: string) => {
     setSelectedBranch(branchId);
     localStorage.setItem('selectedBranch', branchId);
-    
-    // Dispatch a custom event when branch changes to notify components
-    const event = new CustomEvent('branch-change', { 
-      detail: { branchId, timestamp: Date.now() },
-      bubbles: true 
-    });
-    document.dispatchEvent(event);
   };
 
   return {
