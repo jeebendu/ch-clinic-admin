@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -6,10 +7,11 @@ import AudiometryForm from './reports/AudiometryForm';
 import { useToast } from '@/hooks/use-toast';
 
 interface PatientReportSectionProps {
-  patient: Patient | undefined;
+  patient?: Patient;
+  patientId?: number; // Add patientId as an optional prop
 }
 
-const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patient }) => {
+const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patient, patientId }) => {
   const [audiometryOpen, setAudiometryOpen] = useState(false);
   const { toast } = useToast();
 
@@ -20,6 +22,9 @@ const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patient }) 
     });
     setAudiometryOpen(false);
   };
+
+  // Use either patient?.id or patientId
+  const effectivePatientId = patient?.id ?? patientId;
 
   return (
     <div>
@@ -36,7 +41,7 @@ const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patient }) 
               </DialogDescription>
             </DialogHeader>
             <AudiometryForm 
-              patientId={patient?.id} 
+              patientId={effectivePatientId} 
               onCancel={() => setAudiometryOpen(false)} 
               onSave={handleSaveAudiogram}
               open={audiometryOpen}

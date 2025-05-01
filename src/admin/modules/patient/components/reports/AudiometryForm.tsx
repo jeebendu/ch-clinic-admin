@@ -1,22 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { useToast } from "@/hooks/use-toast"
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { RovingFocusGroup } from "@radix-ui/react-roving-focus"
-import { cn } from "@/lib/utils"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { DateRange } from "react-day-picker"
-import { DialogClose } from "@/components/ui/dialog"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { RovingFocusGroup } from "@radix-ui/react-roving-focus";
+import { cn } from "@/lib/utils";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { DateRange } from "react-day-picker";
+import { DialogClose } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import PatientReportService from '../../../services/patientReportService';
 
 export interface AudiometryDataPoint {
@@ -122,6 +123,7 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
     });
   };
 
+  // Fix the notes change handler to use textarea
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setAudiogram(prev => ({ ...prev, notes: e.target.value }));
   };
@@ -268,13 +270,13 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-col space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Input
-                type="textarea"
+              <Textarea
                 id="notes"
-                value={audiogram.notes}
+                value={audiogram.notes || ""}
                 onChange={handleNotesChange}
+                className="min-h-[100px]"
               />
             </div>
           </div>
