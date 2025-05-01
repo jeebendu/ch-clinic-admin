@@ -8,6 +8,7 @@ const DiagnosisList = () => {
     <AdminLayout>
       <PageHeader 
         title="Patient Diagnoses" 
+        description="Manage patient diagnoses and conditions"
         showAddButton={true}
         addButtonLabel="Add Diagnosis"
         onAddButtonClick={() => console.log("Add diagnosis clicked")}
