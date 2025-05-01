@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import PatientVisits from './tabs/PatientVisits';
@@ -10,10 +10,27 @@ interface PatientVisitTimelineProps {
 
 const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }) => {
   const navigate = useNavigate();
+  const [reloadKey, setReloadKey] = useState(Date.now());
   
   const handleViewVisitDetails = (visitId: string) => {
     navigate(`/admin/patients/visit/${visitId}`);
   };
+
+  // Listen for branch changes to reload data
+  useEffect(() => {
+    const handleBranchChange = () => {
+      // Force re-render when branch changes
+      setReloadKey(Date.now());
+    };
+    
+    // Listen for the custom event
+    document.addEventListener('branch-change', handleBranchChange);
+    
+    // Clean up the event listener
+    return () => {
+      document.removeEventListener('branch-change', handleBranchChange);
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -27,7 +44,11 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
           </div>
         </CardHeader>
         <CardContent>
-          <PatientVisits patientId={patientId} onViewDetails={handleViewVisitDetails} />
+          <PatientVisits 
+            key={reloadKey} 
+            patientId={patientId} 
+            onViewDetails={handleViewVisitDetails} 
+          />
         </CardContent>
       </Card>
     </div>

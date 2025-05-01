@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Check, ChevronDown, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,21 @@ const BranchFilter = ({ className }: BranchFilterProps) => {
     return branch ? branch.name : 'Select Branch';
   }, [branches, selectedBranch]);
 
+  // Handle branch selection and dispatch custom event
+  const handleBranchSelection = (branchId: string) => {
+    handleBranchChange(branchId);
+    
+    // Dispatch a custom event that components can listen for
+    const event = new CustomEvent('branch-change', { 
+      detail: { 
+        branchId,
+        timestamp: new Date().getTime()
+      },
+      bubbles: true 
+    });
+    document.dispatchEvent(event);
+  };
+
   return (
     <div className={cn('flex items-center', className)}>
       <DropdownMenu>
@@ -47,7 +62,7 @@ const BranchFilter = ({ className }: BranchFilterProps) => {
               <DropdownMenuItem
                 key={branch.id}
                 className="flex items-center justify-between cursor-pointer"
-                onClick={() => handleBranchChange(branch.id.toString())}
+                onClick={() => handleBranchSelection(branch.id.toString())}
               >
                 <span>{branch.name}</span>
                 {selectedBranch === branch.id.toString() && <Check className="h-4 w-4 text-clinic-primary" />}
