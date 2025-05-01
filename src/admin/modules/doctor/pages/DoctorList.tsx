@@ -1,267 +1,354 @@
-import React, { useState, useEffect } from 'react';
-import AdminLayout from '@/admin/components/AdminLayout';
-import PageHeader from '@/admin/components/PageHeader';
-import { Button } from '@/components/ui/button';
-import { Plus, Edit, Eye, Trash2 } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { Doctor } from '../types/Doctor';
-import DoctorService from '../services/doctorService';
-import { Link } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { cn } from '@/lib/utils';
-import { MedicalCouncil } from '../types/MedicalCouncil';
-import ReviewDoctorDialog from '../components/ReviewDoctorDialog';
+import React, { useEffect, useState } from "react";
+import PageHeader from "@/admin/components/PageHeader";
+import AdminLayout from "@/admin/components/AdminLayout";
+import DoctorGrid from "../components/DoctorGrid";
+import DoctorTable from "../components/DoctorTable";
+import DoctorForm from "../components/DoctorForm";
+import DoctorView from "../components/DoctorView";
+import { useDoctors } from "../hooks/useDoctors";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import DoctorOnboardingForm from "../components/DoctorOnboardingForm";
+import ReviewDoctorDialog from "../components/ReviewDoctorDialog";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
+import { Doctor } from "../types/Doctor";
+import doctorService from "../services/doctorService";
+import SpecialityService from "../doctor-speciality/services/SpecialityService";
 
 const DoctorList = () => {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [showForm, setShowForm] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showOnboardingForm, setShowOnboardingForm] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const { toast } = useToast();
+  const [reviewDoctor, setReviewDoctor] = useState(null);
+  const [showFilters, setShowFilters] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Add filter states
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+    doctorType: [],
+    specialization: []
+  });
+
+  // Define filter options
+  const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
+    {
+      id: 'doctorType',
+      label: 'Doctor Type',
+      options: [
+        { id: 'internal', label: 'Internal' },
+        { id: 'external', label: 'External' }
+      ]
+    },
+    {
+      id: 'specialization',
+      label: 'Specialization',
+      options: []
+    }
+  ]);
+
+  const {
+    doctors,
+    loading,
+    hasMore,
+    loadMore,
+    refreshDoctors,
+    updateFilters,
+    totalElements,
+    loadedElements
+  } = useDoctors({
+    page: 0,
+    size: 12,
+    searchTerm: "",
+    doctorType: null,
+    specialization: null
+  });
+
+  const handleFilterChange = (filterId: string, optionId: string) => {
+    console.log(optionId)
+    setSelectedFilters(prev => {
+      const newFilters = { ...prev };
+      if (newFilters[filterId]?.includes(optionId)) {
+        newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
+      } else {
+        newFilters[filterId] = [...(newFilters[filterId] || []), optionId];
+      }
+      
+      // Update the filters using the updateFilters function
+      updateFilters({
+        doctorType: newFilters.doctorType[0] || null,
+        specialization: newFilters.specialization[0] || null,
+        searchTerm: searchTerm
+      });
+      
+      return newFilters;
+    });
+  };
+
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+    updateFilters({
+      searchTerm: term,
+      doctorType: selectedFilters.doctorType[0] || null,
+      specialization: selectedFilters.specialization[0] || null
+    });
+  };
 
   useEffect(() => {
-    fetchDoctors();
-  }, [page, perPage]);
+    fetchSpecializations();
+  }, []);
 
-  const fetchDoctors = async () => {
-    setLoading(true);
+  const fetchSpecializations = async () => {
     try {
-      const response = await DoctorService.getPaginatedDoctors(page, perPage);
-      setDoctors(response.content);
-      setTotal(response.totalElements);
+      const response = await SpecialityService.list();
+      if (response) {
+        console.log(response)
+        setFilterOptions(prevOptions => {
+          return prevOptions.map(option => {
+            if (option.id === 'specialization') {
+              return {
+                ...option,
+                options: response.map((branch: any) => ({
+                  id: branch.id,
+                  label: branch.name
+                }))
+              };
+            }
+            return option;
+          });
+        });
+      } else {
+        toast.error("Error fetching specializations!");
+      }
     } catch (error) {
-      console.error("Error fetching doctors:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch doctors.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      toast.error("Failed to fetch specializations!");
     }
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedFilters({
+      doctorType: [],
+      specialization: []
+    });
+    updateFilters({
+      searchTerm: "",
+      doctorType: null,
+      specialization: null
+    });
   };
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
+  const handleViewModeToggle = () => {
+    setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
-  const handlePerPageChange = (newPerPage: number) => {
-    setPerPage(newPerPage);
-    setPage(1); // Reset to the first page when changing the number of items per page
+  const handleAddDoctor = () => {
+    setSelectedDoctor(null);
+    setShowForm(true);
   };
 
-  const getInitials = (name: string = '') => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
-  const handleReviewDoctor = (doctor: Doctor) => {
+  const handleEditDoctor = (doctor: any) => {
     setSelectedDoctor(doctor);
+    setShowForm(true);
+  };
+
+  const handleViewDoctor = (doctor: any) => {
+    setSelectedDoctor(doctor);
+    setShowViewModal(true);
+  };
+
+  const handleFormClose = () => {
+    setShowForm(false);
+    setSelectedDoctor(null);
+  };
+
+  const handleFormSubmit = async (doctor: any) => {
+    try {
+      const resp = await doctorService.saveOrUpdateDoctor(doctor);
+      if (resp.status) {
+        toast.success("Doctor saved!");
+      } else {
+        toast.error("Error, unable to save doctor!");
+      }
+    } catch (e) {
+      toast.error("Failed to save doctor!");
+    }
+    setShowForm(false);
+    refreshDoctors();
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight * 1.5 && !loading && hasMore) {
+      loadMore();
+    }
+  };
+
+  const handlePublishDoctor = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+    setShowOnboardingForm(true);
+  };
+
+  const handleOnboardingSubmit = async (doctor: Doctor) => {
+    try {
+      console.log(doctor)
+      const response = await doctorService.saveOrUpdateDoctor(doctor);
+      if (response.status) {
+        toast.success("Doctor published online successfully!");
+        setShowOnboardingForm(false);
+        refreshDoctors();
+      } else {
+        toast.error("Error publishing doctor!");
+      }
+    } catch (error) {
+      console.error("Error publishing doctor:", error);
+      toast.error("Error publishing doctor online!");
+    }
+  };
+
+  const handleVerifyClick = (doctor: Doctor) => {
+    setReviewDoctor(doctor);
     setShowReviewDialog(true);
-  }
+  };
+
+  const handleDoctorVerify = async (doctor: Doctor) => {
+    try {
+      const updatedDoctor = { ...doctor, verified: true };
+      const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
+      if (resp.status) {
+        toast.success("Doctor verified!");
+        setShowReviewDialog(false);
+        setReviewDoctor(null);
+        refreshDoctors();
+      } else {
+        toast.error("Error verifying doctor!");
+      }
+    } catch (e) {
+      toast.error("Failed to verify doctor!");
+    }
+  };
+
+  const filteredDoctors = (Array.isArray(doctors) ? doctors : []).filter((doctor: Doctor) => {
+    // Name filter
+    if (searchTerm && !`${doctor.firstname} ${doctor.lastname}`.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // Doctor type filter
+    if (selectedFilters.doctorType.length > 0) {
+      const typeMatch = selectedFilters.doctorType.includes(doctor.isExternal ? 'external' : 'internal');
+      if (!typeMatch) return false;
+    }
+
+    // Specialization filter
+    if (selectedFilters.specialization.length > 0) {
+      const specializationMatch = doctor.specialization 
+        ? selectedFilters.specialization.some((spec: string) => 
+            doctor.specialization?.some((docSpec: any) => docSpec.name.toLowerCase() === spec.toLowerCase())
+          )
+        : false;
+      if (!specializationMatch) return false;
+    }
+
+    return true;
+  });
 
   return (
     <AdminLayout>
-      <div className="w-full">
+      <div className="h-full flex flex-col" onScroll={handleScroll}>
         <PageHeader
           title="Doctors"
-          showAddButton
+          description="Manage your clinic's doctors"
+          showAddButton={true}
           addButtonLabel="Add Doctor"
-          onAddButtonClick={() => toast({
-            title: "Add Doctor",
-            description: "This feature is coming soon.",
-          })}
+          onAddButtonClick={handleAddDoctor}
+          onViewModeToggle={handleViewModeToggle}
+          viewMode={viewMode}
+          onRefreshClick={refreshDoctors}
+          onSearchChange={handleSearchChange}
+          loadedElements={loadedElements}
+          totalElements={totalElements}
+          onFilterToggle={() => setShowFilters(!showFilters)}
+          showFilter={showFilters}
         />
-        <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
-          <div className="flex items-center space-x-2">
-            <Input
-              type="search"
-              placeholder="Search doctors..."
-              value={search}
-              onChange={handleSearch}
-            />
-          </div>
-        </div>
-        <div className="mt-6 bg-white border shadow rounded-lg overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[60px]">#</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Specialization</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                // Skeleton rows for loading state
-                [...Array(perPage)].map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium"><Skeleton className="h-4 w-[60px]" /></TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Skeleton className="h-8 w-8 rounded-full" />
-                        <div>
-                          <Skeleton className="h-4 w-[150px]" />
-                          <Skeleton className="h-4 w-[100px] mt-1" />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-[100px]" /></TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                // Doctor data rows
-                doctors.map((doctor, index) => {
-                  const externalLabel = doctor.external ? 'External' : 'Internal';
 
-                  return (
-                    <TableRow key={doctor.id}>
-                      <TableCell className="font-medium">{index + 1 + (page - 1) * perPage}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Avatar>
-                            <AvatarImage src="https://github.com/shadcn.png" alt="Doctor Avatar" />
-                            <AvatarFallback>{getInitials(doctor.firstname + ' ' + doctor.lastname)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            {doctor.firstname} {doctor.lastname}
-                            {doctor.specializationList && doctor.specializationList.length > 0 && (
-                              <div className="text-xs text-gray-600">
-                                Specialization: {doctor.specializationList.map(spec => spec.name).join(', ')}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{doctor.email}</TableCell>
-                      <TableCell>{doctor.phone}</TableCell>
-                      <TableCell>
-                        {doctor.specializationList && doctor.specializationList.map((item) => (
-                          <Badge key={item.id} variant="secondary" className="mr-1">{item.name}</Badge>
-                        ))}
-                      </TableCell>
-                      <TableCell>
-                        {doctor.verified ? (
-                          <Badge variant="outline">Active</Badge>
-                        ) : (
-                          <Badge variant="destructive">Inactive</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleReviewDoctor(doctor)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Review
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link to={`/admin/doctors/edit/${doctor.id}`}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex items-center justify-between space-y-4 mt-4">
-          <div>
-            <select
-              value={perPage}
-              onChange={(e) => handlePerPageChange(Number(e.target.value))}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            >
-              <option value="5">5 per page</option>
-              <option value="10">10 per page</option>
-              <option value="20">20 per page</option>
-              <option value="50">50 per page</option>
-            </select>
-          </div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationPrevious href="#" onClick={() => handlePageChange(page - 1)} aria-disabled={page === 1} />
-              {/* Display page numbers */}
-              {Array.from({ length: Math.ceil(total / perPage) }, (_, i) => i + 1).map((pageNumber) => (
-                <PaginationItem key={pageNumber} className={cn({
-                  "is-active": pageNumber === page,
-                })}>
-                  <PaginationLink
-                    href="#"
-                    onClick={() => handlePageChange(pageNumber)}
-                    className={cn({
-                      "is-active": pageNumber === page,
-                    })}
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationNext href="#" onClick={() => handlePageChange(page + 1)} aria-disabled={page === Math.ceil(total / perPage)} />
-            </PaginationContent>
-          </Pagination>
+        {showFilters && (
+          <FilterCard
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            filters={filterOptions}
+            selectedFilters={selectedFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={clearFilters}
+          />
+        )}
+
+        <div className="flex-1 overflow-auto">
+          {viewMode === 'grid' ? (
+            <DoctorGrid
+              doctors={filteredDoctors}
+              loading={loading}
+              onDoctorClick={handleViewDoctor}
+              onEditClick={handleEditDoctor}
+            />
+          ) : (
+            <DoctorTable
+              doctors={filteredDoctors}
+              loading={loading}
+              onViewClick={handleViewDoctor}
+              onEditClick={handleEditDoctor}
+              onPublishClick={handlePublishDoctor}
+              onVerifyClick={handleVerifyClick}
+            />
+          )}
         </div>
       </div>
-      <ReviewDoctorDialog open={showReviewDialog} onOpenChange={setShowReviewDialog} doctor={selectedDoctor} />
+
+      {showForm && (
+        <DoctorForm
+          isOpen={showForm}
+          onClose={handleFormClose}
+          onSubmit={handleFormSubmit}
+          doctor={selectedDoctor}
+        />
+      )}
+
+      {showViewModal && selectedDoctor && (
+        <DoctorView
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal(false)}
+          doctor={selectedDoctor}
+          onEdit={() => {
+            setShowViewModal(false);
+            handleEditDoctor(selectedDoctor);
+          }}
+        />
+      )}
+
+      {showOnboardingForm && selectedDoctor && (
+        <DoctorOnboardingForm
+          isOpen={showOnboardingForm}
+          onClose={() => setShowOnboardingForm(false)}
+          onSubmit={handleOnboardingSubmit}
+          doctor={selectedDoctor}
+        />
+      )}
+
+      {showReviewDialog && reviewDoctor && (
+        <ReviewDoctorDialog
+          open={showReviewDialog}
+          doctor={reviewDoctor}
+          onClose={() => {
+            setShowReviewDialog(false);
+            setReviewDoctor(null);
+          }}
+          onVerify={handleDoctorVerify}
+        />
+      )}
     </AdminLayout>
   );
 };

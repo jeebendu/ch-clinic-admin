@@ -1,219 +1,153 @@
-
 import { Doctor } from "../types/Doctor";
 import { MedicalDegree } from "../types/MedicalDegree";
 import { MedicalCouncil } from "../types/MedicalCouncil";
-import { State, District, Country } from "../../core/types/Address";
 
-const doctorMockService = {
-  getDoctors: async (): Promise<Doctor[]> => {
-    // Creating a list of mock doctors with the correct types
-    return Promise.resolve([
-      {
+const medicalDegrees: MedicalDegree[] = [
+    {
         id: 1,
-        uid: "DR001",
-        firstname: "John",
-        lastname: "Smith",
-        email: "john.smith@example.com",
-        phone: "9876543210",
-        gender: "Male",
-        dob: "1980-05-15",
-        expYear: 12,
-        about: "Experienced doctor specializing in cardiology",
-        qualification: "MBBS, MD",
-        external: false,
-        joiningDate: "2020-01-15",
-        active: true,
-        verified: true,
-        publishedOnline: true,
-        image: "/assets/img/doctors/doctor-thumb-01.jpg",
-        district: { 
-          id: 1, 
-          name: "Central District", 
-          state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } }
-        } as District,
-        state: { 
-          id: 1, 
-          name: "State 1", 
-          country: { id: 1, name: "Country" } 
-        } as State,
-        country: { 
-          id: 1, 
-          name: "Country" 
-        } as Country,
-        degree: { 
-          id: 1, 
-          name: "MBBS" 
-        } as MedicalDegree,
-        additionalInfoDoctor: {
-          id: 1,
-          registationNumber: "REG123456",
-          registationYear: "2010",
-          medicalCouncil: { id: 1, name: "Medical Council of India" } as MedicalCouncil,
-          degreeCollege: "Medical College",
-          yearCompletionDegree: "2008",
-          establishmentName: "Smith Clinic",
-          establishmentCity: "New York",
-          state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } } as State,
-          district: { id: 1, name: "Central District", state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } } } as District,
-          establishmentType: "own"
-        }
-      },
-      {
+        name: "MBBS"
+    },
+    {
         id: 2,
-        uid: "DR002",
-        firstname: "Emily",
-        lastname: "Johnson",
-        email: "emily.johnson@example.com",
-        phone: "9876543211",
-        gender: "Female",
-        dob: "1985-08-20",
-        expYear: 8,
-        about: "Specialized in pediatric care",
-        qualification: "MBBS, DCH",
-        external: false,
-        joiningDate: "2021-03-10",
-        active: true,
-        verified: true,
-        publishedOnline: true,
-        image: "/assets/img/doctors/doctor-thumb-02.jpg",
-        district: { 
-          id: 2, 
-          name: "North District", 
-          state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } }
-        } as District,
-        state: { 
-          id: 1, 
-          name: "State 1", 
-          country: { id: 1, name: "Country" } 
-        } as State,
-        country: { 
-          id: 1, 
-          name: "Country" 
-        } as Country,
-        degree: { 
-          id: 2, 
-          name: "DCH" 
-        } as MedicalDegree,
-        additionalInfoDoctor: {
-          id: 2,
-          registationNumber: "REG654321",
-          registationYear: "2012",
-          medicalCouncil: { id: 1, name: "Medical Council of India" } as MedicalCouncil,
-          degreeCollege: "State Medical College",
-          yearCompletionDegree: "2010",
-          establishmentName: "Kids Care Clinic",
-          establishmentCity: "Boston",
-          state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } } as State,
-          district: { id: 2, name: "North District", state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } } } as District,
-          establishmentType: "visit"
-        }
-      },
-      {
+        name: "MD"
+    },
+    {
         id: 3,
-        uid: "DR003",
-        firstname: "Michael",
-        lastname: "Brown",
-        email: "michael.brown@example.com",
-        phone: "9876543212",
-        gender: "Male",
-        dob: "1978-11-30",
-        expYear: 15,
-        about: "Specialist in orthopedic surgery",
-        qualification: "MBBS, MS Ortho",
-        external: true,
-        joiningDate: "2019-07-22",
-        active: true,
-        verified: true,
-        publishedOnline: true,
-        image: "/assets/img/doctors/doctor-thumb-03.jpg",
-        district: { 
-          id: 3, 
-          name: "South District", 
-          state: { id: 2, name: "State 2", country: { id: 1, name: "Country" } }
-        } as District,
-        state: { 
-          id: 2, 
-          name: "State 2", 
-          country: { id: 1, name: "Country" } 
-        } as State,
-        country: { 
-          id: 1, 
-          name: "Country" 
-        } as Country,
-        degree: { 
-          id: 3, 
-          name: "MS Ortho" 
-        } as MedicalDegree,
-        additionalInfoDoctor: {
-          id: 3,
-          registationNumber: "REG789012",
-          registationYear: "2008",
-          medicalCouncil: { id: 1, name: "Medical Council of India" } as MedicalCouncil,
-          degreeCollege: "National Medical College",
-          yearCompletionDegree: "2006",
-          establishmentName: "Ortho Care Center",
-          establishmentCity: "Chicago",
-          state: { id: 2, name: "State 2", country: { id: 1, name: "Country" } } as State,
-          district: { id: 3, name: "South District", state: { id: 2, name: "State 2", country: { id: 1, name: "Country" } } } as District,
-          establishmentType: "own"
-        }
-      }
-    ]);
-  },
+        name: "DO"
+    }
+]
 
-  getDoctorById: async (id: number): Promise<Doctor> => {
-    // Return a mock doctor with the correct structure and types
-    return Promise.resolve({
-      id: id,
-      uid: `DR00${id}`,
-      firstname: "John",
-      lastname: "Smith",
-      email: "john.smith@example.com",
-      phone: "9876543210",
-      gender: "Male",
-      dob: "1980-05-15",
-      expYear: 12,
-      about: "Experienced doctor specializing in cardiology",
-      qualification: "MBBS, MD",
-      external: false,
-      joiningDate: "2020-01-15",
-      active: true,
-      verified: true,
-      publishedOnline: true,
-      image: "/assets/img/doctors/doctor-thumb-01.jpg",
-      district: { 
-        id: 1, 
-        name: "Central District", 
-        state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } }
-      } as District,
-      state: { 
-        id: 1, 
-        name: "State 1", 
-        country: { id: 1, name: "Country" } 
-      } as State,
-      country: { 
-        id: 1, 
-        name: "Country" 
-      } as Country,
-      degree: { 
-        id: 1, 
-        name: "MBBS" 
-      } as MedicalDegree,
-      additionalInfoDoctor: {
+const medicalCouncils: MedicalCouncil[] = [
+    {
         id: 1,
-        registationNumber: "REG123456",
-        registationYear: "2010",
-        medicalCouncil: { id: 1, name: "Medical Council of India" } as MedicalCouncil,
-        degreeCollege: "Medical College",
-        yearCompletionDegree: "2008",
-        establishmentName: "Smith Clinic",
-        establishmentCity: "New York",
-        state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } } as State,
-        district: { id: 1, name: "Central District", state: { id: 1, name: "State 1", country: { id: 1, name: "Country" } } } as District,
-        establishmentType: "own"
-      }
-    });
-  }
-};
+        name: "Medical Council of India"
+    },
+    {
+        id: 2,
+        name: "Medical Council of UK"
+    },
+    {
+        id: 3,
+        name: "Medical Council of USA"
+    }
+]
 
-export default doctorMockService;
+const doctors: Doctor[] = [
+    {
+        id: 1,
+        uid: "DOC-001",
+        firstname: "John",
+        lastname: "Doe",
+        email: "john.doe@example.com",
+        phone: "123-456-7890",
+        gender: "Male",
+        dob: "1980-01-01",
+        address: "123 Main St",
+        city: "Anytown",
+        state: "CA",
+        zip: "12345",
+        country: "USA",
+        speciality: "Cardiologist",
+        medicalDegree: "MBBS",
+        medicalCouncil: "Medical Council of India",
+        additionalInfo: {
+            registationNumber: "REG-001",
+            registationYear: "2005",
+            experience: "15",
+            biography: "John Doe is a cardiologist with 15 years of experience.",
+        },
+        branchId: 1,
+        createdTime: "2021-01-01T00:00:00.000Z",
+        modifiedTime: "2021-01-01T00:00:00.000Z"
+    },
+    {
+        id: 2,
+        uid: "DOC-002",
+        firstname: "Jane",
+        lastname: "Smith",
+        email: "jane.smith@example.com",
+        phone: "987-654-3210",
+        gender: "Female",
+        dob: "1985-05-15",
+        address: "456 Elm St",
+        city: "Springfield",
+        state: "IL",
+        zip: "67890",
+        country: "USA",
+        speciality: "Dermatologist",
+        medicalDegree: "MD",
+        medicalCouncil: "Medical Council of UK",
+        additionalInfo: {
+            registationNumber: "REG-002",
+            registationYear: "2010",
+            experience: "10",
+            biography: "Jane Smith is a dermatologist with 10 years of experience.",
+        },
+        branchId: 2,
+        createdTime: "2021-02-15T00:00:00.000Z",
+        modifiedTime: "2021-02-15T00:00:00.000Z"
+    },
+    {
+        id: 3,
+        uid: "DOC-003",
+        firstname: "Mike",
+        lastname: "Johnson",
+        email: "mike.johnson@example.com",
+        phone: "555-123-4567",
+        gender: "Male",
+        dob: "1978-11-20",
+        address: "789 Oak St",
+        city: "Hill Valley",
+        state: "WA",
+        zip: "54321",
+        country: "USA",
+        speciality: "Pediatrician",
+        medicalDegree: "DO",
+        medicalCouncil: "Medical Council of USA",
+        additionalInfo: {
+            registationNumber: "REG-003",
+            registationYear: "2003",
+            experience: "17",
+            biography: "Mike Johnson is a pediatrician with 17 years of experience.",
+        },
+        branchId: 1,
+        createdTime: "2021-03-10T00:00:00.000Z",
+        modifiedTime: "2021-03-10T00:00:00.000Z"
+    }
+]
+
+export const doctorMockService = {
+    getAll: async (): Promise<Doctor[]> => {
+        return doctors;
+    },
+    getById: async (id: number): Promise<Doctor | undefined> => {
+        return doctors.find(doctor => doctor.id === id);
+    },
+    create: async (doctor: Doctor): Promise<Doctor> => {
+        doctor.id = doctors.length + 1;
+        doctors.push(doctor);
+        return doctor;
+    },
+    update: async (id: number, updatedDoctor: Doctor): Promise<Doctor | undefined> => {
+        const index = doctors.findIndex(doctor => doctor.id === id);
+        if (index !== -1) {
+            doctors[index] = { ...doctors[index], ...updatedDoctor };
+            return doctors[index];
+        }
+        return undefined;
+    },
+    delete: async (id: number): Promise<boolean> => {
+        const index = doctors.findIndex(doctor => doctor.id === id);
+        if (index !== -1) {
+            doctors.splice(index, 1);
+            return true;
+        }
+        return false;
+    },
+    getMedicalDegrees: async (): Promise<MedicalDegree[]> => {
+        return medicalDegrees;
+    },
+    getMedicalCouncils: async (): Promise<MedicalCouncil[]> => {
+        return medicalCouncils;
+    }
+};

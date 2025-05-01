@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Doctor } from "../types/Doctor";
 import { Calendar, Clock, Mail, MapPin, Phone, Star, UserCheck, Briefcase, Award, Languages } from "lucide-react";
 import { format } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
 
 interface DoctorViewProps {
   isOpen: boolean;
@@ -161,7 +161,7 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                   <CardContent className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground mb-1">Gender</h4>
-                      <p>{getGenderText(typeof doctor.gender === 'string' ? parseInt(doctor.gender as string, 10) : doctor.gender)}</p>
+                      <p>{getGenderText(doctor.gender)}</p>
                     </div>
                     
                     <div>

@@ -26,12 +26,12 @@ export const useDoctors = (initialParams: DoctorQueryParams) => {
     setError(null);
     
     try {
-      const response = await DoctorService.getPaginatedDoctors(
+      const response = await DoctorService.fetchPaginated(
         params.page,
         params.size,
         { 
           value: params.searchTerm || '',
-          doctorType: params.doctorType ? params.doctorType === "external" ? true : false : null,
+          doctorType: params.doctorType? params.doctorType=="external"?true:false : null,
           specialization: params.specialization
         }
       );
