@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -184,7 +183,8 @@ const PatientView = () => {
         </div>
 
         <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <RovingFocusGroup asChild>
+          {/* Wrap all TabsTrigger elements within RovingFocusGroup */}
+          <RovingFocusGroup orientation="horizontal">
             <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 mb-4">
               <TabsTrigger value="timeline">
                 <Calendar className="h-4 w-4 mr-2 hidden sm:inline" />
@@ -219,7 +219,7 @@ const PatientView = () => {
           
           {/* Additional tabs for "More" dropdown */}
           <div className="hidden">
-            <RovingFocusGroup asChild>
+            <RovingFocusGroup orientation="horizontal">
               <div>
                 <TabsTrigger value="referrals">
                   <Users className="h-4 w-4 mr-2" />
@@ -233,6 +233,7 @@ const PatientView = () => {
             </RovingFocusGroup>
           </div>
           
+          {/* TabsContent sections */}
           <TabsContent value="timeline" className="mt-4">
             <PatientVisitTimeline patientId={patient.id.toString()} />
           </TabsContent>

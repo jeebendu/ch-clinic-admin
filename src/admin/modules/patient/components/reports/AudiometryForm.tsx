@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -88,17 +87,12 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
 
   useEffect(() => {
     const fetchReportData = async () => {
-      // Mock implementation for fetching report data
-      // Replace with your actual API call
-      // This is just an example, adapt it to your needs
       if (reportId) {
         try {
-          // Fix: Convert the string reportId to a number using parseInt
           const numericReportId = parseInt(reportId, 10);
           const reportData = await PatientReportService.getReportById(numericReportId);
           console.log("Report Data:", reportData);
           if (reportData) {
-            // Assuming the reportData structure matches the Audiogram structure
             setAudiogram({
               id: reportData.id,
               rightEar: reportData.rightEar,
@@ -126,7 +120,6 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
     });
   };
 
-  // Fix the notes change handler to use textarea
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setAudiogram(prev => ({ ...prev, notes: e.target.value }));
   };
@@ -178,10 +171,8 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
 
   return (
     <div className="flex flex-col space-y-4">
-      {/* When using ToggleGroup components, make sure they're wrapped with RovingFocusGroup */}
-      <RovingFocusGroup asChild>
+      <RovingFocusGroup orientation="horizontal">
         <ToggleGroup type="single">
-          {/* Each ToggleGroupItem must be a direct child of ToggleGroup */}
           <ToggleGroupItem value="item-1">Item 1</ToggleGroupItem>
           <ToggleGroupItem value="item-2">Item 2</ToggleGroupItem>
         </ToggleGroup>
