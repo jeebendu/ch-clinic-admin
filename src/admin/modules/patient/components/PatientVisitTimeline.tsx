@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import PatientVisits from './tabs/PatientVisits';
-import { useBranchFilter } from '@/hooks/use-branch-filter';
 
 interface PatientVisitTimelineProps {
   patientId: string;
@@ -12,16 +11,10 @@ interface PatientVisitTimelineProps {
 const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }) => {
   const navigate = useNavigate();
   const [reloadKey, setReloadKey] = useState(Date.now());
-  const { selectedBranch } = useBranchFilter();
   
   const handleViewVisitDetails = (visitId: string) => {
     navigate(`/admin/patients/visit/${visitId}`);
   };
-
-  // Force reload when branch changes
-  useEffect(() => {
-    setReloadKey(Date.now());
-  }, [selectedBranch]);
 
   // Listen for branch changes to reload data
   useEffect(() => {
