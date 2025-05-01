@@ -10,20 +10,8 @@ import { format } from 'date-fns';
 import { 
   ArrowLeft, 
   Calendar, 
-  Mail, 
-  MapPin, 
-  Phone, 
-  Plus,
   FilePlus,
-  FileText, 
-  TestTube, 
-  FileBarChart, 
-  ArrowRightLeft,
-  CheckCheck,
-  UserCheck,
-  Thermometer,
-  Receipt,
-  CreditCard
+  FileText
 } from 'lucide-react';
 import PatientService from '../services/patientService';
 import { AdminLayout } from '@/admin/components/AdminLayout';
@@ -191,7 +179,7 @@ const PatientView = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     <p>No medical history recorded</p>
                     <Button variant="outline" className="mt-2">
-                      <Plus className="mr-2 h-4 w-4" />
+                      <FileText className="mr-2 h-4 w-4" />
                       Add Medical History
                     </Button>
                   </div>
@@ -209,7 +197,7 @@ const PatientView = () => {
                     <CardDescription>All prescriptions issued to the patient</CardDescription>
                   </div>
                   <Button size="sm" onClick={() => navigate(`/admin/patients/prescription/${id}`)}>
-                    <Plus className="mr-2 h-4 w-4" />
+                    <FilePlus className="mr-2 h-4 w-4" />
                     New Prescription
                   </Button>
                 </div>
@@ -238,7 +226,7 @@ const PatientView = () => {
           <DialogHeader>
             <DialogTitle>Create New Visit</DialogTitle>
             <DialogDescription>
-              Schedule a new visit for {patient?.firstName} {patient?.lastName}
+              Schedule a new visit for {patient?.firstname} {patient?.lastname}
             </DialogDescription>
           </DialogHeader>
           <NewVisitForm 

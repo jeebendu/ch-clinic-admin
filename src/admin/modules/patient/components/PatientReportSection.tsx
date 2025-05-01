@@ -14,13 +14,16 @@ import {
 import { format } from 'date-fns';
 import { PatientReport } from '../types/PatientReport';
 import { Patient } from '../types/Patient';
+import { useNavigate } from 'react-router-dom';
 import { Audiogram } from '../types/AudiometryTypes';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import ReportTypeSelector from './ReportTypeSelector';
-import AudiometryForm from './reports/AudiometryForm';
-import BeraForm from './reports/BeraForm';
-import ABRForm from './reports/ABRForm';
-import SpeechForm from './reports/SpeechForm';
 import { useToast } from '@/hooks/use-toast';
 
 interface PatientReportSectionProps {
@@ -29,14 +32,10 @@ interface PatientReportSectionProps {
 
 const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patientId }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [reports, setReports] = useState<PatientReport[]>([]);
-  const [showReportSelector, setShowReportSelector] = useState(false);
-  const [selectedReportType, setSelectedReportType] = useState<string>("");
+  const [showReportTypeDialog, setShowReportTypeDialog] = useState(false);
   const [patient, setPatient] = useState<Patient | null>(null);
-  const [audiometryFormOpen, setAudiometryFormOpen] = useState(false);
-  const [beraFormOpen, setBeraFormOpen] = useState(false);
-  const [abrFormOpen, setABRFormOpen] = useState(false);
-  const [speechFormOpen, setSpeechFormOpen] = useState(false);
   
   // Fetch patient data when component mounts
   React.useEffect(() => {
@@ -59,26 +58,25 @@ const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patientId }
   }, [patientId]);
 
   const handleAddReport = () => {
-    setShowReportSelector(true);
+    setShowReportTypeDialog(true);
   };
 
   const handleSelectReportType = (type: string) => {
-    setSelectedReportType(type);
-    setShowReportSelector(false);
+    setShowReportTypeDialog(false);
     
-    // Open the appropriate form modal based on selected type
+    // Navigate to the appropriate report form page based on selected type
     switch(type) {
       case 'audiometry':
-        setAudiometryFormOpen(true);
+        navigate(`/admin/patients/report/audiometry/${patientId}`);
         break;
       case 'bera':
-        setBeraFormOpen(true);
+        navigate(`/admin/patients/report/bera/${patientId}`);
         break;
       case 'abr':
-        setABRFormOpen(true);
+        navigate(`/admin/patients/report/abr/${patientId}`);
         break;
       case 'speech':
-        setSpeechFormOpen(true);
+        navigate(`/admin/patients/report/speech/${patientId}`);
         break;
       default:
         toast({
@@ -89,112 +87,9 @@ const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patientId }
     }
   };
 
-  const handleCancelReport = () => {
-    setSelectedReportType("");
-    setAudiometryFormOpen(false);
-    setBeraFormOpen(false);
-    setABRFormOpen(false);
-    setSpeechFormOpen(false);
-    setShowReportSelector(false);
-  };
-
-  const handleSaveAudiometry = (audiogram: Audiogram) => {
-    // In a real implementation, this would call an API
-    console.log('Saving audiogram:', audiogram);
-    
-    // Add to reports list for demonstration
-    const newReport: PatientReport = {
-      id: Date.now(),
-      leftEar: audiogram.proDiagnosisLeft || "",
-      rightEar: audiogram.proDiagnosisRight || "",
-      recommendation: audiogram.recommendation || "",
-      impression: audiogram.impedanceAudiometry || "",
-      lpf: "",
-      hpf: "",
-      reportno: reports.length + 1,
-      patient: patient as Patient,
-      createdTime: new Date().toISOString(),
-      modifiedTime: new Date().toISOString(),
-      reportType: "audiometry"
-    };
-    
-    addReport(newReport);
-    setAudiometryFormOpen(false);
-  };
-
-  // Handle save for BERA report
-  const handleSaveBERA = (data: any) => {
-    console.log('Saving BERA report:', data);
-    
-    const newReport: PatientReport = {
-      id: Date.now(),
-      leftEar: data.leftEarResults || "",
-      rightEar: data.rightEarResults || "",
-      recommendation: data.recommendation || "",
-      impression: data.impression || "",
-      lpf: "",
-      hpf: "",
-      reportno: reports.length + 1,
-      patient: patient as Patient,
-      createdTime: new Date().toISOString(),
-      modifiedTime: new Date().toISOString(),
-      reportType: "bera"
-    };
-    
-    addReport(newReport);
-    setBeraFormOpen(false);
-  };
-
-  // Handle save for ABR report
-  const handleSaveABR = (data: any) => {
-    console.log('Saving ABR report:', data);
-    
-    const newReport: PatientReport = {
-      id: Date.now(),
-      leftEar: data.leftEarResults || "",
-      rightEar: data.rightEarResults || "",
-      recommendation: data.recommendation || "",
-      impression: data.impression || "",
-      lpf: "",
-      hpf: "",
-      reportno: reports.length + 1,
-      patient: patient as Patient,
-      createdTime: new Date().toISOString(),
-      modifiedTime: new Date().toISOString(),
-      reportType: "abr"
-    };
-    
-    addReport(newReport);
-    setABRFormOpen(false);
-  };
-
-  // Handle save for Speech report
-  const handleSaveSpeech = (data: any) => {
-    console.log('Saving Speech report:', data);
-    
-    const newReport: PatientReport = {
-      id: Date.now(),
-      leftEar: data.leftEarResults || "",
-      rightEar: data.rightEarResults || "",
-      recommendation: data.recommendation || "",
-      impression: data.impression || "",
-      lpf: "",
-      hpf: "",
-      reportno: reports.length + 1,
-      patient: patient as Patient,
-      createdTime: new Date().toISOString(),
-      modifiedTime: new Date().toISOString(),
-      reportType: "speech"
-    };
-    
-    addReport(newReport);
-    setSpeechFormOpen(false);
-  };
-
   // Common function to add report and show success toast
   const addReport = (report: PatientReport) => {
     setReports([...reports, report]);
-    setSelectedReportType("");
     
     toast({
       title: "Report Added",
@@ -215,6 +110,10 @@ const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patientId }
     }
   };
 
+  const handleViewReport = (reportType: string, reportId: number) => {
+    navigate(`/admin/patients/report/${reportType}/${reportId}`);
+  };
+
   return (
     <Card className="mt-6">
       <CardHeader className="pb-3">
@@ -227,99 +126,74 @@ const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patientId }
         </div>
       </CardHeader>
       <CardContent>
-        {showReportSelector && (
-          <ReportTypeSelector onSelectReportType={handleSelectReportType} />
-        )}
-        
-        {reports.length === 0 && !showReportSelector ? (
+        {reports.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <FileText className="mx-auto h-10 w-10 text-muted-foreground/50 mb-2" />
             <p>No reports added yet</p>
             <p className="text-sm">Click "Add Report" to create a new patient report</p>
           </div>
         ) : (
-          !showReportSelector && (
-            <div className="grid gap-4 md:grid-cols-2">
-              {reports.map(report => (
-                <div key={report.id} className="border rounded-md p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-2">
-                      <FileCheck className="h-4 w-4 text-green-600" />
-                      <h3 className="font-medium">Report #{report.reportno}</h3>
-                    </div>
-                    <Badge className={getReportTypeColor(report.reportType)}>
-                      {report.reportType?.charAt(0).toUpperCase() + report.reportType?.slice(1) || 'General'}
-                    </Badge>
+          <div className="grid gap-4 md:grid-cols-2">
+            {reports.map(report => (
+              <div key={report.id} className="border rounded-md p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-2">
+                    <FileCheck className="h-4 w-4 text-green-600" />
+                    <h3 className="font-medium">Report #{report.reportno}</h3>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Created: {format(new Date(report.createdTime), 'PPP')}
-                  </p>
-                  <div className="mt-3 text-sm">
-                    {(report.reportType === 'audiometry' || report.reportType === 'bera' || report.reportType === 'abr' || report.reportType === 'speech') && (
-                      <>
-                        <p><span className="font-medium">Right Ear:</span> {report.rightEar}</p>
-                        <p><span className="font-medium">Left Ear:</span> {report.leftEar}</p>
-                      </>
-                    )}
-                    {report.impression && (
-                      <p><span className="font-medium">Impression:</span> {report.impression}</p>
-                    )}
-                    {report.recommendation && (
-                      <p className="mt-1"><span className="font-medium">Recommendation:</span> {report.recommendation}</p>
-                    )}
-                  </div>
-                  <div className="flex justify-end mt-3 space-x-2">
-                    <Button size="sm" variant="outline" className="flex items-center gap-1">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex items-center gap-1">
-                      <Download className="h-3.5 w-3.5" />
-                      Download
-                    </Button>
-                  </div>
+                  <Badge className={getReportTypeColor(report.reportType)}>
+                    {report.reportType?.charAt(0).toUpperCase() + report.reportType?.slice(1) || 'General'}
+                  </Badge>
                 </div>
-              ))}
-            </div>
-          )
+                <p className="text-xs text-muted-foreground">
+                  Created: {format(new Date(report.createdTime), 'PPP')}
+                </p>
+                <div className="mt-3 text-sm">
+                  {(report.reportType === 'audiometry' || report.reportType === 'bera' || report.reportType === 'abr' || report.reportType === 'speech') && (
+                    <>
+                      <p><span className="font-medium">Right Ear:</span> {report.rightEar}</p>
+                      <p><span className="font-medium">Left Ear:</span> {report.leftEar}</p>
+                    </>
+                  )}
+                  {report.impression && (
+                    <p><span className="font-medium">Impression:</span> {report.impression}</p>
+                  )}
+                  {report.recommendation && (
+                    <p className="mt-1"><span className="font-medium">Recommendation:</span> {report.recommendation}</p>
+                  )}
+                </div>
+                <div className="flex justify-end mt-3 space-x-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex items-center gap-1"
+                    onClick={() => handleViewReport(report.reportType || 'general', report.id)}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    View
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex items-center gap-1">
+                    <Download className="h-3.5 w-3.5" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
         
-        {patient && (
-          <>
-            <AudiometryForm
-              patient={patient}
-              onCancel={handleCancelReport}
-              onSave={handleSaveAudiometry}
-              open={audiometryFormOpen}
-              onOpenChange={setAudiometryFormOpen}
-            />
-            
-            {/* New form components for the other ENT report types */}
-            <BeraForm 
-              patient={patient}
-              onCancel={handleCancelReport}
-              onSave={handleSaveBERA}
-              open={beraFormOpen}
-              onOpenChange={setBeraFormOpen}
-            />
-            
-            <ABRForm
-              patient={patient}
-              onCancel={handleCancelReport}
-              onSave={handleSaveABR}
-              open={abrFormOpen}
-              onOpenChange={setABRFormOpen}
-            />
-            
-            <SpeechForm
-              patient={patient}
-              onCancel={handleCancelReport}
-              onSave={handleSaveSpeech}
-              open={speechFormOpen}
-              onOpenChange={setSpeechFormOpen}
-            />
-          </>
-        )}
+        {/* Report Type Selection Dialog */}
+        <Dialog open={showReportTypeDialog} onOpenChange={setShowReportTypeDialog}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Select Report Type</DialogTitle>
+              <DialogDescription>
+                Choose the type of report you want to create for this patient
+              </DialogDescription>
+            </DialogHeader>
+            <ReportTypeSelector onSelectReportType={handleSelectReportType} />
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
