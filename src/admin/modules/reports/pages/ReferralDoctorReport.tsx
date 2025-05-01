@@ -84,10 +84,10 @@ const ReferralDoctorReport = () => {
     const days = eachDayOfInterval({ start: startDate, end: endDate });
     setDateRange(days);
     
-    fetchData(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`, selectedDoctor);
+    fetchData(selectedYear, selectedMonth, selectedDoctor);
   }, [selectedYear, selectedMonth, selectedDoctor]);
   
-  const fetchData = async (month: string, doctorId: string) => {
+  const fetchData = async (year: number, month: number, doctorId: string) => {
     setIsLoading(true);
     try {
       // Fetch doctors for filter dropdown
@@ -116,8 +116,9 @@ const ReferralDoctorReport = () => {
       });
       
       // Fetch referral data
-      const referralsResponse = await ReferralDoctorService.getReferralStats(month, doctorId);
+      const referralsResponse = await ReferralDoctorService.getReferralStats(year, month, doctorId);
       setReferralData(referralsResponse);
+      console.log("Fetched referral data:", referralsResponse);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -162,7 +163,7 @@ const ReferralDoctorReport = () => {
     
     // Filter referral data based on search term
     if (term.trim() === '') {
-      fetchData(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`, selectedDoctor);
+      fetchData(selectedYear, selectedMonth, selectedDoctor);
     }
   };
 
@@ -221,7 +222,7 @@ const ReferralDoctorReport = () => {
       month: [currentMonth.toString()]
     });
     
-    fetchData(`${currentYear}-${String(currentMonth).padStart(2, '0')}`, 'all');
+    fetchData(currentYear, currentMonth, 'all');
   };
 
   // Filter referral data based on search term
@@ -239,7 +240,7 @@ const ReferralDoctorReport = () => {
         <PageHeader 
           title="Referral Doctor Report" 
           description="Track patient referrals by doctor"
-          onRefreshClick={() => fetchData(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`, selectedDoctor)}
+          onRefreshClick={() => fetchData(selectedYear, selectedMonth, selectedDoctor)}
           onFilterToggle={() => setShowFilter(!showFilter)}
           showFilter={showFilter}
           loadedElements={loadedElements}

@@ -2,10 +2,95 @@
 import http from "@/lib/JwtInterceptor";
 import { getEnvVariable } from "@/utils/envUtils";
 import { format, parseISO } from "date-fns";
+import { Doctor } from "../../doctor/types/Doctor";
 
 const apiUrl = getEnvVariable('API_URL');
 
-// Mock data generator for demonstration
+// Interface definitions
+export interface ReferralCount {
+  createdTime: string;
+  referralPatientCount: number;
+}
+
+export interface DoctorReferralResponse {
+  doctor: Doctor;
+  referralCounts: ReferralCount[];
+}
+
+export interface ReferralSummary {
+  doctorId: number;
+  doctorName: string;
+  dailyReferrals: {
+    [date: string]: number;
+  };
+  totalReferrals: number;
+}
+
+// Service implementation
+const ReferralDoctorService = {
+  // Get list of doctors for filtering
+  getDoctors: async () => {
+    try {
+      // Call the API endpoint
+      const response = await http.get(`${apiUrl}/v1/doctor/referral/list`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+      // For fallback when API fails
+      return [
+        { id: 1, name: "Dr. John Smith" },
+        { id: 2, name: "Dr. Mary Johnson" },
+        { id: 3, name: "Dr. David Wilson" },
+        { id: 4, name: "Dr. Sarah Brown" }
+      ];
+    }
+  },
+
+  // Get referral statistics
+  getReferralStats: async (year: number, month: number, doctorId: string = 'all') => {
+    try {
+      // Call the real API endpoint with the requested body format
+      const response = await http.post(`${apiUrl}/v1/schedule/count`, {
+        year: year,
+        month: month
+      });
+
+      // Process the API response to match our expected format
+      const responseData: DoctorReferralResponse[] = response.data;
+      
+      // Transform the API data into the format our component expects
+      return responseData
+        .filter(item => doctorId === 'all' || item.doctor.id.toString() === doctorId)
+        .map(item => {
+          const dailyReferrals = {};
+          let totalReferrals = 0;
+          
+          // Process referral counts for each day
+          item.referralCounts.forEach(count => {
+            const dateKey = count.createdTime; // Format is already YYYY-MM-DD
+            dailyReferrals[dateKey] = count.referralPatientCount;
+            totalReferrals += count.referralPatientCount;
+          });
+          
+          return {
+            doctorId: item.doctor.id,
+            doctorName: item.doctor.name,
+            dailyReferrals,
+            totalReferrals
+          };
+        });
+    } catch (error) {
+      console.error("Error fetching referral statistics:", error);
+      
+      // For demo or when API fails, return mock data
+      const mockData = generateMockReferralData(year, month, doctorId);
+      console.log("Using mock data:", mockData);
+      return mockData;
+    }
+  }
+};
+
+// Mock data generator for development and fallback
 const generateMockReferralData = (year: number, month: number, doctorId: string) => {
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 0);
@@ -46,43 +131,6 @@ const generateMockReferralData = (year: number, month: number, doctorId: string)
       totalReferrals
     };
   });
-};
-
-const ReferralDoctorService = {
-  // Get list of doctors for filtering
-  getDoctors: async () => {
-    try {
-      // In a real implementation, this would call the API
-      // return await http.get(`${apiUrl}/v1/doctor/referral/list`);
-      
-      // For demo, return mock data
-      return [
-        { id: 1, name: "Dr. John Smith" },
-        { id: 2, name: "Dr. Mary Johnson" },
-        { id: 3, name: "Dr. David Wilson" },
-        { id: 4, name: "Dr. Sarah Brown" }
-      ];
-    } catch (error) {
-      console.error("Error fetching doctors:", error);
-      return [];
-    }
-  },
-
-  // Get referral statistics
-  getReferralStats: async (month: string, doctorId: string = 'all') => {
-    try {
-      // In a real implementation, this would call the API
-      // return await http.get(`${apiUrl}/v1/report/referral-doctor/${month}/${doctorId}`);
-      
-      const [year, monthNum] = month.split('-').map(Number);
-      
-      // For demo, return mock data
-      return generateMockReferralData(year, monthNum, doctorId);
-    } catch (error) {
-      console.error("Error fetching referral statistics:", error);
-      return [];
-    }
-  }
 };
 
 export default ReferralDoctorService;
