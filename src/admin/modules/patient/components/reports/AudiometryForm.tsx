@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -92,7 +93,9 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
       // This is just an example, adapt it to your needs
       if (reportId) {
         try {
-          const reportData = await PatientReportService.getReportById(reportId);
+          // Fix: Convert the string reportId to a number using parseInt
+          const numericReportId = parseInt(reportId, 10);
+          const reportData = await PatientReportService.getReportById(numericReportId);
           console.log("Report Data:", reportData);
           if (reportData) {
             // Assuming the reportData structure matches the Audiogram structure
@@ -177,7 +180,7 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
     <div className="flex flex-col space-y-4">
       {/* When using ToggleGroup components, make sure they're wrapped with RovingFocusGroup */}
       <RovingFocusGroup asChild>
-        <ToggleGroup>
+        <ToggleGroup type="single">
           {/* Toggle group items would go here */}
         </ToggleGroup>
       </RovingFocusGroup>
