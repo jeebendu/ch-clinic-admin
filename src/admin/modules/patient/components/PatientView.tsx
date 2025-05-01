@@ -32,6 +32,14 @@ import PatientVisitTimeline from './PatientVisitTimeline';
 import PatientInfoCard from './PatientInfoCard';
 import PatientReportSection from './PatientReportSection';
 import PatientBillingSection from './PatientBillingSection';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import NewVisitForm from './NewVisitForm';
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +48,7 @@ const PatientView = () => {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('timeline');
+  const [visitDialogOpen, setVisitDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -86,15 +95,16 @@ const PatientView = () => {
     navigate(-1);
   };
 
-  const handlePrescriptionClick = () => {
-    navigate(`/admin/patients/prescription/${id}`);
+  const handleNewVisitClick = () => {
+    setVisitDialogOpen(true);
   };
 
-  const handleNewVisitClick = () => {
-    // In a real app, this would create a new visit and redirect to it
+  const handleVisitSuccess = () => {
+    setVisitDialogOpen(false);
+    // In a real app, we would refresh the timeline data here
     toast({
-      title: "New visit",
-      description: "Creating a new patient visit...",
+      title: "Visit created",
+      description: "The visit has been created successfully.",
     });
   };
 
@@ -144,10 +154,6 @@ const PatientView = () => {
             >
               <FilePlus className="mr-2 h-4 w-4" />
               New Visit
-            </Button>
-            <Button onClick={handlePrescriptionClick} className="bg-clinic-primary hover:bg-clinic-primary/90">
-              <FileBarChart className="mr-2 h-4 w-4" />
-              Create Prescription
             </Button>
           </div>
         </div>
@@ -202,7 +208,7 @@ const PatientView = () => {
                     <CardTitle className="text-lg">Prescription History</CardTitle>
                     <CardDescription>All prescriptions issued to the patient</CardDescription>
                   </div>
-                  <Button size="sm" onClick={handlePrescriptionClick}>
+                  <Button size="sm" onClick={() => navigate(`/admin/patients/prescription/${id}`)}>
                     <Plus className="mr-2 h-4 w-4" />
                     New Prescription
                   </Button>
@@ -225,6 +231,23 @@ const PatientView = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* New Visit Dialog */}
+      <Dialog open={visitDialogOpen} onOpenChange={setVisitDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Visit</DialogTitle>
+            <DialogDescription>
+              Schedule a new visit for {patient?.firstName} {patient?.lastName}
+            </DialogDescription>
+          </DialogHeader>
+          <NewVisitForm 
+            patientId={patient?.id.toString() || ''} 
+            onSuccess={handleVisitSuccess} 
+            onCancel={() => setVisitDialogOpen(false)} 
+          />
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

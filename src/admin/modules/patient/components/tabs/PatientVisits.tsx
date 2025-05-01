@@ -3,14 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Calendar, Clock, FileText, User } from 'lucide-react';
+import { Calendar, Clock, FileText, User, CreditCard, UserCheck } from 'lucide-react';
 import { Visit } from '@/admin/modules/appointments/types/visit';
+import { Button } from '@/components/ui/button';
 
 interface PatientVisitsProps {
   patientId: string;
+  onViewDetails?: (visitId: string) => void;
 }
 
-const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
+const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId, onViewDetails }) => {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +35,10 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
             createdBy: 'staff-1',
             notes: 'Patient reported no issues. Vitals normal.',
             doctorId: 'doctor-1',
-            status: 'closed'
+            status: 'closed',
+            paymentStatus: 'paid',
+            paymentAmount: 150.00,
+            paymentPaid: 150.00,
           },
           {
             id: '2',
@@ -44,7 +49,11 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
             createdBy: 'staff-2',
             notes: 'Treatment showing positive results. Continue medication.',
             doctorId: 'doctor-2',
-            status: 'follow-up'
+            status: 'follow-up',
+            referralDoctorName: 'Dr. Sarah Johnson',
+            paymentStatus: 'partial',
+            paymentAmount: 200.00,
+            paymentPaid: 100.00,
           },
           {
             id: '3',
@@ -55,7 +64,10 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
             createdBy: 'staff-1',
             notes: 'Emergency treatment provided. Pain subsided after medication.',
             doctorId: 'doctor-1',
-            status: 'closed'
+            status: 'closed',
+            paymentStatus: 'unpaid',
+            paymentAmount: 300.00,
+            paymentPaid: 0,
           }
         ];
         
@@ -86,6 +98,23 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
       case 'follow-up': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'partial': return 'bg-yellow-100 text-yellow-800';
+      case 'unpaid': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatAmount = (amount: number = 0) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
   };
 
   if (loading) {
@@ -130,9 +159,16 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
                   </div>
                 </div>
               </div>
-              <Badge variant="outline" className={`${getStatusColor(visit.status)}`}>
-                {visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
-              </Badge>
+              <div className="flex gap-2 flex-col items-end">
+                <Badge variant="outline" className={`${getStatusColor(visit.status)}`}>
+                  {visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
+                </Badge>
+                {visit.paymentStatus && (
+                  <Badge variant="outline" className={`${getPaymentStatusColor(visit.paymentStatus)}`}>
+                    {visit.paymentStatus.charAt(0).toUpperCase() + visit.paymentStatus.slice(1)}
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -145,11 +181,40 @@ const PatientVisits: React.FC<PatientVisitsProps> = ({ patientId }) => {
                 </div>
               )}
               
+              {visit.referralDoctorName && (
+                <div className="flex gap-1 text-sm">
+                  <UserCheck className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="font-medium">Referral:</span>
+                  <span>{visit.referralDoctorName}</span>
+                </div>
+              )}
+              
+              {visit.paymentAmount && (
+                <div className="flex gap-1 text-sm">
+                  <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="font-medium">Payment:</span>
+                  <span>{formatAmount(visit.paymentPaid)} / {formatAmount(visit.paymentAmount)}</span>
+                </div>
+              )}
+              
               {visit.notes && (
                 <div className="flex gap-1 text-sm">
                   <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="font-medium">Notes:</span>
                   <span>{visit.notes}</span>
+                </div>
+              )}
+
+              {onViewDetails && (
+                <div className="flex justify-end mt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => onViewDetails(visit.id)}
+                    className="text-xs"
+                  >
+                    View Details
+                  </Button>
                 </div>
               )}
             </div>
