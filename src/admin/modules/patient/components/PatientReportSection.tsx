@@ -67,16 +67,16 @@ const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patientId }
     // Navigate to the appropriate report form page based on selected type
     switch(type) {
       case 'audiometry':
-        navigate(`/admin/patients/report/audiometry/${patientId}`);
+        navigate(`/admin/patients/report/new/audiometry/${patientId}`);
         break;
       case 'bera':
-        navigate(`/admin/patients/report/bera/${patientId}`);
+        navigate(`/admin/patients/report/new/bera/${patientId}`);
         break;
       case 'abr':
-        navigate(`/admin/patients/report/abr/${patientId}`);
+        navigate(`/admin/patients/report/new/abr/${patientId}`);
         break;
       case 'speech':
-        navigate(`/admin/patients/report/speech/${patientId}`);
+        navigate(`/admin/patients/report/new/speech/${patientId}`);
         break;
       default:
         toast({

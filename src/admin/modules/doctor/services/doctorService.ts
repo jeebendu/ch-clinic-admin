@@ -2,11 +2,11 @@
 import http from "@/lib/JwtInterceptor";
 import { Doctor } from "../types/Doctor";
 import { isProduction } from "@/utils/envUtils";
-import { DoctorMockService } from "./doctorMockService";
 import { PaginatedResponse } from "@/types/common";
+import doctorMockService from "./doctorMockService";
 
 // Real implementation would use these endpoints
- const doctorService = {
+const doctorService = {
   getAllDoctors: async (): Promise<Doctor[]> => {
     try {
       const response = await http.get<Doctor[]>('/v1/doctor/list');
@@ -14,8 +14,7 @@ import { PaginatedResponse } from "@/types/common";
     } catch (error) {
       console.error("Error fetching doctors:", error);
       // Fallback to mock data for development
-      const { DoctorMockService } = await import("./doctorMockService");
-      return DoctorMockService.list();
+      return doctorMockService.list();
     }
   },
 
@@ -24,7 +23,7 @@ import { PaginatedResponse } from "@/types/common";
     return response.data;
   },
 
-   saveOrUpdateDoctor: async (doctor: Doctor): Promise<any> => {
+  saveOrUpdateDoctor: async (doctor: Doctor): Promise<any> => {
     try {
       const response = await http.post<any>('/v1/doctor/saveOrUpdate', doctor);
       return response.data;
@@ -33,16 +32,6 @@ import { PaginatedResponse } from "@/types/common";
       throw error;
     }
   },
-
-  // updateDoctor: async (doctor: Doctor): Promise<Doctor> => {
-  //   try {
-  //     const response = await http.put<Doctor>(`/v1/doctor/${doctor.id}`, doctor);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error updating doctor with ID ${doctor.id}:`, error);
-  //     throw error;
-  //   }
-  // },
 
   delete: async (id: number): Promise<void> => {
     await http.delete(`/v1/doctor/${id}`);
@@ -54,8 +43,7 @@ import { PaginatedResponse } from "@/types/common";
     filter: { value: string|null; doctorType: boolean | null; specialization: string | null }
   ): Promise<PaginatedResponse<Doctor>> => {
     if (!isProduction()) {
-      const { DoctorMockService } = await import("./doctorMockService");
-      return DoctorMockService.fetchPaginated(page, size, filter);
+      return doctorMockService.fetchPaginated(page, size, filter);
     }
     const response = await http.post<PaginatedResponse<Doctor>>(
       `/v1/doctor/filter/${page}/${size}`,
@@ -64,6 +52,5 @@ import { PaginatedResponse } from "@/types/common";
     return response.data;
   }
 };
-
 
 export default doctorService;

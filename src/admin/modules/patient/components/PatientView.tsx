@@ -89,7 +89,13 @@ const PatientView = () => {
 
   const handleVisitSuccess = () => {
     setVisitDialogOpen(false);
-    // In a real app, we would refresh the timeline data here
+    
+    // Force refresh of the visit timeline
+    const visitTimelineTab = document.querySelector('[value="timeline"]');
+    if (visitTimelineTab) {
+      setActiveTab('timeline');
+    }
+    
     toast({
       title: "Visit created",
       description: "The visit has been created successfully.",

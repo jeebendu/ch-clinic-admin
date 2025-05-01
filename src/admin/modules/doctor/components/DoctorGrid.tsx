@@ -21,8 +21,10 @@ const DoctorGrid: React.FC<DoctorGridProps> = ({
   onDoctorClick,
   onEditClick
 }) => {
-  const getInitials = (firstname: string, lastname: string) => {
-    return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
+  const getInitials = (firstname?: string, lastname?: string) => {
+    const first = firstname ? firstname.charAt(0) : '';
+    const last = lastname ? lastname.charAt(0) : '';
+    return `${first}${last}`.toUpperCase();
   };
 
   const formatJoiningDate = (date?: string) => {

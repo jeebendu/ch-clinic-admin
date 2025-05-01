@@ -62,7 +62,7 @@ export const ReferralDoctorService = {
       return responseData
         .filter(item => doctorId === 'all' || item.doctor.id.toString() === doctorId)
         .map(item => {
-          const dailyReferrals = {};
+          const dailyReferrals: {[key: string]: number} = {};
           let totalReferrals = 0;
           
           // Process referral counts for each day
@@ -74,7 +74,7 @@ export const ReferralDoctorService = {
           
           return {
             doctorId: item.doctor.id,
-            doctorName: item.doctor.firstname + " " + item.doctor.lastname,
+            doctorName: `${item.doctor.firstname} ${item.doctor.lastname}`,
             dailyReferrals,
             totalReferrals
           };
@@ -110,7 +110,7 @@ const generateMockReferralData = (year: number, month: number, doctorId: string)
     : doctorsList.filter(doc => doc.id === parseInt(doctorId));
 
   return filteredDoctors.map(doctor => {
-    const dailyReferrals = {};
+    const dailyReferrals: {[key: string]: number} = {};
     let totalReferrals = 0;
     
     // Generate random referral counts for each day

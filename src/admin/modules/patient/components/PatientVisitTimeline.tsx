@@ -1,12 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Visit } from '@/admin/modules/appointments/types/visit';
-import { format } from 'date-fns';
-import { Calendar, Clock, CreditCard, Eye, FileBarChart, User, UserCheck } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import PatientVisits from './tabs/PatientVisits';
 
 interface PatientVisitTimelineProps {
