@@ -181,7 +181,9 @@ const AudiometryForm: React.FC<AudiometryFormProps> = ({ patientId, onCancel, on
       {/* When using ToggleGroup components, make sure they're wrapped with RovingFocusGroup */}
       <RovingFocusGroup asChild>
         <ToggleGroup type="single">
-          {/* Toggle group items would go here */}
+          {/* Each ToggleGroupItem must be a direct child of ToggleGroup */}
+          <ToggleGroupItem value="item-1">Item 1</ToggleGroupItem>
+          <ToggleGroupItem value="item-2">Item 2</ToggleGroupItem>
         </ToggleGroup>
       </RovingFocusGroup>
       

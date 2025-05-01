@@ -219,14 +219,18 @@ const PatientView = () => {
           
           {/* Additional tabs for "More" dropdown */}
           <div className="hidden">
-            <TabsTrigger value="referrals">
-              <Users className="h-4 w-4 mr-2" />
-              Referrals
-            </TabsTrigger>
-            <TabsTrigger value="followups">
-              <Bell className="h-4 w-4 mr-2" />
-              Follow-ups
-            </TabsTrigger>
+            <RovingFocusGroup asChild>
+              <div>
+                <TabsTrigger value="referrals">
+                  <Users className="h-4 w-4 mr-2" />
+                  Referrals
+                </TabsTrigger>
+                <TabsTrigger value="followups">
+                  <Bell className="h-4 w-4 mr-2" />
+                  Follow-ups
+                </TabsTrigger>
+              </div>
+            </RovingFocusGroup>
           </div>
           
           <TabsContent value="timeline" className="mt-4">
