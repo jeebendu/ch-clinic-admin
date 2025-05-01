@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, TestTube, FileBarChart, FileImage, Stethoscope } from 'lucide-react';
+import { FileText, TestTube, FileBarChart, FileImage, Stethoscope, Headphones, Speaker, FileAudio } from 'lucide-react';
 
 interface ReportTypeProps {
   title: string;
@@ -37,7 +37,25 @@ const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({ onSelectReportT
       id: 'audiometry',
       title: 'Audiometry',
       description: 'Hearing assessment tests',
-      icon: <TestTube className="h-8 w-8 text-blue-500" />
+      icon: <Headphones className="h-8 w-8 text-blue-500" />
+    },
+    {
+      id: 'bera',
+      title: 'BERA',
+      description: 'Brainstem Evoked Response Audiometry',
+      icon: <FileAudio className="h-8 w-8 text-purple-500" />
+    },
+    {
+      id: 'abr',
+      title: 'ABR',
+      description: 'Auditory Brainstem Response',
+      icon: <Speaker className="h-8 w-8 text-violet-500" />
+    },
+    {
+      id: 'speech',
+      title: 'Speech',
+      description: 'Speech & language evaluation',
+      icon: <FileText className="h-8 w-8 text-indigo-500" />
     },
     {
       id: 'dental',
@@ -55,13 +73,7 @@ const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({ onSelectReportT
       id: 'radiography',
       title: 'Radiography',
       description: 'X-rays and imaging',
-      icon: <FileImage className="h-8 w-8 text-purple-500" />
-    },
-    {
-      id: 'speech',
-      title: 'Speech',
-      description: 'Speech & language evaluation',
-      icon: <FileText className="h-8 w-8 text-indigo-500" />
+      icon: <FileImage className="h-8 w-8 text-green-500" />
     },
     {
       id: 'general',
