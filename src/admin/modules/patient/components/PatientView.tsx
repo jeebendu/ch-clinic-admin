@@ -200,7 +200,7 @@ const PatientView = () => {
               Prescriptions
             </TabsTrigger>
             <TabsTrigger value="reports">
-              <FileChart className="h-4 w-4 mr-2 hidden sm:inline" />
+              <FileText className="h-4 w-4 mr-2 hidden sm:inline" />
               Reports
             </TabsTrigger>
             <TabsTrigger value="labs">
