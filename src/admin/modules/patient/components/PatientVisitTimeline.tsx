@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +14,10 @@ import {
   CheckCheck,
   ChevronDown,
   ChevronUp,
-  Clock
+  Clock,
+  Receipt,
+  CreditCard,
+  User
 } from 'lucide-react';
 import { Visit, VisitStatus, VisitType } from '../../appointments/types/visit';
 import { format } from 'date-fns';
@@ -24,7 +28,7 @@ interface PatientVisitTimelineProps {
   patientId: string;
 }
 
-// This is a mock data function - in a real app, this would come from an API
+// Enhanced mock data function with payment status and referral doctor info
 const getMockVisits = (patientId: string): Visit[] => {
   return [
     {
@@ -36,7 +40,10 @@ const getMockVisits = (patientId: string): Visit[] => {
       createdBy: "staff-1",
       notes: "Patient reported feeling well overall. No significant issues.",
       doctorId: "doctor-1",
-      status: "closed"
+      status: "closed",
+      paymentStatus: "paid", // New field
+      paymentAmount: 150.00, // New field
+      referralDoctorId: null // New field
     },
     {
       id: "2",
@@ -47,7 +54,12 @@ const getMockVisits = (patientId: string): Visit[] => {
       createdBy: "staff-2",
       notes: "Patient reports improvement in ear pain following antibiotics",
       doctorId: "doctor-2",
-      status: "closed"
+      status: "closed",
+      paymentStatus: "partial", // New field
+      paymentAmount: 200.00, // New field
+      paymentPaid: 100.00, // New field
+      referralDoctorId: "doctor-3", // New field
+      referralDoctorName: "Dr. Sarah Johnson" // New field
     },
     {
       id: "3",
@@ -58,7 +70,11 @@ const getMockVisits = (patientId: string): Visit[] => {
       createdBy: "staff-1",
       notes: "Patient diagnosed with acute otitis media. Prescribed antibiotics.",
       doctorId: "doctor-2",
-      status: "follow-up"
+      status: "follow-up",
+      paymentStatus: "pending", // New field
+      paymentAmount: 300.00, // New field
+      referralDoctorId: "doctor-4", // New field
+      referralDoctorName: "Dr. Michael Chen" // New field
     }
   ];
 };
@@ -81,8 +97,17 @@ const getVisitTypeBadgeVariant = (type: VisitType) => {
   }
 };
 
+const getPaymentStatusBadgeVariant = (status: string) => {
+  switch(status) {
+    case 'paid': return { className: 'bg-green-100 text-green-800 hover:bg-green-200' };
+    case 'partial': return { className: 'bg-amber-100 text-amber-800 hover:bg-amber-200' };
+    case 'pending': return { className: 'bg-red-100 text-red-800 hover:bg-red-200' };
+    default: return '';
+  }
+};
+
 const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }) => {
-  const [expandedVisit, setExpandedVisit] = useState<string | null>(null);
+  const [expandedVisit, setExpandedVisit] = useState<string | null>("1"); // Default expand the first visit
   const navigate = useNavigate();
   const visits = getMockVisits(patientId);
   
@@ -144,6 +169,11 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                         <Badge variant={getStatusBadgeVariant(visit.status) as any}>
                           {visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
                         </Badge>
+                        {visit.paymentStatus && (
+                          <Badge variant={getPaymentStatusBadgeVariant(visit.paymentStatus) as any}>
+                            {visit.paymentStatus.charAt(0).toUpperCase() + visit.paymentStatus.slice(1)}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -181,6 +211,43 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                         <div className="mb-4">
                           <h4 className="text-sm font-medium">Doctor's Notes</h4>
                           <p className="mt-1 text-sm">{visit.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Payment Information */}
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium">Payment Information</h4>
+                        <div className="mt-2 p-3 border rounded-md bg-muted/30">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <CreditCard className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">Amount:</span>
+                              <span>${visit.paymentAmount?.toFixed(2)}</span>
+                            </div>
+                            <Badge variant={getPaymentStatusBadgeVariant(visit.paymentStatus || '') as any}>
+                              {visit.paymentStatus?.charAt(0).toUpperCase() + visit.paymentStatus?.slice(1) || 'Unknown'}
+                            </Badge>
+                          </div>
+                          {visit.paymentStatus === 'partial' && visit.paymentPaid && (
+                            <div className="mt-2 text-sm">
+                              <span className="font-medium">Paid:</span> ${visit.paymentPaid.toFixed(2)} | 
+                              <span className="font-medium ml-2">Remaining:</span> ${(visit.paymentAmount - visit.paymentPaid).toFixed(2)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Referral Doctor Information */}
+                      {visit.referralDoctorId && (
+                        <div className="mb-4">
+                          <h4 className="text-sm font-medium">Referral Information</h4>
+                          <div className="mt-2 p-3 border rounded-md bg-muted/30">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">Referred by:</span>
+                              <span>{visit.referralDoctorName || `Doctor #${visit.referralDoctorId}`}</span>
+                            </div>
+                          </div>
                         </div>
                       )}
                       
@@ -231,6 +298,16 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                           status={visit.status === 'closed' ? "Closed" : "Open"} 
                           color={visit.status === 'closed' ? "text-green-600" : "text-amber-600"}
                         />
+                        <VisitTimelineItem 
+                          icon={<Receipt className="h-4 w-4" />}
+                          label="Payment" 
+                          status={visit.paymentStatus || "Unknown"} 
+                          color={
+                            visit.paymentStatus === 'paid' ? "text-green-600" : 
+                            visit.paymentStatus === 'partial' ? "text-amber-600" : 
+                            "text-red-600"
+                          }
+                        />
                       </div>
                       
                       <div className="mt-4 flex justify-end gap-2">
@@ -241,6 +318,10 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                         <Button size="sm" variant="outline">
                           <FileBarChart className="mr-2 h-4 w-4" />
                           Add Prescription
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Process Payment
                         </Button>
                         <Button size="sm" variant="default">
                           <FileText className="mr-2 h-4 w-4" />

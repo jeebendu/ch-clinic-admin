@@ -1,6 +1,7 @@
 
 export type VisitType = "routine" | "follow-up" | "emergency";
 export type VisitStatus = "open" | "closed" | "follow-up";
+export type PaymentStatus = "paid" | "partial" | "pending" | "unpaid";
 
 export interface Visit {
   id: string;
@@ -12,6 +13,11 @@ export interface Visit {
   notes?: string;
   doctorId?: string;
   status: VisitStatus;
+  paymentStatus?: string; // New field
+  paymentAmount?: number; // New field
+  paymentPaid?: number; // New field for partial payments
+  referralDoctorId?: string | null; // New field
+  referralDoctorName?: string; // New field
 }
 
 export interface Test {
@@ -32,4 +38,3 @@ export interface Diagnosis {
   doctorId: string;
   followUpDate?: string;
 }
-

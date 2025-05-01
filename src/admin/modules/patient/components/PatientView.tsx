@@ -21,7 +21,9 @@ import {
   ArrowRightLeft,
   CheckCheck,
   UserCheck,
-  Thermometer
+  Thermometer,
+  Receipt,
+  CreditCard
 } from 'lucide-react';
 import PatientService from '../services/patientService';
 import { AdminLayout } from '@/admin/components/AdminLayout';
@@ -29,6 +31,7 @@ import { Separator } from '@/components/ui/separator';
 import PatientVisitTimeline from './PatientVisitTimeline';
 import PatientInfoCard from './PatientInfoCard';
 import PatientReportSection from './PatientReportSection';
+import PatientBillingSection from './PatientBillingSection';
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
@@ -153,11 +156,12 @@ const PatientView = () => {
         <PatientInfoCard patient={patient} formatDate={formatDate} getInitials={getInitials} />
 
         <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="timeline">Visit Timeline</TabsTrigger>
             <TabsTrigger value="medical">Medical Records</TabsTrigger>
             <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
             <TabsTrigger value="reports">Reports & Tests</TabsTrigger>
+            <TabsTrigger value="billing">Billing & Payments</TabsTrigger>
           </TabsList>
           
           <TabsContent value="timeline" className="mt-4">
@@ -214,6 +218,10 @@ const PatientView = () => {
           
           <TabsContent value="reports" className="mt-4">
             <PatientReportSection patientId={patient.id} />
+          </TabsContent>
+
+          <TabsContent value="billing" className="mt-4">
+            <PatientBillingSection patientId={patient.id} />
           </TabsContent>
         </Tabs>
       </div>
