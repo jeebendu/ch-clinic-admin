@@ -1,15 +1,15 @@
 
 import { Route, Routes } from "react-router-dom";
-import PatientList from "../pages/PatientList";
-import PatientForm from "../components/PatientForm";
+import { Patient } from "../types/Patient";
+import PatientList from "../components/PatientList";
+import PatientForm from "../pages/PatientForm";
 import PatientView from "../components/PatientView";
-import PrescriptionView from "../components/PrescriptionView";
-import CreatePrescription from "../components/CreatePrescription";
+import PrescriptionView from "../pages/PrescriptionView";
+import CreatePrescription from "../pages/CreatePrescription";
 import AudiometryForm from "../components/reports/AudiometryForm";
 import BeraForm from "../components/reports/BeraForm";
 import ABRForm from "../components/reports/ABRForm";
 import SpeechForm from "../components/reports/SpeechForm";
-import { Patient } from "../types/Patient";
 
 const PatientRoutes = () => {
   // Mocked patient for demo purposes
@@ -22,6 +22,32 @@ const PatientRoutes = () => {
       email: "demo@example.com",
       phone: "1234567890",
       image: "",
+      uid: "user-1",
+      name: "Demo User",
+      username: "demouser",
+      role: {
+        id: 3,
+        name: "Patient",
+        permissions: []
+      },
+      branch: {
+        id: 1,
+        name: "Main Branch",
+        code: "MB-001",
+        location: "Main Street",
+        active: true,
+        city: "Demo City",
+        pincode: 12345,
+        image: "",
+        latitude: 0,
+        longitude: 0,
+        state: null,
+        district: null,
+        country: null
+      },
+      password: "",
+      effectiveFrom: new Date(),
+      effectiveTo: new Date()
     },
     birthday: new Date(),
     gender: "MALE"
