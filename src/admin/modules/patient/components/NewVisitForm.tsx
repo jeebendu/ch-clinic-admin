@@ -1,15 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
-import { TimePicker } from '@/admin/components/TimePicker';
-import { format } from 'date-fns';
-import { Calendar, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import doctorService from '@/admin/modules/doctor/services/doctorService';
+import { Doctor } from '@/admin/modules/doctor/types/Doctor';
 
 interface NewVisitFormProps {
   patientId: string;
@@ -20,17 +19,36 @@ interface NewVisitFormProps {
 const NewVisitForm: React.FC<NewVisitFormProps> = ({ patientId, onSuccess, onCancel }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [visitDate, setVisitDate] = useState<Date | undefined>(new Date());
-  const [visitTime, setVisitTime] = useState<string | undefined>();
   const [chiefComplaint, setChiefComplaint] = useState('');
   const [consultationType, setConsultationType] = useState('consultation');
   const [doctorId, setDoctorId] = useState('');
+  const [referralDoctorId, setReferralDoctorId] = useState('');
   const [notes, setNotes] = useState('');
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        // Try to use the getAllDoctors method which should call v1/doctor/list/all internally
+        const doctorsList = await doctorService.getAllDoctors();
+        setDoctors(doctorsList);
+      } catch (error) {
+        console.error('Error fetching doctors:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load doctors list",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchDoctors();
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!visitDate || !visitTime || !consultationType || !chiefComplaint || !doctorId) {
+    if (!consultationType || !chiefComplaint || !doctorId) {
       toast({
         title: "Missing information",
         description: "Please fill all required fields",
@@ -63,41 +81,9 @@ const NewVisitForm: React.FC<NewVisitFormProps> = ({ patientId, onSuccess, onCan
     }
   };
 
-  // Mock doctors list
-  const doctors = [
-    { id: '1', name: 'Dr. John Smith' },
-    { id: '2', name: 'Dr. Sarah Johnson' },
-    { id: '3', name: 'Dr. Robert Williams' },
-  ];
-
   return (
     <form onSubmit={handleSubmit} className="max-h-[calc(100vh-300px)] overflow-y-auto">
       <div className="grid gap-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="visitDate">Visit Date <span className="text-red-500">*</span></Label>
-            <div className="relative">
-              <DatePicker
-                date={visitDate}
-                onDateChange={setVisitDate}
-                disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))}
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="visitTime">Visit Time <span className="text-red-500">*</span></Label>
-            <div className="relative">
-              <TimePicker
-                value={visitTime}
-                onChange={setVisitTime}
-                placeholder="Select time"
-                minutesStep={15}
-              />
-            </div>
-          </div>
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="consultationType">Visit Type <span className="text-red-500">*</span></Label>
           <Select value={consultationType} onValueChange={setConsultationType}>
@@ -121,7 +107,28 @@ const NewVisitForm: React.FC<NewVisitFormProps> = ({ patientId, onSuccess, onCan
             </SelectTrigger>
             <SelectContent>
               {doctors.map(doctor => (
-                <SelectItem key={doctor.id} value={doctor.id}>{doctor.name}</SelectItem>
+                <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                  {doctor.firstname} {doctor.lastname}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="referralDoctorId">Referral Doctor</Label>
+          <Select value={referralDoctorId} onValueChange={setReferralDoctorId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select referral doctor (if any)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">None</SelectItem>
+              {doctors
+                .filter(doctor => doctor.id.toString() !== doctorId)
+                .map(doctor => (
+                  <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                    {doctor.firstname} {doctor.lastname}
+                  </SelectItem>
               ))}
             </SelectContent>
           </Select>

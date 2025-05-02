@@ -3,21 +3,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { ClockIcon } from "lucide-react";
+import { Clock } from "lucide-react";
 
-export interface TimeValue {
-  hour: string;
-  minute: string;
-  period: "AM" | "PM";
-}
-
-interface TimePickerProps {
+export interface TimePickerProps {
   value?: string;
   onChange: (value: string) => void;
   className?: string;
+  minutesStep?: number;
 }
 
-export function TimePicker({ value = "09:00 AM", onChange, className }: TimePickerProps) {
+export function TimePicker({ value = "09:00 AM", onChange, className, minutesStep = 15 }: TimePickerProps) {
   // Parse the initial value
   const initialTime = parseTimeString(value);
   
@@ -40,7 +35,7 @@ export function TimePicker({ value = "09:00 AM", onChange, className }: TimePick
           variant="outline"
           className={cn("w-[180px] justify-start text-left font-normal", className)}
         >
-          <ClockIcon className="mr-2 h-4 w-4" />
+          <Clock className="mr-2 h-4 w-4" />
           {value}
         </Button>
       </PopoverTrigger>
@@ -111,13 +106,17 @@ export function TimePicker({ value = "09:00 AM", onChange, className }: TimePick
 }
 
 // Helper function to parse a time string like "09:00 AM"
-function parseTimeString(timeString: string): TimeValue {
+function parseTimeString(timeString: string): { hour: string; minute: string; period: "AM" | "PM" } {
+  if (!timeString) {
+    return { hour: "09", minute: "00", period: "AM" };
+  }
+  
   const [timePart, periodPart] = timeString.split(" ");
   const [hourPart, minutePart] = timePart.split(":");
   
   return {
     hour: hourPart,
     minute: minutePart,
-    period: periodPart as "AM" | "PM"
+    period: (periodPart || "AM") as "AM" | "PM"
   };
 }
