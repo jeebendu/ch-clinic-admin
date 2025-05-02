@@ -3,29 +3,26 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { 
+  UserCheck, 
   Thermometer, 
+  FilePlus, 
   FileText, 
   TestTube, 
   FileBarChart, 
+  ArrowRightLeft, 
+  CheckCheck,
   ChevronDown,
   ChevronUp,
   Clock,
   Receipt,
-  UserCheck,
-  Edit,
-  PlusCircle,
-  Check,
-  X
+  CreditCard,
+  User
 } from 'lucide-react';
 import { Visit, VisitStatus, VisitType } from '../../appointments/types/visit';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 
 interface PatientVisitTimelineProps {
   patientId: string;
@@ -109,32 +106,8 @@ const getPaymentStatusBadgeVariant = (status: string) => {
   }
 };
 
-// Helper function to determine the visit completion progress
-const getVisitProgress = (visit: Visit): number => {
-  // Define what steps we consider complete based on the visit data
-  let completedSteps = 0;
-  const totalSteps = 6; // Check-in, Vitals, Consultation, Prescription, Tests, Payment
-
-  // Always consider check-in complete if the visit exists
-  completedSteps++;
-
-  // Simple logic for mocked data - add more sophisticated logic in real app
-  if (visit.notes) completedSteps++; // Consultation done
-  if (visit.paymentStatus === "paid") completedSteps++; // Payment done
-  
-  // For demo, randomly mark some steps as completed
-  if (visit.id === "1") completedSteps = 6; // All complete
-  if (visit.id === "2") completedSteps = 4; // Partially complete
-  if (visit.id === "3") completedSteps = 2; // Just started
-
-  return (completedSteps / totalSteps) * 100;
-};
-
 const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }) => {
   const [expandedVisit, setExpandedVisit] = useState<string | null>("1"); // Default expand the first visit
-  const [activeDialog, setActiveDialog] = useState<{ visitId: string, type: string } | null>(null);
-  const [editingField, setEditingField] = useState<{ visitId: string, field: string } | null>(null);
-  const [editValue, setEditValue] = useState<string>("");
   const navigate = useNavigate();
   const visits = getMockVisits(patientId);
   
@@ -145,214 +118,6 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
   const handleVisitClick = (visitId: string) => {
     navigate(`/admin/patients/visit/${visitId}`);
   };
-
-  const openDialog = (visitId: string, type: string) => {
-    setActiveDialog({ visitId, type });
-  };
-
-  const closeDialog = () => {
-    setActiveDialog(null);
-  };
-
-  const startEditing = (visitId: string, field: string, value: string) => {
-    setEditingField({ visitId, field });
-    setEditValue(value);
-  };
-
-  const saveEdit = () => {
-    // In a real app, you would save the changes to the server
-    // For now, just close the editing mode
-    setEditingField(null);
-  };
-
-  const cancelEdit = () => {
-    setEditingField(null);
-  };
-
-  const getStepStatus = (visit: Visit, step: string): 'completed' | 'current' | 'pending' => {
-    // Define the order of steps
-    const steps = ['checkin', 'vitals', 'consultation', 'prescription', 'tests', 'payment'];
-    const stepIndex = steps.indexOf(step);
-    
-    // Get the visit progress as an index into the steps array
-    const progress = Math.floor((getVisitProgress(visit) / 100) * steps.length);
-    
-    if (stepIndex < progress) return 'completed';
-    if (stepIndex === progress) return 'current';
-    return 'pending';
-  };
-
-  const renderStepIcon = (status: 'completed' | 'current' | 'pending', icon: React.ReactNode) => {
-    switch (status) {
-      case 'completed':
-        return <div className="rounded-full bg-green-500 p-2 text-white">{icon}</div>;
-      case 'current':
-        return <div className="rounded-full bg-blue-500 p-2 text-white animate-pulse">{icon}</div>;
-      case 'pending':
-      default:
-        return <div className="rounded-full bg-gray-200 p-2 text-gray-500">{icon}</div>;
-    }
-  };
-
-  const renderDialog = () => {
-    if (!activeDialog) return null;
-
-    const visit = visits.find(v => v.id === activeDialog.visitId);
-    if (!visit) return null;
-
-    const titles = {
-      'checkin': 'Check-In Details',
-      'vitals': 'Patient Vitals',
-      'consultation': 'Consultation Notes',
-      'prescription': 'Prescriptions',
-      'tests': 'Tests & Reports',
-      'payment': 'Payment Information'
-    };
-
-    return (
-      <Dialog open={true} onOpenChange={() => closeDialog()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{titles[activeDialog.type as keyof typeof titles]}</DialogTitle>
-          </DialogHeader>
-          <div className="p-4">
-            {activeDialog.type === 'checkin' && (
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium mb-1">Check-in Time</h4>
-                  <p>10:15 AM, {format(new Date(visit.visitDate), 'MMM dd, yyyy')}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium mb-1">Checked in by</h4>
-                  <p>Staff ID: {visit.createdBy}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium mb-1">Initial Complaint</h4>
-                  <p>{visit.reasonForVisit}</p>
-                </div>
-              </div>
-            )}
-            
-            {activeDialog.type === 'vitals' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 border rounded-md bg-muted/30">
-                    <h4 className="text-sm font-medium mb-1">Blood Pressure</h4>
-                    <p className="text-lg font-semibold">120/80 mmHg</p>
-                  </div>
-                  <div className="p-3 border rounded-md bg-muted/30">
-                    <h4 className="text-sm font-medium mb-1">Heart Rate</h4>
-                    <p className="text-lg font-semibold">78 bpm</p>
-                  </div>
-                  <div className="p-3 border rounded-md bg-muted/30">
-                    <h4 className="text-sm font-medium mb-1">Temperature</h4>
-                    <p className="text-lg font-semibold">98.6°F</p>
-                  </div>
-                  <div className="p-3 border rounded-md bg-muted/30">
-                    <h4 className="text-sm font-medium mb-1">Oxygen Level</h4>
-                    <p className="text-lg font-semibold">98%</p>
-                  </div>
-                </div>
-                <div className="p-3 border rounded-md bg-muted/30">
-                  <h4 className="text-sm font-medium mb-1">Notes</h4>
-                  <p>Patient vitals are within normal ranges.</p>
-                </div>
-              </div>
-            )}
-            
-            {activeDialog.type === 'consultation' && (
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium mb-1">Doctor</h4>
-                  <p>Dr. {visit.doctorId}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium mb-1">Consultation Notes</h4>
-                  <p>{visit.notes || "No consultation notes available."}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium mb-1">Diagnosis</h4>
-                  <p>Patient has mild symptoms consistent with seasonal allergies.</p>
-                </div>
-              </div>
-            )}
-            
-            {activeDialog.type === 'prescription' && (
-              <div className="space-y-4">
-                <div className="p-3 border rounded-md bg-muted/30">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium">Cetirizine 10mg</h4>
-                    <Badge>Active</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">1 tablet daily for 7 days</p>
-                </div>
-                <div className="p-3 border rounded-md bg-muted/30">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium">Fluticasone Nasal Spray</h4>
-                    <Badge>Active</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">1 spray in each nostril daily</p>
-                </div>
-              </div>
-            )}
-            
-            {activeDialog.type === 'tests' && (
-              <div className="space-y-4">
-                <div className="p-3 border rounded-md bg-muted/30">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium">Complete Blood Count</h4>
-                    <Badge variant="secondary">Completed</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">Results: Normal</p>
-                </div>
-                <div className="p-3 border rounded-md bg-muted/30">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium">Allergen Panel</h4>
-                    <Badge variant="outline">Pending</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">Waiting for results</p>
-                </div>
-              </div>
-            )}
-            
-            {activeDialog.type === 'payment' && (
-              <div className="space-y-4">
-                <div className="p-3 border rounded-md bg-muted/30">
-                  <h4 className="text-sm font-medium mb-1">Payment Details</h4>
-                  <div className="flex justify-between mt-2">
-                    <span>Total Amount:</span>
-                    <span className="font-medium">${visit.paymentAmount?.toFixed(2)}</span>
-                  </div>
-                  {visit.paymentStatus === 'partial' && visit.paymentPaid && (
-                    <>
-                      <div className="flex justify-between mt-1">
-                        <span>Amount Paid:</span>
-                        <span className="font-medium">${visit.paymentPaid.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span>Remaining Balance:</span>
-                        <span className="font-medium">${(visit.paymentAmount - visit.paymentPaid).toFixed(2)}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="p-3 border rounded-md bg-muted/30">
-                  <h4 className="text-sm font-medium mb-1">Payment Status</h4>
-                  <Badge variant={getPaymentStatusBadgeVariant(visit.paymentStatus || '') as any} className="mt-1">
-                    {visit.paymentStatus?.charAt(0).toUpperCase() + visit.paymentStatus?.slice(1) || 'Unknown'}
-                  </Badge>
-                </div>
-              </div>
-            )}
-            
-            <div className="flex justify-end mt-4">
-              <Button onClick={closeDialog}>Close</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
   
   if (visits.length === 0) {
     return (
@@ -360,7 +125,7 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
         <CardContent className="pt-6 flex flex-col items-center justify-center py-10">
           <p className="text-muted-foreground mb-4">No visits recorded for this patient</p>
           <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
+            <FilePlus className="mr-2 h-4 w-4" />
             Create First Visit
           </Button>
         </CardContent>
@@ -387,7 +152,7 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                 </div>
                 
                 {/* Visit content */}
-                <div className="flex-1 border rounded-lg overflow-hidden shadow-sm">
+                <div className="flex-1 border rounded-lg overflow-hidden">
                   {/* Visit header */}
                   <div 
                     className="flex items-center justify-between bg-muted/50 p-3 cursor-pointer"
@@ -434,277 +199,18 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                     </div>
                   </div>
                   
-                  {/* Visit Progress */}
-                  <div className="px-4 pt-4">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Visit Progress</span>
-                      <span>{Math.round(getVisitProgress(visit))}% Complete</span>
-                    </div>
-                    <Progress value={getVisitProgress(visit)} className="h-2" />
-                  </div>
-                  
                   {/* Expanded visit details */}
                   {expandedVisit === visit.id && (
                     <div className="p-4">
-                      {/* Process Workflow with Status */}
-                      <div className="mb-6 overflow-x-auto">
-                        <div className="flex items-center min-w-max">
-                          {/* Check-in */}
-                          <div className="flex flex-col items-center">
-                            {renderStepIcon(getStepStatus(visit, 'checkin'), <UserCheck className="h-5 w-5" />)}
-                            <span className="text-xs font-medium mt-1">Check-in</span>
-                            {getStepStatus(visit, 'checkin') === 'completed' && (
-                              <span className="text-xs text-green-600 mt-0.5">Completed</span>
-                            )}
-                            {getStepStatus(visit, 'checkin') === 'current' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-1"
-                                onClick={() => openDialog(visit.id, 'checkin')}
-                              >
-                                <PlusCircle className="h-3 w-3 mr-1" />
-                                Add
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="mx-1 h-0.5 w-6 bg-gray-300">
-                            {getStepStatus(visit, 'checkin') === 'completed' && (
-                              <div className="h-full bg-green-500"></div>
-                            )}
-                          </div>
-                          
-                          {/* Vitals */}
-                          <div className="flex flex-col items-center">
-                            {renderStepIcon(getStepStatus(visit, 'vitals'), <Thermometer className="h-5 w-5" />)}
-                            <span className="text-xs font-medium mt-1">Vitals</span>
-                            {getStepStatus(visit, 'vitals') === 'completed' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-0.5 text-green-600"
-                                onClick={() => openDialog(visit.id, 'vitals')}
-                              >
-                                Recorded
-                              </Button>
-                            )}
-                            {getStepStatus(visit, 'vitals') === 'current' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-1"
-                                onClick={() => openDialog(visit.id, 'vitals')}
-                              >
-                                <PlusCircle className="h-3 w-3 mr-1" />
-                                Add
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="mx-1 h-0.5 w-6 bg-gray-300">
-                            {getStepStatus(visit, 'vitals') === 'completed' && (
-                              <div className="h-full bg-green-500"></div>
-                            )}
-                          </div>
-                          
-                          {/* Consultation */}
-                          <div className="flex flex-col items-center">
-                            {renderStepIcon(getStepStatus(visit, 'consultation'), <FileText className="h-5 w-5" />)}
-                            <span className="text-xs font-medium mt-1">Consultation</span>
-                            {getStepStatus(visit, 'consultation') === 'completed' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-0.5 text-green-600"
-                                onClick={() => openDialog(visit.id, 'consultation')}
-                              >
-                                Completed
-                              </Button>
-                            )}
-                            {getStepStatus(visit, 'consultation') === 'current' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-1"
-                                onClick={() => openDialog(visit.id, 'consultation')}
-                              >
-                                <PlusCircle className="h-3 w-3 mr-1" />
-                                Add
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="mx-1 h-0.5 w-6 bg-gray-300">
-                            {getStepStatus(visit, 'consultation') === 'completed' && (
-                              <div className="h-full bg-green-500"></div>
-                            )}
-                          </div>
-                          
-                          {/* Prescription */}
-                          <div className="flex flex-col items-center">
-                            {renderStepIcon(getStepStatus(visit, 'prescription'), <FileBarChart className="h-5 w-5" />)}
-                            <span className="text-xs font-medium mt-1">Prescription</span>
-                            {getStepStatus(visit, 'prescription') === 'completed' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-0.5 text-green-600"
-                                onClick={() => openDialog(visit.id, 'prescription')}
-                              >
-                                2 Meds
-                              </Button>
-                            )}
-                            {getStepStatus(visit, 'prescription') === 'current' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-1"
-                                onClick={() => openDialog(visit.id, 'prescription')}
-                              >
-                                <PlusCircle className="h-3 w-3 mr-1" />
-                                Add
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="mx-1 h-0.5 w-6 bg-gray-300">
-                            {getStepStatus(visit, 'prescription') === 'completed' && (
-                              <div className="h-full bg-green-500"></div>
-                            )}
-                          </div>
-                          
-                          {/* Tests/Reports */}
-                          <div className="flex flex-col items-center">
-                            {renderStepIcon(getStepStatus(visit, 'tests'), <TestTube className="h-5 w-5" />)}
-                            <span className="text-xs font-medium mt-1">Tests</span>
-                            {getStepStatus(visit, 'tests') === 'completed' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-0.5 text-green-600"
-                                onClick={() => openDialog(visit.id, 'tests')}
-                              >
-                                2 Tests
-                              </Button>
-                            )}
-                            {getStepStatus(visit, 'tests') === 'current' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-1"
-                                onClick={() => openDialog(visit.id, 'tests')}
-                              >
-                                <PlusCircle className="h-3 w-3 mr-1" />
-                                Add
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="mx-1 h-0.5 w-6 bg-gray-300">
-                            {getStepStatus(visit, 'tests') === 'completed' && (
-                              <div className="h-full bg-green-500"></div>
-                            )}
-                          </div>
-                          
-                          {/* Payment */}
-                          <div className="flex flex-col items-center">
-                            {renderStepIcon(getStepStatus(visit, 'payment'), <Receipt className="h-5 w-5" />)}
-                            <span className="text-xs font-medium mt-1">Payment</span>
-                            {getStepStatus(visit, 'payment') === 'completed' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-0.5 text-green-600"
-                                onClick={() => openDialog(visit.id, 'payment')}
-                              >
-                                Paid
-                              </Button>
-                            )}
-                            {getStepStatus(visit, 'payment') === 'current' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="h-7 px-2 text-xs mt-1"
-                                onClick={() => openDialog(visit.id, 'payment')}
-                              >
-                                <PlusCircle className="h-3 w-3 mr-1" />
-                                Process
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Reason for Visit - with inline edit */}
                       <div className="mb-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-medium">Reason for Visit</h4>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0" 
-                            onClick={() => startEditing(visit.id, 'reasonForVisit', visit.reasonForVisit)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        
-                        {editingField?.visitId === visit.id && editingField?.field === 'reasonForVisit' ? (
-                          <div className="mt-1">
-                            <Textarea 
-                              value={editValue} 
-                              onChange={(e) => setEditValue(e.target.value)} 
-                              className="min-h-[60px]"
-                            />
-                            <div className="flex justify-end mt-2 gap-2">
-                              <Button size="sm" variant="ghost" onClick={cancelEdit}>
-                                <X className="h-4 w-4 mr-1" /> Cancel
-                              </Button>
-                              <Button size="sm" onClick={saveEdit}>
-                                <Check className="h-4 w-4 mr-1" /> Save
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="mt-1">{visit.reasonForVisit}</p>
-                        )}
+                        <h4 className="text-sm font-medium">Reason for Visit</h4>
+                        <p className="mt-1">{visit.reasonForVisit}</p>
                       </div>
                       
-                      {/* Doctor's Notes - with inline edit */}
                       {visit.notes && (
                         <div className="mb-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium">Doctor's Notes</h4>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 w-8 p-0" 
-                              onClick={() => startEditing(visit.id, 'notes', visit.notes || '')}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          
-                          {editingField?.visitId === visit.id && editingField?.field === 'notes' ? (
-                            <div className="mt-1">
-                              <Textarea 
-                                value={editValue} 
-                                onChange={(e) => setEditValue(e.target.value)} 
-                                className="min-h-[100px]"
-                              />
-                              <div className="flex justify-end mt-2 gap-2">
-                                <Button size="sm" variant="ghost" onClick={cancelEdit}>
-                                  <X className="h-4 w-4 mr-1" /> Cancel
-                                </Button>
-                                <Button size="sm" onClick={saveEdit}>
-                                  <Check className="h-4 w-4 mr-1" /> Save
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <p className="mt-1 text-sm">{visit.notes}</p>
-                          )}
+                          <h4 className="text-sm font-medium">Doctor's Notes</h4>
+                          <p className="mt-1 text-sm">{visit.notes}</p>
                         </div>
                       )}
 
@@ -714,7 +220,7 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                         <div className="mt-2 p-3 border rounded-md bg-muted/30">
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                              <Receipt className="h-4 w-4 text-muted-foreground" />
+                              <CreditCard className="h-4 w-4 text-muted-foreground" />
                               <span className="font-medium">Amount:</span>
                               <span>${visit.paymentAmount?.toFixed(2)}</span>
                             </div>
@@ -731,43 +237,96 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                         </div>
                       </div>
                       
-                      {/* Services Panel - Show Based on Visit Progress */}
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Only show relevant action buttons based on process state */}
-                        {getStepStatus(visit, 'vitals') !== 'completed' && (
-                          <Button size="sm" variant="outline" className="flex items-center" onClick={() => openDialog(visit.id, 'vitals')}>
-                            <Thermometer className="mr-2 h-4 w-4" />
-                            {getStepStatus(visit, 'vitals') === 'current' ? 'Record Vitals' : 'View Vitals'}
-                          </Button>
-                        )}
-                        
-                        {getStepStatus(visit, 'consultation') !== 'pending' && (
-                          <Button size="sm" variant="outline" className="flex items-center" onClick={() => openDialog(visit.id, 'consultation')}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            {getStepStatus(visit, 'consultation') === 'current' ? 'Add Consultation Notes' : 'View Notes'}
-                          </Button>
-                        )}
-                        
-                        {getStepStatus(visit, 'prescription') !== 'pending' && (
-                          <Button size="sm" variant="outline" className="flex items-center" onClick={() => openDialog(visit.id, 'prescription')}>
-                            <FileBarChart className="mr-2 h-4 w-4" />
-                            {getStepStatus(visit, 'prescription') === 'current' ? 'Create Prescription' : 'View Prescription'}
-                          </Button>
-                        )}
-                        
-                        {getStepStatus(visit, 'tests') !== 'pending' && (
-                          <Button size="sm" variant="outline" className="flex items-center" onClick={() => openDialog(visit.id, 'tests')}>
-                            <TestTube className="mr-2 h-4 w-4" />
-                            {getStepStatus(visit, 'tests') === 'current' ? 'Order Tests' : 'View Test Results'}
-                          </Button>
-                        )}
-                        
-                        {getStepStatus(visit, 'payment') !== 'pending' && (
-                          <Button size="sm" variant={visit.paymentStatus === 'paid' ? 'outline' : 'default'} className="flex items-center" onClick={() => openDialog(visit.id, 'payment')}>
-                            <Receipt className="mr-2 h-4 w-4" />
-                            {visit.paymentStatus === 'paid' ? 'View Payment' : 'Process Payment'}
-                          </Button>
-                        )}
+                      {/* Referral Doctor Information */}
+                      {visit.referralDoctorId && (
+                        <div className="mb-4">
+                          <h4 className="text-sm font-medium">Referral Information</h4>
+                          <div className="mt-2 p-3 border rounded-md bg-muted/30">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">Referred by:</span>
+                              <span>{visit.referralDoctorName || `Doctor #${visit.referralDoctorId}`}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="my-4">
+                        <Separator />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <VisitTimelineItem 
+                          icon={<UserCheck className="h-4 w-4" />}
+                          label="Check-in" 
+                          status="Completed" 
+                          color="text-green-600"
+                        />
+                        <VisitTimelineItem 
+                          icon={<Thermometer className="h-4 w-4" />}
+                          label="Vitals" 
+                          status="Recorded"
+                          color="text-blue-600" 
+                        />
+                        <VisitTimelineItem 
+                          icon={<FileText className="h-4 w-4" />}
+                          label="Consultation" 
+                          status="Completed" 
+                          color="text-purple-600"
+                        />
+                        <VisitTimelineItem 
+                          icon={<TestTube className="h-4 w-4" />}
+                          label="Tests" 
+                          status={visit.status === 'open' ? "Ordered" : "Completed"} 
+                          color={visit.status === 'open' ? "text-amber-600" : "text-green-600"}
+                        />
+                        <VisitTimelineItem 
+                          icon={<FileBarChart className="h-4 w-4" />}
+                          label="Prescription" 
+                          status="Issued" 
+                          color="text-green-600"
+                        />
+                        <VisitTimelineItem 
+                          icon={<ArrowRightLeft className="h-4 w-4" />}
+                          label="Follow-up" 
+                          status={visit.status === 'follow-up' ? "Scheduled" : "None"} 
+                          color={visit.status === 'follow-up' ? "text-blue-600" : "text-gray-400"}
+                        />
+                        <VisitTimelineItem 
+                          icon={<CheckCheck className="h-4 w-4" />}
+                          label="Visit Status" 
+                          status={visit.status === 'closed' ? "Closed" : "Open"} 
+                          color={visit.status === 'closed' ? "text-green-600" : "text-amber-600"}
+                        />
+                        <VisitTimelineItem 
+                          icon={<Receipt className="h-4 w-4" />}
+                          label="Payment" 
+                          status={visit.paymentStatus || "Unknown"} 
+                          color={
+                            visit.paymentStatus === 'paid' ? "text-green-600" : 
+                            visit.paymentStatus === 'partial' ? "text-amber-600" : 
+                            "text-red-600"
+                          }
+                        />
+                      </div>
+                      
+                      <div className="mt-4 flex justify-end gap-2">
+                        <Button size="sm" variant="outline">
+                          <TestTube className="mr-2 h-4 w-4" />
+                          Add Test
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <FileBarChart className="mr-2 h-4 w-4" />
+                          Add Prescription
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Process Payment
+                        </Button>
+                        <Button size="sm" variant="default">
+                          <FileText className="mr-2 h-4 w-4" />
+                          View Full Details
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -775,8 +334,6 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
               </div>
             </div>
           ))}
-          
-          {renderDialog()}
         </div>
         
         <div className="flex justify-center mt-8">
@@ -789,12 +346,28 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
   );
 };
 
-// Fix missing Country interface errors in appointmentReqMockService
-interface Country {
-  id: number;
-  name: string;
-  code: string;
+interface VisitTimelineItemProps {
+  icon: React.ReactNode;
+  label: string;
   status: string;
+  color?: string;
 }
+
+const VisitTimelineItem: React.FC<VisitTimelineItemProps> = ({ 
+  icon, 
+  label, 
+  status,
+  color = "text-primary"
+}) => {
+  return (
+    <div className="flex flex-col items-center p-2 border rounded-md bg-muted/30">
+      <div className={`${color} mb-1`}>
+        {icon}
+      </div>
+      <span className="text-xs font-medium">{label}</span>
+      <span className="text-xs text-muted-foreground">{status}</span>
+    </div>
+  );
+};
 
 export default PatientVisitTimeline;

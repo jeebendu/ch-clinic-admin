@@ -32,7 +32,7 @@ interface ABRData {
   notes?: string;
 }
 
-export interface ABRFormProps {
+interface ABRFormProps {
   patient: Patient;
   onCancel: () => void;
   onSave: (data: ABRData) => void;

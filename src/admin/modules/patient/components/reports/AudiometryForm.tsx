@@ -1,844 +1,469 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Slider
-} from "@/components/ui/slider"
-import { cn } from "@/lib/utils"
-import { Checkbox } from "@/components/ui/checkbox"
 
-const audiometrySchema = z.object({
-  rightAirConduction250: z.string().optional(),
-  rightAirConduction500: z.string().optional(),
-  rightAirConduction1000: z.string().optional(),
-  rightAirConduction2000: z.string().optional(),
-  rightAirConduction4000: z.string().optional(),
-  rightAirConduction8000: z.string().optional(),
-  leftAirConduction250: z.string().optional(),
-  leftAirConduction500: z.string().optional(),
-  leftAirConduction1000: z.string().optional(),
-  leftAirConduction2000: z.string().optional(),
-  leftAirConduction4000: z.string().optional(),
-  leftAirConduction8000: z.string().optional(),
-  rightBoneConduction500: z.string().optional(),
-  rightBoneConduction1000: z.string().optional(),
-  rightBoneConduction2000: z.string().optional(),
-  rightBoneConduction4000: z.string().optional(),
-  leftBoneConduction500: z.string().optional(),
-  leftBoneConduction1000: z.string().optional(),
-  leftBoneConduction2000: z.string().optional(),
-  leftBoneConduction4000: z.string().optional(),
-  rightMasking500: z.string().optional(),
-  rightMasking1000: z.string().optional(),
-  rightMasking2000: z.string().optional(),
-  rightMasking4000: z.string().optional(),
-  leftMasking500: z.string().optional(),
-  leftMasking1000: z.string().optional(),
-  leftMasking2000: z.string().optional(),
-  leftMasking4000: z.string().optional(),
-  speechReceptionThresholdRight: z.string().optional(),
-  speechReceptionThresholdLeft: z.string().optional(),
-  speechDiscriminationScoreRight: z.string().optional(),
-  speechDiscriminationScoreLeft: z.string().optional(),
-  tympanometryRight: z.string().optional(),
-  tympanometryLeft: z.string().optional(),
-  reflexesRight: z.string().optional(),
-  reflexesLeft: z.string().optional(),
-  oaeRight: z.string().optional(),
-  oaeLeft: z.string().optional(),
-  audiogramInterpretation: z.string().optional(),
-  recommendations: z.string().optional(),
-  furtherTests: z.string().optional(),
-  hearingAidTrial: z.boolean().optional(),
-  hearingAidFitting: z.boolean().optional(),
-  counselling: z.boolean().optional(),
-  otherRecommendations: z.string().optional(),
-});
-
-type AudiometryFormValues = z.infer<typeof audiometrySchema>;
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Audiogram, FREQUENCY_LABELS } from '../../types/AudiometryTypes';
+import { Patient } from '../../types/Patient';
+import { useToast } from '@/hooks/use-toast';
 
 interface AudiometryFormProps {
-  patient: boolean;
+  patient: Patient;
+  onCancel: () => void;
+  onSave: (audiogram: Audiogram) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-const AudiometryForm: React.FC<AudiometryFormProps> = ({ patient }) => {
-  const form = useForm<AudiometryFormValues>({
-    resolver: zodResolver(audiometrySchema),
-    defaultValues: {
-      rightAirConduction250: "",
-      rightAirConduction500: "",
-      rightAirConduction1000: "",
-      rightAirConduction2000: "",
-      rightAirConduction4000: "",
-      rightAirConduction8000: "",
-      leftAirConduction250: "",
-      leftAirConduction500: "",
-      leftAirConduction1000: "",
-      leftAirConduction2000: "",
-      leftAirConduction4000: "",
-      leftAirConduction8000: "",
-      rightBoneConduction500: "",
-      rightBoneConduction1000: "",
-      rightBoneConduction2000: "",
-      rightBoneConduction4000: "",
-      leftBoneConduction500: "",
-      leftBoneConduction1000: "",
-      leftBoneConduction2000: "",
-      leftBoneConduction4000: "",
-      rightMasking500: "",
-      rightMasking1000: "",
-      rightMasking2000: "",
-      rightMasking4000: "",
-      leftMasking500: "",
-      leftMasking1000: "",
-      leftMasking2000: "",
-      leftMasking4000: "",
-      speechReceptionThresholdRight: "",
-      speechReceptionThresholdLeft: "",
-      speechDiscriminationScoreRight: "",
-      speechDiscriminationScoreLeft: "",
-      tympanometryRight: "",
-      tympanometryLeft: "",
-      reflexesRight: "",
-      reflexesLeft: "",
-      oaeRight: "",
-      oaeLeft: "",
-      audiogramInterpretation: "",
-      recommendations: "",
-      furtherTests: "",
-      hearingAidTrial: false,
-      hearingAidFitting: false,
-      counselling: false,
-      otherRecommendations: "",
-    },
+const AudiometryForm: React.FC<AudiometryFormProps> = ({ 
+  patient, 
+  onCancel, 
+  onSave, 
+  open, 
+  onOpenChange 
+}) => {
+  const { toast } = useToast();
+  const [audiogram, setAudiogram] = useState<Audiogram>(() => {
+    const newAudiogram = new Audiogram();
+    if (patient) {
+      newAudiogram.patient = patient;
+    }
+    return newAudiogram;
   });
+  const [activeTab, setActiveTab] = useState('testing-data');
 
-  function onSubmit(values: AudiometryFormValues) {
-    console.log("Form values:", values);
-  }
+  // Handle modality checkbox changes
+  const handleModalityChange = (key: keyof typeof audiogram.modality) => {
+    setAudiogram(prev => ({
+      ...prev,
+      modality: {
+        ...prev.modality,
+        [key]: !prev.modality[key as keyof typeof prev.modality]
+      }
+    }));
+  };
+
+  // Handle puretone data input
+  const handlePuretoneChange = (
+    ear: 'puretoneLeft' | 'puretoneRight', 
+    type: 'acu' | 'acm' | 'bcu' | 'bcm' | 'nor', 
+    index: number, 
+    value: string
+  ) => {
+    const numValue = value === '' ? null : Number(value);
+    setAudiogram(prev => {
+      const newData = { ...prev };
+      newData[ear][type][index].value = numValue;
+      return newData;
+    });
+  };
+
+  // Handle ear test data
+  const handleEarDataChange = (
+    ear: 'earLeft' | 'earRight',
+    index: number,
+    value: string
+  ) => {
+    const numValue = value === '' ? null : value;
+    setAudiogram(prev => {
+      const newData = { ...prev };
+      newData[ear][index].value = numValue;
+      return newData;
+    });
+  };
+
+  // Handle test data
+  const handleTestDataChange = (
+    ear: 'testLeft' | 'testRight',
+    index: number,
+    value: string
+  ) => {
+    setAudiogram(prev => {
+      const newData = { ...prev };
+      newData[ear][index].value = value;
+      return newData;
+    });
+  };
+
+  // Form submission handler
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation - check at least one modality is selected
+    if (!(audiogram.modality.acuChecked || 
+          audiogram.modality.acmChecked || 
+          audiogram.modality.bcuChecked || 
+          audiogram.modality.bcmChecked || 
+          audiogram.modality.norChecked)) {
+      toast({
+        title: "Validation Error",
+        description: "Please check at least one test modality.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Send to parent component for saving
+    onSave(audiogram);
+    
+    toast({
+      title: "Audiometry Report Saved",
+      description: "The audiometry report has been successfully saved."
+    });
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Audiometry Report Form</CardTitle>
-        <CardDescription>Enter the details for the audiometry report.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Air Conduction Section */}
-            <div>
-              <h3 className="text-lg font-semibold">Air Conduction</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Right Ear */}
-                <div>
-                  <h4 className="font-medium">Right Ear</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={form.control}
-                      name="rightAirConduction250"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>250 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightAirConduction500"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>500 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightAirConduction1000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>1000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightAirConduction2000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>2000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightAirConduction4000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>4000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightAirConduction8000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>8000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Left Ear */}
-                <div>
-                  <h4 className="font-medium">Left Ear</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={form.control}
-                      name="leftAirConduction250"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>250 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftAirConduction500"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>500 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftAirConduction1000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>1000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftAirConduction2000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>2000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftAirConduction4000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>4000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftAirConduction8000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>8000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bone Conduction Section */}
-            <div>
-              <h3 className="text-lg font-semibold">Bone Conduction</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Right Ear */}
-                <div>
-                  <h4 className="font-medium">Right Ear</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={form.control}
-                      name="rightBoneConduction500"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>500 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightBoneConduction1000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>1000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightBoneConduction2000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>2000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightBoneConduction4000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>4000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Left Ear */}
-                <div>
-                  <h4 className="font-medium">Left Ear</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={form.control}
-                      name="leftBoneConduction500"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>500 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftBoneConduction1000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>1000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftBoneConduction2000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>2000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftBoneConduction4000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>4000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Masking Section */}
-            <div>
-              <h3 className="text-lg font-semibold">Masking</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Right Ear */}
-                <div>
-                  <h4 className="font-medium">Right Ear</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={form.control}
-                      name="rightMasking500"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>500 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightMasking1000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>1000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightMasking2000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>2000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="rightMasking4000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>4000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Left Ear */}
-                <div>
-                  <h4 className="font-medium">Left Ear</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={form.control}
-                      name="leftMasking500"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>500 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftMasking1000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>1000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftMasking2000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>2000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="leftMasking4000"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>4000 Hz</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Value" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Speech Audiometry Section */}
-            <div>
-              <h3 className="text-lg font-semibold">Speech Audiometry</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="speechReceptionThresholdRight"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Speech Reception Threshold (Right)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="speechReceptionThresholdLeft"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Speech Reception Threshold (Left)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="speechDiscriminationScoreRight"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Speech Discrimination Score (Right)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="speechDiscriminationScoreLeft"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Speech Discrimination Score (Left)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Impedance Audiometry Section */}
-            <div>
-              <h3 className="text-lg font-semibold">Impedance Audiometry</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="tympanometryRight"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tympanometry (Right)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="tympanometryLeft"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tympanometry (Left)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="reflexesRight"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Reflexes (Right)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="reflexesLeft"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Reflexes (Left)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* OAE Section */}
-            <div>
-              <h3 className="text-lg font-semibold">Otoacoustic Emissions (OAE)</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="oaeRight"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>OAE (Right)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="oaeLeft"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>OAE (Left)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Value" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Interpretation and Recommendations Section */}
-            <div>
-              <h3 className="text-lg font-semibold">Interpretation and Recommendations</h3>
-              <FormField
-                control={form.control}
-                name="audiogramInterpretation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Audiogram Interpretation</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Interpretation" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Audiometry Assessment</DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Modality Checkboxes */}
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="acu" 
+                checked={audiogram.modality.acuChecked} 
+                onCheckedChange={() => handleModalityChange('acuChecked')} 
               />
-              <FormField
-                control={form.control}
-                name="recommendations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Recommendations</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Recommendations" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="furtherTests"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Further Tests</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Further Tests" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Label htmlFor="acu">AC unmasked</Label>
             </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="acm" 
+                checked={audiogram.modality.acmChecked} 
+                onCheckedChange={() => handleModalityChange('acmChecked')} 
+              />
+              <Label htmlFor="acm">AC masked</Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="bcu" 
+                checked={audiogram.modality.bcuChecked} 
+                onCheckedChange={() => handleModalityChange('bcuChecked')} 
+              />
+              <Label htmlFor="bcu">BC unmasked</Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="bcm" 
+                checked={audiogram.modality.bcmChecked} 
+                onCheckedChange={() => handleModalityChange('bcmChecked')} 
+              />
+              <Label htmlFor="bcm">BC masked</Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="nor" 
+                checked={audiogram.modality.norChecked} 
+                onCheckedChange={() => handleModalityChange('norChecked')} 
+              />
+              <Label htmlFor="nor">No response</Label>
+            </div>
+          </div>
 
-            {/* Additional Recommendations Section */}
-            <div>
-              <h3 className="text-lg font-semibold">Additional Recommendations</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="hearingAidTrial"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">Hearing Aid Trial</FormLabel>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="hearingAidFitting"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">Hearing Aid Fitting</FormLabel>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="counselling"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">Counselling</FormLabel>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-3 mb-4">
+              <TabsTrigger value="testing-data">Testing Data</TabsTrigger>
+              <TabsTrigger value="charts">Audiometry Charts</TabsTrigger>
+              <TabsTrigger value="diagnosis">Diagnosis & Recommendations</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="testing-data" className="space-y-4">
+              {/* Pure Tone Testing Tables */}
+              <div className="overflow-x-auto">
+                <h3 className="font-medium mb-2">Puretones (dBHL)</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="text-left p-2 border">Test Type</th>
+                      {FREQUENCY_LABELS.map(label => (
+                        <th key={label} className="p-2 border text-center">{label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {audiogram.modality.acuChecked && (
+                      <>
+                        <tr>
+                          <td className="p-2 border font-medium">AC U (Right)</td>
+                          {audiogram.puretoneRight.acu.map((item, i) => (
+                            <td key={i} className="p-2 border">
+                              <Input 
+                                type="number" 
+                                min={-10} 
+                                max={120} 
+                                className="w-20 text-center mx-auto" 
+                                value={item.value === null ? '' : item.value} 
+                                onChange={(e) => handlePuretoneChange('puretoneRight', 'acu', i, e.target.value)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="p-2 border font-medium">AC U (Left)</td>
+                          {audiogram.puretoneLeft.acu.map((item, i) => (
+                            <td key={i} className="p-2 border">
+                              <Input 
+                                type="number"
+                                min={-10}
+                                max={120}
+                                className="w-20 text-center mx-auto"
+                                value={item.value === null ? '' : item.value}
+                                onChange={(e) => handlePuretoneChange('puretoneLeft', 'acu', i, e.target.value)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      </>
+                    )}
+                    
+                    {audiogram.modality.acmChecked && (
+                      <>
+                        <tr>
+                          <td className="p-2 border font-medium">AC M (Right)</td>
+                          {audiogram.puretoneRight.acm.map((item, i) => (
+                            <td key={i} className="p-2 border">
+                              <Input 
+                                type="number" 
+                                min={-10} 
+                                max={120} 
+                                className="w-20 text-center mx-auto" 
+                                value={item.value === null ? '' : item.value} 
+                                onChange={(e) => handlePuretoneChange('puretoneRight', 'acm', i, e.target.value)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="p-2 border font-medium">AC M (Left)</td>
+                          {audiogram.puretoneLeft.acm.map((item, i) => (
+                            <td key={i} className="p-2 border">
+                              <Input 
+                                type="number" 
+                                min={-10} 
+                                max={120} 
+                                className="w-20 text-center mx-auto" 
+                                value={item.value === null ? '' : item.value} 
+                                onChange={(e) => handlePuretoneChange('puretoneLeft', 'acm', i, e.target.value)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      </>
+                    )}
+                    
+                    {/* Similar structure for BC unmasked, BC masked, and No response rows */}
+                    {audiogram.modality.bcuChecked && (
+                      <>
+                        <tr>
+                          <td className="p-2 border font-medium">BC U (Right)</td>
+                          {audiogram.puretoneRight.bcu.map((item, i) => (
+                            <td key={i} className="p-2 border">
+                              <Input 
+                                type="number" 
+                                min={-10} 
+                                max={120} 
+                                className="w-20 text-center mx-auto" 
+                                value={item.value === null ? '' : item.value} 
+                                onChange={(e) => handlePuretoneChange('puretoneRight', 'bcu', i, e.target.value)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="p-2 border font-medium">BC U (Left)</td>
+                          {audiogram.puretoneLeft.bcu.map((item, i) => (
+                            <td key={i} className="p-2 border">
+                              <Input 
+                                type="number" 
+                                min={-10} 
+                                max={120} 
+                                className="w-20 text-center mx-auto" 
+                                value={item.value === null ? '' : item.value} 
+                                onChange={(e) => handlePuretoneChange('puretoneLeft', 'bcu', i, e.target.value)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
               </div>
-              <FormField
-                control={form.control}
-                name="otherRecommendations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Other Recommendations</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Other Recommendations" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <Button type="submit">Submit</Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              
+              {/* EAR Tests Table */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div className="overflow-x-auto">
+                  <h3 className="font-medium mb-2">EAR Tests</h3>
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-muted">
+                        <th className="text-left p-2 border">EAR</th>
+                        <th className="p-2 border">PTA</th>
+                        <th className="p-2 border">SAT</th>
+                        <th className="p-2 border">SRT</th>
+                        <th className="p-2 border">SDS</th>
+                        <th className="p-2 border">MCL</th>
+                        <th className="p-2 border">UCL</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="p-2 border font-medium">RIGHT</td>
+                        {audiogram.earRight.map((item, i) => (
+                          <td key={i} className="p-2 border">
+                            <Input 
+                              className="w-16 text-center mx-auto" 
+                              value={item.value === null ? '' : item.value} 
+                              onChange={(e) => handleEarDataChange('earRight', i, e.target.value)}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2 border font-medium">LEFT</td>
+                        {audiogram.earLeft.map((item, i) => (
+                          <td key={i} className="p-2 border">
+                            <Input 
+                              className="w-16 text-center mx-auto" 
+                              value={item.value === null ? '' : item.value} 
+                              onChange={(e) => handleEarDataChange('earLeft', i, e.target.value)}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <h3 className="font-medium mb-2">Additional Tests</h3>
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-muted">
+                        <th className="text-left p-2 border">TEST</th>
+                        <th className="p-2 border">RINNE</th>
+                        <th className="p-2 border">WEBER</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="p-2 border font-medium">RIGHT</td>
+                        {audiogram.testRight.map((item, i) => (
+                          <td key={i} className="p-2 border">
+                            <Input 
+                              className="w-20 text-center mx-auto" 
+                              value={item.value === null ? '' : item.value} 
+                              onChange={(e) => handleTestDataChange('testRight', i, e.target.value)}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2 border font-medium">LEFT</td>
+                        {audiogram.testLeft.map((item, i) => (
+                          <td key={i} className="p-2 border">
+                            <Input 
+                              className="w-20 text-center mx-auto" 
+                              value={item.value === null ? '' : item.value} 
+                              onChange={(e) => handleTestDataChange('testLeft', i, e.target.value)}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="charts">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <h3 className="font-medium text-center">Right Ear</h3>
+                  <div className="bg-muted/30 h-64 rounded-md flex items-center justify-center border">
+                    <p className="text-muted-foreground">Chart visualization will be implemented here</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium text-center">Left Ear</h3>
+                  <div className="bg-muted/30 h-64 rounded-md flex items-center justify-center border">
+                    <p className="text-muted-foreground">Chart visualization will be implemented here</p>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="diagnosis" className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="impedanceAudiometry">Impedance Audiometry</Label>
+                  <Textarea 
+                    id="impedanceAudiometry"
+                    placeholder="Enter impedance audiometry notes"
+                    value={audiogram.impedanceAudiometry || ''}
+                    onChange={(e) => setAudiogram({...audiogram, impedanceAudiometry: e.target.value})}
+                    className="h-24"
+                  />
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="proDiagnosisRight">Provisional Diagnosis (Right Ear)</Label>
+                    <Textarea 
+                      id="proDiagnosisRight"
+                      placeholder="Enter diagnosis for right ear"
+                      value={audiogram.proDiagnosisRight || ''}
+                      onChange={(e) => setAudiogram({...audiogram, proDiagnosisRight: e.target.value})}
+                      className="h-24"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="proDiagnosisLeft">Provisional Diagnosis (Left Ear)</Label>
+                    <Textarea 
+                      id="proDiagnosisLeft"
+                      placeholder="Enter diagnosis for left ear"
+                      value={audiogram.proDiagnosisLeft || ''}
+                      onChange={(e) => setAudiogram({...audiogram, proDiagnosisLeft: e.target.value})}
+                      className="h-24"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="recommendation">Recommendation</Label>
+                  <Textarea 
+                    id="recommendation"
+                    placeholder="Enter recommendations"
+                    value={audiogram.recommendation || ''}
+                    onChange={(e) => setAudiogram({...audiogram, recommendation: e.target.value})}
+                    className="h-32"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+            <Button type="submit">Save Report</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
