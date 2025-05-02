@@ -5,16 +5,25 @@ import { AdminLayout } from '@/admin/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Prescription } from '../types/Prescription';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileBarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { createPrescription } from '../../appointments/services/PrescriptionService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/card';
+import AudiometryForm from './reports/AudiometryForm';
+import ABRForm from './reports/ABRForm';
+import SpeechForm from './reports/SpeechForm';
 
 const PatientPrescription = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'prescription' | 'report'>('prescription');
+  const [reportType, setReportType] = useState<string>('audiometry');
+  const [isAudiometryOpen, setIsAudiometryOpen] = useState(false);
+  const [isABROpen, setIsABROpen] = useState(false);
+  const [isSpeechOpen, setIsSpeechOpen] = useState(false);
 
   // Initial prescription state with required fields
   const [prescription, setPrescription] = useState<Partial<Prescription>>({
@@ -65,7 +74,54 @@ const PatientPrescription = () => {
     navigate(-1);
   };
 
-  // Simplified prescription form for demonstration
+  const handleSaveAudiometry = (data: any) => {
+    toast({
+      title: "Success",
+      description: "Audiometry report created successfully",
+    });
+    setIsAudiometryOpen(false);
+    navigate(`/admin/patients/view/${id}`);
+  };
+
+  const handleSaveABR = (data: any) => {
+    toast({
+      title: "Success",
+      description: "ABR report created successfully",
+    });
+    setIsABROpen(false);
+    navigate(`/admin/patients/view/${id}`);
+  };
+
+  const handleSaveSpeech = (data: any) => {
+    toast({
+      title: "Success",
+      description: "Speech report created successfully",
+    });
+    setIsSpeechOpen(false);
+    navigate(`/admin/patients/view/${id}`);
+  };
+
+  const openReportForm = (type: string) => {
+    setReportType(type);
+    
+    switch (type) {
+      case 'audiometry':
+        setIsAudiometryOpen(true);
+        break;
+      case 'abr':
+        setIsABROpen(true);
+        break;
+      case 'speech':
+        setIsSpeechOpen(true);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Check if we're in report-only mode (for lab technicians)
+  const isReportOnly = new URLSearchParams(window.location.search).get('mode') === 'report';
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -75,36 +131,115 @@ const PatientPrescription = () => {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <h2 className="text-2xl font-bold">Create Prescription</h2>
+            <h2 className="text-2xl font-bold">
+              {isReportOnly ? "Create Report" : "Create Prescription"}
+            </h2>
           </div>
-          <Button 
-            onClick={handleSavePrescription} 
-            disabled={loading}
-            className="bg-clinic-primary hover:bg-clinic-primary/90"
-          >
-            {loading ? 'Saving...' : 'Save & Generate PDF'}
-          </Button>
+          {!isReportOnly && (
+            <Button 
+              onClick={handleSavePrescription} 
+              disabled={loading}
+              className="bg-clinic-primary hover:bg-clinic-primary/90"
+            >
+              {loading ? 'Saving...' : 'Save & Generate PDF'}
+            </Button>
+          )}
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Prescription Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center p-8 text-muted-foreground">
-              <p>Prescription form would be implemented here with fields for:</p>
-              <ul className="list-disc list-inside mt-4 text-left max-w-md mx-auto">
-                <li>Vital signs (temperature, pulse, etc.)</li>
-                <li>Medicines</li>
-                <li>Laboratory tests</li>
-                <li>Clinical notes</li>
-                <li>Symptoms and diagnosis</li>
-                <li>Advice and follow-up details</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+        {isReportOnly ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <FileBarChart className="mr-2 h-5 w-5 text-primary" />
+                Select Report Type
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" 
+                      onClick={() => openReportForm('audiometry')}>
+                  <CardContent className="p-6 text-center">
+                    <h3 className="text-lg font-medium mb-2">Audiometry</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Create comprehensive audiometry assessment report
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => openReportForm('abr')}>
+                  <CardContent className="p-6 text-center">
+                    <h3 className="text-lg font-medium mb-2">ABR</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Create Auditory Brainstem Response test report
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => openReportForm('speech')}>
+                  <CardContent className="p-6 text-center">
+                    <h3 className="text-lg font-medium mb-2">Speech</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Create speech and language evaluation report
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Prescription Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center p-8 text-muted-foreground">
+                <p>Prescription form would be implemented here with fields for:</p>
+                <ul className="list-disc list-inside mt-4 text-left max-w-md mx-auto">
+                  <li>Vital signs (temperature, pulse, etc.)</li>
+                  <li>Medicines</li>
+                  <li>Laboratory tests</li>
+                  <li>Clinical notes</li>
+                  <li>Symptoms and diagnosis</li>
+                  <li>Advice and follow-up details</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
+      
+      {/* Report Forms as Dialogs */}
+      {id && reportType === 'audiometry' && (
+        <AudiometryForm 
+          patient={{ id: parseInt(id) }} 
+          onCancel={() => setIsAudiometryOpen(false)}
+          onSave={handleSaveAudiometry}
+          open={isAudiometryOpen}
+          onOpenChange={setIsAudiometryOpen}
+        />
+      )}
+      
+      {id && reportType === 'abr' && (
+        <ABRForm 
+          patient={{ id: parseInt(id) }} 
+          onCancel={() => setIsABROpen(false)}
+          onSave={handleSaveABR}
+          open={isABROpen}
+          onOpenChange={setIsABROpen}
+        />
+      )}
+      
+      {id && reportType === 'speech' && (
+        <SpeechForm 
+          patient={{ id: parseInt(id) }} 
+          onCancel={() => setIsSpeechOpen(false)}
+          onSave={handleSaveSpeech}
+          open={isSpeechOpen}
+          onOpenChange={setIsSpeechOpen}
+        />
+      )}
     </AdminLayout>
   );
 };

@@ -93,6 +93,10 @@ const PatientView = () => {
     setVisitDialogOpen(true);
   };
 
+  const handleNewReportClick = () => {
+    navigate(`/admin/patients/${id}/prescription?mode=report`);
+  };
+
   const handleVisitSuccess = () => {
     setVisitDialogOpen(false);
     
@@ -107,6 +111,9 @@ const PatientView = () => {
       description: "The visit has been created successfully.",
     });
   };
+
+  // Check if user is a lab technician (you would implement proper role-based check here)
+  const isLabTechnician = new URLSearchParams(window.location.search).get('role') === 'lab';
 
   if (loading) {
     return (
@@ -147,14 +154,35 @@ const PatientView = () => {
             <h2 className="text-2xl font-bold">Patient Details</h2>
           </div>
           <div className="flex gap-2">
-            <Button 
-              onClick={handleNewVisitClick} 
-              variant="outline"
-              className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
-            >
-              <FilePlus className="mr-2 h-4 w-4" />
-              New Visit
-            </Button>
+            {isLabTechnician ? (
+              <Button 
+                onClick={handleNewReportClick} 
+                variant="outline"
+                className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+              >
+                <FileBarChart className="mr-2 h-4 w-4" />
+                New Report
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  onClick={handleNewReportClick} 
+                  variant="outline"
+                  className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                >
+                  <FileBarChart className="mr-2 h-4 w-4" />
+                  New Report
+                </Button>
+                <Button 
+                  onClick={handleNewVisitClick} 
+                  variant="outline"
+                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                >
+                  <FilePlus className="mr-2 h-4 w-4" />
+                  New Visit
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -209,18 +237,20 @@ const PatientView = () => {
 
       {/* New Visit Dialog */}
       <Dialog open={visitDialogOpen} onOpenChange={setVisitDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-hidden">
+          <DialogHeader className="sticky top-0 bg-white z-10 pb-2">
             <DialogTitle>Create New Visit</DialogTitle>
             <DialogDescription>
               Schedule a new visit for {patient?.firstname} {patient?.lastname}
             </DialogDescription>
           </DialogHeader>
-          <NewVisitForm 
-            patientId={patient?.id.toString() || ''} 
-            onSuccess={handleVisitSuccess} 
-            onCancel={() => setVisitDialogOpen(false)} 
-          />
+          <div className="overflow-y-auto pr-1">
+            <NewVisitForm 
+              patientId={patient?.id.toString() || ''} 
+              onSuccess={handleVisitSuccess} 
+              onCancel={() => setVisitDialogOpen(false)} 
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </AdminLayout>
