@@ -1,9 +1,10 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import saveAs from 'file-saver';
+import { saveAs } from 'file-saver';
 import AudiometryService from '../../services/audiometryService';
 
 const AudiometryForm: React.FC = () => {
@@ -161,20 +162,21 @@ const AudiometryForm: React.FC = () => {
         audiogram.modality.norChecked
       )
     ) {
-      //toast({ title: 'Error', description: 'Please check at least one test', status: 'error' });
+      toast({ title: 'Error', description: 'Please check at least one test', variant: "destructive" });
       return;
     }
 
     try {
       const response = await AudiometryService.saveOrUpdate(audiogram);
       if (response.status) {
-        //toast({ title: 'Success', description: response.message, status: 'success' });
+        toast({ title: 'Success', description: response.message });
         navigate(`/admin/patients/diagnosis/audiogram/patientId/${audiogram.patient.id}`);
       } else {
-        //toast({ title: 'Error', description: response.message, status: 'error' });
+        toast({ title: 'Error', description: response.message, variant: "destructive" });
       }
     } catch (error) {
       console.error('Error saving audiogram:', error);
+      toast({ title: 'Error', description: 'Failed to save audiogram', variant: "destructive" });
     }
   };
 
@@ -188,35 +190,75 @@ const AudiometryForm: React.FC = () => {
       const blob = new Blob([data], { type: 'application/pdf' });
       const patientInfo = `${audiogram.uid}-${audiogram.patient.firstname}-${audiogram.patient.lastname}`;
       saveAs(blob, `${patientInfo}.pdf`);
-      //toast({ title: 'Success', description: 'Report Generated Successfully!', status: 'success' });
+      toast({ title: 'Success', description: 'Report Generated Successfully!' });
     } catch (error) {
       console.error('Error generating report:', error);
+      toast({ title: 'Error', description: 'Failed to generate report', variant: "destructive" });
     }
   };
 
   return (
-    <div>
-      <h1>Audiometry Assessment</h1>
-      <form onSubmit={onSubmit}>
-        <div>
+    <div className="space-y-4 p-4">
+      <h1 className="text-2xl font-bold">Audiometry Assessment</h1>
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           <Checkbox
             checked={audiogram.modality.acuChecked}
-            onChange={() => updateModality('acu')}
+            onCheckedChange={() => updateModality('acu')}
           >
             AC U
           </Checkbox>
-          {/* Add other checkboxes similarly */}
+          <Checkbox
+            checked={audiogram.modality.acmChecked}
+            onCheckedChange={() => updateModality('acm')}
+          >
+            AC M
+          </Checkbox>
+          <Checkbox
+            checked={audiogram.modality.bcuChecked}
+            onCheckedChange={() => updateModality('bcu')}
+          >
+            BC U
+          </Checkbox>
+          <Checkbox
+            checked={audiogram.modality.bcmChecked}
+            onCheckedChange={() => updateModality('bcm')}
+          >
+            BC M
+          </Checkbox>
+          <Checkbox
+            checked={audiogram.modality.norChecked}
+            onCheckedChange={() => updateModality('nor')}
+          >
+            No R
+          </Checkbox>
         </div>
 
-        <canvas ref={chartLeftRef}></canvas>
-        <canvas ref={chartRightRef}></canvas>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border rounded p-2">
+            <h3 className="text-center font-medium mb-2">Left Ear</h3>
+            <canvas ref={chartLeftRef} className="w-full h-[300px]"></canvas>
+          </div>
+          <div className="border rounded p-2">
+            <h3 className="text-center font-medium mb-2">Right Ear</h3>
+            <canvas ref={chartRightRef} className="w-full h-[300px]"></canvas>
+          </div>
+        </div>
 
-        <div>
-          <Button type="button" onClick={() => navigate(-1)}>
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button 
+            type="button" 
+            onClick={() => navigate(-1)}
+            variant="outline"
+          >
             Cancel
           </Button>
           <Button type="submit">Save Report</Button>
-          <Button type="button" onClick={print}>
+          <Button 
+            type="button" 
+            onClick={print}
+            variant="secondary"
+          >
             Save & Print
           </Button>
         </div>
