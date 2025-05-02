@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -21,7 +22,6 @@ import {
   CreditCard
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -107,6 +107,7 @@ const VisitDetails = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
+        {/* Header with back button and actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleBackClick}>
@@ -126,8 +127,8 @@ const VisitDetails = () => {
           </div>
         </div>
 
-        {/* Visit Summary Card */}
-        <Card>
+        {/* Patient Info & Visit Summary Card */}
+        <Card className="overflow-hidden">
           <CardHeader className="bg-muted/50 pb-4">
             <div className="flex flex-col md:flex-row justify-between">
               <div>
@@ -144,9 +145,55 @@ const VisitDetails = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Visit Progress Steps */}
+          <CardContent className="p-6">
+            {/* Vital Signs Row */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium mb-3 flex items-center">
+                <Thermometer className="h-4 w-4 mr-2 text-primary" />
+                Vital Signs
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3">
+                <VitalCard 
+                  label="Temperature" 
+                  value={visit.vitalSigns.temperature}
+                  icon={<Thermometer className="h-4 w-4" />}
+                />
+                <VitalCard 
+                  label="Heart Rate" 
+                  value={visit.vitalSigns.heartRate}
+                  icon={<ThermometerSnowflake className="h-4 w-4" />}
+                />
+                <VitalCard 
+                  label="Blood Pressure" 
+                  value={visit.vitalSigns.bloodPressure}
+                  icon={<ThermometerSnowflake className="h-4 w-4" />}
+                />
+                <VitalCard 
+                  label="Respiratory Rate" 
+                  value={visit.vitalSigns.respiratoryRate}
+                  icon={<ThermometerSnowflake className="h-4 w-4" />}
+                />
+                <VitalCard 
+                  label="Oxygen Saturation" 
+                  value={visit.vitalSigns.oxygenSaturation}
+                  icon={<ThermometerSnowflake className="h-4 w-4" />}
+                />
+                <VitalCard 
+                  label="Height" 
+                  value={visit.vitalSigns.height}
+                  icon={<ThermometerSnowflake className="h-4 w-4" />}
+                />
+                <VitalCard 
+                  label="Weight" 
+                  value={visit.vitalSigns.weight}
+                  icon={<ThermometerSnowflake className="h-4 w-4" />}
+                />
+              </div>
+            </div>
+
+            {/* Visit Progress Steps */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium mb-3">Visit Workflow Status</h3>
               <div className="flex flex-wrap gap-3">
                 <VisitStepBadge 
                   icon={<UserCheck className="h-4 w-4" />} 
@@ -184,19 +231,32 @@ const VisitDetails = () => {
                   completed={visit.status === 'closed'}
                 />
               </div>
+            </div>
 
-              {/* Basic Visit Info */}
-              <div className="space-y-2">
-                <div className="font-medium">Chief Complaint</div>
-                <p className="text-sm">{visit.chiefComplaint}</p>
+            <Separator className="my-6" />
+
+            {/* Chief Complaint, Diagnosis and Notes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Chief Complaint</h3>
+                  <p className="text-sm p-3 bg-muted/30 rounded-md">{visit.chiefComplaint}</p>
+                </div>
                 
-                <div className="font-medium mt-4">Diagnosis</div>
-                <p className="text-sm">
-                  {visit.diagnosis} <span className="text-xs text-muted-foreground">({visit.diagnosisCode})</span>
-                </p>
-                
-                <div className="font-medium mt-4 flex items-center justify-between">
-                  <div>Doctor's Notes</div>
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Diagnosis</h3>
+                  <p className="text-sm p-3 bg-muted/30 rounded-md">
+                    {visit.diagnosis} <span className="text-xs text-muted-foreground">({visit.diagnosisCode})</span>
+                  </p>
+                </div>
+              </div>
+              
+              <div>
+                <div className="font-medium text-sm mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <span>Doctor's Notes</span>
+                  </div>
                   {isCurrent && (
                     <Button 
                       variant="ghost" 
@@ -214,7 +274,7 @@ const VisitDetails = () => {
                     <Textarea 
                       value={visitNotes} 
                       onChange={(e) => setVisitNotes(e.target.value)}
-                      className="min-h-[80px]"
+                      className="min-h-[120px]"
                     />
                     <div className="flex justify-end gap-2">
                       <Button 
@@ -234,185 +294,117 @@ const VisitDetails = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm">{visit.notes}</p>
+                  <p className="text-sm p-3 bg-muted/30 rounded-md h-[120px] overflow-y-auto">
+                    {visit.notes}
+                  </p>
                 )}
+
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium mb-2">Treatment Plan</h3>
+                  <p className="text-sm p-3 bg-muted/30 rounded-md">{visit.treatmentPlan}</p>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            
+            <Separator className="my-6" />
 
-        <Tabs defaultValue="details">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="details"><Stethoscope className="h-4 w-4 mr-2" /> Details</TabsTrigger>
-            <TabsTrigger value="vitals"><ThermometerSnowflake className="h-4 w-4 mr-2" /> Vitals</TabsTrigger>
-            <TabsTrigger value="prescriptions"><FileEdit className="h-4 w-4 mr-2" /> Prescriptions</TabsTrigger>
-            <TabsTrigger value="tests"><TestTube className="h-4 w-4 mr-2" /> Tests</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="details" className="mt-4 space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Visit Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-sm">Medical History</h3>
-                    <p className="text-sm mt-1">Patient has a history of recurrent ear infections in childhood. Last episode was 2 years ago.</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium text-sm">Current Assessment</h3>
-                    <p className="text-sm mt-1">Patient presents with right ear pain for 3 days. Reports feeling full in the ear and mild hearing loss. No fever. Otoscopic exam shows erythema and bulging of right tympanic membrane.</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium text-sm">Treatment Plan</h3>
-                    <p className="text-sm mt-1">1. Amoxicillin 500mg three times daily for 7 days<br />
-                    2. Ibuprofen for pain as needed<br />
-                    3. Avoid getting water in ear<br />
-                    4. Return for audiometry test in 1 week<br />
-                    5. Follow-up appointment in 2 weeks</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="vitals" className="mt-4 space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Vital Signs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <VitalCard 
-                    label="Temperature" 
-                    value={visit.vitalSigns.temperature}
-                    icon={<Thermometer className="h-4 w-4" />}
-                  />
-                  <VitalCard 
-                    label="Heart Rate" 
-                    value={visit.vitalSigns.heartRate}
-                    icon={<ThermometerSnowflake className="h-4 w-4" />}
-                  />
-                  <VitalCard 
-                    label="Blood Pressure" 
-                    value={visit.vitalSigns.bloodPressure}
-                    icon={<ThermometerSnowflake className="h-4 w-4" />}
-                  />
-                  <VitalCard 
-                    label="Respiratory Rate" 
-                    value={visit.vitalSigns.respiratoryRate}
-                    icon={<ThermometerSnowflake className="h-4 w-4" />}
-                  />
-                  <VitalCard 
-                    label="Oxygen Saturation" 
-                    value={visit.vitalSigns.oxygenSaturation}
-                    icon={<ThermometerSnowflake className="h-4 w-4" />}
-                  />
-                  <VitalCard 
-                    label="Height & Weight" 
-                    value={`${visit.vitalSigns.height}, ${visit.vitalSigns.weight}`}
-                    icon={<ThermometerSnowflake className="h-4 w-4" />}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button size="sm" variant="outline" className="ml-auto">
-                  View History
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="prescriptions" className="mt-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between">
-                  <CardTitle className="text-lg">Prescriptions</CardTitle>
+            {/* Prescriptions and Tests in two columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Prescriptions Column */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-medium flex items-center">
+                    <FileEdit className="h-4 w-4 mr-2 text-primary" />
+                    Prescriptions
+                  </h3>
                   {isCurrent && (
-                    <Button size="sm">
-                      <FilePlus className="h-4 w-4 mr-2" />
-                      Add Prescription
+                    <Button size="sm" variant="outline">
+                      <FilePlus className="h-4 w-4 mr-1" />
+                      Add
                     </Button>
                   )}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {/* Two-column layout for prescriptions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
                   {prescriptions.length === 0 ? (
-                    <p className="text-center py-8 text-muted-foreground col-span-2">No prescriptions for this visit</p>
+                    <p className="text-center py-6 text-muted-foreground">No prescriptions for this visit</p>
                   ) : (
                     prescriptions.map(prescription => (
-                      <div key={prescription.id} className="border rounded-md p-4">
-                        <h3 className="font-medium">{prescription.medicine} {prescription.dosage}</h3>
-                        <div className="text-sm mt-2 space-y-1">
-                          <p><span className="font-medium">Frequency:</span> {prescription.frequency}</p>
-                          <p><span className="font-medium">Duration:</span> {prescription.duration}</p>
+                      <div key={prescription.id} className="border rounded-md p-3 bg-muted/10">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium text-sm">{prescription.medicine}</h4>
+                          <Badge variant="outline">{prescription.dosage}</Badge>
+                        </div>
+                        <div className="text-sm mt-2 space-y-1 text-muted-foreground">
+                          <p>{prescription.frequency} • {prescription.duration}</p>
                           {prescription.instructions && (
-                            <p><span className="font-medium">Instructions:</span> {prescription.instructions}</p>
+                            <p className="text-xs italic">{prescription.instructions}</p>
                           )}
                         </div>
-                        <div className="flex justify-end mt-3 space-x-2">
-                          {isCurrent && <Button size="sm" variant="outline">Edit</Button>}
-                          <Button size="sm" variant="outline">Print</Button>
-                        </div>
+                        {isCurrent && (
+                          <div className="flex justify-end mt-2 gap-2">
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">Edit</Button>
+                          </div>
+                        )}
                       </div>
                     ))
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="tests" className="mt-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between">
-                  <CardTitle className="text-lg">Test Results</CardTitle>
+              </div>
+              
+              {/* Tests Column */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-medium flex items-center">
+                    <TestTube className="h-4 w-4 mr-2 text-primary" />
+                    Tests & Reports
+                  </h3>
                   {isCurrent && (
-                    <Button size="sm">
-                      <FilePlus className="h-4 w-4 mr-2" />
-                      Order New Test
+                    <Button size="sm" variant="outline">
+                      <FilePlus className="h-4 w-4 mr-1" />
+                      Order Test
                     </Button>
                   )}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {/* Two-column layout for tests */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
                   {tests.length === 0 ? (
-                    <p className="text-center py-8 text-muted-foreground col-span-2">No tests ordered for this visit</p>
+                    <p className="text-center py-6 text-muted-foreground">No tests ordered for this visit</p>
                   ) : (
                     tests.map(test => (
-                      <div key={test.id} className="border rounded-md p-4">
+                      <div key={test.id} className="border rounded-md p-3 bg-muted/10">
                         <div className="flex justify-between items-center">
-                          <h3 className="font-medium">{test.name}</h3>
+                          <div className="flex items-center gap-2">
+                            {test.type === 'audiometry' ? (
+                              <FileBarChart className="h-4 w-4 text-blue-500" />
+                            ) : (
+                              <TestTube className="h-4 w-4 text-indigo-500" />
+                            )}
+                            <h4 className="font-medium text-sm">{test.name}</h4>
+                          </div>
                           <Badge variant={test.status === 'Completed' ? 'success' : 'outline'}>
                             {test.status}
                           </Badge>
                         </div>
+                        
                         {test.date && (
                           <p className="text-xs text-muted-foreground mt-1">
                             {format(new Date(test.date), 'PPP')}
                           </p>
                         )}
-                        <div className="flex justify-between items-center mt-3">
+                        
+                        <div className="flex justify-between items-center mt-2">
                           <Badge 
                             className={test.type === 'audiometry' ? 'bg-blue-100 text-blue-800' : 'bg-indigo-100 text-indigo-800'}
                           >
                             {test.type}
                           </Badge>
-                          <div className="flex space-x-2">
+                          
+                          <div className="flex gap-2">
                             {test.status === 'Completed' ? (
-                              <>
-                                <Button size="sm" variant="outline">View Results</Button>
-                                <Button size="sm" variant="outline">Print</Button>
-                              </>
+                              <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">View Results</Button>
                             ) : isCurrent && (
-                              <Button size="sm" variant="outline">Update Status</Button>
+                              <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">Update Status</Button>
                             )}
                           </div>
                         </div>
@@ -420,10 +412,10 @@ const VisitDetails = () => {
                     ))
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
@@ -438,7 +430,7 @@ interface VisitStepBadgeProps {
 const VisitStepBadge: React.FC<VisitStepBadgeProps> = ({ icon, label, completed }) => {
   return (
     <div className={`
-      flex items-center gap-2 px-3 py-1 rounded-full text-xs
+      flex items-center gap-2 px-3 py-1.5 rounded-full text-xs
       ${completed 
         ? 'bg-green-100 text-green-800 border border-green-200' 
         : 'bg-gray-100 text-gray-500 border border-gray-200'
@@ -458,12 +450,12 @@ interface VitalCardProps {
 
 const VitalCard: React.FC<VitalCardProps> = ({ label, value, icon }) => {
   return (
-    <div className="border rounded-lg p-3 bg-muted/30">
-      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+    <div className="border rounded-lg p-2 bg-muted/10">
+      <div className="flex items-center gap-1 text-muted-foreground mb-1">
         {icon}
         <span className="text-xs font-medium">{label}</span>
       </div>
-      <div className="text-lg font-semibold">{value}</div>
+      <div className="text-sm font-semibold">{value}</div>
     </div>
   );
 };
