@@ -20,7 +20,7 @@ import {
   FileEdit,
   Edit,
   CreditCard,
-  Pills
+  PillBottle
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';

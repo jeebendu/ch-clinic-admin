@@ -232,6 +232,7 @@ const PrescriptionPad: React.FC<PrescriptionPadProps> = ({ visitId }) => {
             ))}
           </div>
           
+          {/* Frequently Seen Symptoms */}
           <h4 className="text-sm font-medium mt-6 mb-2">Frequently Seen By You</h4>
           <div className="flex flex-wrap gap-2">
             {commonSymptoms.slice(0, 7).map(symptom => (
@@ -246,6 +247,7 @@ const PrescriptionPad: React.FC<PrescriptionPadProps> = ({ visitId }) => {
             ))}
           </div>
           
+          {/* Associated Symptoms */}
           <h4 className="text-sm font-medium mt-6 mb-2">Associated Symptoms</h4>
           <div className="flex flex-wrap gap-2">
             {commonSymptoms.slice(7, 14).map(symptom => (
@@ -260,6 +262,7 @@ const PrescriptionPad: React.FC<PrescriptionPadProps> = ({ visitId }) => {
             ))}
           </div>
           
+          {/* Associated Diagnosis */}
           <h4 className="text-sm font-medium mt-6 mb-2">Associated Diagnosis</h4>
           <div className="flex flex-wrap gap-2">
             {commonDiagnoses.map(diagnosis => (
@@ -361,6 +364,7 @@ const PrescriptionPad: React.FC<PrescriptionPadProps> = ({ visitId }) => {
             ))}
           </div>
           
+          {/* Frequently Prescribed Drugs */}
           <h4 className="text-sm font-medium mt-6 mb-2">Frequently Prescribed Drugs</h4>
           <div className="flex flex-wrap gap-2">
             {commonMedications.slice(0, 8).map(med => (
@@ -375,6 +379,7 @@ const PrescriptionPad: React.FC<PrescriptionPadProps> = ({ visitId }) => {
             ))}
           </div>
           
+          {/* Suggested Drugs */}
           <h4 className="text-sm font-medium mt-6 mb-2">Suggested Drugs</h4>
           <div className="flex flex-wrap gap-2">
             {commonMedications.slice(8, 15).map(med => (
@@ -389,6 +394,7 @@ const PrescriptionPad: React.FC<PrescriptionPadProps> = ({ visitId }) => {
             ))}
           </div>
           
+          {/* Frequently Prescribed Investigations */}
           <h4 className="text-sm font-medium mt-6 mb-2">Frequently Prescribed Investigations</h4>
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="bg-muted/20 hover:bg-muted/30 cursor-pointer">
