@@ -34,11 +34,11 @@ const PatientRoutes = () => {
       <Route path="/report/abr/:id" element={<ABRReportView />} />
       <Route path="/report/speech/:id" element={<SpeechReportView />} />
       
-      {/* Report form routes - for creating new reports with patientId param to fetch patient data */}
-      <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm patientId={true} />} />
-      <Route path="/report/new/bera/:patientId" element={<BeraForm patientId={true} />} />
-      <Route path="/report/new/abr/:patientId" element={<ABRForm patientId={true} />} />
-      <Route path="/report/new/speech/:patientId" element={<SpeechForm patientId={true} />} />
+      {/* Report form routes - using the right prop name (patient) instead of patientId */}
+      <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm patient={true} />} />
+      <Route path="/report/new/bera/:patientId" element={<BeraForm patient={true} />} />
+      <Route path="/report/new/abr/:patientId" element={<ABRForm patient={true} />} />
+      <Route path="/report/new/speech/:patientId" element={<SpeechForm patient={true} />} />
     </Routes>
   );
 };

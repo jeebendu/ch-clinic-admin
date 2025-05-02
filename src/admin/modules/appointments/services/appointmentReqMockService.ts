@@ -1,4 +1,4 @@
-import { AppointmentRequest } from "../types/appointmentRequest";
+import { AppointmentRequest } from "../types/AppointmentRequest";
 import { DoctorClinic } from "../../doctor/types/DoctorClinic";
 import { Service } from "../../service/types/Service";
 import { Branch } from "../../branch/types/Branch";

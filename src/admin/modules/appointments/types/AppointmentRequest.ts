@@ -7,7 +7,7 @@ export interface AppointmentRequest {
     firstName: string;
     lastName: string;
     email: string;
-    phone: string; // Changed from number to string
+    phone: string;
     dob: Date;
     gender: number;
     district: District;

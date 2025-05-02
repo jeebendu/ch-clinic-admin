@@ -13,6 +13,7 @@ import DistrictService from "@/admin/modules/core/services/district/districtServ
 import { Branch } from "../../branch/types/Branch";
 // Updated import with correct casing
 import BranchService from '@/admin/modules/branch/services/branchService';
+import { MedicalCouncil } from "../submodules/medical-council/types/MedicalCouncil";
 
 const establishmentTypeOptions = [
   { value: "visit", label: "I visit a establishment" }
@@ -20,7 +21,8 @@ const establishmentTypeOptions = [
 
 const doctorOnboardingSchema = z.object({
   registationNumber: z.string().min(1, "Registration number is required"),
-  medicalCouncil: z.string().min(1, "Registration council is required"),
+  medicalCouncilId: z.number().optional(),
+  medicalCouncilName: z.string().min(1, "Registration council is required"),
   registationYear: z.string().min(4, "Registration year is required"),
   specialityDegree: z.string().optional(),
   degreeCollege: z.string().min(1, "Institute is required"),
@@ -93,7 +95,8 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
     if (doctor?.additionalInfoDoctor) {
       form.reset({
         registationNumber: doctor.additionalInfoDoctor?.registationNumber || "",
-        medicalCouncil: doctor.additionalInfoDoctor?.medicalCouncil || "",
+        medicalCouncilId: doctor.additionalInfoDoctor?.medicalCouncil?.id || 1,
+        medicalCouncilName: doctor.additionalInfoDoctor?.medicalCouncil?.name || "",
         registationYear: doctor.additionalInfoDoctor?.registationYear || "",
         degreeCollege: doctor.additionalInfoDoctor?.degreeCollege || "",
         yearCompletionDegree: doctor.additionalInfoDoctor?.yearCompletionDegree || "",
@@ -122,7 +125,8 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   const form = useForm<DoctorOnboardingFormValues>({
     resolver: zodResolver(doctorOnboardingSchema),
     defaultValues: {
-      medicalCouncil: doctor?.additionalInfoDoctor?.medicalCouncil || "",
+      medicalCouncilName: doctor?.additionalInfoDoctor?.medicalCouncil?.name || "",
+      medicalCouncilId: doctor?.additionalInfoDoctor?.medicalCouncil?.id || 1,
       registationYear: doctor?.additionalInfoDoctor?.registationYear || "",
       registationNumber: doctor?.additionalInfoDoctor?.registationNumber || "",
       degreeCollege: doctor?.additionalInfoDoctor?.degreeCollege || "",
@@ -136,12 +140,16 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
   });
 
   const handleSubmit = (data: DoctorOnboardingFormValues) => {
+    const medicalCouncil: MedicalCouncil = {
+      id: data.medicalCouncilId || 1,
+      name: data.medicalCouncilName
+    };
 
-    const additionalInfoDoctor = {
+    const additionalInfoDoctor: AdditionalInfoDoctor = {
       id: doctor.additionalInfoDoctor?.id || 0,
       registationNumber: data.registationNumber,
       registationYear: data.registationYear,
-      medicalCouncil: data.medicalCouncil,
+      medicalCouncil: medicalCouncil,
       degreeCollege: data.degreeCollege,
       yearCompletionDegree: data.yearCompletionDegree,
       establishmentName: data.establishmentName,
@@ -185,7 +193,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
               />
               <FormField
                 control={form.control}
-                name="medicalCouncil"
+                name="medicalCouncilName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Registration Council*</FormLabel>
@@ -201,6 +209,10 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
+
+              {/* Hidden field to store medical council ID */}
+              <input type="hidden" {...form.register("medicalCouncilId")} value="1" />
+
               <FormField
                 control={form.control}
                 name="registationYear"
@@ -219,6 +231,7 @@ const DoctorOnboardingForm: React.FC<DoctorOnboardingFormProps> = ({
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="specialityDegree"
