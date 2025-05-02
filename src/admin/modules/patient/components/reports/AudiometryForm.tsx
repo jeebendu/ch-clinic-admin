@@ -1,6 +1,5 @@
-
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +8,8 @@ import AudiometryService from '../../services/audiometryService';
 
 const AudiometryForm: React.FC = () => {
   const { patientId, id } = useParams();
+  const [searchParams] = useSearchParams();
+  const visitId = searchParams.get('visitId');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -20,6 +21,7 @@ const AudiometryForm: React.FC = () => {
     puretoneRight: {},
     earLeft: [{}],
     earRight: [{}],
+    visitId: visitId || undefined, // Add visitId if present
   });
 
   const [lineChartDataLeft, setLineChartDataLeft] = useState<any>({ datasets: [] });
@@ -39,7 +41,10 @@ const AudiometryForm: React.FC = () => {
   const getAudiogramById = async (id: number) => {
     try {
       const data = await AudiometryService.getById(id);
-      setAudiogram(data);
+      setAudiogram({
+        ...data,
+        visitId: visitId || data.visitId // Preserve the visitId from URL or data
+      });
       updateModality('acu');
       updateModality('acm');
       updateModality('bcu');
@@ -47,6 +52,11 @@ const AudiometryForm: React.FC = () => {
       updateModality('nor');
     } catch (error) {
       console.error('Error fetching audiogram:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch audiogram data',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -152,7 +162,9 @@ const AudiometryForm: React.FC = () => {
     }
   };
 
-  const onSubmit = async () => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     if (
       !(
         audiogram.modality.acuChecked ||
@@ -162,21 +174,47 @@ const AudiometryForm: React.FC = () => {
         audiogram.modality.norChecked
       )
     ) {
-      toast({ title: 'Error', description: 'Please check at least one test', variant: "destructive" });
+      toast({ 
+        title: 'Error', 
+        description: 'Please check at least one test', 
+        variant: "destructive" 
+      });
       return;
     }
 
     try {
-      const response = await AudiometryService.saveOrUpdate(audiogram);
+      // Ensure visitId is included if available
+      const response = await AudiometryService.saveOrUpdate({
+        ...audiogram,
+        visitId: visitId || audiogram.visitId
+      });
+      
       if (response.status) {
-        toast({ title: 'Success', description: response.message });
-        navigate(`/admin/patients/diagnosis/audiogram/patientId/${audiogram.patient.id}`);
+        toast({ 
+          title: 'Success', 
+          description: response.message 
+        });
+        
+        // If we came from a visit, go back to visit details
+        if (visitId) {
+          navigate(`/admin/patients/visit/${visitId}`);
+        } else {
+          navigate(`/admin/patients/diagnosis/audiogram/patientId/${audiogram.patient.id}`);
+        }
       } else {
-        toast({ title: 'Error', description: response.message, variant: "destructive" });
+        toast({ 
+          title: 'Error', 
+          description: response.message, 
+          variant: "destructive" 
+        });
       }
     } catch (error) {
       console.error('Error saving audiogram:', error);
-      toast({ title: 'Error', description: 'Failed to save audiogram', variant: "destructive" });
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to save audiogram', 
+        variant: "destructive" 
+      });
     }
   };
 
@@ -248,7 +286,7 @@ const AudiometryForm: React.FC = () => {
         <div className="flex justify-end space-x-2 pt-4">
           <Button 
             type="button" 
-            onClick={() => navigate(-1)}
+            onClick={() => visitId ? navigate(`/admin/patients/visit/${visitId}`) : navigate(-1)}
             variant="outline"
           >
             Cancel

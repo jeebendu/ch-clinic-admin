@@ -1,7 +1,24 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, TestTube, FileBarChart, FileImage, Stethoscope, Headphones, Speaker, FileAudio } from 'lucide-react';
+import { 
+  FileText, 
+  TestTube, 
+  FileBarChart, 
+  FileImage, 
+  Stethoscope, 
+  Headphones, 
+  Speaker, 
+  FileAudio,
+  Brain,
+  Ear,
+  Waveform,
+  FilePenLine,
+  Tooth,
+  Microscope,
+  Activity,
+  FileX2
+} from 'lucide-react';
 
 interface ReportTypeProps {
   title: string;
@@ -13,7 +30,7 @@ interface ReportTypeProps {
 const ReportType: React.FC<ReportTypeProps> = ({ title, description, icon, onClick }) => {
   return (
     <Card 
-      className="flex flex-col justify-between items-center p-4 hover:bg-accent/50 cursor-pointer transition-colors"
+      className="flex flex-col justify-between items-center p-4 hover:bg-accent/50 cursor-pointer transition-colors hover:shadow-md"
       onClick={onClick}
     >
       <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -61,7 +78,7 @@ const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({ onSelectReportT
       id: 'dental',
       title: 'Dental',
       description: 'Oral examination findings',
-      icon: <Stethoscope className="h-8 w-8 text-emerald-500" />
+      icon: <Tooth className="h-8 w-8 text-emerald-500" />
     },
     {
       id: 'laboratory',

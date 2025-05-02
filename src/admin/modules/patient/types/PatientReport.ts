@@ -15,5 +15,5 @@ export interface PatientReport {
   patient: Patient;
   createdTime: string;
   modifiedTime: string;
-  visitId?: string; // Added the visitId field
+  visitId?: string;
 }

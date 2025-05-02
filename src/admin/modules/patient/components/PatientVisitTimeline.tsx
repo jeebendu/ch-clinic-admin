@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +32,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from '@/hooks/use-toast';
 import { createPrescription } from '../../appointments/services/PrescriptionService';
+import ReportSelectorDialog from './ReportSelectorDialog';
 
 interface PatientVisitTimelineProps {
   patientId: string;
@@ -209,6 +209,8 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
   const [editingNotes, setEditingNotes] = useState<{[key: string]: boolean}>({});
   const [notesValues, setNotesValues] = useState<{[key: string]: string}>({});
   const [openVisits, setOpenVisits] = useState<{[key: string]: boolean}>({});
+  const [reportSelectorOpen, setReportSelectorOpen] = useState(false);
+  const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
   
   const handleVisitClick = (visitId: string) => {
     navigate(`/admin/patients/visit/${visitId}`);
@@ -249,6 +251,11 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
       ...prev,
       [visitId]: !prev[visitId]
     }));
+  };
+
+  const handleAddReport = (visitId: string) => {
+    setSelectedVisitId(visitId);
+    setReportSelectorOpen(true);
   };
 
   const handlePrintPrescription = (visitId: string) => {
@@ -327,344 +334,358 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
   }
   
   return (
-    <Card>
-      <CardContent className="pt-6 space-y-6">
-        {visits.map((visit, index) => {
-          const visitDate = new Date(visit.visitDate);
-          const isCurrentDay = isToday(visitDate);
-          const isEditable = isCurrentDay;
-          const steps = getVisitSteps(visit);
-          const isOpen = openVisits[visit.id] || false;
+    <>
+      <ReportSelectorDialog 
+        open={reportSelectorOpen} 
+        onOpenChange={setReportSelectorOpen} 
+        patientId={patientId}
+        visitId={selectedVisitId || undefined}
+      />
+    
+      <Card>
+        <CardContent className="pt-6 space-y-6">
+          {visits.map((visit, index) => {
+            const visitDate = new Date(visit.visitDate);
+            const isCurrentDay = isToday(visitDate);
+            const isEditable = isCurrentDay;
+            const steps = getVisitSteps(visit);
+            const isOpen = openVisits[visit.id] || false;
 
-          return (
-            <Collapsible 
-              key={visit.id}
-              open={isOpen}
-              onOpenChange={() => toggleVisit(visit.id)}
-              className={`border rounded-lg shadow-sm overflow-hidden ${isCurrentDay ? 'ring-2 ring-primary ring-opacity-50' : ''}`}
-            >
-              {/* Visit header - Always visible */}
-              <div className={`p-4 ${isCurrentDay ? 'bg-primary/10' : 'bg-gray-50'} flex items-center justify-between`}>
-                <div className="flex gap-3 items-center flex-grow">
-                  <div className={`p-2 rounded-full ${isCurrentDay ? 'bg-primary text-white' : 'bg-gray-200'}`}>
-                    <Clock className="h-5 w-5" />
+            return (
+              <Collapsible 
+                key={visit.id}
+                open={isOpen}
+                onOpenChange={() => toggleVisit(visit.id)}
+                className={`border rounded-lg shadow-sm overflow-hidden ${isCurrentDay ? 'ring-2 ring-primary ring-opacity-50' : ''}`}
+              >
+                {/* Visit header - Always visible */}
+                <div className={`p-4 ${isCurrentDay ? 'bg-primary/10' : 'bg-gray-50'} flex items-center justify-between`}>
+                  <div className="flex gap-3 items-center flex-grow">
+                    <div className={`p-2 rounded-full ${isCurrentDay ? 'bg-primary text-white' : 'bg-gray-200'}`}>
+                      <Clock className="h-5 w-5" />
+                    </div>
+                    
+                    <div className="flex-grow">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-lg">
+                          Visit on {format(visitDate, 'MMM dd, yyyy')}
+                        </h3>
+                        {isCurrentDay && <Badge variant="outline" className="bg-primary/20">Today</Badge>}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{visit.reasonForVisit}</p>
+                      
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Badge variant={getVisitTypeBadgeVariant(visit.visitType) as any}>
+                          {visit.visitType.charAt(0).toUpperCase() + visit.visitType.slice(1)}
+                        </Badge>
+                        <Badge variant={getStatusBadgeVariant(visit.status) as any}>
+                          {visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
+                        </Badge>
+                        {visit.paymentStatus && (
+                          <Badge variant={getPaymentStatusBadgeVariant(visit.paymentStatus) as any}>
+                            {visit.paymentStatus.charAt(0).toUpperCase() + visit.paymentStatus.slice(1)}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="flex-grow">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-lg">
-                        Visit on {format(visitDate, 'MMM dd, yyyy')}
-                      </h3>
-                      {isCurrentDay && <Badge variant="outline" className="bg-primary/20">Today</Badge>}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{visit.reasonForVisit}</p>
-                    
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <Badge variant={getVisitTypeBadgeVariant(visit.visitType) as any}>
-                        {visit.visitType.charAt(0).toUpperCase() + visit.visitType.slice(1)}
-                      </Badge>
-                      <Badge variant={getStatusBadgeVariant(visit.status) as any}>
-                        {visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
-                      </Badge>
-                      {visit.paymentStatus && (
-                        <Badge variant={getPaymentStatusBadgeVariant(visit.paymentStatus) as any}>
-                          {visit.paymentStatus.charAt(0).toUpperCase() + visit.paymentStatus.slice(1)}
-                        </Badge>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-2">
+                    {isEditable && (
+                      <Button variant="outline" size="sm" onClick={() => handleVisitClick(visit.id)}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Edit Visit
+                      </Button>
+                    )}
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-2">
+                        {isOpen ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  {isEditable && (
-                    <Button variant="outline" size="sm" onClick={() => handleVisitClick(visit.id)}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Edit Visit
-                    </Button>
-                  )}
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="p-2">
-                      {isOpen ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </CollapsibleTrigger>
-                </div>
-              </div>
-              
-              <CollapsibleContent>
-                {/* Progress workflow */}
-                <div className="px-4 py-4 bg-white border-t">
-                  <h4 className="font-medium text-sm mb-3">Visit Workflow</h4>
-                  <div className="flex items-center justify-between w-full overflow-x-auto py-2">
-                    {steps.map((step, stepIdx) => (
-                      <React.Fragment key={step.label}>
-                        {/* Step with icon */}
-                        <div className="flex flex-col items-center min-w-[80px]">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            step.status === "completed" ? "bg-green-100 text-green-600" :
-                            step.status === "in-progress" ? "bg-blue-100 text-blue-600" :
-                            "bg-gray-100 text-gray-400"
-                          }`}>
-                            {step.icon}
+                <CollapsibleContent>
+                  {/* Progress workflow */}
+                  <div className="px-4 py-4 bg-white border-t">
+                    <h4 className="font-medium text-sm mb-3">Visit Workflow</h4>
+                    <div className="flex items-center justify-between w-full overflow-x-auto py-2">
+                      {steps.map((step, stepIdx) => (
+                        <React.Fragment key={step.label}>
+                          {/* Step with icon */}
+                          <div className="flex flex-col items-center min-w-[80px]">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              step.status === "completed" ? "bg-green-100 text-green-600" :
+                              step.status === "in-progress" ? "bg-blue-100 text-blue-600" :
+                              "bg-gray-100 text-gray-400"
+                            }`}>
+                              {step.icon}
+                            </div>
+                            <span className="text-xs mt-1 font-medium">{step.label}</span>
+                            <span className="text-xs text-gray-500">
+                              {step.status === "completed" ? "Completed" :
+                              step.status === "in-progress" ? "In Progress" : "Pending"}
+                            </span>
                           </div>
-                          <span className="text-xs mt-1 font-medium">{step.label}</span>
-                          <span className="text-xs text-gray-500">
-                            {step.status === "completed" ? "Completed" :
-                            step.status === "in-progress" ? "In Progress" : "Pending"}
-                          </span>
+                          
+                          {/* Arrow connector */}
+                          {stepIdx < steps.length - 1 && (
+                            <ArrowRight className="h-5 w-5 text-gray-300 mx-1 flex-shrink-0" />
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Visit details section with 50% width layout */}
+                  <div className="p-4 bg-white border-t">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Left column: Visit details and doctor's notes */}
+                      <div>
+                        <h4 className="font-medium mb-2 flex items-center gap-1">
+                          <FileText className="h-4 w-4 text-primary" />
+                          <span>Visit Details</span>
+                        </h4>
+                        
+                        <div className="bg-gray-50 p-3 rounded-md space-y-3">
+                          {/* Doctor's notes section with inline edit */}
+                          <div>
+                            <h5 className="text-sm font-medium mb-1 flex items-center justify-between">
+                              <span>Doctor's Notes</span>
+                              {isEditable && !editingNotes[visit.id] && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => toggleEditNotes(visit.id, visit.notes || '')}
+                                  className="h-6 px-2"
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </h5>
+                            
+                            {editingNotes[visit.id] ? (
+                              <div className="space-y-2">
+                                <Textarea 
+                                  value={notesValues[visit.id] || ''}
+                                  onChange={(e) => handleNotesChange(visit.id, e.target.value)}
+                                  className="min-h-[80px]"
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => toggleEditNotes(visit.id, visit.notes || '')}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    onClick={() => saveNotes(visit.id)}
+                                  >
+                                    Save Notes
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-sm">
+                                {visit.notes || "No notes available"}
+                              </p>
+                            )}
+                          </div>
+                          
+                          {/* Doctor information */}
+                          {visit.doctorId && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <User className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium">Doctor:</span>
+                              <span>Dr. {visit.doctorId.replace('doctor-', '')}</span>
+                            </div>
+                          )}
+                          
+                          {/* Referral doctor information */}
+                          {visit.referralDoctorName && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <User className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium">Referred by:</span>
+                              <span>{visit.referralDoctorName}</span>
+                            </div>
+                          )}
                         </div>
                         
-                        {/* Arrow connector */}
-                        {stepIdx < steps.length - 1 && (
-                          <ArrowRight className="h-5 w-5 text-gray-300 mx-1 flex-shrink-0" />
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Visit details section with 50% width layout */}
-                <div className="p-4 bg-white border-t">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Left column: Visit details and doctor's notes */}
-                    <div>
-                      <h4 className="font-medium mb-2 flex items-center gap-1">
-                        <FileText className="h-4 w-4 text-primary" />
-                        <span>Visit Details</span>
-                      </h4>
-                      
-                      <div className="bg-gray-50 p-3 rounded-md space-y-3">
-                        {/* Doctor's notes section with inline edit */}
-                        <div>
-                          <h5 className="text-sm font-medium mb-1 flex items-center justify-between">
-                            <span>Doctor's Notes</span>
-                            {isEditable && !editingNotes[visit.id] && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => toggleEditNotes(visit.id, visit.notes || '')}
-                                className="h-6 px-2"
-                              >
-                                <Edit className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                          </h5>
+                        {/* Payment information */}
+                        <div className="mt-4">
+                          <h4 className="font-medium mb-2 flex items-center gap-1">
+                            <Receipt className="h-4 w-4 text-primary" />
+                            <span>Payment Information</span>
+                          </h4>
                           
-                          {editingNotes[visit.id] ? (
-                            <div className="space-y-2">
-                              <Textarea 
-                                value={notesValues[visit.id] || ''}
-                                onChange={(e) => handleNotesChange(visit.id, e.target.value)}
-                                className="min-h-[80px]"
-                              />
-                              <div className="flex justify-end gap-2">
+                          <div className="bg-gray-50 p-3 rounded-md">
+                            <div className="p-3 border rounded-md bg-white">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <CreditCard className="h-4 w-4 text-gray-500" />
+                                  <span className="font-medium">Amount:</span>
+                                  <span>${visit.paymentAmount?.toFixed(2)}</span>
+                                </div>
+                                <Badge variant={getPaymentStatusBadgeVariant(visit.paymentStatus || '') as any}>
+                                  {visit.paymentStatus?.charAt(0).toUpperCase() + visit.paymentStatus?.slice(1) || 'Unknown'}
+                                </Badge>
+                              </div>
+                              
+                              {visit.paymentStatus === 'partial' && visit.paymentPaid && (
+                                <div className="mt-2 text-sm">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span>Paid: ${visit.paymentPaid.toFixed(2)}</span>
+                                    <span>Remaining: ${(visit.paymentAmount - visit.paymentPaid).toFixed(2)}</span>
+                                  </div>
+                                  <Progress value={(visit.paymentPaid / visit.paymentAmount) * 100} className="h-1.5" />
+                                </div>
+                              )}
+                              
+                              {isEditable && visit.paymentStatus !== 'paid' && (
+                                <Button size="sm" className="mt-3 w-full">
+                                  <CreditCard className="mr-2 h-3.5 w-3.5" />
+                                  Process Payment
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Right column: Prescription Summary and Reports */}
+                      <div>
+                        {/* Prescription Summary Section */}
+                        <div>
+                          <h4 className="font-medium mb-2 flex items-center gap-1">
+                            <FileEdit className="h-4 w-4 text-primary" />
+                            <span>Prescription Summary</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="ml-auto h-6 px-2"
+                              onClick={() => handlePrintPrescription(visit.id)}
+                            >
+                              <Printer className="h-3.5 w-3.5 mr-1" />
+                              Print
+                            </Button>
+                          </h4>
+                          
+                          <div className="bg-gray-50 p-3 rounded-md">
+                            <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                              {getMockPrescriptionSummary(visit.id).length > 0 ? (
+                                getMockPrescriptionSummary(visit.id).map(medicine => (
+                                  <div key={medicine.id} className="p-2 border rounded-md bg-white">
+                                    <div className="flex justify-between">
+                                      <span className="font-medium">{medicine.name}</span>
+                                      <Badge variant="outline" className="text-xs">{medicine.dosage}</Badge>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                                      <span>{medicine.frequency}</span>
+                                      <span>•</span>
+                                      <span>{medicine.duration}</span>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-sm text-center text-gray-500 py-2">No prescriptions available</p>
+                              )}
+                            </div>
+                            
+                            {isEditable && (
+                              <div className="mt-3">
+                                <Button variant="outline" size="sm" className="w-full">
+                                  <FilePlus className="mr-2 h-4 w-4" />
+                                  Add Prescription
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Reports List */}
+                        <div className="mt-4">
+                          <h4 className="font-medium mb-2 flex items-center gap-1">
+                            <FileTextIcon className="h-4 w-4 text-primary" />
+                            <span>Reports</span>
+                          </h4>
+                          
+                          <div className="bg-gray-50 p-3 rounded-md">
+                            <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                              {getMockReports(visit.id).length > 0 ? (
+                                getMockReports(visit.id).map(report => (
+                                  <div key={report.id} className="p-2 border rounded-md bg-white">
+                                    <div className="flex justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <FileBarChart className="h-4 w-4 text-blue-500" />
+                                        <span className="font-medium">{report.name}</span>
+                                      </div>
+                                      <Badge 
+                                        className={`${report.type === 'audiometry' ? 'bg-blue-100 text-blue-800' : 'bg-indigo-100 text-indigo-800'}`}
+                                      >
+                                        {report.type}
+                                      </Badge>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-2">
+                                      <span className="text-xs text-gray-500">
+                                        {format(new Date(report.date), 'MMM dd, yyyy')}
+                                      </span>
+                                      <Button variant="ghost" size="sm" className="h-7">
+                                        View
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-sm text-center text-gray-500 py-2">No reports available</p>
+                              )}
+                            </div>
+                            
+                            {isEditable && (
+                              <div className="mt-3">
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  onClick={() => toggleEditNotes(visit.id, visit.notes || '')}
+                                  className="w-full"
+                                  onClick={() => handleAddReport(visit.id)}
                                 >
-                                  Cancel
-                                </Button>
-                                <Button 
-                                  variant="default" 
-                                  size="sm" 
-                                  onClick={() => saveNotes(visit.id)}
-                                >
-                                  Save Notes
+                                  <FilePlus className="h-4 w-4 mr-2" />
+                                  Add New Report
                                 </Button>
                               </div>
-                            </div>
-                          ) : (
-                            <p className="text-sm">
-                              {visit.notes || "No notes available"}
-                            </p>
-                          )}
-                        </div>
-                        
-                        {/* Doctor information */}
-                        {visit.doctorId && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <User className="h-4 w-4 text-gray-500" />
-                            <span className="font-medium">Doctor:</span>
-                            <span>Dr. {visit.doctorId.replace('doctor-', '')}</span>
-                          </div>
-                        )}
-                        
-                        {/* Referral doctor information */}
-                        {visit.referralDoctorName && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <User className="h-4 w-4 text-gray-500" />
-                            <span className="font-medium">Referred by:</span>
-                            <span>{visit.referralDoctorName}</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Payment information */}
-                      <div className="mt-4">
-                        <h4 className="font-medium mb-2 flex items-center gap-1">
-                          <Receipt className="h-4 w-4 text-primary" />
-                          <span>Payment Information</span>
-                        </h4>
-                        
-                        <div className="bg-gray-50 p-3 rounded-md">
-                          <div className="p-3 border rounded-md bg-white">
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-2">
-                                <CreditCard className="h-4 w-4 text-gray-500" />
-                                <span className="font-medium">Amount:</span>
-                                <span>${visit.paymentAmount?.toFixed(2)}</span>
-                              </div>
-                              <Badge variant={getPaymentStatusBadgeVariant(visit.paymentStatus || '') as any}>
-                                {visit.paymentStatus?.charAt(0).toUpperCase() + visit.paymentStatus?.slice(1) || 'Unknown'}
-                              </Badge>
-                            </div>
-                            
-                            {visit.paymentStatus === 'partial' && visit.paymentPaid && (
-                              <div className="mt-2 text-sm">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span>Paid: ${visit.paymentPaid.toFixed(2)}</span>
-                                  <span>Remaining: ${(visit.paymentAmount - visit.paymentPaid).toFixed(2)}</span>
-                                </div>
-                                <Progress value={(visit.paymentPaid / visit.paymentAmount) * 100} className="h-1.5" />
-                              </div>
-                            )}
-                            
-                            {isEditable && visit.paymentStatus !== 'paid' && (
-                              <Button size="sm" className="mt-3 w-full">
-                                <CreditCard className="mr-2 h-3.5 w-3.5" />
-                                Process Payment
-                              </Button>
                             )}
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Right column: Prescription Summary and Reports */}
-                    <div>
-                      {/* Prescription Summary Section */}
-                      <div>
-                        <h4 className="font-medium mb-2 flex items-center gap-1">
-                          <FileEdit className="h-4 w-4 text-primary" />
-                          <span>Prescription Summary</span>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="ml-auto h-6 px-2"
-                            onClick={() => handlePrintPrescription(visit.id)}
-                          >
-                            <Printer className="h-3.5 w-3.5 mr-1" />
-                            Print
-                          </Button>
-                        </h4>
-                        
-                        <div className="bg-gray-50 p-3 rounded-md">
-                          <div className="space-y-2 max-h-[150px] overflow-y-auto">
-                            {getMockPrescriptionSummary(visit.id).length > 0 ? (
-                              getMockPrescriptionSummary(visit.id).map(medicine => (
-                                <div key={medicine.id} className="p-2 border rounded-md bg-white">
-                                  <div className="flex justify-between">
-                                    <span className="font-medium">{medicine.name}</span>
-                                    <Badge variant="outline" className="text-xs">{medicine.dosage}</Badge>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                                    <span>{medicine.frequency}</span>
-                                    <span>•</span>
-                                    <span>{medicine.duration}</span>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-sm text-center text-gray-500 py-2">No prescriptions available</p>
-                            )}
-                          </div>
-                          
-                          {isEditable && (
-                            <div className="mt-3">
-                              <Button variant="outline" size="sm" className="w-full">
-                                <FilePlus className="mr-2 h-4 w-4" />
-                                Add Prescription
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Reports List */}
-                      <div className="mt-4">
-                        <h4 className="font-medium mb-2 flex items-center gap-1">
-                          <FileTextIcon className="h-4 w-4 text-primary" />
-                          <span>Reports</span>
-                        </h4>
-                        
-                        <div className="bg-gray-50 p-3 rounded-md">
-                          <div className="space-y-2 max-h-[150px] overflow-y-auto">
-                            {getMockReports(visit.id).length > 0 ? (
-                              getMockReports(visit.id).map(report => (
-                                <div key={report.id} className="p-2 border rounded-md bg-white">
-                                  <div className="flex justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <FileBarChart className="h-4 w-4 text-blue-500" />
-                                      <span className="font-medium">{report.name}</span>
-                                    </div>
-                                    <Badge 
-                                      className={`${report.type === 'audiometry' ? 'bg-blue-100 text-blue-800' : 'bg-indigo-100 text-indigo-800'}`}
-                                    >
-                                      {report.type}
-                                    </Badge>
-                                  </div>
-                                  <div className="flex justify-between items-center mt-2">
-                                    <span className="text-xs text-gray-500">
-                                      {format(new Date(report.date), 'MMM dd, yyyy')}
-                                    </span>
-                                    <Button variant="ghost" size="sm" className="h-7">
-                                      View
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-sm text-center text-gray-500 py-2">No reports available</p>
-                            )}
-                          </div>
-                          
-                          {isEditable && (
-                            <div className="mt-3">
-                              <Button variant="outline" size="sm" className="w-full">
-                                <FilePlus className="h-4 w-4 mr-2" />
-                                Add New Report
-                              </Button>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* Footer actions */}
-                <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleVisitClick(visit.id)}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    View Full Details
-                  </Button>
-                  {isEditable && (
-                    <Button variant="default" size="sm">
-                      <CheckCheck className="mr-2 h-4 w-4" />
-                      Complete Visit
+                  
+                  {/* Footer actions */}
+                  <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleVisitClick(visit.id)}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      View Full Details
                     </Button>
-                  )}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          );
-        })}
-      </CardContent>
-    </Card>
+                    {isEditable && (
+                      <Button variant="default" size="sm">
+                        <CheckCheck className="mr-2 h-4 w-4" />
+                        Complete Visit
+                      </Button>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          })}
+        </CardContent>
+      </Card>
+    </>
   );
 };
 

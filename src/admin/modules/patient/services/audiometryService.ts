@@ -23,6 +23,7 @@ interface Audiogram {
   puretoneRight: any;
   earLeft: any[];
   earRight: any[];
+  visitId?: string;
 }
 
 interface ApiResponse {
@@ -79,6 +80,21 @@ const AudiometryService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching audiograms by patient ID:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get the list of audiograms by visit ID.
+   * @param {string} visitId - The ID of the visit.
+   * @returns {Promise<Array>} - List of audiograms for the visit.
+   */
+  listByVisitId: async (visitId: string): Promise<Audiogram[]> => {
+    try {
+      const response = await axios.get(`${API_URL}/v1/patient/audiometry/visitId/${visitId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching audiograms by visit ID:", error);
       throw error;
     }
   },
