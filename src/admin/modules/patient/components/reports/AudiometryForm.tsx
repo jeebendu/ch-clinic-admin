@@ -1,469 +1,227 @@
-
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Audiogram, FREQUENCY_LABELS } from '../../types/AudiometryTypes';
-import { Patient } from '../../types/Patient';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import saveAs from 'file-saver';
+import AudiometryService from '../../services/audiometryService';
 
-interface AudiometryFormProps {
-  patient: Patient;
-  onCancel: () => void;
-  onSave: (audiogram: Audiogram) => void;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-const AudiometryForm: React.FC<AudiometryFormProps> = ({ 
-  patient, 
-  onCancel, 
-  onSave, 
-  open, 
-  onOpenChange 
-}) => {
+const AudiometryForm: React.FC = () => {
+  const { patientId, id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const [audiogram, setAudiogram] = useState<Audiogram>(() => {
-    const newAudiogram = new Audiogram();
-    if (patient) {
-      newAudiogram.patient = patient;
-    }
-    return newAudiogram;
+
+  const [audiogram, setAudiogram] = useState<any>({
+    patient: { id: Number(patientId) },
+    id: Number(id),
+    modality: {},
+    puretoneLeft: {},
+    puretoneRight: {},
+    earLeft: [{}],
+    earRight: [{}],
   });
-  const [activeTab, setActiveTab] = useState('testing-data');
 
-  // Handle modality checkbox changes
-  const handleModalityChange = (key: keyof typeof audiogram.modality) => {
-    setAudiogram(prev => ({
-      ...prev,
-      modality: {
-        ...prev.modality,
-        [key]: !prev.modality[key as keyof typeof prev.modality]
-      }
-    }));
+  const [lineChartDataLeft, setLineChartDataLeft] = useState<any>({ datasets: [] });
+  const [lineChartDataRight, setLineChartDataRight] = useState<any>({ datasets: [] });
+  const [canvasChartLeftFile, setCanvasChartLeftFile] = useState<File | null>(null);
+  const [canvasChartRightFile, setCanvasChartRightFile] = useState<File | null>(null);
+
+  const chartLeftRef = useRef<HTMLCanvasElement>(null);
+  const chartRightRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (audiogram.id) {
+      getAudiogramById(audiogram.id);
+    }
+  }, [audiogram.id]);
+
+  const getAudiogramById = async (id: number) => {
+    try {
+      const data = await AudiometryService.getById(id);
+      setAudiogram(data);
+      updateModality('acu');
+      updateModality('acm');
+      updateModality('bcu');
+      updateModality('bcm');
+      updateModality('nor');
+    } catch (error) {
+      console.error('Error fetching audiogram:', error);
+    }
   };
 
-  // Handle puretone data input
-  const handlePuretoneChange = (
-    ear: 'puretoneLeft' | 'puretoneRight', 
-    type: 'acu' | 'acm' | 'bcu' | 'bcm' | 'nor', 
-    index: number, 
-    value: string
-  ) => {
-    const numValue = value === '' ? null : Number(value);
-    setAudiogram(prev => {
-      const newData = { ...prev };
-      newData[ear][type][index].value = numValue;
-      return newData;
-    });
+  const handleChartImage = (side: string, event: { blob: Blob; filename: string }) => {
+    const file = new File([event.blob], event.filename, { type: 'image/png' });
+    if (side === 'left') {
+      setCanvasChartLeftFile(file);
+    } else {
+      setCanvasChartRightFile(file);
+    }
   };
 
-  // Handle ear test data
-  const handleEarDataChange = (
-    ear: 'earLeft' | 'earRight',
-    index: number,
-    value: string
-  ) => {
-    const numValue = value === '' ? null : value;
-    setAudiogram(prev => {
-      const newData = { ...prev };
-      newData[ear][index].value = numValue;
-      return newData;
-    });
-  };
-
-  // Handle test data
-  const handleTestDataChange = (
-    ear: 'testLeft' | 'testRight',
-    index: number,
-    value: string
-  ) => {
-    setAudiogram(prev => {
-      const newData = { ...prev };
-      newData[ear][index].value = value;
-      return newData;
-    });
-  };
-
-  // Form submission handler
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validation - check at least one modality is selected
-    if (!(audiogram.modality.acuChecked || 
-          audiogram.modality.acmChecked || 
-          audiogram.modality.bcuChecked || 
-          audiogram.modality.bcmChecked || 
-          audiogram.modality.norChecked)) {
-      toast({
-        title: "Validation Error",
-        description: "Please check at least one test modality.",
-        variant: "destructive"
+  const updateChart = (type: string, side: 'left' | 'right') => {
+    const updateDatasetByType = (label: string, data: any[], chartData: any, setChartData: any) => {
+      setChartData((prev: any) => {
+        const datasets = [...prev.datasets];
+        const datasetIndex = datasets.findIndex((dataset) => dataset.label === label);
+        if (datasetIndex !== -1) {
+          datasets[datasetIndex].data = data.map((item) => item.value);
+        }
+        return { ...prev, datasets };
       });
+    };
+
+    const puretone = side === 'left' ? audiogram.puretoneLeft : audiogram.puretoneRight;
+    const chartData = side === 'left' ? lineChartDataLeft : lineChartDataRight;
+    const setChartData = side === 'left' ? setLineChartDataLeft : setLineChartDataRight;
+
+    updateDatasetByType('AC U', puretone.acu, chartData, setChartData);
+    updateDatasetByType('AC M', puretone.acm, chartData, setChartData);
+    updateDatasetByType('BC U', puretone.bcu, chartData, setChartData);
+    updateDatasetByType('BC M', puretone.bcm, chartData, setChartData);
+    updateDatasetByType('No R', puretone.nor, chartData, setChartData);
+  };
+
+  const updateModality = (type: string) => {
+    const addToDatasets = (dataRight: any, dataLeft: any) => {
+      setLineChartDataRight((prev) => ({
+        ...prev,
+        datasets: [...prev.datasets, dataRight],
+      }));
+      setLineChartDataLeft((prev) => ({
+        ...prev,
+        datasets: [...prev.datasets, dataLeft],
+      }));
+    };
+
+    const removeDataset = (label: string) => {
+      setLineChartDataRight((prev) => ({
+        ...prev,
+        datasets: prev.datasets.filter((dataset) => dataset.label !== label),
+      }));
+      setLineChartDataLeft((prev) => ({
+        ...prev,
+        datasets: prev.datasets.filter((dataset) => dataset.label !== label),
+      }));
+    };
+
+    if (type === 'acu') {
+      if (audiogram.modality.acuChecked) {
+        const data_acur = { label: 'AC U', data: audiogram.puretoneRight.acu.map((item) => item.value) };
+        const data_acul = { label: 'AC U', data: audiogram.puretoneLeft.acu.map((item) => item.value) };
+        addToDatasets(data_acur, data_acul);
+      } else {
+        removeDataset('AC U');
+      }
+    }
+    if (type === 'acm') {
+      if (audiogram.modality.acmChecked) {
+        const data_acmr = { label: 'AC M', data: audiogram.puretoneRight.acm.map((item) => item.value) };
+        const data_acml = { label: 'AC M', data: audiogram.puretoneLeft.acm.map((item) => item.value) };
+        addToDatasets(data_acmr, data_acml);
+      } else {
+        removeDataset('AC M');
+      }
+    }
+    if (type === 'bcu') {
+      if (audiogram.modality.bcuChecked) {
+        const data_bcur = { label: 'BC U', data: audiogram.puretoneRight.bcu.map((item) => item.value) };
+        const data_bcul = { label: 'BC U', data: audiogram.puretoneLeft.bcu.map((item) => item.value) };
+        addToDatasets(data_bcur, data_bcul);
+      } else {
+        removeDataset('BC U');
+      }
+    }
+    if (type === 'bcm') {
+      if (audiogram.modality.bcmChecked) {
+        const data_bcmr = { label: 'BC M', data: audiogram.puretoneRight.bcm.map((item) => item.value) };
+        const data_bcml = { label: 'BC M', data: audiogram.puretoneLeft.bcm.map((item) => item.value) };
+        addToDatasets(data_bcmr, data_bcml);
+      } else {
+        removeDataset('BC M');
+      }
+    }
+    if (type === 'nor') {
+      if (audiogram.modality.norChecked) {
+        const data_norr = { label: 'No R', data: audiogram.puretoneRight.nor.map((item) => item.value) };
+        const data_norl = { label: 'No R', data: audiogram.puretoneLeft.nor.map((item) => item.value) };
+        addToDatasets(data_norr, data_norl);
+      } else {
+        removeDataset('No R');
+      }
+    }
+  };
+
+  const onSubmit = async () => {
+    if (
+      !(
+        audiogram.modality.acuChecked ||
+        audiogram.modality.acmChecked ||
+        audiogram.modality.bcuChecked ||
+        audiogram.modality.bcmChecked ||
+        audiogram.modality.norChecked
+      )
+    ) {
+      //toast({ title: 'Error', description: 'Please check at least one test', status: 'error' });
       return;
     }
-    
-    // Send to parent component for saving
-    onSave(audiogram);
-    
-    toast({
-      title: "Audiometry Report Saved",
-      description: "The audiometry report has been successfully saved."
-    });
+
+    try {
+      const response = await AudiometryService.saveOrUpdate(audiogram);
+      if (response.status) {
+        //toast({ title: 'Success', description: response.message, status: 'success' });
+        navigate(`/admin/patients/diagnosis/audiogram/patientId/${audiogram.patient.id}`);
+      } else {
+        //toast({ title: 'Error', description: response.message, status: 'error' });
+      }
+    } catch (error) {
+      console.error('Error saving audiogram:', error);
+    }
+  };
+
+  const print = async () => {
+    try {
+      const formData = new FormData();
+      if (canvasChartLeftFile) formData.append('canvasChartLeftFile', canvasChartLeftFile);
+      if (canvasChartRightFile) formData.append('canvasChartRightFile', canvasChartRightFile);
+
+      const data = await AudiometryService.saveAndPrintPdf(formData, audiogram.id);
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const patientInfo = `${audiogram.uid}-${audiogram.patient.firstname}-${audiogram.patient.lastname}`;
+      saveAs(blob, `${patientInfo}.pdf`);
+      //toast({ title: 'Success', description: 'Report Generated Successfully!', status: 'success' });
+    } catch (error) {
+      console.error('Error generating report:', error);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Audiometry Assessment</DialogTitle>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Modality Checkboxes */}
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="acu" 
-                checked={audiogram.modality.acuChecked} 
-                onCheckedChange={() => handleModalityChange('acuChecked')} 
-              />
-              <Label htmlFor="acu">AC unmasked</Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="acm" 
-                checked={audiogram.modality.acmChecked} 
-                onCheckedChange={() => handleModalityChange('acmChecked')} 
-              />
-              <Label htmlFor="acm">AC masked</Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="bcu" 
-                checked={audiogram.modality.bcuChecked} 
-                onCheckedChange={() => handleModalityChange('bcuChecked')} 
-              />
-              <Label htmlFor="bcu">BC unmasked</Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="bcm" 
-                checked={audiogram.modality.bcmChecked} 
-                onCheckedChange={() => handleModalityChange('bcmChecked')} 
-              />
-              <Label htmlFor="bcm">BC masked</Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="nor" 
-                checked={audiogram.modality.norChecked} 
-                onCheckedChange={() => handleModalityChange('norChecked')} 
-              />
-              <Label htmlFor="nor">No response</Label>
-            </div>
-          </div>
+    <div>
+      <h1>Audiometry Assessment</h1>
+      <form onSubmit={onSubmit}>
+        <div>
+          <Checkbox
+            checked={audiogram.modality.acuChecked}
+            onChange={() => updateModality('acu')}
+          >
+            AC U
+          </Checkbox>
+          {/* Add other checkboxes similarly */}
+        </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 mb-4">
-              <TabsTrigger value="testing-data">Testing Data</TabsTrigger>
-              <TabsTrigger value="charts">Audiometry Charts</TabsTrigger>
-              <TabsTrigger value="diagnosis">Diagnosis & Recommendations</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="testing-data" className="space-y-4">
-              {/* Pure Tone Testing Tables */}
-              <div className="overflow-x-auto">
-                <h3 className="font-medium mb-2">Puretones (dBHL)</h3>
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-muted">
-                      <th className="text-left p-2 border">Test Type</th>
-                      {FREQUENCY_LABELS.map(label => (
-                        <th key={label} className="p-2 border text-center">{label}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {audiogram.modality.acuChecked && (
-                      <>
-                        <tr>
-                          <td className="p-2 border font-medium">AC U (Right)</td>
-                          {audiogram.puretoneRight.acu.map((item, i) => (
-                            <td key={i} className="p-2 border">
-                              <Input 
-                                type="number" 
-                                min={-10} 
-                                max={120} 
-                                className="w-20 text-center mx-auto" 
-                                value={item.value === null ? '' : item.value} 
-                                onChange={(e) => handlePuretoneChange('puretoneRight', 'acu', i, e.target.value)}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <td className="p-2 border font-medium">AC U (Left)</td>
-                          {audiogram.puretoneLeft.acu.map((item, i) => (
-                            <td key={i} className="p-2 border">
-                              <Input 
-                                type="number"
-                                min={-10}
-                                max={120}
-                                className="w-20 text-center mx-auto"
-                                value={item.value === null ? '' : item.value}
-                                onChange={(e) => handlePuretoneChange('puretoneLeft', 'acu', i, e.target.value)}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                      </>
-                    )}
-                    
-                    {audiogram.modality.acmChecked && (
-                      <>
-                        <tr>
-                          <td className="p-2 border font-medium">AC M (Right)</td>
-                          {audiogram.puretoneRight.acm.map((item, i) => (
-                            <td key={i} className="p-2 border">
-                              <Input 
-                                type="number" 
-                                min={-10} 
-                                max={120} 
-                                className="w-20 text-center mx-auto" 
-                                value={item.value === null ? '' : item.value} 
-                                onChange={(e) => handlePuretoneChange('puretoneRight', 'acm', i, e.target.value)}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <td className="p-2 border font-medium">AC M (Left)</td>
-                          {audiogram.puretoneLeft.acm.map((item, i) => (
-                            <td key={i} className="p-2 border">
-                              <Input 
-                                type="number" 
-                                min={-10} 
-                                max={120} 
-                                className="w-20 text-center mx-auto" 
-                                value={item.value === null ? '' : item.value} 
-                                onChange={(e) => handlePuretoneChange('puretoneLeft', 'acm', i, e.target.value)}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                      </>
-                    )}
-                    
-                    {/* Similar structure for BC unmasked, BC masked, and No response rows */}
-                    {audiogram.modality.bcuChecked && (
-                      <>
-                        <tr>
-                          <td className="p-2 border font-medium">BC U (Right)</td>
-                          {audiogram.puretoneRight.bcu.map((item, i) => (
-                            <td key={i} className="p-2 border">
-                              <Input 
-                                type="number" 
-                                min={-10} 
-                                max={120} 
-                                className="w-20 text-center mx-auto" 
-                                value={item.value === null ? '' : item.value} 
-                                onChange={(e) => handlePuretoneChange('puretoneRight', 'bcu', i, e.target.value)}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <td className="p-2 border font-medium">BC U (Left)</td>
-                          {audiogram.puretoneLeft.bcu.map((item, i) => (
-                            <td key={i} className="p-2 border">
-                              <Input 
-                                type="number" 
-                                min={-10} 
-                                max={120} 
-                                className="w-20 text-center mx-auto" 
-                                value={item.value === null ? '' : item.value} 
-                                onChange={(e) => handlePuretoneChange('puretoneLeft', 'bcu', i, e.target.value)}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                      </>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              
-              {/* EAR Tests Table */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                <div className="overflow-x-auto">
-                  <h3 className="font-medium mb-2">EAR Tests</h3>
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-muted">
-                        <th className="text-left p-2 border">EAR</th>
-                        <th className="p-2 border">PTA</th>
-                        <th className="p-2 border">SAT</th>
-                        <th className="p-2 border">SRT</th>
-                        <th className="p-2 border">SDS</th>
-                        <th className="p-2 border">MCL</th>
-                        <th className="p-2 border">UCL</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="p-2 border font-medium">RIGHT</td>
-                        {audiogram.earRight.map((item, i) => (
-                          <td key={i} className="p-2 border">
-                            <Input 
-                              className="w-16 text-center mx-auto" 
-                              value={item.value === null ? '' : item.value} 
-                              onChange={(e) => handleEarDataChange('earRight', i, e.target.value)}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                      <tr>
-                        <td className="p-2 border font-medium">LEFT</td>
-                        {audiogram.earLeft.map((item, i) => (
-                          <td key={i} className="p-2 border">
-                            <Input 
-                              className="w-16 text-center mx-auto" 
-                              value={item.value === null ? '' : item.value} 
-                              onChange={(e) => handleEarDataChange('earLeft', i, e.target.value)}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <h3 className="font-medium mb-2">Additional Tests</h3>
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-muted">
-                        <th className="text-left p-2 border">TEST</th>
-                        <th className="p-2 border">RINNE</th>
-                        <th className="p-2 border">WEBER</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="p-2 border font-medium">RIGHT</td>
-                        {audiogram.testRight.map((item, i) => (
-                          <td key={i} className="p-2 border">
-                            <Input 
-                              className="w-20 text-center mx-auto" 
-                              value={item.value === null ? '' : item.value} 
-                              onChange={(e) => handleTestDataChange('testRight', i, e.target.value)}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                      <tr>
-                        <td className="p-2 border font-medium">LEFT</td>
-                        {audiogram.testLeft.map((item, i) => (
-                          <td key={i} className="p-2 border">
-                            <Input 
-                              className="w-20 text-center mx-auto" 
-                              value={item.value === null ? '' : item.value} 
-                              onChange={(e) => handleTestDataChange('testLeft', i, e.target.value)}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="charts">
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <h3 className="font-medium text-center">Right Ear</h3>
-                  <div className="bg-muted/30 h-64 rounded-md flex items-center justify-center border">
-                    <p className="text-muted-foreground">Chart visualization will be implemented here</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <h3 className="font-medium text-center">Left Ear</h3>
-                  <div className="bg-muted/30 h-64 rounded-md flex items-center justify-center border">
-                    <p className="text-muted-foreground">Chart visualization will be implemented here</p>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="diagnosis" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="impedanceAudiometry">Impedance Audiometry</Label>
-                  <Textarea 
-                    id="impedanceAudiometry"
-                    placeholder="Enter impedance audiometry notes"
-                    value={audiogram.impedanceAudiometry || ''}
-                    onChange={(e) => setAudiogram({...audiogram, impedanceAudiometry: e.target.value})}
-                    className="h-24"
-                  />
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="proDiagnosisRight">Provisional Diagnosis (Right Ear)</Label>
-                    <Textarea 
-                      id="proDiagnosisRight"
-                      placeholder="Enter diagnosis for right ear"
-                      value={audiogram.proDiagnosisRight || ''}
-                      onChange={(e) => setAudiogram({...audiogram, proDiagnosisRight: e.target.value})}
-                      className="h-24"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="proDiagnosisLeft">Provisional Diagnosis (Left Ear)</Label>
-                    <Textarea 
-                      id="proDiagnosisLeft"
-                      placeholder="Enter diagnosis for left ear"
-                      value={audiogram.proDiagnosisLeft || ''}
-                      onChange={(e) => setAudiogram({...audiogram, proDiagnosisLeft: e.target.value})}
-                      className="h-24"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="recommendation">Recommendation</Label>
-                  <Textarea 
-                    id="recommendation"
-                    placeholder="Enter recommendations"
-                    value={audiogram.recommendation || ''}
-                    onChange={(e) => setAudiogram({...audiogram, recommendation: e.target.value})}
-                    className="h-32"
-                  />
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-            <Button type="submit">Save Report</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <canvas ref={chartLeftRef}></canvas>
+        <canvas ref={chartRightRef}></canvas>
+
+        <div>
+          <Button type="button" onClick={() => navigate(-1)}>
+            Cancel
+          </Button>
+          <Button type="submit">Save Report</Button>
+          <Button type="button" onClick={print}>
+            Save & Print
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 
