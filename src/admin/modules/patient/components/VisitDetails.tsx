@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, KeyboardEvent } from 'react';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -6,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { 
   ArrowLeft, 
   Printer, 
-  FileText, 
   TestTube, 
   FileBarChart,
   CheckCheck,
@@ -27,7 +27,6 @@ import {
   Brain
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -183,6 +182,13 @@ const VisitDetails = () => {
     if (customSymptom && !symptoms.includes(customSymptom)) {
       setSymptoms([...symptoms, customSymptom]);
       setCustomSymptom("");
+    }
+  };
+
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && customSymptom.trim() !== '') {
+      handleCustomSymptomAdd();
+      e.preventDefault(); // Prevent form submission
     }
   };
 
@@ -412,6 +418,15 @@ const VisitDetails = () => {
     }
   };
 
+  // Check if an item is AI suggested (for visual differentiation)
+  const isAISuggested = (id: number, type: 'medication' | 'test') => {
+    if (type === 'medication') {
+      return suggestedPrescriptions.some(p => p.id === id);
+    } else {
+      return suggestedLabTests.some(t => t.id === id);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-4">
@@ -605,6 +620,7 @@ const VisitDetails = () => {
                     placeholder="Add a symptom"
                     value={customSymptom}
                     onChange={(e) => setCustomSymptom(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     className="flex-1"
                   />
                   <Button 
@@ -636,6 +652,24 @@ const VisitDetails = () => {
                   </div>
                 </div>
                 
+                {/* Selected Diagnoses */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium">Selected Diagnoses</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {diagnosis.length === 0 ? (
+                      <div className="text-muted-foreground text-sm w-full text-center py-2 border border-dashed rounded-md">
+                        No diagnoses selected
+                      </div>
+                    ) : (
+                      diagnosis.map((diagnosisItem, index) => (
+                        <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-200">
+                          {diagnosisItem}
+                        </Badge>
+                      ))
+                    )}
+                  </div>
+                </div>
+                
                 {/* Suggested Diagnoses */}
                 <div className="space-y-3">
                   <h3 className="text-sm font-medium flex items-center gap-2">
@@ -644,7 +678,7 @@ const VisitDetails = () => {
                   </h3>
                   <div className="space-y-2">
                     {suggestedDiagnoses.map((diag) => (
-                      <div key={diag.id} className="border rounded-md p-3">
+                      <div key={diag.id} className="border rounded-md p-3 bg-muted/5 hover:bg-muted/10 transition-colors">
                         <div className="flex justify-between items-start">
                           <div>
                             <h5 className="font-medium">{diag.name}</h5>
@@ -729,9 +763,19 @@ const VisitDetails = () => {
                       </div>
                     ) : (
                       selectedPrescriptions.map((prescription) => (
-                        <div key={prescription.id} className="border rounded-md p-3 flex justify-between items-start">
+                        <div 
+                          key={prescription.id} 
+                          className={`border rounded-md p-3 flex justify-between items-start ${
+                            isAISuggested(prescription.id, 'medication') ? 'border-green-200 bg-green-50' : ''
+                          }`}
+                        >
                           <div>
-                            <div className="font-medium">{prescription.medicine}</div>
+                            <div className="font-medium flex items-center gap-2">
+                              {prescription.medicine}
+                              {isAISuggested(prescription.id, 'medication') && (
+                                <Badge variant="outline" className="text-xs bg-green-100 text-green-800">AI</Badge>
+                              )}
+                            </div>
                             <div className="text-sm text-muted-foreground">
                               {prescription.dosage} • {prescription.frequency} • {prescription.duration}
                             </div>
@@ -759,7 +803,7 @@ const VisitDetails = () => {
                     <h4 className="text-sm font-medium">AI Suggested Medications</h4>
                     <div className="space-y-2">
                       {suggestedPrescriptions.map((prescription) => (
-                        <div key={prescription.id} className="border rounded-md p-3 bg-muted/5">
+                        <div key={prescription.id} className="border rounded-md p-3 bg-amber-50 border-amber-200">
                           <div className="flex justify-between items-start">
                             <div>
                               <h5 className="font-medium">{prescription.medicine}</h5>
@@ -817,9 +861,19 @@ const VisitDetails = () => {
                       </div>
                     ) : (
                       selectedLabTests.map((test) => (
-                        <div key={test.id} className="border rounded-md p-3 flex justify-between items-start">
+                        <div 
+                          key={test.id} 
+                          className={`border rounded-md p-3 flex justify-between items-start ${
+                            isAISuggested(test.id, 'test') ? 'border-green-200 bg-green-50' : ''
+                          }`}
+                        >
                           <div>
-                            <div className="font-medium">{test.name}</div>
+                            <div className="font-medium flex items-center gap-2">
+                              {test.name}
+                              {isAISuggested(test.id, 'test') && (
+                                <Badge variant="outline" className="text-xs bg-green-100 text-green-800">AI</Badge>
+                              )}
+                            </div>
                             {test.instructions && (
                               <div className="text-sm text-muted-foreground">
                                 Instructions: {test.instructions}
@@ -844,7 +898,7 @@ const VisitDetails = () => {
                     <h4 className="text-sm font-medium">AI Suggested Lab Tests</h4>
                     <div className="space-y-2">
                       {suggestedLabTests.map((test) => (
-                        <div key={test.id} className="border rounded-md p-3 bg-muted/5">
+                        <div key={test.id} className="border rounded-md p-3 bg-amber-50 border-amber-200">
                           <div className="flex justify-between items-start">
                             <div>
                               <h5 className="font-medium">{test.name}</h5>
