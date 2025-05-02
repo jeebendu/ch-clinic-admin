@@ -30,7 +30,7 @@ const NewVisitForm: React.FC<NewVisitFormProps> = ({ patientId, onSuccess, onCan
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!visitDate || !visitTime || !consultationType || !chiefComplaint) {
+    if (!visitDate || !visitTime || !consultationType || !chiefComplaint || !doctorId) {
       toast({
         title: "Missing information",
         description: "Please fill all required fields",
@@ -71,7 +71,7 @@ const NewVisitForm: React.FC<NewVisitFormProps> = ({ patientId, onSuccess, onCan
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="max-h-[calc(100vh-200px)] overflow-y-auto">
+    <form onSubmit={handleSubmit} className="max-h-[calc(100vh-300px)] overflow-y-auto">
       <div className="grid gap-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
