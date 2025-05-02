@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -309,12 +308,12 @@ const VisitDetails = () => {
                     <VitalMiniCard 
                       label="Heart Rate" 
                       value={visit.vitalSigns.heartRate}
-                      icon={<Pulse className="h-4 w-4 text-pink-500" />}
+                      icon={<Heart className="h-4 w-4 text-pink-500" />}
                     />
                     <VitalMiniCard 
                       label="SpO2" 
                       value={visit.vitalSigns.oxygenSaturation}
-                      icon={<Lungs className="h-4 w-4 text-blue-500" />}
+                      icon={<Wind className="h-4 w-4 text-blue-500" />}
                     />
                   </div>
                 </div>
