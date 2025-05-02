@@ -1,11 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileBarChart, TestTube, FileText, Calendar } from 'lucide-react';
+import { FileBarChart, Download, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { PatientReport } from '../types/PatientReport';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from '@/components/ui/button';
 
 interface PatientAllReportsSectionProps {
   patientId: string;
@@ -36,7 +45,8 @@ const PatientAllReportsSection = ({ patientId }: PatientAllReportsSectionProps) 
             reportno: 101,
             patient: { id: parseInt(patientId) } as any,
             createdTime: new Date(2025, 0, 15).toISOString(),
-            modifiedTime: new Date(2025, 0, 15).toISOString()
+            modifiedTime: new Date(2025, 0, 15).toISOString(),
+            visitId: 'VST-001'
           },
           {
             id: 2,
@@ -50,7 +60,8 @@ const PatientAllReportsSection = ({ patientId }: PatientAllReportsSectionProps) 
             reportno: 102,
             patient: { id: parseInt(patientId) } as any,
             createdTime: new Date(2025, 1, 20).toISOString(),
-            modifiedTime: new Date(2025, 1, 20).toISOString()
+            modifiedTime: new Date(2025, 1, 20).toISOString(),
+            visitId: 'VST-002'
           },
           {
             id: 3,
@@ -64,7 +75,8 @@ const PatientAllReportsSection = ({ patientId }: PatientAllReportsSectionProps) 
             reportno: 103,
             patient: { id: parseInt(patientId) } as any,
             createdTime: new Date(2025, 2, 10).toISOString(),
-            modifiedTime: new Date(2025, 2, 10).toISOString()
+            modifiedTime: new Date(2025, 2, 10).toISOString(),
+            visitId: 'VST-003'
           }
         ];
         
@@ -86,30 +98,21 @@ const PatientAllReportsSection = ({ patientId }: PatientAllReportsSectionProps) 
     }
   }, [patientId, toast]);
 
-  const getReportIcon = (type?: string) => {
+  const getReportTypeBadgeStyle = (type?: string) => {
     switch (type) {
-      case 'audiometry':
-        return <FileBarChart className="h-4 w-4 text-blue-500" />;
-      case 'speech':
-        return <FileText className="h-4 w-4 text-green-500" />;
-      case 'laboratory':
-        return <TestTube className="h-4 w-4 text-purple-500" />;
-      default:
-        return <FileText className="h-4 w-4 text-gray-500" />;
+      case 'audiometry': return 'bg-blue-100 text-blue-800';
+      case 'speech': return 'bg-green-100 text-green-800';
+      case 'laboratory': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getReportTitle = (type?: string) => {
-    switch (type) {
-      case 'audiometry':
-        return 'Audiometry Report';
-      case 'speech':
-        return 'Speech Analysis';
-      case 'laboratory':
-        return 'Laboratory Test';
-      default:
-        return 'Medical Report';
-    }
+  const handleDownloadReport = (reportId: number) => {
+    toast({
+      title: 'Download started',
+      description: `Downloading report #${reportId}`,
+    });
+    // In a real application, this would trigger a download
   };
 
   if (loading) {
@@ -137,59 +140,52 @@ const PatientAllReportsSection = ({ patientId }: PatientAllReportsSectionProps) 
             <p>No reports found for this patient</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {reports.map((report) => (
-              <div key={report.id} className="border rounded-lg p-4 bg-muted/10">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    {getReportIcon(report.reportType)}
-                    <h3 className="font-medium">
-                      {getReportTitle(report.reportType)} <span className="text-sm text-muted-foreground">#{report.reportno}</span>
-                    </h3>
-                  </div>
-                  <Badge 
-                    variant="outline" 
-                    className={
-                      report.reportType === 'audiometry' ? 'bg-blue-50 text-blue-700' : 
-                      report.reportType === 'speech' ? 'bg-green-50 text-green-700' :
-                      'bg-purple-50 text-purple-700'
-                    }
-                  >
-                    {report.reportType}
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  {report.reportType !== 'laboratory' && (
-                    <>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Left Ear</p>
-                        <p className="text-sm bg-muted/30 p-2 rounded">{report.leftEar}</p>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Visit ID</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Report Type</TableHead>
+                  <TableHead>Report #</TableHead>
+                  <TableHead>Impression</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reports.map((report) => (
+                  <TableRow key={report.id}>
+                    <TableCell>{report.visitId || 'N/A'}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>{format(new Date(report.createdTime), 'MMM d, yyyy')}</span>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Right Ear</p>
-                        <p className="text-sm bg-muted/30 p-2 rounded">{report.rightEar}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="space-y-1 mb-3">
-                  <p className="text-sm font-medium">Impression</p>
-                  <p className="text-sm bg-muted/30 p-2 rounded">{report.impression}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Recommendation</p>
-                  <p className="text-sm bg-muted/30 p-2 rounded">{report.recommendation}</p>
-                </div>
-
-                <div className="mt-3 flex items-center text-muted-foreground text-xs">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {format(new Date(report.createdTime), 'MMM d, yyyy')}
-                </div>
-              </div>
-            ))}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getReportTypeBadgeStyle(report.reportType)}>
+                        {report.reportType?.charAt(0).toUpperCase() + report.reportType?.slice(1) || 'General'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>#{report.reportno}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {report.impression || 'No impression recorded'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex items-center gap-1"
+                        onClick={() => handleDownloadReport(report.id)}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </CardContent>

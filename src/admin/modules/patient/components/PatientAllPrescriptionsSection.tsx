@@ -1,11 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileEdit, Calendar, Pill } from 'lucide-react';
+import { FileEdit, Calendar, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Prescription } from '../types/Prescription';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from '@/components/ui/button';
 
 interface PatientAllPrescriptionsSectionProps {
   patientId: string;
@@ -26,6 +35,7 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
         const mockedPrescriptions: any[] = [
           {
             id: 1,
+            prescriptionId: 'RX-10001',
             medicines: [
               { 
                 name: 'Amoxicillin',
@@ -63,6 +73,7 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
           },
           {
             id: 2,
+            prescriptionId: 'RX-10002',
             medicines: [
               { 
                 name: 'Cetirizine',
@@ -110,6 +121,14 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
     }
   }, [patientId, toast]);
 
+  const handleDownloadPrescription = (id: number) => {
+    toast({
+      title: 'Download started',
+      description: `Downloading prescription #${id}`,
+    });
+    // In a real application, this would trigger a download
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center p-8">
@@ -135,100 +154,54 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
             <p>No prescriptions found for this patient</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {prescriptions.map((prescription) => (
-              <div key={prescription.id} className="border rounded-lg overflow-hidden">
-                <div className="bg-muted/30 px-4 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">
-                      {prescription.visitDate ? format(new Date(prescription.visitDate), 'MMMM d, yyyy') : 'Unknown date'}
-                    </span>
-                  </div>
-                  <div className="text-sm">
-                    Dr. {prescription.doctor.firstname} {prescription.doctor.lastname}
-                  </div>
-                </div>
-                
-                <div className="p-4 space-y-4">
-                  {/* Diagnosis and complaints */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Diagnosis</p>
-                      <p className="text-sm bg-muted/30 p-2 rounded">{prescription.diagnosis}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Complaints</p>
-                      <p className="text-sm bg-muted/30 p-2 rounded">{prescription.complaints}</p>
-                    </div>
-                  </div>
-                  
-                  {/* Medicines */}
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Medicines</p>
-                    <div className="space-y-2 mt-2">
-                      {prescription.medicines.map((medicine, index) => (
-                        <div key={index} className="border rounded-md p-3 bg-muted/10">
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-2">
-                              <Pill className="h-4 w-4 text-primary" />
-                              <h4 className="font-medium text-sm">{medicine.name}</h4>
-                            </div>
-                            <Badge variant="outline">{medicine.dosage}</Badge>
-                          </div>
-                          <div className="text-sm mt-2 space-y-1 text-muted-foreground">
-                            <p>{medicine.frequency} • {medicine.duration}</p>
-                            {medicine.instruction && (
-                              <p className="text-xs italic">{medicine.instruction}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Vital signs */}
-                  {(prescription.temperature || prescription.pulse || prescription.respiratory) && (
-                    <div className="grid grid-cols-3 gap-2 mt-4">
-                      {prescription.temperature && (
-                        <div className="bg-muted/10 p-2 rounded border text-center">
-                          <div className="text-xs text-muted-foreground">Temperature</div>
-                          <div className="font-medium">{prescription.temperature}°F</div>
-                        </div>
-                      )}
-                      {prescription.pulse && (
-                        <div className="bg-muted/10 p-2 rounded border text-center">
-                          <div className="text-xs text-muted-foreground">Pulse</div>
-                          <div className="font-medium">{prescription.pulse} bpm</div>
-                        </div>
-                      )}
-                      {prescription.respiratory && (
-                        <div className="bg-muted/10 p-2 rounded border text-center">
-                          <div className="text-xs text-muted-foreground">Respiratory Rate</div>
-                          <div className="font-medium">{prescription.respiratory} bpm</div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Doctor's notes and advice */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                    {prescription.clinicNotes && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Clinical Notes</p>
-                        <p className="text-sm bg-muted/30 p-2 rounded">{prescription.clinicNotes}</p>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Prescription ID</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Doctor</TableHead>
+                  <TableHead>Diagnosis</TableHead>
+                  <TableHead>Medications</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {prescriptions.map((prescription) => (
+                  <TableRow key={prescription.id}>
+                    <TableCell className="font-medium">{prescription.prescriptionId}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>{prescription.visitDate ? format(new Date(prescription.visitDate), 'MMM d, yyyy') : 'Unknown'}</span>
                       </div>
-                    )}
-                    {prescription.advice && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Advice</p>
-                        <p className="text-sm bg-muted/30 p-2 rounded">{prescription.advice}</p>
+                    </TableCell>
+                    <TableCell>Dr. {prescription.doctor.firstname} {prescription.doctor.lastname}</TableCell>
+                    <TableCell className="max-w-[150px] truncate">{prescription.diagnosis}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {prescription.medicines.map((med: any, index: number) => (
+                          <Badge key={index} variant="outline" className="bg-muted/50">
+                            {med.name}
+                          </Badge>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex items-center gap-1"
+                        onClick={() => handleDownloadPrescription(prescription.id)}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </CardContent>

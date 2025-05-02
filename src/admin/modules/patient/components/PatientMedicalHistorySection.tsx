@@ -3,6 +3,14 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Stethoscope, FileText, HeartPulse, Clipboard, Activity } from 'lucide-react';
 import { Patient } from '../types/Patient';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface PatientMedicalHistorySectionProps {
   patient: Patient;
@@ -11,13 +19,41 @@ interface PatientMedicalHistorySectionProps {
 const PatientMedicalHistorySection = ({ patient }: PatientMedicalHistorySectionProps) => {
   // Adding some mocked medical history data when patient data is not complete
   const medicalHistory = patient.medicalHistory || "No medical history recorded";
-  const allergies = patient.allergies || "No known allergies";
   
-  // Mocked chronic conditions and family history for the component
-  const chronicConditions = patient.chronicConditions || "None reported";
-  const familyHistory = patient.familyHistory || "No significant family history reported";
-  const pastSurgeries = patient.pastSurgeries || "No previous surgeries";
-  
+  // Create a structured array of medical history items for the table
+  const medicalHistoryItems = [
+    {
+      id: 1,
+      category: "General Medical History",
+      description: medicalHistory,
+      icon: <FileText className="h-4 w-4 text-primary" />
+    },
+    {
+      id: 2,
+      category: "Allergies",
+      description: patient.allergies || "No known allergies",
+      icon: <HeartPulse className="h-4 w-4 text-red-500" />
+    },
+    {
+      id: 3,
+      category: "Chronic Conditions",
+      description: patient.chronicConditions || "None reported",
+      icon: <Activity className="h-4 w-4 text-blue-500" />
+    },
+    {
+      id: 4,
+      category: "Past Surgeries",
+      description: patient.pastSurgeries || "No previous surgeries",
+      icon: <Clipboard className="h-4 w-4 text-green-500" />
+    },
+    {
+      id: 5,
+      category: "Family History",
+      description: patient.familyHistory || "No significant family history reported",
+      icon: <Clipboard className="h-4 w-4 text-purple-500" />
+    }
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -30,61 +66,28 @@ const PatientMedicalHistorySection = ({ patient }: PatientMedicalHistorySectionP
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          {/* General Medical History */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <FileText className="h-4 w-4 text-primary" />
-              General Medical History
-            </h3>
-            <div className="p-4 bg-muted/20 rounded-md">
-              <p className="text-sm">{medicalHistory}</p>
-            </div>
-          </div>
-          
-          {/* Allergies */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <HeartPulse className="h-4 w-4 text-red-500" />
-              Allergies
-            </h3>
-            <div className="p-4 bg-muted/20 rounded-md">
-              <p className="text-sm">{allergies}</p>
-            </div>
-          </div>
-          
-          {/* Chronic Conditions */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <Activity className="h-4 w-4 text-blue-500" />
-              Chronic Conditions
-            </h3>
-            <div className="p-4 bg-muted/20 rounded-md">
-              <p className="text-sm">{chronicConditions}</p>
-            </div>
-          </div>
-          
-          {/* Past Surgeries */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <Clipboard className="h-4 w-4 text-green-500" />
-              Past Surgeries
-            </h3>
-            <div className="p-4 bg-muted/20 rounded-md">
-              <p className="text-sm">{pastSurgeries}</p>
-            </div>
-          </div>
-          
-          {/* Family History */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <Clipboard className="h-4 w-4 text-purple-500" />
-              Family History
-            </h3>
-            <div className="p-4 bg-muted/20 rounded-md">
-              <p className="text-sm">{familyHistory}</p>
-            </div>
-          </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[250px]">Category</TableHead>
+                <TableHead>Details</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {medicalHistoryItems.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {item.icon}
+                      <span className="font-medium">{item.category}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{item.description}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>
