@@ -12,6 +12,7 @@ import { Chart, registerables } from 'chart.js';
 import { AUDIOMETRY_CHART_OPTIONS, FREQUENCY_LABELS } from '../../types/AudiometryTypes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -64,6 +65,7 @@ const AudiometryForm: React.FC = () => {
   
   const [canvasChartLeftFile, setCanvasChartLeftFile] = useState<File | null>(null);
   const [canvasChartRightFile, setCanvasChartRightFile] = useState<File | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('left');
 
   const chartLeftRef = useRef<HTMLCanvasElement>(null);
   const chartRightRef = useRef<HTMLCanvasElement>(null);
@@ -451,6 +453,28 @@ const AudiometryForm: React.FC = () => {
     }
   };
 
+  // Get the types that are currently checked
+  const getCheckedTypes = () => {
+    const types = [];
+    if (audiogram.modality.acuChecked) types.push('acu');
+    if (audiogram.modality.acmChecked) types.push('acm');
+    if (audiogram.modality.bcuChecked) types.push('bcu');
+    if (audiogram.modality.bcmChecked) types.push('bcm');
+    if (audiogram.modality.norChecked) types.push('nor');
+    return types;
+  };
+
+  const getTestTypeName = (type: string): string => {
+    switch (type) {
+      case 'acu': return 'AC Unmasked';
+      case 'acm': return 'AC Masked';
+      case 'bcu': return 'BC Unmasked';
+      case 'bcm': return 'BC Masked';
+      case 'nor': return 'No Response';
+      default: return '';
+    }
+  };
+
   return (
     <div className="space-y-6 p-4">
       <h1 className="text-2xl font-bold">Audiometry Assessment</h1>
@@ -505,263 +529,101 @@ const AudiometryForm: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Data Input Tables */}
-        {audiogram.modality.acuChecked && (
+        {/* Combined Data Input Table */}
+        {getCheckedTypes().length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>AC Unmasked (ACU) Data</CardTitle>
+              <CardTitle>Audiometry Data Input</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Test Type</TableHead>
-                    {FREQUENCY_LABELS.map(freq => (
-                      <TableHead key={freq}>{freq}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">ACU Right</TableCell>
-                    {audiogram.puretoneRight.acu.map((item: any, index: number) => (
-                      <TableCell key={`acu-right-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('right', 'acu', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">ACU Left</TableCell>
-                    {audiogram.puretoneLeft.acu.map((item: any) => (
-                      <TableCell key={`acu-left-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('left', 'acu', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {audiogram.modality.acmChecked && (
-          <Card>
-            <CardHeader>
-              <CardTitle>AC Masked (ACM) Data</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Test Type</TableHead>
-                    {FREQUENCY_LABELS.map(freq => (
-                      <TableHead key={freq}>{freq}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">ACM Right</TableCell>
-                    {audiogram.puretoneRight.acm.map((item: any) => (
-                      <TableCell key={`acm-right-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('right', 'acm', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">ACM Left</TableCell>
-                    {audiogram.puretoneLeft.acm.map((item: any) => (
-                      <TableCell key={`acm-left-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('left', 'acm', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {audiogram.modality.bcuChecked && (
-          <Card>
-            <CardHeader>
-              <CardTitle>BC Unmasked (BCU) Data</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Test Type</TableHead>
-                    {FREQUENCY_LABELS.map(freq => (
-                      <TableHead key={freq}>{freq}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">BCU Right</TableCell>
-                    {audiogram.puretoneRight.bcu.map((item: any) => (
-                      <TableCell key={`bcu-right-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('right', 'bcu', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">BCU Left</TableCell>
-                    {audiogram.puretoneLeft.bcu.map((item: any) => (
-                      <TableCell key={`bcu-left-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('left', 'bcu', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {audiogram.modality.bcmChecked && (
-          <Card>
-            <CardHeader>
-              <CardTitle>BC Masked (BCM) Data</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Test Type</TableHead>
-                    {FREQUENCY_LABELS.map(freq => (
-                      <TableHead key={freq}>{freq}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">BCM Right</TableCell>
-                    {audiogram.puretoneRight.bcm.map((item: any) => (
-                      <TableCell key={`bcm-right-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('right', 'bcm', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">BCM Left</TableCell>
-                    {audiogram.puretoneLeft.bcm.map((item: any) => (
-                      <TableCell key={`bcm-left-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('left', 'bcm', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {audiogram.modality.norChecked && (
-          <Card>
-            <CardHeader>
-              <CardTitle>No Response (NOR) Data</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Test Type</TableHead>
-                    {FREQUENCY_LABELS.map(freq => (
-                      <TableHead key={freq}>{freq}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">NOR Right</TableCell>
-                    {audiogram.puretoneRight.nor.map((item: any) => (
-                      <TableCell key={`nor-right-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('right', 'nor', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">NOR Left</TableCell>
-                    {audiogram.puretoneLeft.nor.map((item: any) => (
-                      <TableCell key={`nor-left-${item.label}`}>
-                        <Input
-                          type="number"
-                          min="-10"
-                          max="120"
-                          value={item.value !== null ? item.value : ''}
-                          onChange={(e) => handleInputChange('left', 'nor', item.label, e.target.value ? Number(e.target.value) : null)}
-                          className="w-16"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <Tabs defaultValue="left" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid grid-cols-2 mb-4">
+                  <TabsTrigger value="left">Left Ear</TabsTrigger>
+                  <TabsTrigger value="right">Right Ear</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="left" className="mt-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Test Type</TableHead>
+                        {FREQUENCY_LABELS.map(freq => (
+                          <TableHead key={freq}>{freq}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getCheckedTypes().map(type => (
+                        <TableRow key={`${type}-left`}>
+                          <TableCell className="font-medium" style={{
+                            color: getDatasetStyle(type).borderColor,
+                            fontWeight: 'bold'
+                          }}>
+                            {getTestTypeName(type)}
+                          </TableCell>
+                          {audiogram.puretoneLeft[type].map((item: any) => (
+                            <TableCell key={`${type}-left-${item.label}`}>
+                              <Input
+                                type="number"
+                                min="-10"
+                                max="120"
+                                value={item.value !== null ? item.value : ''}
+                                onChange={(e) => handleInputChange('left', type as any, item.label, e.target.value ? Number(e.target.value) : null)}
+                                className="w-16"
+                                style={{
+                                  borderColor: getDatasetStyle(type).borderColor,
+                                  backgroundColor: item.value !== null ? 'rgba(255, 255, 200, 0.2)' : 'transparent'
+                                }}
+                              />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+                
+                <TabsContent value="right" className="mt-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Test Type</TableHead>
+                        {FREQUENCY_LABELS.map(freq => (
+                          <TableHead key={freq}>{freq}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getCheckedTypes().map(type => (
+                        <TableRow key={`${type}-right`}>
+                          <TableCell className="font-medium" style={{
+                            color: getDatasetStyle(type).borderColor,
+                            fontWeight: 'bold'
+                          }}>
+                            {getTestTypeName(type)}
+                          </TableCell>
+                          {audiogram.puretoneRight[type].map((item: any) => (
+                            <TableCell key={`${type}-right-${item.label}`}>
+                              <Input
+                                type="number"
+                                min="-10"
+                                max="120"
+                                value={item.value !== null ? item.value : ''}
+                                onChange={(e) => handleInputChange('right', type as any, item.label, e.target.value ? Number(e.target.value) : null)}
+                                className="w-16"
+                                style={{
+                                  borderColor: getDatasetStyle(type).borderColor,
+                                  backgroundColor: item.value !== null ? 'rgba(255, 255, 200, 0.2)' : 'transparent'
+                                }}
+                              />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         )}
