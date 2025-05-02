@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +19,7 @@ import {
   ScrollText,
   Edit,
   CheckCheck,
-  Prescription,
+  FileEdit,
   FileTextIcon
 } from 'lucide-react';
 import { Visit, VisitStatus, VisitType } from '../../appointments/types/visit';
@@ -484,7 +483,7 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                       {/* Prescription Summary Section */}
                       <div>
                         <h4 className="font-medium mb-2 flex items-center gap-1">
-                          <Prescription className="h-4 w-4 text-primary" />
+                          <FileEdit className="h-4 w-4 text-primary" />
                           <span>Prescription Summary</span>
                         </h4>
                         

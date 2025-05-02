@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -17,7 +16,7 @@ import {
   FilePlus,
   ThermometerSnowflake,
   Stethoscope,
-  Prescription,
+  FileEdit,
   Edit,
   CreditCard
 } from 'lucide-react';
@@ -165,7 +164,7 @@ const VisitDetails = () => {
                   completed 
                 />
                 <VisitStepBadge 
-                  icon={<Prescription className="h-4 w-4" />} 
+                  icon={<FileEdit className="h-4 w-4" />} 
                   label="Prescription" 
                   completed={prescriptions.length > 0}
                 />
@@ -246,7 +245,7 @@ const VisitDetails = () => {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="details"><Stethoscope className="h-4 w-4 mr-2" /> Details</TabsTrigger>
             <TabsTrigger value="vitals"><ThermometerSnowflake className="h-4 w-4 mr-2" /> Vitals</TabsTrigger>
-            <TabsTrigger value="prescriptions"><Prescription className="h-4 w-4 mr-2" /> Prescriptions</TabsTrigger>
+            <TabsTrigger value="prescriptions"><FileEdit className="h-4 w-4 mr-2" /> Prescriptions</TabsTrigger>
             <TabsTrigger value="tests"><TestTube className="h-4 w-4 mr-2" /> Tests</TabsTrigger>
           </TabsList>
           
