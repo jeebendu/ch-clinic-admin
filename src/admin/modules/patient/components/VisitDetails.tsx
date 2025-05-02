@@ -23,14 +23,15 @@ import {
   User,
   Activity,
   Droplet,
-  Pulse,
-  Lungs,
+  Heart,
+  Wind,
   ClipboardList,
   Pen,
   Bot,
   Lightbulb,
   Save,
-  MessageSquare
+  MessageSquare,
+  X
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
