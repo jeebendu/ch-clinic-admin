@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -15,17 +16,26 @@ import {
   Thermometer,
   FilePlus,
   ThermometerSnowflake,
-  Stethoscope
+  Stethoscope,
+  Prescription,
+  Edit,
+  CreditCard
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 
 const VisitDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [visitNotes, setVisitNotes] = useState("");
+
+  // Determine if this visit is for the current date (for edit permissions)
+  const isCurrent = true; // Just for demo - in real app, compare with actual date
 
   // Mocked visit data - in a real app, this would be fetched from an API
   const visit = {
@@ -41,6 +51,7 @@ const VisitDetails = () => {
     diagnosis: "Acute otitis media",
     diagnosisCode: "ICD-10: H66.90",
     treatmentPlan: "7-day course of antibiotics and follow-up in 2 weeks",
+    notes: "Patient reports improvement after 2 days of antibiotics. Still experiencing some discomfort.",
     vitalSigns: {
       temperature: "98.6 °F",
       heartRate: "72 bpm",
@@ -54,8 +65,8 @@ const VisitDetails = () => {
 
   // This would also be actual data in a real app
   const tests = [
-    { id: 1, name: "Audiometry Test", status: "Completed", date: new Date(2025, 3, 28).toISOString() },
-    { id: 2, name: "Tympanometry", status: "Ordered", date: null }
+    { id: 1, name: "Audiometry Test", status: "Completed", date: new Date(2025, 3, 28).toISOString(), type: "audiometry" },
+    { id: 2, name: "Tympanometry", status: "Ordered", date: null, type: "tympanometry" }
   ];
   
   const prescriptions = [
@@ -66,11 +77,32 @@ const VisitDetails = () => {
       frequency: "3 times daily",
       duration: "7 days",
       instructions: "Take with food"
+    },
+    { 
+      id: 2, 
+      medicine: "Ibuprofen", 
+      dosage: "400mg",
+      frequency: "As needed",
+      duration: "5 days",
+      instructions: "Take for pain"
     }
   ];
 
   const handleBackClick = () => {
     navigate(-1);
+  };
+
+  const toggleEditNotes = () => {
+    if (!editingNotes) {
+      setVisitNotes(visit.notes || "");
+    }
+    setEditingNotes(!editingNotes);
+  };
+
+  const saveNotes = () => {
+    // In a real app, save notes to backend
+    console.log("Saving notes:", visitNotes);
+    setEditingNotes(false);
   };
 
   return (
@@ -133,19 +165,19 @@ const VisitDetails = () => {
                   completed 
                 />
                 <VisitStepBadge 
+                  icon={<Prescription className="h-4 w-4" />} 
+                  label="Prescription" 
+                  completed={prescriptions.length > 0}
+                />
+                <VisitStepBadge 
                   icon={<TestTube className="h-4 w-4" />} 
                   label="Tests" 
                   completed={tests.some(t => t.status === 'Completed')}
                 />
                 <VisitStepBadge 
-                  icon={<FileBarChart className="h-4 w-4" />} 
-                  label="Prescription" 
-                  completed={prescriptions.length > 0}
-                />
-                <VisitStepBadge 
-                  icon={<ArrowRightLeft className="h-4 w-4" />} 
-                  label="Follow-up" 
-                  completed={false}
+                  icon={<CreditCard className="h-4 w-4" />} 
+                  label="Payment" 
+                  completed={true}
                 />
                 <VisitStepBadge 
                   icon={<CheckCheck className="h-4 w-4" />} 
@@ -164,8 +196,47 @@ const VisitDetails = () => {
                   {visit.diagnosis} <span className="text-xs text-muted-foreground">({visit.diagnosisCode})</span>
                 </p>
                 
-                <div className="font-medium mt-4">Treatment Plan</div>
-                <p className="text-sm">{visit.treatmentPlan}</p>
+                <div className="font-medium mt-4 flex items-center justify-between">
+                  <div>Doctor's Notes</div>
+                  {isCurrent && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={toggleEditNotes}
+                      className="h-6 px-2"
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+                
+                {editingNotes ? (
+                  <div className="space-y-2">
+                    <Textarea 
+                      value={visitNotes} 
+                      onChange={(e) => setVisitNotes(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={toggleEditNotes}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={saveNotes}
+                      >
+                        Save Notes
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm">{visit.notes}</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -175,8 +246,8 @@ const VisitDetails = () => {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="details"><Stethoscope className="h-4 w-4 mr-2" /> Details</TabsTrigger>
             <TabsTrigger value="vitals"><ThermometerSnowflake className="h-4 w-4 mr-2" /> Vitals</TabsTrigger>
+            <TabsTrigger value="prescriptions"><Prescription className="h-4 w-4 mr-2" /> Prescriptions</TabsTrigger>
             <TabsTrigger value="tests"><TestTube className="h-4 w-4 mr-2" /> Tests</TabsTrigger>
-            <TabsTrigger value="prescriptions"><FileBarChart className="h-4 w-4 mr-2" /> Prescriptions</TabsTrigger>
           </TabsList>
           
           <TabsContent value="details" className="mt-4 space-y-4">
@@ -256,23 +327,67 @@ const VisitDetails = () => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="tests" className="mt-4 space-y-4">
+          <TabsContent value="prescriptions" className="mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between">
+                  <CardTitle className="text-lg">Prescriptions</CardTitle>
+                  {isCurrent && (
+                    <Button size="sm">
+                      <FilePlus className="h-4 w-4 mr-2" />
+                      Add Prescription
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Two-column layout for prescriptions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {prescriptions.length === 0 ? (
+                    <p className="text-center py-8 text-muted-foreground col-span-2">No prescriptions for this visit</p>
+                  ) : (
+                    prescriptions.map(prescription => (
+                      <div key={prescription.id} className="border rounded-md p-4">
+                        <h3 className="font-medium">{prescription.medicine} {prescription.dosage}</h3>
+                        <div className="text-sm mt-2 space-y-1">
+                          <p><span className="font-medium">Frequency:</span> {prescription.frequency}</p>
+                          <p><span className="font-medium">Duration:</span> {prescription.duration}</p>
+                          {prescription.instructions && (
+                            <p><span className="font-medium">Instructions:</span> {prescription.instructions}</p>
+                          )}
+                        </div>
+                        <div className="flex justify-end mt-3 space-x-2">
+                          {isCurrent && <Button size="sm" variant="outline">Edit</Button>}
+                          <Button size="sm" variant="outline">Print</Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="tests" className="mt-4">
             <Card>
               <CardHeader>
                 <div className="flex justify-between">
                   <CardTitle className="text-lg">Test Results</CardTitle>
-                  <Button size="sm">
-                    <FilePlus className="h-4 w-4 mr-2" />
-                    Order New Test
-                  </Button>
+                  {isCurrent && (
+                    <Button size="sm">
+                      <FilePlus className="h-4 w-4 mr-2" />
+                      Order New Test
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
-                {tests.length === 0 ? (
-                  <p className="text-center py-8 text-muted-foreground">No tests ordered for this visit</p>
-                ) : (
-                  <div className="space-y-4">
-                    {tests.map(test => (
+                {/* Two-column layout for tests */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tests.length === 0 ? (
+                    <p className="text-center py-8 text-muted-foreground col-span-2">No tests ordered for this visit</p>
+                  ) : (
+                    tests.map(test => (
                       <div key={test.id} className="border rounded-md p-4">
                         <div className="flex justify-between items-center">
                           <h3 className="font-medium">{test.name}</h3>
@@ -285,58 +400,27 @@ const VisitDetails = () => {
                             {format(new Date(test.date), 'PPP')}
                           </p>
                         )}
-                        <div className="flex justify-end mt-2 space-x-2">
-                          {test.status === 'Completed' ? (
-                            <>
-                              <Button size="sm" variant="outline">View Results</Button>
-                              <Button size="sm" variant="outline">Print</Button>
-                            </>
-                          ) : (
-                            <Button size="sm" variant="outline">Update Status</Button>
-                          )}
+                        <div className="flex justify-between items-center mt-3">
+                          <Badge 
+                            className={test.type === 'audiometry' ? 'bg-blue-100 text-blue-800' : 'bg-indigo-100 text-indigo-800'}
+                          >
+                            {test.type}
+                          </Badge>
+                          <div className="flex space-x-2">
+                            {test.status === 'Completed' ? (
+                              <>
+                                <Button size="sm" variant="outline">View Results</Button>
+                                <Button size="sm" variant="outline">Print</Button>
+                              </>
+                            ) : isCurrent && (
+                              <Button size="sm" variant="outline">Update Status</Button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="prescriptions" className="mt-4 space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between">
-                  <CardTitle className="text-lg">Prescriptions</CardTitle>
-                  <Button size="sm">
-                    <FilePlus className="h-4 w-4 mr-2" />
-                    Add Prescription
-                  </Button>
+                    ))
+                  )}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {prescriptions.length === 0 ? (
-                  <p className="text-center py-8 text-muted-foreground">No prescriptions for this visit</p>
-                ) : (
-                  <div className="space-y-4">
-                    {prescriptions.map(prescription => (
-                      <div key={prescription.id} className="border rounded-md p-4">
-                        <h3 className="font-medium">{prescription.medicine} {prescription.dosage}</h3>
-                        <div className="text-sm mt-2 space-y-1">
-                          <p><span className="font-medium">Frequency:</span> {prescription.frequency}</p>
-                          <p><span className="font-medium">Duration:</span> {prescription.duration}</p>
-                          {prescription.instructions && (
-                            <p><span className="font-medium">Instructions:</span> {prescription.instructions}</p>
-                          )}
-                        </div>
-                        <div className="flex justify-end mt-3 space-x-2">
-                          <Button size="sm" variant="outline">Edit</Button>
-                          <Button size="sm" variant="outline">Print</Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>

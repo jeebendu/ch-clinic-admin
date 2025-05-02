@@ -35,10 +35,10 @@ const PatientRoutes = () => {
       <Route path="/report/speech/:id" element={<SpeechReportView />} />
       
       {/* Report form routes - for creating new reports with patientId param to fetch patient data */}
-      <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm patientId={true} />} />
-      <Route path="/report/new/bera/:patientId" element={<BeraForm patientId={true} />} />
-      <Route path="/report/new/abr/:patientId" element={<ABRForm patientId={true} />} />
-      <Route path="/report/new/speech/:patientId" element={<SpeechForm patientId={true} />} />
+      <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm />} />
+      <Route path="/report/new/bera/:patientId" element={<BeraForm />} />
+      <Route path="/report/new/abr/:patientId" element={<ABRForm />} />
+      <Route path="/report/new/speech/:patientId" element={<SpeechForm />} />
     </Routes>
   );
 };
