@@ -1,24 +1,42 @@
-
-import { Address } from "../../core/types/Address";
 import { Tenant } from "../../core/types/Tenant";
 import { Enquiry } from "./Enquiry";
+import { State } from "../../core/types/State";
+import { District } from "../../core/types/District";
+import { Branch } from "../../branch/types/Branch";
+import { Doctor } from "../../doctor/types/Doctor";
+import { User } from "../../user/types/User";
 
 export interface Patient {
   id: number;
+  uid: string;
   firstname: string;
   lastname: string;
+  fullName?: string;
   email: string;
   mobile: string;
+  whatsappNo?: string;
   gender: string;
-  address?: Address;
-  tenant?: Tenant;
-  createdTime?: Date;
-  modifiedTime?: Date;
-  enquiry?: Enquiry;
-  patientId?: string;
+  dob: Date;
+  age: number;
+  address: string;
+  city?: string;
+  state: State;
+  district: District;
+  branch?: Branch;
+  refDoctor: Doctor | null;
+  user: User;
+  photoUrl?: string;
+  insuranceProvider?: string;
+  insurancePolicyNumber?: string;
+  lastVisit?: string;
   medicalHistory?: string;
   allergies?: string;
   chronicConditions?: string;
   pastSurgeries?: string;
   familyHistory?: string;
+  problem?: string;
+  enquiry?: Enquiry;
+  tenant?: Tenant;
+  createdTime?: Date;
+  modifiedTime?: Date;
 }
