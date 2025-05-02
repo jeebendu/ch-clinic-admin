@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -24,7 +23,8 @@ import {
   Wind,
   AlertCircle,
   Lightbulb,
-  X
+  X,
+  Brain
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
@@ -42,6 +42,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from 'sonner';
+import { generateConsultationRecommendations, parseAIRecommendations, ConsultationAIPrompt } from '@/utils/aiConsultationUtils';
 
 const VisitDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,6 +68,16 @@ const VisitDetails = () => {
     name: "",
     instructions: ""
   });
+  const [aiRecommendations, setAiRecommendations] = useState<string | null>(null);
+  const [aiRecommendationsDialogOpen, setAiRecommendationsDialogOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [parsedRecommendations, setParsedRecommendations] = useState<{
+    differentialDiagnosis: string;
+    recommendedTests: string;
+    suggestedMedications: string;
+    followUp: string;
+    fullText: string;
+  } | null>(null);
 
   // Mocked visit data - in a real app, this would be fetched from an API
   const visit = {
@@ -284,6 +295,123 @@ const VisitDetails = () => {
     toast.success(`Template "${template.name}" applied`);
   };
 
+  /**
+   * Generate AI consultation recommendations based on the patient's symptoms
+   */
+  const generateAIRecommendations = async () => {
+    if (symptoms.length === 0) {
+      toast.error("Please add at least one symptom");
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      
+      const prompt: ConsultationAIPrompt = {
+        symptoms,
+        chiefComplaint,
+        patientInfo: {
+          age: 42, // Using mocked age from visit data
+          gender: "Male", // Using mocked gender from visit data
+          allergies: visit.allergies,
+          medicalHistory: visit.chronicConditions.join(", ")
+        }
+      };
+      
+      const aiResponse = await generateConsultationRecommendations(prompt);
+      setAiRecommendations(aiResponse);
+      
+      const parsed = parseAIRecommendations(aiResponse);
+      setParsedRecommendations(parsed);
+      
+      setAiRecommendationsDialogOpen(true);
+      setAiLoading(false);
+    } catch (error) {
+      console.error("Error generating AI recommendations:", error);
+      toast.error("Failed to generate AI recommendations. Please try again.");
+      setAiLoading(false);
+    }
+  };
+
+  /**
+   * Apply AI-suggested diagnosis to the form
+   */
+  const applyAIDiagnosis = () => {
+    if (parsedRecommendations?.differentialDiagnosis) {
+      // Extract the first diagnosis from the differential diagnosis section
+      const diagnosisText = parsedRecommendations.differentialDiagnosis;
+      const firstDiagnosis = diagnosisText.split("\n")[0];
+      
+      // Try to extract just the diagnosis name without numbering or prefixes
+      const diagnosisMatch = firstDiagnosis.match(/(?:\d+\.\s*)?(?:Diagnosis:)?\s*([^:]+)/i);
+      const cleanDiagnosis = diagnosisMatch ? diagnosisMatch[1].trim() : firstDiagnosis.trim();
+      
+      setDiagnosis([cleanDiagnosis]);
+      toast.success("AI-suggested diagnosis applied");
+    }
+  };
+
+  /**
+   * Apply AI-suggested lab tests to the form
+   */
+  const applyAILabTests = () => {
+    if (parsedRecommendations?.recommendedTests) {
+      const testsText = parsedRecommendations.recommendedTests;
+      
+      // Extract test names - this is a simplified approach
+      const testLines = testsText.split("\n")
+        .filter(line => line.trim().length > 0)
+        .slice(0, 3); // Take up to 3 tests
+      
+      const tests = testLines.map(line => {
+        // Try to extract just the test name
+        const testMatch = line.match(/(?:\d+\.\s*)?(?:[A-Za-z\s]+:)?\s*([^:]+)(?:\s*-.*)?/);
+        return {
+          id: Date.now() + Math.random(),
+          name: testMatch ? testMatch[1].trim() : line.trim(),
+          instructions: ""
+        };
+      });
+      
+      setSelectedLabTests([...selectedLabTests, ...tests]);
+      toast.success(`${tests.length} AI-suggested lab tests applied`);
+    }
+  };
+  
+  /**
+   * Apply AI-suggested medications to the form
+   */
+  const applyAIMedications = () => {
+    if (parsedRecommendations?.suggestedMedications) {
+      const medicationsText = parsedRecommendations.suggestedMedications;
+      
+      // Extract medication names and details - this is a simplified approach
+      const medicationLines = medicationsText.split("\n")
+        .filter(line => line.trim().length > 0)
+        .slice(0, 3); // Take up to 3 medications
+      
+      const medications = medicationLines.map(line => {
+        // Try to extract medication name and dosage
+        const medMatch = line.match(/(?:\d+\.\s*)?([^:-]+)(?:\s*-\s*|\s*:\s*)?(.*)?/);
+        
+        return {
+          id: Date.now() + Math.random(),
+          medicine: medMatch ? medMatch[1].trim() : line.trim(),
+          dosage: medMatch && medMatch[2] ? medMatch[2].trim().split(',')[0] : "",
+          frequency: medMatch && medMatch[2] ? 
+            (medMatch[2].includes("daily") ? "Daily" : 
+             medMatch[2].includes("twice") ? "Twice daily" : 
+             medMatch[2].includes("three") ? "Three times daily" : "As needed") : "As needed",
+          duration: "7 days",
+          instruction: medMatch && medMatch[2] ? medMatch[2].trim() : ""
+        };
+      });
+      
+      setSelectedPrescriptions([...selectedPrescriptions, ...medications]);
+      toast.success(`${medications.length} AI-suggested medications applied`);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-4">
@@ -417,9 +545,21 @@ const VisitDetails = () => {
                   <Stethoscope className="h-5 w-5 text-primary" />
                   Symptoms & Diagnosis
                 </CardTitle>
-                <CardDescription>
-                  Record patient symptoms and select diagnoses
-                </CardDescription>
+                <div className="flex justify-between items-center">
+                  <CardDescription>
+                    Record patient symptoms and select diagnoses
+                  </CardDescription>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={generateAIRecommendations}
+                    disabled={symptoms.length === 0 || aiLoading}
+                    className="ml-auto flex items-center gap-1"
+                  >
+                    <Brain className="h-3 w-3 mr-1" />
+                    {aiLoading ? "Generating..." : "Get AI Assistance"}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6 pt-6">
                 {/* Chief Complaint */}
@@ -830,6 +970,102 @@ const VisitDetails = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddTestDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleAddCustomLabTest}>Add Lab Test</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Recommendations Dialog */}
+      <Dialog open={aiRecommendationsDialogOpen} onOpenChange={setAiRecommendationsDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              AI-Assisted Consultation Recommendations
+            </DialogTitle>
+            <DialogDescription>
+              These recommendations are generated by Mistral 7B AI model based on the symptoms you provided
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {parsedRecommendations && (
+              <>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-medium text-lg">Differential Diagnosis</h3>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={applyAIDiagnosis}
+                      className="h-7 text-xs"
+                    >
+                      Apply Diagnosis
+                    </Button>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md whitespace-pre-wrap text-sm">
+                    {parsedRecommendations.differentialDiagnosis || "No diagnosis information available"}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-medium text-lg">Recommended Lab Tests</h3>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={applyAILabTests}
+                      className="h-7 text-xs"
+                    >
+                      Apply Tests
+                    </Button>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md whitespace-pre-wrap text-sm">
+                    {parsedRecommendations.recommendedTests || "No lab test recommendations available"}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-medium text-lg">Suggested Medications</h3>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={applyAIMedications}
+                      className="h-7 text-xs"
+                    >
+                      Apply Medications
+                    </Button>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md whitespace-pre-wrap text-sm">
+                    {parsedRecommendations.suggestedMedications || "No medication suggestions available"}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium text-lg">Follow-up Recommendations</h3>
+                  <div className="bg-muted/30 p-3 rounded-md whitespace-pre-wrap text-sm">
+                    {parsedRecommendations.followUp || "No follow-up recommendations available"}
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {!parsedRecommendations && aiRecommendations && (
+              <div className="bg-muted/30 p-3 rounded-md whitespace-pre-wrap text-sm">
+                {aiRecommendations}
+              </div>
+            )}
+          </div>
+          
+          <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800">
+            <AlertCircle className="h-4 w-4 text-yellow-800" />
+            <AlertDescription className="text-xs">
+              These AI-generated recommendations should be reviewed by a qualified healthcare provider before making clinical decisions.
+            </AlertDescription>
+          </Alert>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAiRecommendationsDialogOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
