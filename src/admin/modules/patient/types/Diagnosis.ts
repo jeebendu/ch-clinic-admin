@@ -5,11 +5,15 @@ import { Patient } from "./Patient";
 export interface Diagnosis {
   id: number;
   patient: Patient;
-  doctor: Doctor;
+  doctor: {
+    id: number;
+    firstname: string;
+    lastname: string;
+  };
   date: Date;
   symptoms: string;
   diagnosis: string;
   notes: string;
-  followUpDate?: Date;
+  followUpDate: Date | null;
   isFollowUpRequired: boolean;
 }
