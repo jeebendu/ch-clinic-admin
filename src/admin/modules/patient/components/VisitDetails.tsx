@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -158,7 +157,7 @@ const VisitDetails = () => {
                     Visit Details
                   </TabsTrigger>
                   <TabsTrigger value="prescriptionPad" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-                    <Pills className="h-4 w-4 mr-2" />
+                    <PillBottle className="h-4 w-4 mr-2" />
                     Prescription Pad
                   </TabsTrigger>
                 </TabsList>
