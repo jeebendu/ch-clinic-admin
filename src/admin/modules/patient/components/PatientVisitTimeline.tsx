@@ -17,12 +17,16 @@ import {
   Clock,
   Receipt,
   CreditCard,
-  User
+  User,
+  PlusCircle,
+  ArrowRight,
+  Eye
 } from 'lucide-react';
 import { Visit, VisitStatus, VisitType } from '../../appointments/types/visit';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface PatientVisitTimelineProps {
   patientId: string;
@@ -108,6 +112,7 @@ const getPaymentStatusBadgeVariant = (status: string) => {
 
 const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }) => {
   const [expandedVisit, setExpandedVisit] = useState<string | null>("1"); // Default expand the first visit
+  const [activeDialog, setActiveDialog] = useState<{ visitId: string, type: string } | null>(null);
   const navigate = useNavigate();
   const visits = getMockVisits(patientId);
   
@@ -117,6 +122,174 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
   
   const handleVisitClick = (visitId: string) => {
     navigate(`/admin/patients/visit/${visitId}`);
+  };
+
+  const openDialog = (visitId: string, type: string) => {
+    setActiveDialog({ visitId, type });
+  };
+
+  const closeDialog = () => {
+    setActiveDialog(null);
+  };
+
+  const renderDialog = () => {
+    if (!activeDialog) return null;
+
+    const visit = visits.find(v => v.id === activeDialog.visitId);
+    if (!visit) return null;
+
+    const titles = {
+      'checkin': 'Check-In Details',
+      'vitals': 'Patient Vitals',
+      'consultation': 'Consultation Notes',
+      'prescription': 'Prescriptions',
+      'tests': 'Tests & Reports',
+      'payment': 'Payment Information'
+    };
+
+    return (
+      <Dialog open={true} onOpenChange={() => closeDialog()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{titles[activeDialog.type as keyof typeof titles]}</DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            {activeDialog.type === 'checkin' && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Check-in Time</h4>
+                  <p>10:15 AM, {format(new Date(visit.visitDate), 'MMM dd, yyyy')}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Checked in by</h4>
+                  <p>Staff ID: {visit.createdBy}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Initial Complaint</h4>
+                  <p>{visit.reasonForVisit}</p>
+                </div>
+              </div>
+            )}
+            
+            {activeDialog.type === 'vitals' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 border rounded-md bg-muted/30">
+                    <h4 className="text-sm font-medium mb-1">Blood Pressure</h4>
+                    <p className="text-lg font-semibold">120/80 mmHg</p>
+                  </div>
+                  <div className="p-3 border rounded-md bg-muted/30">
+                    <h4 className="text-sm font-medium mb-1">Heart Rate</h4>
+                    <p className="text-lg font-semibold">78 bpm</p>
+                  </div>
+                  <div className="p-3 border rounded-md bg-muted/30">
+                    <h4 className="text-sm font-medium mb-1">Temperature</h4>
+                    <p className="text-lg font-semibold">98.6°F</p>
+                  </div>
+                  <div className="p-3 border rounded-md bg-muted/30">
+                    <h4 className="text-sm font-medium mb-1">Oxygen Level</h4>
+                    <p className="text-lg font-semibold">98%</p>
+                  </div>
+                </div>
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <h4 className="text-sm font-medium mb-1">Notes</h4>
+                  <p>Patient vitals are within normal ranges.</p>
+                </div>
+              </div>
+            )}
+            
+            {activeDialog.type === 'consultation' && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Doctor</h4>
+                  <p>Dr. {visit.doctorId}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Consultation Notes</h4>
+                  <p>{visit.notes || "No consultation notes available."}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Diagnosis</h4>
+                  <p>Patient has mild symptoms consistent with seasonal allergies.</p>
+                </div>
+              </div>
+            )}
+            
+            {activeDialog.type === 'prescription' && (
+              <div className="space-y-4">
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Cetirizine 10mg</h4>
+                    <Badge>Active</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">1 tablet daily for 7 days</p>
+                </div>
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Fluticasone Nasal Spray</h4>
+                    <Badge>Active</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">1 spray in each nostril daily</p>
+                </div>
+              </div>
+            )}
+            
+            {activeDialog.type === 'tests' && (
+              <div className="space-y-4">
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Complete Blood Count</h4>
+                    <Badge variant="secondary">Completed</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">Results: Normal</p>
+                </div>
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Allergen Panel</h4>
+                    <Badge variant="outline">Pending</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">Waiting for results</p>
+                </div>
+              </div>
+            )}
+            
+            {activeDialog.type === 'payment' && (
+              <div className="space-y-4">
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <h4 className="text-sm font-medium mb-1">Payment Details</h4>
+                  <div className="flex justify-between mt-2">
+                    <span>Total Amount:</span>
+                    <span className="font-medium">${visit.paymentAmount?.toFixed(2)}</span>
+                  </div>
+                  {visit.paymentStatus === 'partial' && visit.paymentPaid && (
+                    <>
+                      <div className="flex justify-between mt-1">
+                        <span>Amount Paid:</span>
+                        <span className="font-medium">${visit.paymentPaid.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span>Remaining Balance:</span>
+                        <span className="font-medium">${(visit.paymentAmount - visit.paymentPaid).toFixed(2)}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <h4 className="text-sm font-medium mb-1">Payment Status</h4>
+                  <Badge variant={getPaymentStatusBadgeVariant(visit.paymentStatus || '') as any} className="mt-1">
+                    {visit.paymentStatus?.charAt(0).toUpperCase() + visit.paymentStatus?.slice(1) || 'Unknown'}
+                  </Badge>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end mt-4">
+              <Button onClick={closeDialog}>Close</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   };
   
   if (visits.length === 0) {
@@ -152,7 +325,7 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                 </div>
                 
                 {/* Visit content */}
-                <div className="flex-1 border rounded-lg overflow-hidden">
+                <div className="flex-1 border rounded-lg overflow-hidden shadow-sm">
                   {/* Visit header */}
                   <div 
                     className="flex items-center justify-between bg-muted/50 p-3 cursor-pointer"
@@ -202,6 +375,190 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                   {/* Expanded visit details */}
                   {expandedVisit === visit.id && (
                     <div className="p-4">
+                      {/* Progress Workflow */}
+                      <div className="mb-6 overflow-x-auto">
+                        <div className="flex items-center min-w-max">
+                          {/* Check-in */}
+                          <div className="flex flex-col items-center">
+                            <div className="rounded-full bg-green-100 p-2 text-green-700">
+                              <UserCheck className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-medium mt-1">Check-in</span>
+                            <div className="flex gap-1 mt-1">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-7 px-2 text-xs"
+                                onClick={() => openDialog(visit.id, 'checkin')}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Arrow */}
+                          <div className="mx-2">
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          
+                          {/* Vitals */}
+                          <div className="flex flex-col items-center">
+                            <div className="rounded-full bg-blue-100 p-2 text-blue-700">
+                              <Thermometer className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-medium mt-1">Vitals</span>
+                            <div className="flex gap-1 mt-1">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => openDialog(visit.id, 'vitals')}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                              >
+                                <PlusCircle className="h-3 w-3 mr-1" />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Arrow */}
+                          <div className="mx-2">
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          
+                          {/* Consultation */}
+                          <div className="flex flex-col items-center">
+                            <div className="rounded-full bg-purple-100 p-2 text-purple-700">
+                              <FileText className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-medium mt-1">Consultation</span>
+                            <div className="flex gap-1 mt-1">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => openDialog(visit.id, 'consultation')}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                              >
+                                <PlusCircle className="h-3 w-3 mr-1" />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Arrow */}
+                          <div className="mx-2">
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          
+                          {/* Prescription */}
+                          <div className="flex flex-col items-center">
+                            <div className="rounded-full bg-amber-100 p-2 text-amber-700">
+                              <FileBarChart className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-medium mt-1">Prescription</span>
+                            <div className="flex gap-1 mt-1">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => openDialog(visit.id, 'prescription')}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                              >
+                                <PlusCircle className="h-3 w-3 mr-1" />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Arrow */}
+                          <div className="mx-2">
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          
+                          {/* Tests/Reports */}
+                          <div className="flex flex-col items-center">
+                            <div className="rounded-full bg-indigo-100 p-2 text-indigo-700">
+                              <TestTube className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-medium mt-1">Tests/Reports</span>
+                            <div className="flex gap-1 mt-1">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => openDialog(visit.id, 'tests')}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                              >
+                                <PlusCircle className="h-3 w-3 mr-1" />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Arrow */}
+                          <div className="mx-2">
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          
+                          {/* Payment */}
+                          <div className="flex flex-col items-center">
+                            <div className="rounded-full bg-emerald-100 p-2 text-emerald-700">
+                              <Receipt className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-medium mt-1">Payment</span>
+                            <div className="flex gap-1 mt-1">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => openDialog(visit.id, 'payment')}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                              >
+                                <PlusCircle className="h-3 w-3 mr-1" />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
                       <div className="mb-4">
                         <h4 className="text-sm font-medium">Reason for Visit</h4>
                         <p className="mt-1">{visit.reasonForVisit}</p>
@@ -251,65 +608,6 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                         </div>
                       )}
                       
-                      <div className="my-4">
-                        <Separator />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <VisitTimelineItem 
-                          icon={<UserCheck className="h-4 w-4" />}
-                          label="Check-in" 
-                          status="Completed" 
-                          color="text-green-600"
-                        />
-                        <VisitTimelineItem 
-                          icon={<Thermometer className="h-4 w-4" />}
-                          label="Vitals" 
-                          status="Recorded"
-                          color="text-blue-600" 
-                        />
-                        <VisitTimelineItem 
-                          icon={<FileText className="h-4 w-4" />}
-                          label="Consultation" 
-                          status="Completed" 
-                          color="text-purple-600"
-                        />
-                        <VisitTimelineItem 
-                          icon={<TestTube className="h-4 w-4" />}
-                          label="Tests" 
-                          status={visit.status === 'open' ? "Ordered" : "Completed"} 
-                          color={visit.status === 'open' ? "text-amber-600" : "text-green-600"}
-                        />
-                        <VisitTimelineItem 
-                          icon={<FileBarChart className="h-4 w-4" />}
-                          label="Prescription" 
-                          status="Issued" 
-                          color="text-green-600"
-                        />
-                        <VisitTimelineItem 
-                          icon={<ArrowRightLeft className="h-4 w-4" />}
-                          label="Follow-up" 
-                          status={visit.status === 'follow-up' ? "Scheduled" : "None"} 
-                          color={visit.status === 'follow-up' ? "text-blue-600" : "text-gray-400"}
-                        />
-                        <VisitTimelineItem 
-                          icon={<CheckCheck className="h-4 w-4" />}
-                          label="Visit Status" 
-                          status={visit.status === 'closed' ? "Closed" : "Open"} 
-                          color={visit.status === 'closed' ? "text-green-600" : "text-amber-600"}
-                        />
-                        <VisitTimelineItem 
-                          icon={<Receipt className="h-4 w-4" />}
-                          label="Payment" 
-                          status={visit.paymentStatus || "Unknown"} 
-                          color={
-                            visit.paymentStatus === 'paid' ? "text-green-600" : 
-                            visit.paymentStatus === 'partial' ? "text-amber-600" : 
-                            "text-red-600"
-                          }
-                        />
-                      </div>
-                      
                       <div className="mt-4 flex justify-end gap-2">
                         <Button size="sm" variant="outline">
                           <TestTube className="mr-2 h-4 w-4" />
@@ -334,6 +632,8 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
               </div>
             </div>
           ))}
+          
+          {renderDialog()}
         </div>
         
         <div className="flex justify-center mt-8">
