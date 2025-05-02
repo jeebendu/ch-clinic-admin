@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +21,8 @@ import {
   Edit,
   CheckCheck,
   FileEdit,
-  FileTextIcon
+  FileTextIcon,
+  Printer
 } from 'lucide-react';
 import { Visit, VisitStatus, VisitType } from '../../appointments/types/visit';
 import { format, isToday, parseISO } from 'date-fns';
@@ -29,6 +31,8 @@ import { useNavigate } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useToast } from '@/hooks/use-toast';
+import { createPrescription } from '../../appointments/services/PrescriptionService';
 
 interface PatientVisitTimelineProps {
   patientId: string;
@@ -200,6 +204,7 @@ const getMockReports = (visitId: string) => {
 const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }) => {
   const navigate = useNavigate();
   const visits = getMockVisits(patientId);
+  const { toast } = useToast();
   
   const [editingNotes, setEditingNotes] = useState<{[key: string]: boolean}>({});
   const [notesValues, setNotesValues] = useState<{[key: string]: string}>({});
@@ -244,6 +249,67 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
       ...prev,
       [visitId]: !prev[visitId]
     }));
+  };
+
+  const handlePrintPrescription = (visitId: string) => {
+    // Mock prescription data for the selected visit
+    const mockPrescription = {
+      id: parseInt(visitId),
+      medicines: getMockPrescriptionSummary(visitId).map(med => ({
+        name: med.name,
+        dosage: med.dosage,
+        frequency: med.frequency,
+        duration: med.duration,
+        timings: '',
+        instruction: ''
+      })),
+      temperature: 98.6,
+      pulse: 72,
+      respiratory: 16,
+      spo2: 98,
+      height: 170,
+      weight: 70,
+      waist: 80,
+      bsa: 1.7,
+      bmi: 24.2,
+      previousHistory: '',
+      previousClinicNote: '',
+      clinicNotes: 'Patient visit notes',
+      laoratoryTestList: [],
+      complaints: 'Various symptoms',
+      advice: 'Follow prescription',
+      followUp: new Date(),
+      symptoms: 'Various symptoms',
+      diagnosis: 'Diagnosis for visit ' + visitId,
+      doctor: {
+        firstname: 'Doctor',
+        lastname: 'Name',
+        id: 1
+      },
+      patient: {
+        id: parseInt(patientId),
+        firstname: 'Patient',
+        lastname: 'Name',
+        email: '',
+        mobile: '',
+        gender: ''
+      }
+    };
+
+    try {
+      createPrescription(parseInt(visitId), mockPrescription);
+      toast({
+        title: 'Printing prescription',
+        description: `Prescription for visit #${visitId} is being prepared`,
+      });
+    } catch (error) {
+      console.error('Error printing prescription:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to print prescription.',
+        variant: 'destructive',
+      });
+    }
   };
   
   if (visits.length === 0) {
@@ -485,6 +551,15 @@ const PatientVisitTimeline: React.FC<PatientVisitTimelineProps> = ({ patientId }
                         <h4 className="font-medium mb-2 flex items-center gap-1">
                           <FileEdit className="h-4 w-4 text-primary" />
                           <span>Prescription Summary</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="ml-auto h-6 px-2"
+                            onClick={() => handlePrintPrescription(visit.id)}
+                          >
+                            <Printer className="h-3.5 w-3.5 mr-1" />
+                            Print
+                          </Button>
                         </h4>
                         
                         <div className="bg-gray-50 p-3 rounded-md">

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileEdit, Calendar, Download } from 'lucide-react';
+import { FileEdit, Calendar, Download, Printer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Prescription } from '../types/Prescription';
@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
+import { createPrescription } from '../../appointments/services/PrescriptionService';
 
 interface PatientAllPrescriptionsSectionProps {
   patientId: string;
@@ -32,10 +33,9 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
       try {
         // In a real application, this would be an API call to get all prescriptions
         // Mocked data for now
-        const mockedPrescriptions: any[] = [
+        const mockedPrescriptions: Prescription[] = [
           {
             id: 1,
-            prescriptionId: 'RX-10001',
             medicines: [
               { 
                 name: 'Amoxicillin',
@@ -57,9 +57,20 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
             temperature: 98.6,
             pulse: 72,
             respiratory: 16,
+            spo2: 98,
+            height: 175,
+            weight: 70,
+            waist: 80,
+            bsa: 1.8,
+            bmi: 22.9,
+            previousHistory: '',
+            previousClinicNote: '',
             clinicNotes: 'Patient presented with ear pain and mild fever',
+            laoratoryTestList: [],
             complaints: 'Ear pain, difficulty hearing',
             advice: 'Rest and follow-up in 1 week',
+            followUp: new Date(2025, 1, 22),
+            symptoms: 'Ear pain, mild fever',
             diagnosis: 'Acute otitis media',
             doctor: {
               firstname: 'Sarah',
@@ -68,12 +79,16 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
             },
             patient: {
               id: parseInt(patientId),
-            },
-            visitDate: new Date(2025, 0, 15).toISOString()
+              // Adding minimal required fields for the patient object
+              firstname: '',
+              lastname: '',
+              email: '',
+              mobile: '',
+              gender: ''
+            }
           },
           {
             id: 2,
-            prescriptionId: 'RX-10002',
             medicines: [
               { 
                 name: 'Cetirizine',
@@ -87,9 +102,20 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
             temperature: 99.1,
             pulse: 78,
             respiratory: 18,
+            spo2: 97,
+            height: 175,
+            weight: 70,
+            waist: 80,
+            bsa: 1.8,
+            bmi: 22.9,
+            previousHistory: '',
+            previousClinicNote: '',
             clinicNotes: 'Patient came for follow-up. Ear infection is clearing up but now experiencing allergic symptoms',
+            laoratoryTestList: [],
             complaints: 'Sneezing, runny nose',
             advice: 'Avoid allergens and follow-up if symptoms persist',
+            followUp: new Date(2025, 2, 5),
+            symptoms: 'Sneezing, runny nose, itchy eyes',
             diagnosis: 'Allergic rhinitis',
             doctor: {
               firstname: 'Michael',
@@ -98,8 +124,13 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
             },
             patient: {
               id: parseInt(patientId),
-            },
-            visitDate: new Date(2025, 1, 5).toISOString()
+              // Adding minimal required fields for the patient object
+              firstname: '',
+              lastname: '',
+              email: '',
+              mobile: '',
+              gender: ''
+            }
           }
         ];
         
@@ -127,6 +158,23 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
       description: `Downloading prescription #${id}`,
     });
     // In a real application, this would trigger a download
+  };
+
+  const handlePrintPrescription = (prescription: Prescription) => {
+    try {
+      createPrescription(prescription.id, prescription);
+      toast({
+        title: 'Printing prescription',
+        description: `Prescription for ${prescription.diagnosis} is being prepared`,
+      });
+    } catch (error) {
+      console.error('Error printing prescription:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to print prescription.',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading) {
@@ -158,45 +206,57 @@ const PatientAllPrescriptionsSection = ({ patientId }: PatientAllPrescriptionsSe
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Prescription ID</TableHead>
+                  <TableHead>Prescription #</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Doctor</TableHead>
                   <TableHead>Diagnosis</TableHead>
-                  <TableHead>Medications</TableHead>
+                  <TableHead>Medications & Dosage</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {prescriptions.map((prescription) => (
                   <TableRow key={prescription.id}>
-                    <TableCell className="font-medium">{prescription.prescriptionId}</TableCell>
+                    <TableCell className="font-medium">RX-{prescription.id.toString().padStart(5, '0')}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span>{prescription.visitDate ? format(new Date(prescription.visitDate), 'MMM d, yyyy') : 'Unknown'}</span>
+                        <span>{prescription.followUp ? format(new Date(prescription.followUp), 'MMM d, yyyy') : 'Unknown'}</span>
                       </div>
                     </TableCell>
                     <TableCell>Dr. {prescription.doctor.firstname} {prescription.doctor.lastname}</TableCell>
                     <TableCell className="max-w-[150px] truncate">{prescription.diagnosis}</TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {prescription.medicines.map((med: any, index: number) => (
-                          <Badge key={index} variant="outline" className="bg-muted/50">
-                            {med.name}
+                      <div className="flex flex-col gap-1">
+                        {prescription.medicines.map((med, index) => (
+                          <Badge key={index} variant="outline" className="bg-muted/50 flex items-center gap-1 w-fit">
+                            <span className="font-medium">{med.name}</span>
+                            <span className="text-xs">({med.dosage})</span>
                           </Badge>
                         ))}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex items-center gap-1"
-                        onClick={() => handleDownloadPrescription(prescription.id)}
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                        Download
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex items-center gap-1"
+                          onClick={() => handleDownloadPrescription(prescription.id)}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Download
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex items-center gap-1"
+                          onClick={() => handlePrintPrescription(prescription)}
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                          Print
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
