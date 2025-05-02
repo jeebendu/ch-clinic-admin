@@ -1,7 +1,14 @@
-import { AppointmentRequest } from "../types/AppointmentRequest";
-import { DoctorClinic } from "../../doctor/types/DoctorClinic";
+import { AppointmentRequest } from "../types/appointmentRequest";
+import { DoctorClinic } from "../types/DoctorClinic";
 import { Service } from "../../service/types/Service";
-import { Branch } from "../../branch/types/Branch";
+import { format } from "date-fns";
+
+interface Country {
+  id: number;
+  name: string;
+  code: string;
+  status: string;
+}
 
 const mockAppointmentRequests: AppointmentRequest[] = [
   {
