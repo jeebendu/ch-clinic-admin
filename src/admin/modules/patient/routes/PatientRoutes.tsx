@@ -11,10 +11,19 @@ import BeraForm from "../components/reports/BeraForm";
 import ABRForm from "../components/reports/ABRForm";
 import SpeechForm from "../components/reports/SpeechForm";
 
+// Mock handlers for report forms
+const mockReportHandlers = {
+  onCancel: () => {},
+  onSave: () => {},
+  open: true,
+  onOpenChange: () => {}
+};
+
 const PatientRoutes = () => {
   // Mocked patient for demo purposes
   const demoPatient: Patient = {
     id: 1,
+    uid: "user-1",
     firstname: "Demo",
     lastname: "Patient",
     user: {
@@ -49,8 +58,13 @@ const PatientRoutes = () => {
       effectiveFrom: new Date(),
       effectiveTo: new Date()
     },
-    birthday: new Date(),
-    gender: "MALE"
+    dob: new Date(),
+    age: 30,
+    address: "123 Demo Street",
+    gender: "MALE",
+    refDoctor: null,
+    state: null,
+    district: null
   };
 
   return (
@@ -62,10 +76,10 @@ const PatientRoutes = () => {
       <Route path=":id" element={<PatientView />} />
       <Route path="/prescriptions/:id" element={<PrescriptionView />} />
       <Route path="/prescription/:id" element={<CreatePrescription />} />
-      <Route path="/reports/audiometry/:id" element={<AudiometryForm patient={demoPatient} />} />
-      <Route path="/reports/bera/:id" element={<BeraForm patient={demoPatient} />} />
-      <Route path="/reports/abr/:id" element={<ABRForm patient={demoPatient} />} />
-      <Route path="/reports/speech/:id" element={<SpeechForm patient={demoPatient} />} />
+      <Route path="/reports/audiometry/:id" element={<AudiometryForm patient={demoPatient} {...mockReportHandlers} />} />
+      <Route path="/reports/bera/:id" element={<BeraForm patient={demoPatient} {...mockReportHandlers} />} />
+      <Route path="/reports/abr/:id" element={<ABRForm patient={demoPatient} {...mockReportHandlers} />} />
+      <Route path="/reports/speech/:id" element={<SpeechForm patient={demoPatient} {...mockReportHandlers} />} />
     </Routes>
   );
 };

@@ -32,7 +32,7 @@ interface SpeechData {
   notes?: string;
 }
 
-interface SpeechFormProps {
+export interface SpeechFormProps {
   patient: Patient;
   onCancel: () => void;
   onSave: (data: SpeechData) => void;
