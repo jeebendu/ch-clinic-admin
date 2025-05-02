@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminLayout } from '@/admin/components/AdminLayout';
+import { Textarea } from '@/components/ui/textarea';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -30,15 +31,15 @@ const colorLeft = 'blue';
 const colorRight = 'red';
 
 // Create base datasets for left ear
-const ACUL = createBaseChartData('AC U', 'crossRot', colorLeft);
-const ACML = createBaseChartData('AC M', 'rect', colorLeft);
+const ACUL = createBaseChartData('AC U', createImage('acul'), colorLeft);
+const ACML = createBaseChartData('AC M', createImage('acml'), colorLeft);
 const BCUL = createBaseChartData('BC U', createImage('bcul'), colorLeft, [4, 8]);
 const BCML = createBaseChartData('BC M', createImage('bcml'), colorLeft, [4, 8]);
 const NORL = createBaseChartData('No R', createImage('nrl'), colorLeft);
 
 // Create base datasets for right ear
-const ACUR = createBaseChartData('AC U', 'circle', colorRight);
-const ACMR = createBaseChartData('AC M', 'triangle', colorRight);
+const ACUR = createBaseChartData('AC U', createImage('acur'), colorRight);
+const ACMR = createBaseChartData('AC M', createImage('acmr'), colorRight);
 const BCUR = createBaseChartData('BC U', createImage('bcur'), colorRight, [4, 8]);
 const BCMR = createBaseChartData('BC M', createImage('bcmr'), colorRight, [4, 8]);
 const NORR = createBaseChartData('No R', createImage('nrr'), colorRight);
@@ -101,6 +102,33 @@ const AudiometryForm: React.FC = () => {
       bcu: FREQUENCY_LABELS.map(label => ({ label, value: null })),
       bcm: FREQUENCY_LABELS.map(label => ({ label, value: null })),
       nor: FREQUENCY_LABELS.map(label => ({ label, value: null })),
+    },
+    additionalTests: {
+      right: {
+        pta: '',
+        sat: '',
+        srt: '',
+        sds: '',
+        mcl: '',
+        ucl: '',
+        rinne: '',
+        weber: ''
+      },
+      left: {
+        pta: '',
+        sat: '',
+        srt: '',
+        sds: '',
+        mcl: '',
+        ucl: '',
+        rinne: '',
+        weber: ''
+      }
+    },
+    diagnosis: {
+      rightEar: '',
+      leftEar: '',
+      recommendation: ''
     },
     earLeft: [{}],
     earRight: [{}],
@@ -200,7 +228,35 @@ const AudiometryForm: React.FC = () => {
       const data = await AudiometryService.getById(id);
       setAudiogram({
         ...data,
-        visitId: visitId || data.visitId
+        visitId: visitId || data.visitId,
+        // Initialize additional fields if they don't exist
+        additionalTests: data.additionalTests || {
+          right: {
+            pta: '',
+            sat: '',
+            srt: '',
+            sds: '',
+            mcl: '',
+            ucl: '',
+            rinne: '',
+            weber: ''
+          },
+          left: {
+            pta: '',
+            sat: '',
+            srt: '',
+            sds: '',
+            mcl: '',
+            ucl: '',
+            rinne: '',
+            weber: ''
+          }
+        },
+        diagnosis: data.diagnosis || {
+          rightEar: '',
+          leftEar: '',
+          recommendation: ''
+        }
       });
       
       // Initialize modality checkboxes
@@ -248,6 +304,25 @@ const AudiometryForm: React.FC = () => {
     
     // Update charts
     updateChartData(type, side);
+  };
+
+  const handleAdditionalTestChange = (
+    side: 'left' | 'right',
+    field: string,
+    value: string
+  ) => {
+    const newAudiogram = { ...audiogram };
+    newAudiogram.additionalTests[side][field] = value;
+    setAudiogram(newAudiogram);
+  };
+
+  const handleDiagnosisChange = (
+    field: 'rightEar' | 'leftEar' | 'recommendation',
+    value: string
+  ) => {
+    const newAudiogram = { ...audiogram };
+    newAudiogram.diagnosis[field] = value;
+    setAudiogram(newAudiogram);
   };
 
   const updateChartData = (type: string, side: 'left' | 'right') => {
@@ -745,6 +820,229 @@ const AudiometryForm: React.FC = () => {
             </Card>
           )}
 
+          {/* Additional Tests Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Tests</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Right Ear</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="pta-right">PTA</Label>
+                      <Input
+                        id="pta-right"
+                        value={audiogram.additionalTests.right.pta}
+                        onChange={(e) => handleAdditionalTestChange('right', 'pta', e.target.value)}
+                        placeholder="33"
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sat-right">SAT</Label>
+                      <Input
+                        id="sat-right"
+                        value={audiogram.additionalTests.right.sat}
+                        onChange={(e) => handleAdditionalTestChange('right', 'sat', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="srt-right">SRT</Label>
+                      <Input
+                        id="srt-right"
+                        value={audiogram.additionalTests.right.srt}
+                        onChange={(e) => handleAdditionalTestChange('right', 'srt', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sds-right">SDS</Label>
+                      <Input
+                        id="sds-right"
+                        value={audiogram.additionalTests.right.sds}
+                        onChange={(e) => handleAdditionalTestChange('right', 'sds', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mcl-right">MCL</Label>
+                      <Input
+                        id="mcl-right"
+                        value={audiogram.additionalTests.right.mcl}
+                        onChange={(e) => handleAdditionalTestChange('right', 'mcl', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ucl-right">UCL</Label>
+                      <Input
+                        id="ucl-right"
+                        value={audiogram.additionalTests.right.ucl}
+                        onChange={(e) => handleAdditionalTestChange('right', 'ucl', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rinne-right">RINNE</Label>
+                      <Input
+                        id="rinne-right"
+                        value={audiogram.additionalTests.right.rinne}
+                        onChange={(e) => handleAdditionalTestChange('right', 'rinne', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weber-right">WEBER</Label>
+                      <Input
+                        id="weber-right"
+                        value={audiogram.additionalTests.right.weber}
+                        onChange={(e) => handleAdditionalTestChange('right', 'weber', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Left Ear</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="pta-left">PTA</Label>
+                      <Input
+                        id="pta-left"
+                        value={audiogram.additionalTests.left.pta}
+                        onChange={(e) => handleAdditionalTestChange('left', 'pta', e.target.value)}
+                        placeholder="33"
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sat-left">SAT</Label>
+                      <Input
+                        id="sat-left"
+                        value={audiogram.additionalTests.left.sat}
+                        onChange={(e) => handleAdditionalTestChange('left', 'sat', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="srt-left">SRT</Label>
+                      <Input
+                        id="srt-left"
+                        value={audiogram.additionalTests.left.srt}
+                        onChange={(e) => handleAdditionalTestChange('left', 'srt', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sds-left">SDS</Label>
+                      <Input
+                        id="sds-left"
+                        value={audiogram.additionalTests.left.sds}
+                        onChange={(e) => handleAdditionalTestChange('left', 'sds', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mcl-left">MCL</Label>
+                      <Input
+                        id="mcl-left"
+                        value={audiogram.additionalTests.left.mcl}
+                        onChange={(e) => handleAdditionalTestChange('left', 'mcl', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ucl-left">UCL</Label>
+                      <Input
+                        id="ucl-left"
+                        value={audiogram.additionalTests.left.ucl}
+                        onChange={(e) => handleAdditionalTestChange('left', 'ucl', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rinne-left">RINNE</Label>
+                      <Input
+                        id="rinne-left"
+                        value={audiogram.additionalTests.left.rinne}
+                        onChange={(e) => handleAdditionalTestChange('left', 'rinne', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weber-left">WEBER</Label>
+                      <Input
+                        id="weber-left"
+                        value={audiogram.additionalTests.left.weber}
+                        onChange={(e) => handleAdditionalTestChange('left', 'weber', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modality Legend */}
+              <div className="mt-6 border rounded-lg p-4 bg-gray-50">
+                <h3 className="text-lg font-medium mb-2">Modality Legend</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center">
+                        <span className="text-white text-xs">O</span>
+                      </div>
+                      <span className="text-sm">AC unmasked (Right)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                        <span className="text-white text-xs">X</span>
+                      </div>
+                      <span className="text-sm">AC unmasked (Left)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-5 h-5 border border-red-500 flex items-center justify-center">
+                        <span className="text-red-500 text-xs">△</span>
+                      </div>
+                      <span className="text-sm">AC masked (Right)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-5 h-5 border border-blue-500 flex items-center justify-center">
+                        <span className="text-blue-500 text-xs">□</span>
+                      </div>
+                      <span className="text-sm">AC masked (Left)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        <span className="text-red-500 text-xs">&lt;</span>
+                      </div>
+                      <span className="text-sm">BC unmasked (Right)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        <span className="text-blue-500 text-xs">&gt;</span>
+                      </div>
+                      <span className="text-sm">BC unmasked (Left)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -763,6 +1061,47 @@ const AudiometryForm: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Diagnosis Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Provisional Diagnosis</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <Label htmlFor="right-ear-diagnosis">Right Ear</Label>
+                  <Textarea
+                    id="right-ear-diagnosis"
+                    value={audiogram.diagnosis.rightEar}
+                    onChange={(e) => handleDiagnosisChange('rightEar', e.target.value)}
+                    placeholder="Enter diagnosis for right ear"
+                    className="min-h-[100px]"
+                  />
+                </div>
+                <div className="space-y-4">
+                  <Label htmlFor="left-ear-diagnosis">Left Ear</Label>
+                  <Textarea
+                    id="left-ear-diagnosis"
+                    value={audiogram.diagnosis.leftEar}
+                    onChange={(e) => handleDiagnosisChange('leftEar', e.target.value)}
+                    placeholder="Enter diagnosis for left ear"
+                    className="min-h-[100px]"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 space-y-4">
+                <Label htmlFor="recommendation">Recommendation</Label>
+                <Textarea
+                  id="recommendation"
+                  value={audiogram.diagnosis.recommendation}
+                  onChange={(e) => handleDiagnosisChange('recommendation', e.target.value)}
+                  placeholder="Enter recommendations"
+                  className="min-h-[100px]"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="flex justify-end space-x-3 pt-4">
             <Button 
