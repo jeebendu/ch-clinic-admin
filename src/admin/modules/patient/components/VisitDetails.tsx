@@ -9,29 +9,21 @@ import {
   Printer, 
   FileText, 
   TestTube, 
-  FileBarChart, 
-  ArrowRightLeft, 
+  FileBarChart,
   CheckCheck,
   UserCheck,
   Thermometer,
-  FilePlus,
-  ThermometerSnowflake,
   Stethoscope,
-  FileEdit,
-  Edit,
-  CreditCard,
+  Save,
+  Plus,
   PillBottle,
   User,
   Activity,
   Droplet,
   Heart,
   Wind,
-  ClipboardList,
-  Pen,
-  Bot,
+  AlertCircle,
   Lightbulb,
-  Save,
-  MessageSquare,
   X
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -40,21 +32,41 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from 'sonner';
 
 const VisitDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [editingNotes, setEditingNotes] = useState(false);
-  const [visitNotes, setVisitNotes] = useState("");
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [customSymptom, setCustomSymptom] = useState("");
-  const [reasonForVisit, setReasonForVisit] = useState("");
-
-  // Determine if this visit is for the current date (for edit permissions)
-  const isCurrent = true; // Just for demo - in real app, compare with actual date
+  const [chiefComplaint, setChiefComplaint] = useState("");
+  const [diagnosis, setDiagnosis] = useState<string[]>([]);
+  const [selectedPrescriptions, setSelectedPrescriptions] = useState<any[]>([]);
+  const [selectedLabTests, setSelectedLabTests] = useState<any[]>([]);
+  const [clinicalNotes, setClinicalNotes] = useState("");
+  const [addMedicationDialogOpen, setAddMedicationDialogOpen] = useState(false);
+  const [addTestDialogOpen, setAddTestDialogOpen] = useState(false);
+  const [newMedication, setNewMedication] = useState({
+    name: "",
+    dosage: "",
+    frequency: "",
+    duration: "",
+    instruction: ""
+  });
+  const [newTest, setNewTest] = useState({
+    name: "",
+    instructions: ""
+  });
 
   // Mocked visit data - in a real app, this would be fetched from an API
   const visit = {
@@ -84,29 +96,11 @@ const VisitDetails = () => {
     chronicConditions: ["Hypertension"]
   };
 
-  // This would also be actual data in a real app
-  const tests = [
-    { id: 1, name: "Audiometry Test", status: "Completed", date: new Date(2025, 3, 28).toISOString(), type: "audiometry" },
-    { id: 2, name: "Tympanometry", status: "Ordered", date: null, type: "tympanometry" }
-  ];
-  
-  const prescriptions = [
-    { 
-      id: 1, 
-      medicine: "Amoxicillin", 
-      dosage: "500mg",
-      frequency: "3 times daily",
-      duration: "7 days",
-      instructions: "Take with food"
-    },
-    { 
-      id: 2, 
-      medicine: "Ibuprofen", 
-      dosage: "400mg",
-      frequency: "As needed",
-      duration: "5 days",
-      instructions: "Take for pain"
-    }
+  // Common symptoms for this department (ENT)
+  const commonSymptoms = [
+    "Ear pain", "Hearing loss", "Tinnitus", "Dizziness", "Ear discharge", 
+    "Ear fullness", "Ear itching", "Sore throat", "Nasal congestion",
+    "Post-nasal drip", "Voice changes", "Headache", "Fever", "Dry cough"
   ];
 
   // AI-suggested diagnoses
@@ -119,7 +113,8 @@ const VisitDetails = () => {
   // AI-suggested lab tests
   const suggestedLabTests = [
     { id: 1, name: "Audiometry Test", rationale: "For hearing loss evaluation" },
-    { id: 2, name: "Tympanometry", rationale: "To assess middle ear function" }
+    { id: 2, name: "Tympanometry", rationale: "To assess middle ear function" },
+    { id: 3, name: "CBC", rationale: "To check for infection markers" }
   ];
 
   // AI-suggested prescriptions
@@ -153,19 +148,20 @@ const VisitDetails = () => {
     }
   ];
 
-  // Common symptoms for this department (ENT)
-  const commonSymptoms = [
-    "Ear pain", 
-    "Hearing loss", 
-    "Tinnitus", 
-    "Dizziness", 
-    "Ear discharge", 
-    "Ear fullness", 
-    "Ear itching",
-    "Sore throat",
-    "Nasal congestion",
-    "Post-nasal drip",
-    "Voice changes"
+  // Contraindication warnings
+  const contraindications = [
+    { 
+      id: 1,
+      severity: "high",
+      medications: ["Bactrim DS", "Metronidazole"],
+      message: "Bactrim DS + Metronidazole combination is contraindicated"
+    }
+  ];
+
+  // Templates for common conditions
+  const templates = [
+    { id: 1, name: "Common Cold", symptoms: ["Nasal congestion", "Sore throat", "Cough"], diagnosis: "Viral URTI" },
+    { id: 2, name: "Acute Otitis Media", symptoms: ["Ear pain", "Fever", "Hearing loss"], diagnosis: "Acute otitis media" }
   ];
 
   const handleBackClick = () => {
@@ -187,32 +183,110 @@ const VisitDetails = () => {
     }
   };
 
-  const handleGenerateSummary = () => {
-    // In a real app, this would send data to an AI service and get a response
-    console.log("Generating consultation summary...");
+  const handleDiagnosisSelect = (diagnosis: string) => {
+    if (!diagnosis.includes(diagnosis)) {
+      setDiagnosis([...diagnosis, diagnosis]);
+    }
   };
 
   const handleSaveConsultation = () => {
+    if (symptoms.length === 0) {
+      toast.error("Please add at least one symptom");
+      return;
+    }
+    
+    if (diagnosis.length === 0) {
+      toast.error("Please select at least one diagnosis");
+      return;
+    }
+    
+    toast.success("Consultation saved successfully");
     // In a real app, this would save the consultation data to the backend
     console.log("Saving consultation...");
   };
 
-  const toggleEditNotes = () => {
-    if (!editingNotes) {
-      setVisitNotes(visit.notes || "");
+  const handleAddSuggestedPrescription = (prescription: any) => {
+    if (!selectedPrescriptions.some(p => p.id === prescription.id)) {
+      setSelectedPrescriptions([...selectedPrescriptions, prescription]);
+      toast.success(`Added ${prescription.medicine} to prescription list`);
     }
-    setEditingNotes(!editingNotes);
   };
 
-  const saveNotes = () => {
-    // In a real app, save notes to backend
-    console.log("Saving notes:", visitNotes);
-    setEditingNotes(false);
+  const handleAddSuggestedLabTest = (test: any) => {
+    if (!selectedLabTests.some(t => t.id === test.id)) {
+      setSelectedLabTests([...selectedLabTests, test]);
+      toast.success(`Added ${test.name} to lab tests list`);
+    }
+  };
+
+  const handleAddCustomMedication = () => {
+    // Validation
+    if (!newMedication.name || !newMedication.dosage || !newMedication.frequency || !newMedication.duration) {
+      toast.error("Please fill in all required medication fields");
+      return;
+    }
+    
+    const medication = {
+      id: Date.now(),
+      medicine: newMedication.name,
+      dosage: newMedication.dosage,
+      frequency: newMedication.frequency,
+      duration: newMedication.duration,
+      instruction: newMedication.instruction
+    };
+    
+    setSelectedPrescriptions([...selectedPrescriptions, medication]);
+    setAddMedicationDialogOpen(false);
+    setNewMedication({
+      name: "",
+      dosage: "",
+      frequency: "",
+      duration: "",
+      instruction: ""
+    });
+    toast.success("Medication added successfully");
+  };
+
+  const handleAddCustomLabTest = () => {
+    if (!newTest.name) {
+      toast.error("Please provide a test name");
+      return;
+    }
+    
+    const test = {
+      id: Date.now(),
+      name: newTest.name,
+      instructions: newTest.instructions
+    };
+    
+    setSelectedLabTests([...selectedLabTests, test]);
+    setAddTestDialogOpen(false);
+    setNewTest({
+      name: "",
+      instructions: ""
+    });
+    toast.success("Lab test added successfully");
+  };
+
+  const handleRemovePrescription = (id: number) => {
+    setSelectedPrescriptions(selectedPrescriptions.filter(p => p.id !== id));
+    toast.success("Medication removed from prescription");
+  };
+
+  const handleRemoveLabTest = (id: number) => {
+    setSelectedLabTests(selectedLabTests.filter(t => t.id !== id));
+    toast.success("Lab test removed");
+  };
+
+  const handleUseTemplate = (template: any) => {
+    setSymptoms(template.symptoms);
+    setDiagnosis([template.diagnosis]);
+    toast.success(`Template "${template.name}" applied`);
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header with back button and actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -232,16 +306,15 @@ const VisitDetails = () => {
             </Button>
             <Button onClick={handleSaveConsultation}>
               <Save className="mr-2 h-4 w-4" />
-              Save Consultation
+              Save & Finalize
             </Button>
           </div>
         </div>
 
         {/* Main content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {/* Left sidebar - Patient Context Panel */}
-          <div className="space-y-4">
-            {/* Patient Information Card */}
+          <div className="lg:col-span-1">
             <Card>
               <CardHeader className="bg-muted/50 pb-2">
                 <div className="flex items-center gap-3">
@@ -316,469 +389,348 @@ const VisitDetails = () => {
                   </div>
                 </div>
 
-                {/* Recent Tests */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium flex items-center gap-1">
-                    <ClipboardList className="h-4 w-4 text-primary" />
-                    Recent Tests
-                  </h4>
-                  {tests.map(test => (
-                    <div key={test.id} className="border rounded-md p-2 bg-muted/10 text-sm">
-                      <div className="flex justify-between">
-                        <div className="font-medium">{test.name}</div>
-                        <Badge variant={test.status === "Completed" ? "outline" : "secondary"} className="text-xs">
-                          {test.status}
-                        </Badge>
-                      </div>
-                      {test.date && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {format(new Date(test.date), 'MMM d, yyyy')}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {tests.length === 0 && (
-                    <div className="text-sm text-muted-foreground">No recent tests</div>
-                  )}
+                {/* Templates */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Quick Templates</h4>
+                  <div className="flex flex-col gap-2">
+                    {templates.map((template) => (
+                      <Button 
+                        key={template.id} 
+                        variant="outline" 
+                        className="justify-start text-xs h-8"
+                        onClick={() => handleUseTemplate(template)}
+                      >
+                        {template.name}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Main content area - Right side (integrated consultation view) */}
-          <div className="lg:col-span-3">
-            <Card>
-              <CardHeader className="bg-muted/50 pb-4">
-                <div className="flex flex-col md:flex-row justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="flex items-center gap-2">
-                        <Stethoscope className="h-5 w-5 text-primary" />
-                        Visit on {format(new Date(visit.visitDate), 'MMMM d, yyyy')}
-                      </CardTitle>
-                      <Badge>{visit.visitType === 'routine' ? 'Routine' : visit.visitType}</Badge>
-                      <Badge variant={visit.status === 'closed' ? 'outline' : 'default'}>
-                        {visit.status === 'in-progress' ? 'In Progress' : visit.status}
-                      </Badge>
-                    </div>
-                    <CardDescription className="mt-1">
-                      Patient: {visit.patientName} ({visit.patientId}) • Doctor: {visit.doctorName} • Department: {visit.department}
-                    </CardDescription>
-                  </div>
-                </div>
+          {/* Main content area - Center (Symptoms & Diagnosis) */}
+          <div className="lg:col-span-2">
+            <Card className="h-full">
+              <CardHeader className="bg-muted/50">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Stethoscope className="h-5 w-5 text-primary" />
+                  Symptoms & Diagnosis
+                </CardTitle>
+                <CardDescription>
+                  Record patient symptoms and select diagnoses
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                  {/* Left Section: Patient Symptoms & Vital Signs */}
-                  <div className="lg:col-span-4 space-y-6">
-                    {/* Vital signs summary */}
-                    <div className="mb-6">
-                      <h3 className="text-sm font-medium mb-3 flex items-center">
-                        <Thermometer className="h-4 w-4 mr-2 text-primary" />
-                        Vital Signs
-                      </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <VitalCard 
-                          label="Temperature" 
-                          value={visit.vitalSigns.temperature}
-                          icon={<Thermometer className="h-4 w-4" />}
-                        />
-                        <VitalCard 
-                          label="Heart Rate" 
-                          value={visit.vitalSigns.heartRate}
-                          icon={<Heart className="h-4 w-4" />}
-                        />
-                        <VitalCard 
-                          label="Blood Pressure" 
-                          value={visit.vitalSigns.bloodPressure}
-                          icon={<Droplet className="h-4 w-4" />}
-                        />
-                        <VitalCard 
-                          label="Respiratory Rate" 
-                          value={visit.vitalSigns.respiratoryRate}
-                          icon={<Wind className="h-4 w-4" />}
-                        />
-                        <VitalCard 
-                          label="SpO2" 
-                          value={visit.vitalSigns.oxygenSaturation}
-                          icon={<Activity className="h-4 w-4" />}
-                        />
-                        <VitalCard 
-                          label="Weight" 
-                          value={visit.vitalSigns.weight}
-                          icon={<User className="h-4 w-4" />}
-                        />
+              <CardContent className="space-y-6 pt-6">
+                {/* Chief Complaint */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium">Chief Complaint</h3>
+                  <Textarea 
+                    placeholder="Enter chief complaint" 
+                    className="min-h-[80px]"
+                    value={chiefComplaint}
+                    onChange={(e) => setChiefComplaint(e.target.value)}
+                  />
+                </div>
+                
+                {/* Symptoms section */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium">Selected Symptoms</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {symptoms.length === 0 ? (
+                      <div className="text-muted-foreground text-sm w-full text-center py-2 border border-dashed rounded-md">
+                        No symptoms selected
                       </div>
-                    </div>
-
-                    {/* Symptoms section */}
-                    <div className="space-y-4">
-                      <h3 className="text-base font-medium mb-2 flex items-center gap-2">
-                        <Pen className="h-4 w-4 text-primary" />
-                        Chief Complaint & Symptoms
-                      </h3>
-
-                      <div>
-                        <label className="text-sm font-medium">Reason for visit</label>
-                        <Textarea 
-                          placeholder="Enter chief complaint"
-                          value={reasonForVisit}
-                          onChange={(e) => setReasonForVisit(e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Selected Symptoms</label>
-                        <div className="flex flex-wrap gap-2">
-                          {symptoms.length === 0 ? (
-                            <div className="text-muted-foreground text-sm w-full text-center py-2">
-                              No symptoms selected
-                            </div>
-                          ) : (
-                            symptoms.map((symptom, index) => (
-                              <Badge key={index} variant="secondary" className="pr-1">
-                                {symptom}
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-4 w-4 p-0 ml-1"
-                                  onClick={() => handleSymptomToggle(symptom)}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </Badge>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Add custom symptom */}
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add a custom symptom"
-                          value={customSymptom}
-                          onChange={(e) => setCustomSymptom(e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button 
-                          onClick={handleCustomSymptomAdd} 
-                          disabled={!customSymptom}
-                          size="sm"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                      
-                      {/* Common symptoms */}
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium">Common symptoms</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {commonSymptoms.map((symptom, index) => (
-                            <Badge
-                              key={index}
-                              variant={symptoms.includes(symptom) ? "secondary" : "outline"}
-                              className={symptoms.includes(symptom) 
-                                ? "bg-primary/15 hover:bg-primary/20" 
-                                : "hover:bg-muted/30"
-                              }
-                              onClick={() => handleSymptomToggle(symptom)}
-                            >
-                              {symptom}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Doctor's notes */}
-                    <div>
-                      <div className="font-medium text-sm mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                          <span>Doctor's Notes</span>
-                        </div>
-                        {isCurrent && (
+                    ) : (
+                      symptoms.map((symptom, index) => (
+                        <Badge key={index} variant="secondary" className="pr-1">
+                          {symptom}
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            onClick={toggleEditNotes}
-                            className="h-6 px-2"
+                            className="h-4 w-4 p-0 ml-1"
+                            onClick={() => handleSymptomToggle(symptom)}
                           >
-                            <Edit className="h-3.5 w-3.5" />
+                            <X className="h-3 w-3" />
                           </Button>
-                        )}
-                      </div>
-                      
-                      {editingNotes ? (
-                        <div className="space-y-2">
-                          <Textarea 
-                            value={visitNotes} 
-                            onChange={(e) => setVisitNotes(e.target.value)}
-                            className="min-h-[120px]"
-                          />
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={toggleEditNotes}
-                            >
-                              Cancel
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              onClick={saveNotes}
-                            >
-                              Save Notes
-                            </Button>
+                        </Badge>
+                      ))
+                    )}
+                  </div>
+                </div>
+                
+                {/* Add custom symptom */}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add a symptom"
+                    value={customSymptom}
+                    onChange={(e) => setCustomSymptom(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button 
+                    onClick={handleCustomSymptomAdd} 
+                    disabled={!customSymptom}
+                    size="sm"
+                  >
+                    Add
+                  </Button>
+                </div>
+                
+                {/* Common symptoms */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Common symptoms</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {commonSymptoms.map((symptom, index) => (
+                      <Badge
+                        key={index}
+                        variant={symptoms.includes(symptom) ? "secondary" : "outline"}
+                        className={symptoms.includes(symptom) 
+                          ? "bg-primary/15 hover:bg-primary/20" 
+                          : "hover:bg-muted/30"
+                        }
+                        onClick={() => handleSymptomToggle(symptom)}
+                      >
+                        {symptom}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Suggested Diagnoses */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-500" />
+                    AI Suggested Diagnoses
+                  </h3>
+                  <div className="space-y-2">
+                    {suggestedDiagnoses.map((diag) => (
+                      <div key={diag.id} className="border rounded-md p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h5 className="font-medium">{diag.name}</h5>
+                            <div className="text-xs text-muted-foreground">{diag.code}</div>
                           </div>
+                          <Badge variant="outline" className="text-xs">
+                            {diag.confidence}%
+                          </Badge>
                         </div>
-                      ) : (
-                        <p className="text-sm p-3 bg-muted/30 rounded-md h-[120px] overflow-y-auto">
-                          {visit.notes}
-                        </p>
-                      )}
-                    </div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <Progress value={diag.confidence} className="h-1.5 flex-1" />
+                        </div>
+                        <div className="mt-3 flex justify-end">
+                          <Button 
+                            size="sm" 
+                            className="h-7 text-xs"
+                            onClick={() => handleDiagnosisSelect(diag.name)}
+                          >
+                            Select
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Clinical Notes */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Clinical Notes</h3>
+                  <Textarea 
+                    placeholder="Enter clinical notes"
+                    className="min-h-[100px]"
+                    value={clinicalNotes}
+                    onChange={(e) => setClinicalNotes(e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Right Section: Prescriptions & Lab Tests */}
+          <div className="lg:col-span-2">
+            <Card className="h-full">
+              <CardHeader className="bg-muted/50">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <PillBottle className="h-5 w-5 text-primary" /> 
+                  Drug Prescription & Lab Investigation
+                </CardTitle>
+                <CardDescription>
+                  Add medications and lab tests for the patient
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5 pt-6">
+                {/* Warnings */}
+                {contraindications.length > 0 && (
+                  <Alert className="bg-red-50 border-red-200">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                      {contraindications[0].message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              
+                {/* Prescriptions section */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-medium">Medications</h3>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setAddMedicationDialogOpen(true)}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Add Medication
+                    </Button>
                   </div>
                   
-                  {/* Right Section: AI Suggestions + Diagnoses, Test, Medications */}
-                  <div className="lg:col-span-8 space-y-6">
-                    {/* AI Assistant Section */}
-                    <div className="space-y-5">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-base font-medium flex items-center gap-2">
-                          <Bot className="h-5 w-5 text-primary" />
-                          AI Assistant Suggestions
-                        </h3>
-                        <Button size="sm" variant="outline">
-                          Refresh Suggestions
-                        </Button>
+                  {/* Selected medications */}
+                  <div className="space-y-2">
+                    {selectedPrescriptions.length === 0 ? (
+                      <div className="text-muted-foreground text-sm text-center py-4 border border-dashed rounded-md">
+                        No medications added yet
                       </div>
-
-                      {/* AI-Suggested Diagnoses */}
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-medium flex items-center gap-2">
-                          <Lightbulb className="h-4 w-4 text-amber-500" />
-                          Suggested Diagnoses
-                        </h4>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {suggestedDiagnoses.map(diagnosis => (
-                            <div key={diagnosis.id} className="border rounded-md p-3 hover:shadow-md transition-all">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h5 className="font-medium">{diagnosis.name}</h5>
-                                  <div className="text-xs text-muted-foreground">{diagnosis.code}</div>
-                                </div>
-                                <Badge variant="outline" className="text-xs">
-                                  {diagnosis.confidence}%
-                                </Badge>
+                    ) : (
+                      selectedPrescriptions.map((prescription) => (
+                        <div key={prescription.id} className="border rounded-md p-3 flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">{prescription.medicine}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {prescription.dosage} • {prescription.frequency} • {prescription.duration}
+                            </div>
+                            {prescription.instruction && (
+                              <div className="text-sm mt-1">
+                                Instructions: {prescription.instruction}
                               </div>
-                              
-                              <div className="mt-2 flex items-center">
-                                <Progress value={diagnosis.confidence} className="h-1.5 flex-1" />
-                              </div>
-                              
-                              <div className="mt-3 flex gap-2 justify-end">
-                                <Button variant="outline" size="sm" className="h-7 text-xs">
-                                  Edit
-                                </Button>
-                                <Button size="sm" className="h-7 text-xs">
-                                  Accept
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Tests and Prescriptions */}
-                        <div className="space-y-4">
-                          <h4 className="text-sm font-medium flex items-center gap-2">
-                            <TestTube className="h-4 w-4 text-violet-500" />
-                            Tests & Reports
-                          </h4>
-                          
-                          <div className="space-y-3">
-                            <div className="border rounded-md p-3">
-                              <h5 className="font-medium text-sm mb-2">Current Tests</h5>
-                              {tests.map(test => (
-                                <div key={test.id} className="border-b last:border-0 py-2">
-                                  <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-2">
-                                      {test.type === 'audiometry' ? (
-                                        <FileBarChart className="h-4 w-4 text-blue-500" />
-                                      ) : (
-                                        <TestTube className="h-4 w-4 text-indigo-500" />
-                                      )}
-                                      <span className="text-sm">{test.name}</span>
-                                    </div>
-                                    <Badge variant={test.status === 'Completed' ? 'success' : 'outline'} className="text-xs">
-                                      {test.status}
-                                    </Badge>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-
-                            <div className="space-y-2">
-                              <h5 className="text-sm font-medium">Suggested Tests</h5>
-                              {suggestedLabTests.map(test => (
-                                <div key={test.id} className="border rounded-md p-3 bg-muted/5">
-                                  <div className="flex justify-between items-start">
-                                    <h5 className="font-medium text-sm">{test.name}</h5>
-                                    <Button size="sm" variant="outline" className="h-7 text-xs">
-                                      Order
-                                    </Button>
-                                  </div>
-                                  <div className="text-xs text-muted-foreground mt-1">{test.rationale}</div>
-                                </div>
-                              ))}
-                            </div>
+                            )}
                           </div>
-                        </div>
-                        
-                        {/* Prescriptions */}
-                        <div className="space-y-4">
-                          <h4 className="text-sm font-medium flex items-center gap-2">
-                            <PillBottle className="h-4 w-4 text-green-500" />
-                            Prescriptions
-                          </h4>
-
-                          <div className="space-y-3">
-                            <div className="border rounded-md p-3">
-                              <h5 className="font-medium text-sm mb-2">Current Medications</h5>
-                              {prescriptions.map(prescription => (
-                                <div key={prescription.id} className="border-b last:border-0 py-2">
-                                  <div>
-                                    <div className="flex justify-between">
-                                      <span className="font-medium text-sm">{prescription.medicine}</span>
-                                      <Badge variant="outline" className="text-xs">{prescription.dosage}</Badge>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                      {prescription.frequency} • {prescription.duration}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <h5 className="text-sm font-medium">Suggested Medications</h5>
-                              {suggestedPrescriptions.map(prescription => (
-                                <div key={prescription.id} className="border rounded-md p-3 bg-muted/5">
-                                  <div className="flex justify-between items-start">
-                                    <div>
-                                      <h5 className="font-medium text-sm">{prescription.medicine}</h5>
-                                      <div className="text-xs mt-0.5">
-                                        {prescription.dosage} • {prescription.frequency} • {prescription.duration}
-                                      </div>
-                                    </div>
-                                    <Button size="sm" variant="outline" className="h-7 text-xs">
-                                      Prescribe
-                                    </Button>
-                                  </div>
-                                  
-                                  <div className="text-xs text-muted-foreground mt-1">{prescription.rationale}</div>
-                                  
-                                  {prescription.conflict && (
-                                    <Alert className="mt-2 py-1 px-3 bg-yellow-50">
-                                      <AlertCircle className="h-3.5 w-3.5 text-yellow-700" />
-                                      <AlertDescription className="text-xs text-yellow-700 ml-2">
-                                        {prescription.conflict}
-                                      </AlertDescription>
-                                    </Alert>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Visit Progress & Treatment Plan */}
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Visit Workflow Status</h4>
-                          <div className="flex flex-wrap gap-2">
-                            <VisitStepBadge 
-                              icon={<UserCheck className="h-4 w-4" />} 
-                              label="Check-in"
-                              completed 
-                            />
-                            <VisitStepBadge 
-                              icon={<Thermometer className="h-4 w-4" />} 
-                              label="Vitals"
-                              completed 
-                            />
-                            <VisitStepBadge 
-                              icon={<FileText className="h-4 w-4" />} 
-                              label="Consultation"
-                              completed 
-                            />
-                            <VisitStepBadge 
-                              icon={<FileEdit className="h-4 w-4" />} 
-                              label="Prescription" 
-                              completed={prescriptions.length > 0}
-                            />
-                            <VisitStepBadge 
-                              icon={<TestTube className="h-4 w-4" />} 
-                              label="Tests" 
-                              completed={tests.some(t => t.status === 'Completed')}
-                            />
-                            <VisitStepBadge 
-                              icon={<CreditCard className="h-4 w-4" />} 
-                              label="Payment" 
-                              completed={true}
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Treatment Plan</h4>
-                          <div className="border rounded-md p-3 bg-muted/30">
-                            <p className="text-sm">{visit.treatmentPlan}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Consultation Summary */}
-                    <div className="border-t pt-4 mt-6 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-md font-medium flex items-center gap-2">
-                          <FileText className="h-5 w-5 text-primary" />
-                          Consultation Summary (AI-Generated)
-                        </h3>
-                        <Button size="sm" onClick={handleGenerateSummary}>
-                          Generate Summary
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Textarea 
-                          placeholder="AI-generated consultation summary will appear here..."
-                          className="min-h-[100px]"
-                          value=""
-                        />
-                        <div className="flex justify-end">
-                          <Button variant="outline" size="sm" className="text-xs">
-                            Regenerate
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleRemovePrescription(prescription.id)}
+                          >
+                            <X className="h-4 w-4" />
                           </Button>
                         </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* Suggested medications */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium">AI Suggested Medications</h4>
+                    <div className="space-y-2">
+                      {suggestedPrescriptions.map((prescription) => (
+                        <div key={prescription.id} className="border rounded-md p-3 bg-muted/5">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h5 className="font-medium">{prescription.medicine}</h5>
+                              <div className="text-xs mt-0.5">
+                                {prescription.dosage} • {prescription.frequency} • {prescription.duration}
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 text-xs"
+                              onClick={() => handleAddSuggestedPrescription(prescription)}
+                              disabled={selectedPrescriptions.some(p => p.id === prescription.id)}
+                            >
+                              {selectedPrescriptions.some(p => p.id === prescription.id) ? 'Added' : 'Add'}
+                            </Button>
+                          </div>
+                          
+                          <div className="text-xs text-muted-foreground mt-1">{prescription.rationale}</div>
+                          
+                          {prescription.conflict && (
+                            <Alert className="mt-2 py-1 px-3 bg-yellow-50 border-yellow-100">
+                              <AlertCircle className="h-3.5 w-3.5 text-yellow-700" />
+                              <AlertDescription className="text-xs text-yellow-700 ml-2">
+                                {prescription.conflict}
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                {/* Lab Tests section */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-medium">Lab Tests</h3>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setAddTestDialogOpen(true)}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Add Test
+                    </Button>
+                  </div>
+                  
+                  {/* Selected lab tests */}
+                  <div className="space-y-2">
+                    {selectedLabTests.length === 0 ? (
+                      <div className="text-muted-foreground text-sm text-center py-4 border border-dashed rounded-md">
+                        No lab tests added yet
                       </div>
+                    ) : (
+                      selectedLabTests.map((test) => (
+                        <div key={test.id} className="border rounded-md p-3 flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">{test.name}</div>
+                            {test.instructions && (
+                              <div className="text-sm text-muted-foreground">
+                                Instructions: {test.instructions}
+                              </div>
+                            )}
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleRemoveLabTest(test.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* Suggested lab tests */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium">AI Suggested Lab Tests</h4>
+                    <div className="space-y-2">
+                      {suggestedLabTests.map((test) => (
+                        <div key={test.id} className="border rounded-md p-3 bg-muted/5">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h5 className="font-medium">{test.name}</h5>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {test.rationale}
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 text-xs"
+                              onClick={() => handleAddSuggestedLabTest(test)}
+                              disabled={selectedLabTests.some(t => t.id === test.id)}
+                            >
+                              {selectedLabTests.some(t => t.id === test.id) ? 'Added' : 'Add'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t bg-muted/20 flex justify-between">
+              <CardFooter className="flex justify-end gap-2 bg-muted/20 border-t">
                 <Button variant="outline">
-                  Close Visit
+                  Clear All
                 </Button>
                 <Button onClick={handleSaveConsultation}>
                   <Save className="mr-2 h-4 w-4" />
@@ -789,46 +741,99 @@ const VisitDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Dialog for adding custom medication */}
+      <Dialog open={addMedicationDialogOpen} onOpenChange={setAddMedicationDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Medication</DialogTitle>
+            <DialogDescription>
+              Enter the details for the new medication
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input 
+                value={newMedication.name} 
+                onChange={(e) => setNewMedication({...newMedication, name: e.target.value})}
+                placeholder="Medication name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Dosage</label>
+              <Input 
+                value={newMedication.dosage} 
+                onChange={(e) => setNewMedication({...newMedication, dosage: e.target.value})}
+                placeholder="e.g., 500mg"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Frequency</label>
+              <Input 
+                value={newMedication.frequency} 
+                onChange={(e) => setNewMedication({...newMedication, frequency: e.target.value})}
+                placeholder="e.g., 3 times daily"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Duration</label>
+              <Input 
+                value={newMedication.duration} 
+                onChange={(e) => setNewMedication({...newMedication, duration: e.target.value})}
+                placeholder="e.g., 7 days"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Instructions</label>
+              <Input 
+                value={newMedication.instruction} 
+                onChange={(e) => setNewMedication({...newMedication, instruction: e.target.value})}
+                placeholder="e.g., Take after food"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddMedicationDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddCustomMedication}>Add Medication</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for adding custom test */}
+      <Dialog open={addTestDialogOpen} onOpenChange={setAddTestDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Lab Test</DialogTitle>
+            <DialogDescription>
+              Enter the details for the new lab test
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Test Name</label>
+              <Input 
+                value={newTest.name} 
+                onChange={(e) => setNewTest({...newTest, name: e.target.value})}
+                placeholder="Lab test name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Instructions</label>
+              <Textarea 
+                value={newTest.instructions} 
+                onChange={(e) => setNewTest({...newTest, instructions: e.target.value})}
+                placeholder="Special instructions for this test"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddTestDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddCustomLabTest}>Add Lab Test</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
-  );
-};
-
-interface VisitStepBadgeProps {
-  icon: React.ReactNode;
-  label: string;
-  completed: boolean;
-}
-
-const VisitStepBadge: React.FC<VisitStepBadgeProps> = ({ icon, label, completed }) => {
-  return (
-    <div className={`
-      flex items-center gap-2 px-3 py-1.5 rounded-full text-xs
-      ${completed 
-        ? 'bg-green-100 text-green-800 border border-green-200' 
-        : 'bg-gray-100 text-gray-500 border border-gray-200'
-      }
-    `}>
-      {icon}
-      <span>{label}</span>
-    </div>
-  );
-};
-
-interface VitalCardProps {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-}
-
-const VitalCard: React.FC<VitalCardProps> = ({ label, value, icon }) => {
-  return (
-    <div className="border rounded-lg p-2 bg-muted/10">
-      <div className="flex items-center gap-1 text-muted-foreground mb-1">
-        {icon}
-        <span className="text-xs font-medium">{label}</span>
-      </div>
-      <div className="text-sm font-semibold">{value}</div>
-    </div>
   );
 };
 
