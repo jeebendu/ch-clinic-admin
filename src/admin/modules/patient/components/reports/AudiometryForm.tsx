@@ -13,9 +13,63 @@ import { AUDIOMETRY_CHART_OPTIONS, FREQUENCY_LABELS } from '../../types/Audiomet
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AdminLayout } from '@/admin/components/AdminLayout';
 
 // Register Chart.js components
 Chart.register(...registerables);
+
+// Helper function to create image elements for chart point styles
+const createImage = (name: string): HTMLImageElement => {
+  const img = new Image(16, 16);
+  img.src = `/images/audiogram/${name}.png`;
+  return img;
+};
+
+// Define chart dataset styles with specific colors and point styles
+const colorLeft = 'blue';
+const colorRight = 'red';
+
+// Create base datasets for left ear
+const ACUL = createBaseChartData('AC U', 'crossRot', colorLeft);
+const ACML = createBaseChartData('AC M', 'rect', colorLeft);
+const BCUL = createBaseChartData('BC U', createImage('bcul'), colorLeft, [4, 8]);
+const BCML = createBaseChartData('BC M', createImage('bcml'), colorLeft, [4, 8]);
+const NORL = createBaseChartData('No R', createImage('nrl'), colorLeft);
+
+// Create base datasets for right ear
+const ACUR = createBaseChartData('AC U', 'circle', colorRight);
+const ACMR = createBaseChartData('AC M', 'triangle', colorRight);
+const BCUR = createBaseChartData('BC U', createImage('bcur'), colorRight, [4, 8]);
+const BCMR = createBaseChartData('BC M', createImage('bcmr'), colorRight, [4, 8]);
+const NORR = createBaseChartData('No R', createImage('nrr'), colorRight);
+
+// Helper function to create base chart datasets
+function createBaseChartData(
+  label: string,
+  pointStyle: string | HTMLImageElement,
+  color: string,
+  borderDash?: number[]
+) {
+  const dataset: any = {
+    data: [],
+    label: label,
+    borderWidth: 2,
+    backgroundColor: 'transparent',
+    pointRadius: 8,
+    pointBackgroundColor: 'transparent',
+    tension: 0.1,
+    spanGaps: true,
+    borderColor: color,
+    pointBorderColor: color,
+    pointStyle: pointStyle,
+  };
+
+  if (borderDash) {
+    dataset.borderDash = borderDash;
+  }
+
+  return dataset;
+}
 
 const AudiometryForm: React.FC = () => {
   const { patientId, id } = useParams();
@@ -200,20 +254,56 @@ const AudiometryForm: React.FC = () => {
     const puretone = side === 'left' ? audiogram.puretoneLeft : audiogram.puretoneRight;
     const setChartData = side === 'left' ? setLineChartDataLeft : setLineChartDataRight;
     
-    // Create datasets based on data
     setChartData((prev: any) => {
       const datasets = [...prev.datasets];
-      
-      // Find dataset if exists or create new one
-      let datasetIndex = datasets.findIndex(ds => ds.label === getDatasetLabel(type));
       const values = puretone[type].map((item: any) => item.value);
       
-      // If the dataset exists, update it
+      // Get the base dataset template based on type and side
+      let baseDataset;
+      switch (true) {
+        case side === 'left' && type === 'acu':
+          baseDataset = { ...ACUL, data: values };
+          break;
+        case side === 'left' && type === 'acm':
+          baseDataset = { ...ACML, data: values };
+          break;
+        case side === 'left' && type === 'bcu':
+          baseDataset = { ...BCUL, data: values };
+          break;
+        case side === 'left' && type === 'bcm':
+          baseDataset = { ...BCML, data: values };
+          break;
+        case side === 'left' && type === 'nor':
+          baseDataset = { ...NORL, data: values };
+          break;
+        case side === 'right' && type === 'acu':
+          baseDataset = { ...ACUR, data: values };
+          break;
+        case side === 'right' && type === 'acm':
+          baseDataset = { ...ACMR, data: values };
+          break;
+        case side === 'right' && type === 'bcu':
+          baseDataset = { ...BCUR, data: values };
+          break;
+        case side === 'right' && type === 'bcm':
+          baseDataset = { ...BCMR, data: values };
+          break;
+        case side === 'right' && type === 'nor':
+          baseDataset = { ...NORR, data: values };
+          break;
+        default:
+          baseDataset = createBaseChartData(getDatasetLabel(type), 'circle', side === 'left' ? colorLeft : colorRight);
+          baseDataset.data = values;
+      }
+      
+      // Find if dataset exists
+      const datasetIndex = datasets.findIndex(ds => ds.label === baseDataset.label);
+      
+      // If the dataset exists, update it; otherwise add it
       if (datasetIndex !== -1) {
-        datasets[datasetIndex] = {
-          ...datasets[datasetIndex],
-          data: values,
-        };
+        datasets[datasetIndex] = baseDataset;
+      } else {
+        datasets.push(baseDataset);
       }
       
       return { 
@@ -314,17 +404,30 @@ const AudiometryForm: React.FC = () => {
       if (isTypeChecked) {
         // Add dataset if checked
         if (datasetIndex === -1) {
-          const style = getDatasetStyle(type);
-          datasets.push({
-            label: getDatasetLabel(type),
-            data: audiogram.puretoneLeft[type].map((item: any) => item.value),
-            borderWidth: 2,
-            backgroundColor: 'transparent',
-            pointRadius: 6,
-            tension: 0.1,
-            spanGaps: true,
-            ...style
-          });
+          // Get appropriate base dataset from constants
+          let baseDataset;
+          switch (type) {
+            case 'acu':
+              baseDataset = { ...ACUL };
+              break;
+            case 'acm':
+              baseDataset = { ...ACML };
+              break;
+            case 'bcu':
+              baseDataset = { ...BCUL };
+              break;
+            case 'bcm':
+              baseDataset = { ...BCML };
+              break;
+            case 'nor':
+              baseDataset = { ...NORL };
+              break;
+            default:
+              baseDataset = createBaseChartData(getDatasetLabel(type), 'circle', colorLeft);
+          }
+          
+          baseDataset.data = audiogram.puretoneLeft[type].map((item: any) => item.value);
+          datasets.push(baseDataset);
         }
       } else {
         // Remove dataset if unchecked
@@ -343,17 +446,30 @@ const AudiometryForm: React.FC = () => {
       if (isTypeChecked) {
         // Add dataset if checked
         if (datasetIndex === -1) {
-          const style = getDatasetStyle(type);
-          datasets.push({
-            label: getDatasetLabel(type),
-            data: audiogram.puretoneRight[type].map((item: any) => item.value),
-            borderWidth: 2,
-            backgroundColor: 'transparent',
-            pointRadius: 6,
-            tension: 0.1,
-            spanGaps: true,
-            ...style
-          });
+          // Get appropriate base dataset from constants
+          let baseDataset;
+          switch (type) {
+            case 'acu':
+              baseDataset = { ...ACUR };
+              break;
+            case 'acm':
+              baseDataset = { ...ACMR };
+              break;
+            case 'bcu':
+              baseDataset = { ...BCUR };
+              break;
+            case 'bcm':
+              baseDataset = { ...BCMR };
+              break;
+            case 'nor':
+              baseDataset = { ...NORR };
+              break;
+            default:
+              baseDataset = createBaseChartData(getDatasetLabel(type), 'circle', colorRight);
+          }
+          
+          baseDataset.data = audiogram.puretoneRight[type].map((item: any) => item.value);
+          datasets.push(baseDataset);
         }
       } else {
         // Remove dataset if unchecked
@@ -476,196 +592,198 @@ const AudiometryForm: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-4">
-      <h1 className="text-2xl font-bold">Audiometry Assessment</h1>
-      <form onSubmit={onSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Test Selection</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="acu"
-                  checked={audiogram.modality.acuChecked}
-                  onCheckedChange={() => updateModality('acu')}
-                />
-                <Label htmlFor="acu" className="font-medium">AC Unmasked</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="acm"
-                  checked={audiogram.modality.acmChecked}
-                  onCheckedChange={() => updateModality('acm')}
-                />
-                <Label htmlFor="acm" className="font-medium">AC Masked</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="bcu"
-                  checked={audiogram.modality.bcuChecked}
-                  onCheckedChange={() => updateModality('bcu')}
-                />
-                <Label htmlFor="bcu" className="font-medium">BC Unmasked</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="bcm"
-                  checked={audiogram.modality.bcmChecked}
-                  onCheckedChange={() => updateModality('bcm')}
-                />
-                <Label htmlFor="bcm" className="font-medium">BC Masked</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="nor"
-                  checked={audiogram.modality.norChecked}
-                  onCheckedChange={() => updateModality('nor')}
-                />
-                <Label htmlFor="nor" className="font-medium">No Response</Label>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Combined Data Input Table */}
-        {getCheckedTypes().length > 0 && (
+    <AdminLayout>
+      <div className="space-y-6 p-4">
+        <h1 className="text-2xl font-bold">Audiometry Assessment</h1>
+        <form onSubmit={onSubmit} className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Audiometry Data Input</CardTitle>
+              <CardTitle>Test Selection</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="left" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-2 mb-4">
-                  <TabsTrigger value="left">Left Ear</TabsTrigger>
-                  <TabsTrigger value="right">Right Ear</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="left" className="mt-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Test Type</TableHead>
-                        {FREQUENCY_LABELS.map(freq => (
-                          <TableHead key={freq}>{freq}</TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getCheckedTypes().map(type => (
-                        <TableRow key={`${type}-left`}>
-                          <TableCell className="font-medium" style={{
-                            color: getDatasetStyle(type).borderColor,
-                            fontWeight: 'bold'
-                          }}>
-                            {getTestTypeName(type)}
-                          </TableCell>
-                          {audiogram.puretoneLeft[type].map((item: any) => (
-                            <TableCell key={`${type}-left-${item.label}`}>
-                              <Input
-                                type="number"
-                                min="-10"
-                                max="120"
-                                value={item.value !== null ? item.value : ''}
-                                onChange={(e) => handleInputChange('left', type as any, item.label, e.target.value ? Number(e.target.value) : null)}
-                                className="w-16"
-                                style={{
-                                  borderColor: getDatasetStyle(type).borderColor,
-                                  backgroundColor: item.value !== null ? 'rgba(255, 255, 200, 0.2)' : 'transparent'
-                                }}
-                              />
-                            </TableCell>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="acu"
+                    checked={audiogram.modality.acuChecked}
+                    onCheckedChange={() => updateModality('acu')}
+                  />
+                  <Label htmlFor="acu" className="font-medium">AC Unmasked</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="acm"
+                    checked={audiogram.modality.acmChecked}
+                    onCheckedChange={() => updateModality('acm')}
+                  />
+                  <Label htmlFor="acm" className="font-medium">AC Masked</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="bcu"
+                    checked={audiogram.modality.bcuChecked}
+                    onCheckedChange={() => updateModality('bcu')}
+                  />
+                  <Label htmlFor="bcu" className="font-medium">BC Unmasked</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="bcm"
+                    checked={audiogram.modality.bcmChecked}
+                    onCheckedChange={() => updateModality('bcm')}
+                  />
+                  <Label htmlFor="bcm" className="font-medium">BC Masked</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="nor"
+                    checked={audiogram.modality.norChecked}
+                    onCheckedChange={() => updateModality('nor')}
+                  />
+                  <Label htmlFor="nor" className="font-medium">No Response</Label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Combined Data Input Table */}
+          {getCheckedTypes().length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Audiometry Data Input</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="left" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid grid-cols-2 mb-4">
+                    <TabsTrigger value="left">Left Ear</TabsTrigger>
+                    <TabsTrigger value="right">Right Ear</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="left" className="mt-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Test Type</TableHead>
+                          {FREQUENCY_LABELS.map(freq => (
+                            <TableHead key={freq}>{freq}</TableHead>
                           ))}
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-                
-                <TabsContent value="right" className="mt-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Test Type</TableHead>
-                        {FREQUENCY_LABELS.map(freq => (
-                          <TableHead key={freq}>{freq}</TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getCheckedTypes().map(type => (
-                        <TableRow key={`${type}-right`}>
-                          <TableCell className="font-medium" style={{
-                            color: getDatasetStyle(type).borderColor,
-                            fontWeight: 'bold'
-                          }}>
-                            {getTestTypeName(type)}
-                          </TableCell>
-                          {audiogram.puretoneRight[type].map((item: any) => (
-                            <TableCell key={`${type}-right-${item.label}`}>
-                              <Input
-                                type="number"
-                                min="-10"
-                                max="120"
-                                value={item.value !== null ? item.value : ''}
-                                onChange={(e) => handleInputChange('right', type as any, item.label, e.target.value ? Number(e.target.value) : null)}
-                                className="w-16"
-                                style={{
-                                  borderColor: getDatasetStyle(type).borderColor,
-                                  backgroundColor: item.value !== null ? 'rgba(255, 255, 200, 0.2)' : 'transparent'
-                                }}
-                              />
+                      </TableHeader>
+                      <TableBody>
+                        {getCheckedTypes().map(type => (
+                          <TableRow key={`${type}-left`}>
+                            <TableCell className="font-medium" style={{
+                              color: getDatasetStyle(type).borderColor,
+                              fontWeight: 'bold'
+                            }}>
+                              {getTestTypeName(type)}
                             </TableCell>
+                            {audiogram.puretoneLeft[type].map((item: any) => (
+                              <TableCell key={`${type}-left-${item.label}`}>
+                                <Input
+                                  type="number"
+                                  min="-10"
+                                  max="120"
+                                  value={item.value !== null ? item.value : ''}
+                                  onChange={(e) => handleInputChange('left', type as any, item.label, e.target.value ? Number(e.target.value) : null)}
+                                  className="w-16"
+                                  style={{
+                                    borderColor: getDatasetStyle(type).borderColor,
+                                    backgroundColor: item.value !== null ? 'rgba(255, 255, 200, 0.2)' : 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TabsContent>
+                  
+                  <TabsContent value="right" className="mt-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Test Type</TableHead>
+                          {FREQUENCY_LABELS.map(freq => (
+                            <TableHead key={freq}>{freq}</TableHead>
                           ))}
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        )}
+                      </TableHeader>
+                      <TableBody>
+                        {getCheckedTypes().map(type => (
+                          <TableRow key={`${type}-right`}>
+                            <TableCell className="font-medium" style={{
+                              color: getDatasetStyle(type).borderColor,
+                              fontWeight: 'bold'
+                            }}>
+                              {getTestTypeName(type)}
+                            </TableCell>
+                            {audiogram.puretoneRight[type].map((item: any) => (
+                              <TableCell key={`${type}-right-${item.label}`}>
+                                <Input
+                                  type="number"
+                                  min="-10"
+                                  max="120"
+                                  value={item.value !== null ? item.value : ''}
+                                  onChange={(e) => handleInputChange('right', type as any, item.label, e.target.value ? Number(e.target.value) : null)}
+                                  className="w-16"
+                                  style={{
+                                    borderColor: getDatasetStyle(type).borderColor,
+                                    backgroundColor: item.value !== null ? 'rgba(255, 255, 200, 0.2)' : 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Left Ear Chart</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[300px] relative">
-              <canvas ref={chartLeftRef} className="w-full h-full"></canvas>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Right Ear Chart</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[300px] relative">
-              <canvas ref={chartRightRef} className="w-full h-full"></canvas>
-            </CardContent>
-          </Card>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Left Ear Chart</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px] relative">
+                <canvas ref={chartLeftRef} className="w-full h-full"></canvas>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Right Ear Chart</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px] relative">
+                <canvas ref={chartRightRef} className="w-full h-full"></canvas>
+              </CardContent>
+            </Card>
+          </div>
 
-        <div className="flex justify-end space-x-3 pt-4">
-          <Button 
-            type="button" 
-            onClick={() => visitId ? navigate(`/admin/patients/visit/${visitId}`) : navigate(-1)}
-            variant="outline"
-          >
-            Cancel
-          </Button>
-          <Button type="submit">Save Report</Button>
-          <Button 
-            type="button" 
-            onClick={print}
-            variant="secondary"
-          >
-            Save & Print
-          </Button>
-        </div>
-      </form>
-    </div>
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button 
+              type="button" 
+              onClick={() => visitId ? navigate(`/admin/patients/visit/${visitId}`) : navigate(-1)}
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button type="submit">Save Report</Button>
+            <Button 
+              type="button" 
+              onClick={print}
+              variant="secondary"
+            >
+              Save & Print
+            </Button>
+          </div>
+        </form>
+      </div>
+    </AdminLayout>
   );
 };
 
