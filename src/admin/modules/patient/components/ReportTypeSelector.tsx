@@ -12,9 +12,9 @@ import {
   FileAudio,
   Brain,
   Ear,
-  Waveform,
+  Heart, // Replacing Waveform
   FilePenLine,
-  Tooth,
+  Pill, // Replacing Tooth
   Microscope,
   Activity,
   FileX2
@@ -78,7 +78,7 @@ const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({ onSelectReportT
       id: 'dental',
       title: 'Dental',
       description: 'Oral examination findings',
-      icon: <Tooth className="h-8 w-8 text-emerald-500" />
+      icon: <Pill className="h-8 w-8 text-emerald-500" /> // Changed from Tooth to Pill
     },
     {
       id: 'laboratory',

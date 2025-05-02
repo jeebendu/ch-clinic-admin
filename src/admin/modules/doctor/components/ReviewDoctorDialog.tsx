@@ -157,15 +157,15 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
                 <SectionTitle>Additional Info</SectionTitle>
                 <div className={infoItem}>
                   <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration No.:</span>
-                  <span>{addInfo.registrationNumber || "—"}</span>
+                  <span>{addInfo.registationNumber || "—"}</span>
                 </div>
                 <div className={infoItem}>
                   <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration Council:</span>
-                  <span>{addInfo.medicalCouncil || "—"}</span>
+                  <span>{typeof addInfo.medicalCouncil === 'string' ? addInfo.medicalCouncil : addInfo.medicalCouncil?.name || "—"}</span>
                 </div>
                 <div className={infoItem}>
                   <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Registration Year:</span>
-                  <span>{addInfo.registrationYear || "—"}</span>
+                  <span>{addInfo.registationYear || "—"}</span>
                 </div>
                 <div className={infoItem}>
                   <span className="text-xs font-semibold text-muted-foreground min-w-[130px]">Degree College:</span>

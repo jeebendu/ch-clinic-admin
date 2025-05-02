@@ -1,92 +1,104 @@
-import { Branch } from "@/admin/modules/branch/types/Branch";
-import { User } from "@/admin/modules/user/types/User";
-import { Country, District, State } from "@/admin/modules/core/types/Address";
-import { Specialization } from "../submodules/specialization/types/Specialization";
-import { M } from "node_modules/@faker-js/faker/dist/airline-BUL6NtOJ";
-import { MedicalCouncil } from "../submodules/medical-council/types/MedicalCouncil";
-import { MedicalDegree } from "../submodules/medical-degree/types/MedicalDegree";
+
+import MedicalCouncil from "./MedicalCouncil";
+import MedicalDegree from "./MedicalDegree";
+
+export interface State {
+  id: number;
+  name: string;
+}
+
+export interface Country {
+  id: number;
+  name: string;
+}
+
+export interface District {
+  id: number;
+  name: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  fullname: string;
+  phone?: string;
+  image?: string;
+}
+
+export interface Branch {
+  id: number;
+  name: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  city?: string;
+  district?: District;
+  state?: State;
+  country?: Country;
+}
+
+export interface Specialization {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+export interface Service {
+  id: number;
+  name: string;
+  description?: string;
+  price?: number;
+}
 
 export interface AdditionalInfoDoctor {
-    id: number;
-    registationNumber: string;
-    medicalCouncil:MedicalCouncil;
-    registationYear: string;
-    degreeCollege: string;
-    yearCompletionDegree: string;
-    establishmentType?: "own" | "visit"; 
-    establishmentName: string;
-    establishmentCity: string;
-    state: State;
-    district: District;
+  id: number;
+  registationNumber?: string;
+  registationYear?: string;
+  medicalCouncil: string | MedicalCouncil;
+  specialityDegree?: string;
+  degreeCollege?: string;
+  yearCompletionDegree?: string;
+  establishmentType?: 'own' | 'visit';
+  establishmentName?: string;
+  establishmentCity?: string;
+  state?: State;
+  district?: District;
 }
 
 export interface Doctor {
   id: number;
   uid: string;
+  external?: boolean;
+  user?: User;
   firstname: string;
   lastname: string;
-  external: boolean;
-  desgination: string;
-  expYear: number;
-  email: string;
-  phone: string;
-  medicalDegree: MedicalDegree;
-  qualification: string;
-  joiningDate: string;
-  about: string;
-  image: string;
-  pincode: string;
-  city: string;
-  biography: string;
+  email?: string;
+  phone?: string;
+  qualification?: string;
+  desgination?: string;
+  expYear?: number;
+  feesAmount?: number;
+  followupAmount?: number;
+  about?: string;
+  biography?: string;
   gender: number;
-  verified: boolean;
-  publishedOnline: boolean;
-  registrationNumber?: string;
-  // additionalInfoDoctor?: DoctorOnboardingDetails;
-  percentages: any[];
-  specializationList: Specialization[];
-  serviceList: DoctorService[];
-  branchList: Branch[];
-  languageList: Language[];
-  user: User;
-  district: District;
-  state: State;
-  country: Country;
-  education?: Education[];
-  consultationFee: string;
-  reviewCount: number;
-  rating: number;
-  status: string;
-  additionalInfoDoctor ?: AdditionalInfoDoctor; // <- New field reference
-}
-
-
-
-// export interface DoctorOnboardingDetails {
-//   registrationNumber: string;
-//   registrationYear?: string;
-//   registrationCouncil?: string;
-//   specialityDegree?: string;
-//   specialityYear?: string;
-//   specialityInstitute?: string;
-//   identityProof?: string;
-//   addressProof?: string;
-//   establishmentType?: "own" | "visit"; // NEW FIELD: "own" or "visit"
-// }
-
-export interface DoctorService {
-  id: number;
-  name: string;
-}
-
-export interface Language {
-  id: number;
-  name: string;
-}
-
-export interface Education {
-  id: number;
-  degree: string;
-  institution: string;
-  year: string;
+  publishedOnline?: boolean;
+  includeInDirectory?: boolean;
+  verified?: boolean;
+  city?: string;
+  district?: District;
+  state?: State;
+  country?: Country;
+  degree?: string | MedicalDegree;
+  medicalCouncil?: string | MedicalCouncil;
+  rating?: number;
+  reviewCount?: number;
+  joiningDate?: string;
+  status?: number;
+  imageUrl?: string;
+  additionalInfoDoctor?: AdditionalInfoDoctor;
+  serviceList?: Service[];
+  specializationList?: Specialization[];
+  branchList?: Branch[];
+  medicalDegree?: MedicalDegree;
 }
