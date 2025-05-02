@@ -11,14 +11,17 @@ import {
   ArrowLeft, 
   Calendar, 
   FilePlus,
-  FileText
+  FileText,
+  TestTube,
+  FileEdit,
+  Stethoscope,
+  FileBarChart
 } from 'lucide-react';
 import PatientService from '../services/patientService';
 import { AdminLayout } from '@/admin/components/AdminLayout';
 import { Separator } from '@/components/ui/separator';
 import PatientVisitTimeline from './PatientVisitTimeline';
 import PatientInfoCard from './PatientInfoCard';
-import PatientReportSection from './PatientReportSection';
 import PatientBillingSection from './PatientBillingSection';
 import {
   Dialog,
@@ -28,6 +31,9 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import NewVisitForm from './NewVisitForm';
+import PatientAllReportsSection from './PatientAllReportsSection';
+import PatientAllPrescriptionsSection from './PatientAllPrescriptionsSection';
+import PatientMedicalHistorySection from './PatientMedicalHistorySection';
 
 const PatientView = () => {
   const { id } = useParams<{ id: string }>();
@@ -157,11 +163,26 @@ const PatientView = () => {
 
         <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="timeline">Visit Timeline</TabsTrigger>
-            <TabsTrigger value="medical">Medical Records</TabsTrigger>
-            <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-            <TabsTrigger value="reports">Reports & Tests</TabsTrigger>
-            <TabsTrigger value="billing">Billing & Payments</TabsTrigger>
+            <TabsTrigger value="timeline" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span>Visit Timeline</span>
+            </TabsTrigger>
+            <TabsTrigger value="medical" className="flex items-center gap-2">
+              <Stethoscope className="h-4 w-4" />
+              <span>Medical History</span>
+            </TabsTrigger>
+            <TabsTrigger value="prescriptions" className="flex items-center gap-2">
+              <FileEdit className="h-4 w-4" />
+              <span>Prescriptions</span>
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <FileBarChart className="h-4 w-4" />
+              <span>Reports & Tests</span>
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="flex items-center gap-2">
+              <TestTube className="h-4 w-4" />
+              <span>Billing</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="timeline" className="mt-4">
@@ -169,55 +190,15 @@ const PatientView = () => {
           </TabsContent>
           
           <TabsContent value="medical" className="mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Medical History</CardTitle>
-                <CardDescription>Medical records and diagnoses</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {patient.medicalHistory ? (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-muted/40 rounded-md">
-                      <p className="text-sm">{patient.medicalHistory}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No medical history recorded</p>
-                    <Button variant="outline" className="mt-2">
-                      <FileText className="mr-2 h-4 w-4" />
-                      Add Medical History
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <PatientMedicalHistorySection patient={patient} />
           </TabsContent>
           
           <TabsContent value="prescriptions" className="mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="text-lg">Prescription History</CardTitle>
-                    <CardDescription>All prescriptions issued to the patient</CardDescription>
-                  </div>
-                  <Button size="sm" onClick={() => navigate(`/admin/patients/prescription/${id}`)}>
-                    <FilePlus className="mr-2 h-4 w-4" />
-                    New Prescription
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No prescriptions found</p>
-                </div>
-              </CardContent>
-            </Card>
+            <PatientAllPrescriptionsSection patientId={patient.id.toString()} />
           </TabsContent>
           
           <TabsContent value="reports" className="mt-4">
-            <PatientReportSection patientId={patient.id} />
+            <PatientAllReportsSection patientId={patient.id.toString()} />
           </TabsContent>
 
           <TabsContent value="billing" className="mt-4">
