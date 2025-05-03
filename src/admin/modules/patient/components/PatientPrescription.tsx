@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { AdminLayout } from '@/admin/components/AdminLayout';
+import AdminLayout from '@/admin/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Prescription } from '../types/Prescription';
@@ -9,10 +8,11 @@ import { ArrowLeft, FileBarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { createPrescription } from '../../appointments/services/PrescriptionService';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AudiometryForm from './reports/AudiometryForm';
 import ABRForm from './reports/ABRForm';
 import SpeechForm from './reports/SpeechForm';
+import { Patient } from '../types/Patient';
 
 const PatientPrescription = () => {
   const { id } = useParams<{ id: string }>();
@@ -119,6 +119,45 @@ const PatientPrescription = () => {
     }
   };
 
+  // Create a minimal Patient object for the form props
+  const patientData: Patient = {
+    id: id ? parseInt(id) : 0,
+    uid: "",
+    firstname: "",
+    lastname: "",
+    email: "",
+    mobile: "",
+    gender: "",
+    dob: new Date(),
+    age: 0,
+    address: "",
+    user: {
+      id: 0,
+      name: "",
+      username: "",
+      email: "",
+      phone: "",
+      password: "",
+      effectiveTo: null,
+      effectiveFrom: null,
+      branch: null,
+      role: {
+        id: 0,
+        name: "",
+        permissions: []
+      },
+      image: ""
+    },
+    state: {
+      id: 0,
+      name: ""
+    },
+    district: {
+      id: 0,
+      name: ""
+    }
+  };
+
   // Check if we're in report-only mode (for lab technicians)
   const isReportOnly = new URLSearchParams(window.location.search).get('mode') === 'report';
 
@@ -213,7 +252,7 @@ const PatientPrescription = () => {
       {/* Report Forms as Dialogs */}
       {id && reportType === 'audiometry' && (
         <AudiometryForm 
-          patient={{ id: parseInt(id) }} 
+          patient={patientData} 
           onCancel={() => setIsAudiometryOpen(false)}
           onSave={handleSaveAudiometry}
           open={isAudiometryOpen}
@@ -223,7 +262,7 @@ const PatientPrescription = () => {
       
       {id && reportType === 'abr' && (
         <ABRForm 
-          patient={{ id: parseInt(id) }} 
+          patient={patientData} 
           onCancel={() => setIsABROpen(false)}
           onSave={handleSaveABR}
           open={isABROpen}
@@ -233,7 +272,7 @@ const PatientPrescription = () => {
       
       {id && reportType === 'speech' && (
         <SpeechForm 
-          patient={{ id: parseInt(id) }} 
+          patient={patientData}
           onCancel={() => setIsSpeechOpen(false)}
           onSave={handleSaveSpeech}
           open={isSpeechOpen}

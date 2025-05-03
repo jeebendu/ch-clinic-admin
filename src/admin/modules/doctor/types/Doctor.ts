@@ -50,6 +50,11 @@ export interface Service {
   price?: number;
 }
 
+export interface Language {
+  id: number;
+  name: string;
+}
+
 export interface AdditionalInfoDoctor {
   id: number;
   registationNumber?: string;
@@ -101,4 +106,9 @@ export interface Doctor {
   specializationList?: Specialization[];
   branchList?: Branch[];
   medicalDegree?: MedicalDegree;
+  // Adding missing properties based on errors
+  languageList?: Language[];
+  consultationFee?: number | string;
+  percentages?: any[];
+  pincode?: string;
 }

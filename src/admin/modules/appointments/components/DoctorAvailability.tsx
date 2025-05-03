@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import AdminLayout from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
@@ -26,10 +25,6 @@ import { TimePicker } from "@/admin/components/TimePicker";
 import { DAYS_OF_WEEK, TimeSlot } from "../types/Appointment";
 import { DayAvailability } from "../types/Availability";
 
-
-
-
-
 export default function DoctorAvailability() {
   const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState("availability");
@@ -41,7 +36,7 @@ export default function DoctorAvailability() {
   // Fetch doctor data
   const { data: doctorData, isLoading } = useQuery({
     queryKey: ['doctor', 1], // Replace with actual doctor ID from context or params
-    queryFn: () => fetchDoctorDetailsById(1).then(res => res.data)
+    queryFn: () => fetchDoctorDetailsById(1)
   });
 
   const [availabilityData, setAvailabilityData] = useState<Record<string, DayAvailability[]>>({

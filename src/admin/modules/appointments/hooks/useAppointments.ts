@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { AppointmentQueryParams } from '../types/Appointment';
 import { fetchAppointmentsByDoctorId } from '../services/appointmentService';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery } from '@tanstack/react-query';
 
 export const useAppointments = (initialParams: AppointmentQueryParams) => {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -18,11 +17,27 @@ export const useAppointments = (initialParams: AppointmentQueryParams) => {
     setError(null);
     try {
       const response = await fetchAppointmentsByDoctorId(params);
-      // Handle both production (Axios) and mock responses
-      const content = 'data' in response ? response.data.content : response.content;
-      const totalElements = 'data' in response ? response.data.totalElements : response.totalElements;
-      const pageSize = 'data' in response ? response.data.size : response.size;
-      const pageNumber = 'data' in response ? response.data.number : response.number;
+      
+      // Updated to handle the response structure safely
+      const responseData = response as any;
+      let content: any[] = [];
+      let totalElements = 0;
+      let pageSize = 10;
+      let pageNumber = 0;
+      
+      if (responseData.data) {
+        // Handle Axios response
+        content = responseData.data.content || [];
+        totalElements = responseData.data.totalElements || 0;
+        pageSize = responseData.data.size || 10;
+        pageNumber = responseData.data.number || 0;
+      } else {
+        // Handle direct mock response
+        content = responseData.content || [];
+        totalElements = responseData.totalElements || 0;
+        pageSize = responseData.size || 10;
+        pageNumber = responseData.number || 0;
+      }
       
       if (append) {
         setAppointments(prev => [...prev, ...content]);

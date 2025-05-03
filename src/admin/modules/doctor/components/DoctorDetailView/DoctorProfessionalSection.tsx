@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 
 interface DoctorProfessionalSectionProps {
   doctor: Doctor;
+  onSave?: (updatedDoctor: Doctor) => Promise<void>;
+  loading?: boolean;
 }
 
 const DoctorProfessionalSection: React.FC<DoctorProfessionalSectionProps> = ({ doctor }) => {
