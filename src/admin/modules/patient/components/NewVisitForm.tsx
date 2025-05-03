@@ -29,7 +29,6 @@ const NewVisitForm: React.FC<NewVisitFormProps> = ({ patientId, onSuccess, onCan
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        // Using listAllDoctors instead of getAllDoctors
         const doctorsList = await doctorService.listAllDoctors();
         setDoctors(doctorsList);
       } catch (error) {

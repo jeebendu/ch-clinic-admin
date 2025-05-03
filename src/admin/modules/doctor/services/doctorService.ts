@@ -1,7 +1,6 @@
 
 import { Doctor } from "../types/Doctor";
 import axios from "axios";
-import doctorMockService from "./doctorMockService";
 
 interface PaginatedResponse<T> {
   content: T[];
@@ -96,7 +95,18 @@ class DoctorService {
       return response.data.response;
     } catch (error) {
       console.error("Error filtering doctors:", error);
-      throw error;
+      // Return empty paginated response on error
+      return {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: filters.pageSize || 10,
+        pageNumber: filters.pageNumber || 0,
+        numberOfElements: 0,
+        first: true,
+        last: true,
+        hasContent: false
+      };
     }
   }
 
@@ -188,7 +198,7 @@ class DoctorService {
       return response.data.response;
     } catch (error) {
       console.error("Error getting all doctors:", error);
-      throw error;
+      return [];
     }
   }
 
@@ -209,17 +219,17 @@ class DoctorService {
       return response.data.response;
     } catch (error) {
       console.error("Error listing doctors:", error);
-      // Use the imported doctorMockService
+      // Return empty paginated response on error
       return {
-        content: await doctorMockService.listAll(),
-        totalElements: (await doctorMockService.listAll()).length,
-        totalPages: 1,
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
         size: 10,
         pageNumber: 0,
-        numberOfElements: (await doctorMockService.listAll()).length,
+        numberOfElements: 0,
         first: true,
         last: true,
-        hasContent: (await doctorMockService.listAll()).length > 0
+        hasContent: false
       };
     }
   }
@@ -233,7 +243,7 @@ class DoctorService {
       return response.content;
     } catch (error) {
       console.error("Error getting online doctors:", error);
-      throw error;
+      return [];
     }
   }
 }
