@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,7 +25,8 @@ import {
   Truck,
   ChevronRight,
   FileText,
-  BarChart2
+  BarChart2,
+  Ear
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import AuthService from "@/services/authService";
@@ -110,6 +110,12 @@ const navItems: NavItem[] = [
         roles: ["Admin"]
       },
     ]
+  },
+  { 
+    icon: <Ear className="h-5 w-5" />, 
+    label: "Audiometry", 
+    href: "/admin/audiometry", 
+    roles: ["Admin", "Doctor", "Staff"] 
   },
   { 
     icon: <BarChart2 className="h-5 w-5" />, 
