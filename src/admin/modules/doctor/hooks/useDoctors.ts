@@ -1,10 +1,9 @@
 
-import { useState, useEffect } from 'react';
-import { Doctor } from '../types/Doctor';
-import { useToast } from '@/hooks/use-toast';
-import DoctorService from '../services/doctorService';
+import { useState, useEffect, useCallback } from "react";
+import { Doctor } from "../types/Doctor";
+import doctorService from "../services/doctorService";
 
-export interface DoctorQueryParams {
+interface DoctorsFilter {
   page: number;
   size: number;
   searchTerm?: string;
@@ -12,90 +11,77 @@ export interface DoctorQueryParams {
   specialization?: string | null;
 }
 
-export const useDoctors = (initialParams: DoctorQueryParams) => {
+export const useDoctors = (initialFilters: DoctorsFilter) => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<DoctorsFilter>(initialFilters);
   const [hasMore, setHasMore] = useState(true);
-  const [queryParams, setQueryParams] = useState<DoctorQueryParams>(initialParams);
   const [totalElements, setTotalElements] = useState(0);
-  const { toast } = useToast();
+  const [loadedElements, setLoadedElements] = useState(0);
 
-  const fetchDoctorsData = async (params: DoctorQueryParams, append = false) => {
+  const fetchDoctors = useCallback(async () => {
     setLoading(true);
-    setError(null);
-    
     try {
-      const response = await DoctorService.fetchPaginated(
-        params.page,
-        params.size,
-        { 
-          value: params.searchTerm || '',
-          doctorType: params.doctorType? params.doctorType=="external"?true:false : null,
-          specialization: params.specialization
-        }
-      );
+      // Build filter params
+      const filterParams: any = {
+        pageNumber: filters.page,
+        pageSize: filters.size,
+      };
+
+      if (filters.searchTerm) filterParams.searchString = filters.searchTerm;
+      if (filters.doctorType) filterParams.doctorType = filters.doctorType;
+      if (filters.specialization) filterParams.specializationId = filters.specialization;
+
+      const response = await doctorService.filterDoctor(filterParams);
       
-      if (append) {
-        setDoctors(prev => [...prev, ...response.content]);
-      } else {
-        setDoctors(response.content);
+      if (response) {
+        setDoctors(response.content || []);
+        setTotalElements(response.totalElements || 0);
+        setLoadedElements(response.content?.length || 0);
+        setHasMore(!(response.last || false));
       }
-      
-      setTotalElements(response.totalElements);
-      setHasMore(response.totalElements > (params.page + 1) * params.size);
-      
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch doctors');
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch doctors. Please try again.',
-        variant: 'destructive'
-      });
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
-  const loadMore = () => {
-    if (!loading && hasMore) {
-      const nextPage = queryParams.page + 1;
-      const nextParams = { ...queryParams, page: nextPage };
-      setQueryParams(nextParams);
-      fetchDoctorsData(nextParams, true);
-    }
-  };
+  const loadMore = useCallback(() => {
+    if (loading || !hasMore) return;
+    setFilters(prev => ({
+      ...prev,
+      page: prev.page + 1
+    }));
+  }, [loading, hasMore]);
 
-  const refreshDoctors = () => {
-    const resetParams = { ...queryParams, page: 0 };
-    setQueryParams(resetParams);
-    fetchDoctorsData(resetParams, false);
-    
-    toast({
-      title: 'Refreshed',
-      description: 'Doctor list has been refreshed.',
-    });
-  };
+  const refreshDoctors = useCallback(() => {
+    setFilters(prev => ({
+      ...prev,
+      page: 0
+    }));
+  }, []);
 
-  const updateFilters = (filters: Partial<DoctorQueryParams>) => {
-    const newParams = { ...queryParams, ...filters, page: 0 };
-    setQueryParams(newParams);
-    fetchDoctorsData(newParams, false);
-  };
+  const updateFilters = useCallback((newFilters: Partial<DoctorsFilter>) => {
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters,
+      page: 0 // Reset pagination when filters change
+    }));
+  }, []);
 
   useEffect(() => {
-    fetchDoctorsData(initialParams, false);
-  }, []);
+    fetchDoctors();
+  }, [fetchDoctors]);
 
   return {
     doctors,
     loading,
-    error,
     hasMore,
     loadMore,
     refreshDoctors,
     updateFilters,
     totalElements,
-    loadedElements: doctors.length
+    loadedElements
   };
 };

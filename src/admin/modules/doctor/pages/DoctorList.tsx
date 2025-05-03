@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -168,8 +169,8 @@ const DoctorList = () => {
 
   const handleFormSubmit = async (doctor: any) => {
     try {
-      const resp = await doctorService.saveOrUpdateDoctor(doctor);
-      if (resp.status) {
+      const resp = await doctorService.saveOrUpdate(doctor);
+      if (resp) {
         toast.success("Doctor saved!");
       } else {
         toast.error("Error, unable to save doctor!");
@@ -196,8 +197,8 @@ const DoctorList = () => {
   const handleOnboardingSubmit = async (doctor: Doctor) => {
     try {
       console.log(doctor)
-      const response = await doctorService.saveOrUpdateDoctor(doctor);
-      if (response.status) {
+      const response = await doctorService.saveOrUpdate(doctor);
+      if (response) {
         toast.success("Doctor published online successfully!");
         setShowOnboardingForm(false);
         refreshDoctors();
@@ -218,8 +219,8 @@ const DoctorList = () => {
   const handleDoctorVerify = async (doctor: Doctor) => {
     try {
       const updatedDoctor = { ...doctor, verified: true };
-      const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
-      if (resp.status) {
+      const resp = await doctorService.saveOrUpdate(updatedDoctor);
+      if (resp) {
         toast.success("Doctor verified!");
         setShowReviewDialog(false);
         setReviewDoctor(null);

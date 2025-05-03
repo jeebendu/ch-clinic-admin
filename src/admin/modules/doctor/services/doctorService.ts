@@ -1,7 +1,6 @@
-
 import { Doctor } from "../types/Doctor";
 import axios from "axios";
-import doctorMockService from "./doctorMockService";
+import { doctorMockService } from "./doctorMockService";
 
 interface PaginatedResponse<T> {
   content: T[];
@@ -64,7 +63,7 @@ interface DoctorSaveResponse {
 class DoctorService {
   constructor() {}
 
-  async filterDoctor(filters: DoctorListFilter): Promise<PaginatedResponse<Doctor>> {
+  async filterDoctor(filters: any): Promise<PaginatedResponse<Doctor>> {
     try {
       const params = {
         ...(filters.searchString ? { searchString: filters.searchString } : {}),
@@ -85,7 +84,7 @@ class DoctorService {
       };
       
       const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await axios.get<DoctorListResponse>(
+      const response = await axios.get(
         `${apiUrl}/v1/doctor/filter`,
         {
           params,
@@ -96,14 +95,14 @@ class DoctorService {
       return response.data.response;
     } catch (error) {
       console.error("Error filtering doctors:", error);
-      return doctorMockService.filterDoctor(filters);
+      throw error;
     }
   }
 
   async getById(id: string | number): Promise<Doctor> {
     try {
       const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await axios.get<DoctorByIdResponse>(
+      const response = await axios.get(
         `${apiUrl}/v1/doctor/${id}`,
         {
           withCredentials: true,
@@ -113,14 +112,14 @@ class DoctorService {
       return response.data.response;
     } catch (error) {
       console.error("Error getting doctor by ID:", error);
-      return doctorMockService.getById(id);
+      throw error;
     }
   }
 
   async deleteById(id: number | string): Promise<boolean> {
     try {
       const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await axios.delete<DoctorDeleteResponse>(
+      const response = await axios.delete(
         `${apiUrl}/v1/doctor/${id}`,
         {
           withCredentials: true,
@@ -130,7 +129,7 @@ class DoctorService {
       return response.data.status;
     } catch (error) {
       console.error("Error deleting doctor:", error);
-      return doctorMockService.deleteById(id);
+      throw error;
     }
   }
 
@@ -140,7 +139,7 @@ class DoctorService {
   ): Promise<boolean> {
     try {
       const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await axios.post<DoctorVerifyResponse>(
+      const response = await axios.post(
         `${apiUrl}/v1/doctor/verify/${id}`,
         {
           verified: verify,
@@ -153,14 +152,14 @@ class DoctorService {
       return response.data.status;
     } catch (error) {
       console.error("Error verifying doctor:", error);
-      return doctorMockService.verifyDoctor(id, verify);
+      throw error;
     }
   }
 
   async saveOrUpdate(doctor: Doctor): Promise<Doctor> {
     try {
       const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await axios.post<DoctorSaveResponse>(
+      const response = await axios.post(
         `${apiUrl}/v1/doctor/save`,
         doctor,
         {
@@ -171,7 +170,7 @@ class DoctorService {
       return response.data.response;
     } catch (error) {
       console.error("Error saving/updating doctor:", error);
-      return doctorMockService.saveOrUpdate(doctor);
+      throw error;
     }
   }
 
@@ -188,7 +187,7 @@ class DoctorService {
       return response.data.response;
     } catch (error) {
       console.error("Error getting all doctors:", error);
-      return doctorMockService.listAll();
+      throw error;
     }
   }
 
@@ -233,7 +232,7 @@ class DoctorService {
       return response.content;
     } catch (error) {
       console.error("Error getting online doctors:", error);
-      return doctorMockService.listAll();
+      throw error;
     }
   }
 }
