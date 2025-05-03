@@ -29,8 +29,8 @@ const NewVisitForm: React.FC<NewVisitFormProps> = ({ patientId, onSuccess, onCan
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        // Try to use the getAllDoctors method which should call v1/doctor/list/all internally
-        const doctorsList = await doctorService.getAllDoctors();
+        // Using listAllDoctors instead of getAllDoctors
+        const doctorsList = await doctorService.listAllDoctors();
         setDoctors(doctorsList);
       } catch (error) {
         console.error('Error fetching doctors:', error);

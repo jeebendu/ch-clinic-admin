@@ -1,6 +1,7 @@
+
 import { Doctor } from "../types/Doctor";
 import axios from "axios";
-import { doctorMockService } from "./doctorMockService";
+import doctorMockService from "./doctorMockService";
 
 interface PaginatedResponse<T> {
   content: T[];
@@ -208,17 +209,17 @@ class DoctorService {
       return response.data.response;
     } catch (error) {
       console.error("Error listing doctors:", error);
-      // Fix the error by removing the 'empty' property
+      // Use the imported doctorMockService
       return {
-        content: doctorMockService.listAll(),
-        totalElements: doctorMockService.listAll().length,
+        content: await doctorMockService.listAll(),
+        totalElements: (await doctorMockService.listAll()).length,
         totalPages: 1,
         size: 10,
         pageNumber: 0,
-        numberOfElements: doctorMockService.listAll().length,
+        numberOfElements: (await doctorMockService.listAll()).length,
         first: true,
         last: true,
-        hasContent: doctorMockService.listAll().length > 0
+        hasContent: (await doctorMockService.listAll()).length > 0
       };
     }
   }

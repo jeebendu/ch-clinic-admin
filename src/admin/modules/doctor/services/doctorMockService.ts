@@ -1,3 +1,4 @@
+
 import { Doctor } from "../types/Doctor";
 import { MedicalDegree } from "../types/MedicalDegree";
 import { MedicalCouncil } from "../types/MedicalCouncil";
@@ -40,15 +41,15 @@ const doctors: Doctor[] = [
         lastname: "Doe",
         email: "john.doe@example.com",
         phone: "123-456-7890",
-        gender: "Male",
+        gender: 1, // Changed from string to number
         dob: "1980-01-01",
         address: "123 Main St",
         city: "Anytown",
-        state: "CA",
+        state: { id: 1, name: "CA" }, // Changed from string to State object
         zip: "12345",
-        country: "USA",
+        country: { id: 1, name: "USA" }, // Changed from string to Country object
         speciality: "Cardiologist",
-        medicalDegree: "MBBS",
+        medicalDegree: { id: 1, name: "MBBS" }, // Changed from string to MedicalDegree
         medicalCouncil: "Medical Council of India",
         additionalInfo: {
             registationNumber: "REG-001",
@@ -67,15 +68,15 @@ const doctors: Doctor[] = [
         lastname: "Smith",
         email: "jane.smith@example.com",
         phone: "987-654-3210",
-        gender: "Female",
+        gender: 2, // Changed from string to number
         dob: "1985-05-15",
         address: "456 Elm St",
         city: "Springfield",
-        state: "IL",
+        state: { id: 2, name: "IL" }, // Changed from string to State object
         zip: "67890",
-        country: "USA",
+        country: { id: 1, name: "USA" }, // Changed from string to Country object
         speciality: "Dermatologist",
-        medicalDegree: "MD",
+        medicalDegree: { id: 2, name: "MD" }, // Changed from string to MedicalDegree
         medicalCouncil: "Medical Council of UK",
         additionalInfo: {
             registationNumber: "REG-002",
@@ -94,15 +95,15 @@ const doctors: Doctor[] = [
         lastname: "Johnson",
         email: "mike.johnson@example.com",
         phone: "555-123-4567",
-        gender: "Male",
+        gender: 1, // Changed from string to number
         dob: "1978-11-20",
         address: "789 Oak St",
         city: "Hill Valley",
-        state: "WA",
+        state: { id: 3, name: "WA" }, // Changed from string to State object
         zip: "54321",
-        country: "USA",
+        country: { id: 1, name: "USA" }, // Changed from string to Country object
         speciality: "Pediatrician",
-        medicalDegree: "DO",
+        medicalDegree: { id: 3, name: "DO" }, // Changed from string to MedicalDegree
         medicalCouncil: "Medical Council of USA",
         additionalInfo: {
             registationNumber: "REG-003",
@@ -149,5 +150,12 @@ export const doctorMockService = {
     },
     getMedicalCouncils: async (): Promise<MedicalCouncil[]> => {
         return medicalCouncils;
+    },
+    // Add a listAll method to solve the doctorService references
+    listAll: async (): Promise<Doctor[]> => {
+        return doctors;
     }
 };
+
+// Add a default export that matches the named export
+export default doctorMockService;
