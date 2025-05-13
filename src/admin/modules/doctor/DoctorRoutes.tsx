@@ -10,6 +10,7 @@ import { useRoleAccess } from "@/hooks/use-role-access";
 import AuthService from "@/services/authService";
 import SpecialityList from "./doctor-speciality/pages/SpecialityList";
 import DoctorDetailView from "./pages/DoctorDetailView";
+import DoctorScheduleView from "./submodules/availability/pages/DoctorScheduleView";
 
 const DoctorRoutes = () => {
   // Role-based access control for doctor module
@@ -39,6 +40,7 @@ const DoctorRoutes = () => {
       <Route path="/" element={<DoctorList />} />
       <Route path="/doctors/*" element={<DoctorList />} />
       <Route path="/view/:id" element={<DoctorDetailView />} />
+      <Route path="/availability/:id" element={<DoctorScheduleView />} />
       <Route path="/specializations/*" element={<SpecializationList />} />
       <Route path="/services/*" element={<ServiceList />} />
       <Route path="/percentages/*" element={<PercentageList />} />
