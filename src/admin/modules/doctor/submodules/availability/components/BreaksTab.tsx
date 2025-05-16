@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus, Trash } from "lucide-react";
 import { breakService } from "../services/breakService";
-import TimePicker from "@/admin/components/TimePicker";
+import { TimePicker } from "@/admin/components/TimePicker";
 
 interface BreaksTabProps {
   doctorId: number;
@@ -70,7 +70,10 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
 
   const handleBreakChange = (index: number, field: keyof Break, value: any) => {
     const newBreaks = [...breaks];
-    newBreaks[index][field] = field === 'dayOfWeek' ? parseInt(value) : value;
+    newBreaks[index] = {
+      ...newBreaks[index],
+      [field]: field === 'dayOfWeek' ? parseInt(value) : value
+    };
     setBreaks(newBreaks);
   };
 
@@ -78,8 +81,8 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
     try {
       const breaksToSave = breaks.map(breakItem => ({
         ...breakItem,
-        doctorId,
-        branchId,
+        doctor: { id: doctorId },
+        branch: { id: branchId },
       }));
       
       await breakService.saveBreaks(breaksToSave);

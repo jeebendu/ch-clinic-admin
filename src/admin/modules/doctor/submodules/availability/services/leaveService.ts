@@ -1,22 +1,23 @@
 
 import axios from "axios";
 import { DoctorLeave } from "../types/DoctorAvailability";
+import { Doctor } from "@/admin/modules/doctor/types/Doctor";
 
 // Mock data for development purposes
 const mockLeaves: DoctorLeave[] = [
   {
     id: 1,
     doctor: { id: 1, firstname: 'John', lastname: 'Doe', uid: 'DR001', gender: 0 },
-    startDate: new Date('2025-05-20'),
-    endDate: new Date('2025-05-22'),
-    reason: "Vacation"
+    startDate: new Date("2023-12-25"),
+    endDate: new Date("2023-12-26"),
+    reason: "Christmas Holiday"
   },
   {
     id: 2,
     doctor: { id: 1, firstname: 'John', lastname: 'Doe', uid: 'DR001', gender: 0 },
-    startDate: new Date('2025-06-10'),
-    endDate: new Date('2025-06-15'),
-    reason: "Conference"
+    startDate: new Date("2024-01-01"),
+    endDate: new Date("2024-01-01"),
+    reason: "New Year's Day"
   }
 ];
 
@@ -56,11 +57,11 @@ export const leaveService = {
       console.log("Saving leave:", leave);
       return Promise.resolve({
         id: Math.floor(Math.random() * 1000),
-        doctor: { id: leave.doctorId!, firstname: 'Doctor', lastname: 'Name', uid: 'DR001', gender: 0 },
-        startDate: leave.startDate!,
-        endDate: leave.endDate!,
+        doctor: leave.doctor as Doctor,
+        startDate: leave.startDate as Date,
+        endDate: leave.endDate as Date,
         reason: leave.reason || ""
-      } as DoctorLeave);
+      });
     } catch (error) {
       console.error("Error saving doctor leave:", error);
       throw error;

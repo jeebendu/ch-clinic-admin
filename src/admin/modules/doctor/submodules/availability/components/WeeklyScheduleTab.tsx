@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { DoctorAvailability } from "../types/DoctorAvailability";
 import { availabilityService } from "../services/availabilityService";
-import TimePicker from "@/admin/components/TimePicker";
+import { TimePicker } from "@/admin/components/TimePicker";
 
 interface WeeklyScheduleTabProps {
   doctorId: number;
@@ -88,12 +88,11 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorId, branchI
       const availabilitiesToSave = schedules
         .filter(day => day.isAvailable)
         .map(day => ({
-          doctorId,
-          branchId,
+          doctor: { id: doctorId },
+          branch: { id: branchId },
           dayOfWeek: day.dayOfWeek,
           startTime: day.startTime,
           endTime: day.endTime,
-          slotDuration: day.slotDuration,
           isAvailable: day.isAvailable
         }));
       

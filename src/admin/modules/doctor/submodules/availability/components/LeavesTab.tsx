@@ -22,7 +22,7 @@ const LeavesTab: React.FC<LeavesTabProps> = ({ doctorId, branchId }) => {
   const [leaves, setLeaves] = useState<DoctorLeave[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newLeave, setNewLeave] = useState<Partial<DoctorLeave>>({
-    doctorId,
+    doctor: { id: doctorId },
     startDate: new Date(),
     endDate: new Date(),
     reason: ""
@@ -62,7 +62,7 @@ const LeavesTab: React.FC<LeavesTabProps> = ({ doctorId, branchId }) => {
       
       const leaveToAdd = {
         ...newLeave,
-        doctorId
+        doctor: { id: doctorId }
       };
       
       const savedLeave = await leaveService.saveLeave(leaveToAdd);
@@ -72,7 +72,7 @@ const LeavesTab: React.FC<LeavesTabProps> = ({ doctorId, branchId }) => {
       
       // Reset the form
       setNewLeave({
-        doctorId,
+        doctor: { id: doctorId },
         startDate: new Date(),
         endDate: new Date(),
         reason: ""

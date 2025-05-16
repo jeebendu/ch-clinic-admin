@@ -19,3 +19,20 @@ export interface DoctorLeave {
   endDate: Date;
   reason: string;
 }
+
+export interface DoctorBreak {
+  id?: number;
+  doctor: Doctor;
+  branch: Branch;
+  dayOfWeek: number;
+  breakStart: string;
+  breakEnd: string;
+  description: string;
+}
+
+export interface ClinicHoliday {
+  id: number;
+  branch: Branch;
+  holidayDate: Date;
+  reason: string;
+}
