@@ -17,13 +17,13 @@ import { Progress } from "@/components/ui/progress";
 import { Clock, Plus, Save, Trash2, Calendar } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import { fetchDoctorDetailsById } from "@/admin/modules/appointments/services/DoctorService";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DoctorLeaves } from "../../doctor/pages/DoctorLeaves";
 import { TimePicker } from "@/admin/components/TimePicker";
 import { DAYS_OF_WEEK, TimeSlot } from "../types/Appointment";
 import { DayAvailability } from "../types/Availability";
+import DoctorService from "../../doctor/services/doctorService";
 
 export default function DoctorAvailability() {
   const { toast } = useToast();
@@ -36,7 +36,7 @@ export default function DoctorAvailability() {
   // Fetch doctor data
   const { data: doctorData, isLoading } = useQuery({
     queryKey: ['doctor', 1], // Replace with actual doctor ID from context or params
-    queryFn: () => fetchDoctorDetailsById(1)
+    queryFn: () => DoctorService.getById(1)
   });
 
   const [availabilityData, setAvailabilityData] = useState<Record<string, DayAvailability[]>>({
