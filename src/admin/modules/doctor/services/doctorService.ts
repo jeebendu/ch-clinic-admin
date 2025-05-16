@@ -4,7 +4,7 @@ import { isProduction } from "@/utils/envUtils";
 import { PaginatedResponse } from "@/types/common";
 
 // Real implementation would use these endpoints
-const doctorService = {
+const DoctorService = {
   getAllDoctors: async (): Promise<Doctor[]> => {
     try {
       const response = await http.get<Doctor[]>('/v1/doctor/list');
@@ -47,4 +47,4 @@ const doctorService = {
   }
 };
 
-export default doctorService;
+export default DoctorService;

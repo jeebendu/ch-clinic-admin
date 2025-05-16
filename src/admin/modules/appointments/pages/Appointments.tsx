@@ -8,9 +8,9 @@ import AppointmentSidebar from "../components/AppointmentSidebar";
 import PageHeader from "@/admin/components/PageHeader";
 import InfiniteAppointmentList from "../components/AppointmentList";
 import AppointmentCalendar from "../components/AppointmentCalendar";
-import { fetchDoctorDetailsById } from "../services/DoctorService";
 import { Doctor } from "../../doctor/types/Doctor";
 import { AppointmentQueryParams } from "../types/Appointment";
+import DoctorService from "../../doctor/services/doctorService";
 
 const AppointmentsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -122,8 +122,8 @@ const AppointmentsAdmin = () => {
 
   useEffect(() => {
     const fetchDocttorInfo = async () => {
-      const response = await fetchDoctorDetailsById(1);
-      setDoctor(response.data);
+      const data = await DoctorService.getById(1);
+      setDoctor(data);
 
       // Dynamically update branch options in filterOptions
       setFilterOptions(prevOptions => {
@@ -131,7 +131,7 @@ const AppointmentsAdmin = () => {
           if (option.id === 'branches') {
             return {
               ...option,
-              options: response.data.branchList.map((branch: any) => ({
+              options: data.branchList.map((branch: any) => ({
                 id: branch.id,
                 label: branch.name
               }))
