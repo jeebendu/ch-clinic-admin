@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -52,6 +51,9 @@ const DoctorList = () => {
     }
   ]);
 
+
+
+
   const {
     doctors,
     loading,
@@ -101,7 +103,7 @@ const DoctorList = () => {
 
   useEffect(() => {
     fetchSpecializations();
-  }, []);
+}, []);
 
   const fetchSpecializations = async () => {
     try {
@@ -130,6 +132,7 @@ const DoctorList = () => {
     }
   };
 
+
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedFilters({
@@ -143,10 +146,11 @@ const DoctorList = () => {
     });
   };
 
+
   const handleViewModeToggle = () => {
     setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
-
+ 
   const handleAddDoctor = () => {
     setSelectedDoctor(null);
     setShowForm(true);
@@ -159,9 +163,8 @@ const DoctorList = () => {
 
   const handleViewDoctor = (doctor: any) => {
     setSelectedDoctor(doctor);
-    setShowViewModal(true);
+      setShowViewModal(true);
   };
-
   const handleFormClose = () => {
     setShowForm(false);
     setSelectedDoctor(null);
@@ -169,8 +172,8 @@ const DoctorList = () => {
 
   const handleFormSubmit = async (doctor: any) => {
     try {
-      const resp = await doctorService.saveOrUpdate(doctor);
-      if (resp) {
+      const resp = await doctorService.saveOrUpdateDoctor(doctor);
+      if (resp.status) {
         toast.success("Doctor saved!");
       } else {
         toast.error("Error, unable to save doctor!");
@@ -197,8 +200,8 @@ const DoctorList = () => {
   const handleOnboardingSubmit = async (doctor: Doctor) => {
     try {
       console.log(doctor)
-      const response = await doctorService.saveOrUpdate(doctor);
-      if (response) {
+      const response = await doctorService.saveOrUpdateDoctor(doctor);
+      if (response.status) {
         toast.success("Doctor published online successfully!");
         setShowOnboardingForm(false);
         refreshDoctors();
@@ -219,8 +222,8 @@ const DoctorList = () => {
   const handleDoctorVerify = async (doctor: Doctor) => {
     try {
       const updatedDoctor = { ...doctor, verified: true };
-      const resp = await doctorService.saveOrUpdate(updatedDoctor);
-      if (resp) {
+      const resp = await doctorService.saveOrUpdateDoctor(updatedDoctor);
+      if (resp.status) {
         toast.success("Doctor verified!");
         setShowReviewDialog(false);
         setReviewDoctor(null);
@@ -232,31 +235,6 @@ const DoctorList = () => {
       toast.error("Failed to verify doctor!");
     }
   };
-
-  const filteredDoctors = (Array.isArray(doctors) ? doctors : []).filter((doctor: Doctor) => {
-    // Name filter
-    if (searchTerm && !`${doctor.firstname} ${doctor.lastname}`.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
-
-    // Doctor type filter
-    if (selectedFilters.doctorType.length > 0) {
-      const typeMatch = selectedFilters.doctorType.includes(doctor.external ? 'external' : 'internal');
-      if (!typeMatch) return false;
-    }
-
-    // Specialization filter
-    if (selectedFilters.specialization.length > 0) {
-      const specializationMatch = doctor.specializationList 
-        ? selectedFilters.specialization.some((spec: string) => 
-            doctor.specializationList?.some((docSpec: any) => docSpec.name.toLowerCase() === spec.toLowerCase())
-          )
-        : false;
-      if (!specializationMatch) return false;
-    }
-
-    return true;
-  });
 
   return (
     <AdminLayout>
@@ -291,14 +269,14 @@ const DoctorList = () => {
         <div className="flex-1 overflow-auto">
           {viewMode === 'grid' ? (
             <DoctorGrid
-              doctors={filteredDoctors}
+              doctors={doctors}
               loading={loading}
               onDoctorClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
             />
           ) : (
             <DoctorTable
-              doctors={filteredDoctors}
+              doctors={doctors}
               loading={loading}
               onViewClick={handleViewDoctor}
               onEditClick={handleEditDoctor}
