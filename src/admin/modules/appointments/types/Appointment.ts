@@ -26,6 +26,18 @@ export interface Appointment {
     dob: string | Date;
     age: number;
     address: string;
+    state: {
+      id: number;
+      name: string;
+    };
+    district: {
+      id: number;
+      name: string;
+    };
+    refDoctor: {
+      id: number;
+      name: string;
+    } | null;
     user: {
       id: number;
       email: string;

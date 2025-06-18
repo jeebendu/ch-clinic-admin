@@ -79,9 +79,9 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
       }
     } else if (mockClinics.length > 0) {
       // Set default clinic if none is saved
-      setSelectedClinic(mockClinics[0].uid);
+      setSelectedClinic(mockClinics[0].uid || mockClinics[0].id.toString());
       setCurrentClinicName(mockClinics[0].name);
-      localStorage.setItem("selectedClinic", mockClinics[0].uid);
+      localStorage.setItem("selectedClinic", mockClinics[0].uid || mockClinics[0].id.toString());
     }
     
     if (savedBranch) {
@@ -130,7 +130,7 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
     setSelectedClinic(value);
     localStorage.setItem("selectedClinic", value);
     
-    const clinic = mockClinics.find(c => c.uid === value);
+    const clinic = mockClinics.find(c => (c.uid || c.id.toString()) === value);
     if (clinic) {
       setCurrentClinicName(clinic.name);
     }
@@ -186,15 +186,15 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
               <CommandGroup>
                 {mockClinics.map((clinic) => (
                   <CommandItem
-                    key={clinic.uid}
-                    value={clinic.uid}
-                    onSelect={() => handleClinicChange(clinic.uid)}
+                    key={clinic.uid || clinic.id}
+                    value={clinic.uid || clinic.id.toString()}
+                    onSelect={() => handleClinicChange(clinic.uid || clinic.id.toString())}
                     className="flex items-center gap-2 py-2"
                   >
                     <Building className="h-4 w-4 text-muted-foreground" />
                     <span className={cn(
                       "text-sm",
-                      selectedClinic === clinic.uid ? "font-medium" : ""
+                      selectedClinic === (clinic.uid || clinic.id.toString()) ? "font-medium" : ""
                     )}>
                       {clinic.name}
                     </span>

@@ -1,11 +1,12 @@
 
 export interface PaymentInfo {
-  id: string;
+  id?: string;
   amount: number;
   paymentType: 'cash' | 'card' | 'upi' | 'bank_transfer' | 'insurance';
   transactionId?: string;
   paymentDate: Date;
-  status: 'completed' | 'pending' | 'failed';
+  status?: 'completed' | 'pending' | 'failed';
+  notes?: string;
 }
 
 export type CheckInStatus = 'not_checked_in' | 'checked_in' | 'in_consultation' | 'completed';
