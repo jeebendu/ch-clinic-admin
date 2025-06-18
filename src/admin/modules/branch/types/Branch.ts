@@ -17,4 +17,8 @@ export interface Branch {
   city: string;
   active: boolean;
   primary: boolean;
+  clinic?: {
+    id: number;
+    name: string;
+  };
 }
