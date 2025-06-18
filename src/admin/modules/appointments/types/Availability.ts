@@ -1,5 +1,5 @@
 
-export interface TimeSlot {
+export interface AvailabilityTimeSlot {
   id: string;
   day: string;
   startTime: string;
@@ -10,7 +10,7 @@ export interface TimeSlot {
 export interface DayAvailability {
   day: string;
   isAvailable: boolean;
-  slots: TimeSlot[];
+  slots: AvailabilityTimeSlot[];
 }
 
 export interface AvailabilitySettings {

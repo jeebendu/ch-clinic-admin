@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 import { getApiUrl } from '@/utils/envUtils';
 
@@ -85,4 +86,14 @@ class PrescriptionService {
   }
 }
 
-export default new PrescriptionService();
+const prescriptionService = new PrescriptionService();
+
+export default prescriptionService;
+
+// Named exports for backward compatibility
+export const createPrescription = prescriptionService.createPrescription.bind(prescriptionService);
+export const getPrescription = prescriptionService.getPrescription.bind(prescriptionService);
+export const updatePrescription = prescriptionService.updatePrescription.bind(prescriptionService);
+export const deletePrescription = prescriptionService.deletePrescription.bind(prescriptionService);
+export const getPrescriptionsByPatient = prescriptionService.getPrescriptionsByPatient.bind(prescriptionService);
+export const getPrescriptionsByDoctor = prescriptionService.getPrescriptionsByDoctor.bind(prescriptionService);
