@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { 
   Building, 
@@ -100,9 +101,9 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
     
     // In a real app, you would fetch branches for the selected clinic from an API
     const mockBranches: Branch[] = [
-      { id: 1, name: "Main Branch", code: "MB", location: "Central", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
-      { id: 2, name: "Secondary Branch", code: "SB", location: "East", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
-      { id: 3, name: "Downtown Branch", code: "DB", location: "West", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 2", mapurl: "", pincode: 123457, image: "", latitude: 0, longitude: 0 },
+      { id: 1, name: "Main Branch", code: "MB", location: "Central", active: true, primary: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
+      { id: 2, name: "Secondary Branch", code: "SB", location: "East", active: true, primary: false, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
+      { id: 3, name: "Downtown Branch", code: "DB", location: "West", active: true, primary: false, state: mockState, district: mockDistrict, country: mockCountry, city: "City 2", mapurl: "", pincode: 123457, image: "", latitude: 0, longitude: 0 },
     ];
     
     setBranches(mockBranches);
