@@ -1,16 +1,21 @@
-
 import { useEffect, useState } from "react";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useAppointments } from "../hooks/useAppointments";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import AppointmentSidebar from "../components/AppointmentSidebar";
 import PageHeader from "@/admin/components/PageHeader";
 import InfiniteAppointmentList from "../components/AppointmentList";
 import AppointmentCalendar from "../components/AppointmentCalendar";
-import { Doctor } from "../../doctor/types/Doctor";
+import AppointmentForm from "../components/AppointmentForm";
 import { AppointmentQueryParams } from "../types/Appointment";
-import DoctorService from "../../doctor/services/doctorService";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AppointmentsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,16 +23,21 @@ const AppointmentsAdmin = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null);
   const [showFilters, setShowFilters] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("UPCOMING");
+  const [appointmentToEdit, setAppointmentToEdit] = useState<any | null>(null);
   const { toast } = useToast();
-  const [doctor, setDoctor] = useState<Doctor>();
 
   // Filter states
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+  const [selectedFilters, setSelectedFilters] = useState<Record<string,any>>({
     types: [],
     statuses: [],
     branches: [],
     searchTerm: null,
+    date:null,
+    status:activeTab
   });
+
   // Define filter options
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
     {
@@ -44,8 +54,9 @@ const AppointmentsAdmin = () => {
       id: 'branches',
       label: 'Branch',
       options: []
-    }
+    },
   ]);
+
   // Use the custom hook for appointments with lazy loading
   const {
     appointments,
@@ -55,12 +66,13 @@ const AppointmentsAdmin = () => {
     refreshAppointments,
     updateFilters
   } = useAppointments({
-    page: 0,
-    size: 10,
-    doctorId: 1, // Replace with actual doctor ID when available
+    pageno: 0,
+    pagesize: 10,
+    doctorId: 1,
     searchTerm: null,
     statuses: [],
-    branches: [] // Added to match the AppointmentQueryParams type
+    branches: [],
+    date:null
   } as AppointmentQueryParams);
 
   const handleFilterChange = (filterId: string, optionId: string) => {
@@ -89,15 +101,19 @@ const AppointmentsAdmin = () => {
       statuses: [],
       assignees: [],
       searchTerm: null,
-      branches: []
+      status:activeTab,
+      branches: [],
+      date:null,
     });
     updateFilters({
-      page: 0,
-      size: 10,
+      pageno: 0,
+      pagesize: 10,
       doctorId: 1,
+      status:activeTab,
       searchTerm: null,
       statuses: [],
-      branches: [] // Added to match the AppointmentQueryParams type
+      branches: [], // Added to match the AppointmentQueryParams type
+      date:null,
     } as AppointmentQueryParams);
   };
 
@@ -106,11 +122,14 @@ const AppointmentsAdmin = () => {
     setShowSidebar(true);
   };
 
+  const handleEditAppointment = (appointment: any) => {
+    setAppointmentToEdit(appointment);
+    setIsFormOpen(true);
+  };
+
   const handleAddAppointment = () => {
-    toast({
-      title: "Add Appointment",
-      description: "This feature is coming soon.",
-    });
+    setAppointmentToEdit(null);
+    setIsFormOpen(true);
   };
 
   const handleStartAppointment = (appointment: any) => {
@@ -120,45 +139,52 @@ const AppointmentsAdmin = () => {
     });
   };
 
-  useEffect(() => {
-    const fetchDocttorInfo = async () => {
-      const data = await DoctorService.getById(1);
-      setDoctor(data);
+  const handlePayment = (appointment: any) => {
+    toast({
+      title: "Payment Recording",
+      description: `Recording payment for ${appointment.patient.firstname} ${appointment.patient.lastname}`,
+    });
+  };
 
-      // Dynamically update branch options in filterOptions
-      setFilterOptions(prevOptions => {
-        return prevOptions.map(option => {
-          if (option.id === 'branches') {
-            return {
-              ...option,
-              options: data.branchList.map((branch: any) => ({
-                id: branch.id,
-                label: branch.name
-              }))
-            };
-          }
-          return option;
-        });
-      });
-    };
+  const handleProcess = (appointment: any) => {
+    toast({
+      title: "Processing Appointment",
+      description: `Moving appointment to process stage...`,
+    });
+  };
 
-    fetchDocttorInfo();
-  }, []);
+  const handlePatientClick = (appointment: any) => {
+    toast({
+      title: "Patient Profile",
+      description: `Opening profile for ${appointment.patient.firstname} ${appointment.patient.lastname}`,
+    });
+    // Here you would open a patient profile dialog/modal
+  };
 
-  
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setAppointmentToEdit(null);
+    refreshAppointments();
+  };
+
   const onSearchChanege = async (term: string) => {
     updateFilters({
       ...selectedFilters,
       searchTerm: term,
-      page: 0,
+      pageno: 0,
     });
     setSearchTerm(term);
   };
-
+  const onActiveTabChange = async (activeTabName: string) => {
+    updateFilters({
+      ...selectedFilters,
+      status: activeTabName,
+      pageno: 0,
+    });
+    setActiveTab(activeTabName);
+  };
   return (
     <AdminLayout
-      rightSidebar={showSidebar ? <AppointmentSidebar onClose={() => setShowSidebar(false)} appointments={appointments} /> : undefined}
-      onUserClick={() => setShowSidebar(!showSidebar)}
       showAddButton={true}
       onAddButtonClick={handleAddAppointment}
     >
@@ -183,6 +209,35 @@ const AppointmentsAdmin = () => {
           onClearFilters={clearFilters}
         />
       )}
+      
+     <Tabs value={activeTab} onValueChange={onActiveTabChange} className="w-full">
+          <TabsList className="grid grid-cols-4 mb-4">
+            <TabsTrigger value="UPCOMING">
+              UPCOMING
+              <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-muted">
+                {/* {clinicRequests.length} */}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="IN_PROGRESS">
+              IN PROGRESS
+              <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                {/* {pendingCount} */}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="COMPLETED">
+              COMPLETED
+              <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
+                {/* {approvedCount} */}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="CANCELLED">
+              CANCELLED
+              <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-red-100 text-red-800">
+                {/* {rejectedCount} */}
+              </span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
       {viewMode === 'calendar' ? (
         <AppointmentCalendar
@@ -197,8 +252,26 @@ const AppointmentsAdmin = () => {
           loadMore={loadMore}
           onAppointmentClick={handleAppointmentClick}
           onStartAppointment={handleStartAppointment}
+          onEditAppointment={handleEditAppointment}
+          onPayment={handlePayment}
+          onProcess={handleProcess}
+          onPatientClick={handlePatientClick}
         />
       )}
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="border-b border-clinic-accent pb-4">
+            <DialogTitle className="text-clinic-primary">
+              {appointmentToEdit ? "Edit Appointment" : "Create New Appointment"}
+            </DialogTitle>
+            <DialogDescription>
+              {appointmentToEdit ? "Update appointment information." : "Fill in the details to create a new appointment."}
+            </DialogDescription>
+          </DialogHeader>
+          <AppointmentForm appointment={appointmentToEdit} onSuccess={handleCloseForm} />
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

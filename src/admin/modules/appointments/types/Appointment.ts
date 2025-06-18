@@ -1,108 +1,86 @@
-
-import { Doctor } from "../../doctor/types/Doctor";
-import { Patient } from "../../patient/types/Patient";
-import { DoctorClinic } from "./DoctorClinic";
 import { FamilyMember } from "./FamilyMember";
-import { Slot } from "./Slot";
-import { District } from "../../core/types/District";
-import { State } from "../../core/types/State";
-import { Country } from "../../core/types/Country";
-import { Source } from "../../user/types/Source";
-import { Relation } from "../../user/types/Relation";
-
-export type AppointmentType = "direct-visit" | "video-call" | "audio-call";
-export type AppointmentStatus = "upcoming" | "completed" | "cancelled" | "new";
-export type VisitType = "new" | "follow-up" | "emergency" | "routine";
 
 export interface Appointment {
   id: number;
-  isAccept: boolean;
+  bookingId: string;
+  appointmentDate: string | Date;
+  appointmentTime: string;
   status: string;
-  appointmentDate: Date;
-  appointmentType?: string;
-  patient: Patient;
-  doctor: Doctor;
-  slot: Slot;
-  familyMember: FamilyMember | null;
-  doctorClinic: DoctorClinic;
-}
-
-export interface PaginatedAppointmentResponse {
-  content: Appointment[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-    sort: {
-      empty: boolean;
-      sorted: boolean;
-      unsorted: boolean;
-    };
-    offset: number;
-    paged: boolean;
-    unpaged: boolean;
-  };
-  totalPages: number;
-  totalElements: number;
-  last: boolean;
-  size: number;
-  number: number;
-  sort: {
-    empty: boolean;
-    sorted: boolean;
-    unsorted: boolean;
-  };
-  numberOfElements: number;
-  first: boolean;
-  empty: boolean;
-}
-
-
-export interface AppointmentQueryParams {
-  page: number;
-  size: number;
-  doctorId?: number;
-  status?: string;
-  fromDate?: string;
-  toDate?: string;
-  searchTerm?: String;
-  branches?: Number[];
-  statuses?: String[];
-}
-
-export type TimeSlot = {
-  id: string;
-  day: string;
-  startTime: string;
-  capacity: number;
-};
-
-
-export const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-export interface AppointmentRequest {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string; // Changed from number to string
-  dob: Date;
-  gender: number;
-  district: District;
-  state: State;
-  country: Country;
-  city: string;
-  appointmentDate: string;
-  isAccept: boolean;
-  isReject: boolean;
-  doctor: Doctor;
+  paymentStatus: string;
+  consultationFee: number;
   appointmentType: {
     id: number;
     name: string;
   };
-  visitType: {
+  patient: {
+    id: number;
+    uid: string;
+    firstname: string;
+    lastname: string;
+    phone: string;
+    gender: string;
+    dob: string | Date;
+    user: {
+      id: number;
+      email: string;
+      phone: string;
+      image: string;
+    };
+  };
+  doctor: {
+    id: number;
+    uid: string;
+    firstname: string;
+    lastname: string;
+    qualification: string;
+    expYear: number;
+    specializationList: {
+      id: number;
+      name: string;
+    }[];
+  };
+  branch: {
     id: number;
     name: string;
+    location: string;
   };
-  source?: Source;
-  relation?: Relation;
+  doctorBranch: {
+    id: number;
+    consultationFee: number;
+    doctor: any;
+    branch: any;
+  };
+  slot?: TimeSlot;
+  familyMember?: FamilyMember;
+}
+
+export interface AppointmentQueryParams {
+  pageno?: number;
+  pagesize?: number;
+  doctorId?: number;
+  searchTerm?: string | null;
+  statuses?: string[];
+  branches?: number[];
+  date?: string | null;
+  status?: string;
+  fromDate?: string | null;
+  toDate?: string | null;
+}
+
+export const DAYS_OF_WEEK = [
+  'MONDAY',
+  'TUESDAY', 
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+  'SUNDAY'
+] as const;
+
+export interface TimeSlot {
+  id: number;
+  date: string | Date;
+  startTime: string;
+  endTime: string;
+  duration?: number;
 }

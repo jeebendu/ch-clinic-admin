@@ -47,4 +47,5 @@ export interface Staff {
   user: User;
   name: string;
   branchList: Branch[];
+  
 }

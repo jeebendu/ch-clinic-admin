@@ -3,28 +3,31 @@ import { Doctor } from "../../../types/Doctor";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 
 export interface DoctorAvailability {
-  id: number;
-  doctor: Doctor;
-  branch: Branch;
-  dayOfWeek: number;
+  dayOfWeek: String;
+  active: boolean;
   startTime: string;
   endTime: string;
-  isAvailable: boolean;
+  slotDuration: number;
+  branch: Branch;
+  doctor: Doctor;
+  id: number;
 }
 
 export interface DoctorLeave {
   id: number;
   doctor: Doctor;
-  startDate: Date;
-  endDate: Date;
+  branch: Branch;
+  leaveStart: Date;
+  leaveEnd: Date;
   reason: string;
+  approved:boolean;
 }
 
 export interface DoctorBreak {
   id?: number;
   doctor: Doctor;
   branch: Branch;
-  dayOfWeek: number;
+  dayOfWeek: string;
   breakStart: string;
   breakEnd: string;
   description: string;
@@ -33,6 +36,6 @@ export interface DoctorBreak {
 export interface ClinicHoliday {
   id: number;
   branch: Branch;
-  holidayDate: Date;
+  date: Date;
   reason: string;
 }

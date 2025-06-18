@@ -8,8 +8,7 @@ import {
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+  SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
@@ -19,11 +18,11 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DoctorLeaves } from "../../doctor/pages/DoctorLeaves";
 import { TimePicker } from "@/admin/components/TimePicker";
 import { DAYS_OF_WEEK, TimeSlot } from "../types/Appointment";
 import { DayAvailability } from "../types/Availability";
 import DoctorService from "../../doctor/services/doctorService";
+import { DoctorLeaves } from "../../doctor/pages/DoctorLeaves";
 
 export default function DoctorAvailability() {
   const { toast } = useToast();
@@ -32,7 +31,7 @@ export default function DoctorAvailability() {
   const [appointmentFees, setAppointmentFees] = useState("");
   const [slotDuration, setSlotDuration] = useState("30");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Fetch doctor data
   const { data: doctorData, isLoading } = useQuery({
     queryKey: ['doctor', 1], // Replace with actual doctor ID from context or params

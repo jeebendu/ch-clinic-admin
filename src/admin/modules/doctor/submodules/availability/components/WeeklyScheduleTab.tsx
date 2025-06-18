@@ -1,79 +1,127 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { DoctorAvailability } from "../types/DoctorAvailability";
 import { availabilityService } from "../services/availabilityService";
 import { TimePicker } from "@/admin/components/TimePicker";
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import { Doctor } from "../../../types/Doctor";
+import { DoctorAvailability } from "../types/DoctorAvailability";
+import BranchService from "@/admin/modules/branch/services/branchService";
+import DoctorService from "../../../services/doctorService";
 
 interface WeeklyScheduleTabProps {
   doctorId: number;
   branchId: number;
 }
 
-interface DaySchedule {
-  dayOfWeek: number;
-  name: string;
-  isAvailable: boolean;
-  startTime: string;
-  endTime: string;
-  slotDuration: number;
-}
+
+
+
+
+
 
 const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorId, branchId }) => {
   const [loading, setLoading] = useState(true);
-  const [schedules, setSchedules] = useState<DaySchedule[]>([
-    { dayOfWeek: 0, name: "Sunday", isAvailable: false, startTime: "09:00", endTime: "17:00", slotDuration: 15 },
-    { dayOfWeek: 1, name: "Monday", isAvailable: true, startTime: "09:00", endTime: "17:00", slotDuration: 15 },
-    { dayOfWeek: 2, name: "Tuesday", isAvailable: true, startTime: "09:00", endTime: "17:00", slotDuration: 15 },
-    { dayOfWeek: 3, name: "Wednesday", isAvailable: true, startTime: "09:00", endTime: "17:00", slotDuration: 15 },
-    { dayOfWeek: 4, name: "Thursday", isAvailable: true, startTime: "09:00", endTime: "17:00", slotDuration: 15 },
-    { dayOfWeek: 5, name: "Friday", isAvailable: true, startTime: "09:00", endTime: "17:00", slotDuration: 15 },
-    { dayOfWeek: 6, name: "Saturday", isAvailable: true, startTime: "09:00", endTime: "14:00", slotDuration: 15 }
-  ]);
-  
-  useEffect(() => {
-    const fetchAvailability = async () => {
-      setLoading(true);
-      try {
-        const availabilities = await availabilityService.getByDoctorAndBranch(doctorId, branchId);
-        
-        if (availabilities && availabilities.length > 0) {
-          // Map API data to our state
-          const updatedSchedules = [...schedules];
-          availabilities.forEach((avail: DoctorAvailability) => {
-            const dayIndex = updatedSchedules.findIndex(day => day.dayOfWeek === avail.dayOfWeek);
-            if (dayIndex !== -1) {
-              updatedSchedules[dayIndex] = {
-                ...updatedSchedules[dayIndex],
-                isAvailable: true,
-                startTime: avail.startTime,
-                endTime: avail.endTime,
-                slotDuration: 15 // Default slot duration if not provided by API
-              };
-            }
-          });
-          setSchedules(updatedSchedules);
-        }
-      } catch (error) {
-        console.error('Error fetching doctor availability:', error);
-        toast.error('Failed to load availability schedule');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [doctor, setDoctor] = useState<Doctor>(null);
+  const [branch, setBranch] = useState<Branch>(null);
 
+
+
+
+
+  const [schedules, setSchedules] = useState<DoctorAvailability[]>([
+    { dayOfWeek: "Sunday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+    { dayOfWeek: "Monday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+    { dayOfWeek: "Tuesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+    { dayOfWeek: "Wednesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+    { dayOfWeek: "Thursday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+    { dayOfWeek: "Friday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+    { dayOfWeek: "Saturday", active: false, startTime: "09:00", endTime: "14:00", slotDuration: 15, branch: null, doctor: null, id: null }
+  ]);
+
+  useEffect(() => {
     if (doctorId && branchId) {
       fetchAvailability();
+      fetchDoctorById();
+      fetchingBranchById();
     }
   }, [doctorId, branchId]);
 
+
+  useEffect(() => {
+    if (doctor && branch) {
+      setSchedules((prev) =>
+        prev.map((schedule) => ({
+          ...schedule,
+          doctor: doctor,
+          branch: branch
+        }))
+      );
+    }
+  }, [doctor, branch]);
+
+  const fetchingBranchById = async () => {
+    try {
+      const res = await BranchService.getById(branchId);
+      setBranch(res.data);
+      setSchedules((prev) =>
+        prev.map((schedule) => ({
+          ...schedule,
+          doctor: doctor,
+          branch: res.data
+        }))
+      );
+    } catch (error) {
+      console.log("Fail to fetching branch data");
+    }
+  }
+
+  const fetchDoctorById = async () => {
+    try {
+      const data = await DoctorService.getById(doctorId)
+      setDoctor(data);
+      setSchedules((prev) =>
+        prev.map((schedule) => ({
+          ...schedule,
+          doctor: data,
+          branch: branch
+        }))
+      );
+    } catch (error) {
+      console.log("Fail to fetching branch data");
+    }
+  }
+
+  const fetchAvailability = async () => {
+    setLoading(true);
+    try {
+      const availabilities = await availabilityService.getByDoctorAndBranch(doctorId, branchId);
+      if (availabilities.data && availabilities.data.length > 0) {
+        setSchedules(availabilities.data);
+      } else {
+        setSchedules([
+          { dayOfWeek: "Sunday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+          { dayOfWeek: "Monday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+          { dayOfWeek: "Tuesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+          { dayOfWeek: "Wednesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+          { dayOfWeek: "Thursday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+          { dayOfWeek: "Friday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
+          { dayOfWeek: "Saturday", active: false, startTime: "09:00", endTime: "14:00", slotDuration: 15, branch: null, doctor: null, id: null }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching doctor availability:', error);
+      toast.error('Failed to load availability schedule');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleToggleDay = (dayIndex: number) => {
     const newSchedules = [...schedules];
-    newSchedules[dayIndex].isAvailable = !newSchedules[dayIndex].isAvailable;
+    newSchedules[dayIndex].active = !newSchedules[dayIndex].active;
     setSchedules(newSchedules);
   };
 
@@ -85,19 +133,13 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorId, branchI
 
   const handleSaveSchedule = async () => {
     try {
-      const availabilitiesToSave = schedules
-        .filter(day => day.isAvailable)
-        .map(day => ({
-          doctor: { id: doctorId },
-          branch: { id: branchId },
-          dayOfWeek: day.dayOfWeek,
-          startTime: day.startTime,
-          endTime: day.endTime,
-          isAvailable: day.isAvailable
-        }));
-      
-      await availabilityService.saveSchedule(availabilitiesToSave);
-      toast.success('Weekly schedule saved successfully');
+      const res = await availabilityService.saveSchedule(schedules);
+      if (res.data.status) {
+        toast.success('Weekly schedule saved successfully!');
+      } else {
+        toast.error('Failed to save weekly schedule');
+      }
+      fetchAvailability();
     } catch (error) {
       console.error('Error saving schedule:', error);
       toast.error('Failed to save weekly schedule');
@@ -125,26 +167,26 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorId, branchI
               <div>Duration</div>
             </div>
             {schedules.map((day, index) => (
-              <div key={day.dayOfWeek} className="grid md:grid-cols-7 gap-2 items-center py-4 border-t">
-                <div className="font-medium">{day.name}</div>
+              <div key={day.id} className="grid md:grid-cols-7 gap-2 items-center py-4 border-t">
+                <div className="font-medium">{day.dayOfWeek}</div>
                 <div>
-                  <Switch 
-                    checked={day.isAvailable}
+                  <Switch
+                    checked={day.active}
                     onCheckedChange={() => handleToggleDay(index)}
                   />
                 </div>
                 <div className="col-span-2">
-                  <TimePicker 
+                  <TimePicker
                     value={day.startTime}
                     onChange={(value) => handleTimeChange(index, 'startTime', value)}
-                    disabled={!day.isAvailable}
+                    disabled={!day.active}
                   />
                 </div>
                 <div className="col-span-2">
-                  <TimePicker 
+                  <TimePicker
                     value={day.endTime}
                     onChange={(value) => handleTimeChange(index, 'endTime', value)}
-                    disabled={!day.isAvailable}
+                    disabled={!day.active}
                   />
                 </div>
                 <div>
@@ -156,7 +198,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorId, branchI
                       newSchedules[index].slotDuration = parseInt(e.target.value);
                       setSchedules(newSchedules);
                     }}
-                    disabled={!day.isAvailable}
+                    disabled={!day.active}
                   >
                     <option value={15}>15 min</option>
                     <option value={30}>30 min</option>

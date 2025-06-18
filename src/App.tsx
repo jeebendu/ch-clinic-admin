@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import AdminRoutes from "./admin/AdminRoutes";
 import { useTenant } from "./hooks/use-tenant";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -25,15 +26,16 @@ const App = () => (
       <BrowserRouter>
         <TenantInitializer>
           <Routes>
-            {/* Redirect from root to login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            
+
             {/* Login route */}
-            <Route path="/login" element={<Login />} />
-            
+            <Route path="/" element={<Login />} />
+
+            {/* Reset password route */}
+            <Route path="/reset-password" element={<ResetPassword />} />
+
             {/* Admin routes */}
             <Route path="/admin/*" element={<AdminRoutes />} />
-            
+
             {/* 404 route */}
             <Route path="*" element={<NotFound />} />
           </Routes>

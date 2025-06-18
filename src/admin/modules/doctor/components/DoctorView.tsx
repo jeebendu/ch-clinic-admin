@@ -247,8 +247,8 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                       <div className="flex flex-wrap gap-2">
                         {doctor.branchList?.length > 0 ? (
                           doctor.branchList.map((branch) => (
-                            <Badge key={branch.id} className="bg-brand-primary/10 text-brand-primary border-brand-primary/30">
-                              {branch.name}
+                            <Badge key={branch?.branch.id} className="bg-brand-primary/10 text-brand-primary border-brand-primary/30">
+                              {branch.branch.name}
                             </Badge>
                           ))
                         ) : (

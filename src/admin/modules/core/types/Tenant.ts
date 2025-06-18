@@ -8,4 +8,5 @@ export interface Tenant {
   logo: string;
   phone: string;
   description?: string;
+  info?:string;
 }

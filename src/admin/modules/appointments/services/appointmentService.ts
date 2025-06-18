@@ -6,18 +6,21 @@ import { AppointmentQueryParams } from "../types/Appointment";
  * Fetches appointments by doctor ID with pagination support
  */
 export const fetchAppointmentsByDoctorId = async (params: AppointmentQueryParams) => {
-  const { doctorId, page, size, status, fromDate, toDate, branches, statuses, searchTerm } = params;
+  const { doctorId, pageno, pagesize, status="UPCOMING", fromDate, toDate, branches, statuses, searchTerm,date } = params;
 
-  let url = `v1/appointments/doctor/${doctorId}?page=${page}&size=${size}`;
+  let url = `v1/appointments/filter/${pageno}/${pagesize}`;
 
-  if (status) url += `&status=${status}`;
-  if (fromDate) url += `&fromDate=${fromDate}`;
-  if (toDate) url += `&toDate=${toDate}`;
+  // if (status) url += `&status=${status}`;
+  // if (fromDate) url += `&fromDate=${fromDate}`;
+  // if (toDate) url += `&toDate=${toDate}`;
 
   const filter = {
     branches,
     statuses,
+    status:status,
     searchTerm,
+    date,
+    
   };
 
   return await http.post(url, filter);
@@ -27,9 +30,9 @@ export const fetchAppointmentsByDoctorId = async (params: AppointmentQueryParams
  * Fetches all appointments with pagination support
  */
 export const fetchAllAppointments = async (params: AppointmentQueryParams) => {
-  const { page, size, status, fromDate, toDate } = params;
+  const { pageno, pagesize, status, fromDate, toDate } = params;
 
-  let url = `v1/appointments?page=${page}&size=${size}`;
+  let url = `v1/appointments?/filter/${pageno}/${pagesize}`;
 
   if (status) url += `&status=${status}`;
   if (fromDate) url += `&fromDate=${fromDate}`;

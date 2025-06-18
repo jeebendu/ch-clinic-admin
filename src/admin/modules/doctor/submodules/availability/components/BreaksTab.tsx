@@ -8,67 +8,98 @@ import { toast } from "sonner";
 import { Plus, Trash } from "lucide-react";
 import { breakService } from "../services/breakService";
 import { TimePicker } from "@/admin/components/TimePicker";
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import { Doctor } from "../../../types/Doctor";
+import BranchService from "@/admin/modules/branch/services/branchService";
+import DoctorService from "../../../services/doctorService";
+import { DoctorBreak } from "../types/DoctorAvailability";
 
 interface BreaksTabProps {
   doctorId: number;
   branchId: number;
 }
 
-interface Break {
-  id?: number;
-  dayOfWeek: number;
-  breakStart: string;
-  breakEnd: string;
-  description: string;
-}
+
 
 const weekDays = [
-  { value: "0", label: "Sunday" },
-  { value: "1", label: "Monday" },
-  { value: "2", label: "Tuesday" },
-  { value: "3", label: "Wednesday" },
-  { value: "4", label: "Thursday" },
-  { value: "5", label: "Friday" },
-  { value: "6", label: "Saturday" }
+  { value: "Sunday", label: "Sunday" },
+  { value: "Monday", label: "Monday" },
+  { value: "Tuesday", label: "Tuesday" },
+  { value: "Wednesday", label: "Wednesday" },
+  { value: "Thursday", label: "Thursday" },
+  { value: "Friday", label: "Friday" },
+  { value: "Saturday", label: "Saturday" }
 ];
 
 const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
   const [loading, setLoading] = useState(true);
-  const [breaks, setBreaks] = useState<Break[]>([]);
-  
-  useEffect(() => {
-    const fetchBreaks = async () => {
-      setLoading(true);
-      try {
-        const doctorBreaks = await breakService.getByDoctorAndBranch(doctorId, branchId);
-        setBreaks(doctorBreaks || []);
-      } catch (error) {
-        console.error('Error fetching doctor breaks:', error);
-        toast.error('Failed to load break schedule');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [breaks, setBreaks] = useState<DoctorBreak[]>([]);
+  const [doctor, setDoctor] = useState<Doctor>(null);
+  const [branch, setBranch] = useState<Branch>(null);
 
+
+  useEffect(() => {
     if (doctorId && branchId) {
       fetchBreaks();
+      fetchDoctorById();
+      fetchingBranchById();
     }
   }, [doctorId, branchId]);
 
+  const fetchBreaks = async () => {
+    setLoading(true);
+    try {
+      const doctorBreaks = await breakService.getByDoctorAndBranch(doctorId, branchId);
+      setBreaks(doctorBreaks.data);
+    } catch (error) {
+      toast.error('Failed to load break schedule');
+    } finally {
+      setLoading(false);
+    }
+  };
+  const fetchingBranchById = async () => {
+    try {
+      const res = await BranchService.getById(branchId);
+      setBranch(res.data)
+    } catch (error) {
+      console.log("Fail to fetching branch data");
+    }
+  }
+
+  const fetchDoctorById = async () => {
+    try {
+      const data = await DoctorService.getById(doctorId)
+      setDoctor(data)
+    } catch (error) {
+      console.log("Fail to fetching branch data");
+    }
+  }
+
+
   const handleAddBreak = () => {
     setBreaks([
-      ...breaks, 
-      { dayOfWeek: 1, breakStart: "12:00", breakEnd: "13:00", description: "Lunch Break" }
+      ...breaks,
+      { dayOfWeek: "Sunday", breakStart: "12:00", breakEnd: "13:00", description: "Lunch Break", branch: branch, doctor: doctor }
     ]);
   };
 
-  const handleRemoveBreak = (index: number) => {
-    const newBreaks = [...breaks];
-    newBreaks.splice(index, 1);
-    setBreaks(newBreaks);
+  const handleRemoveBreak = async (id: number) => {
+    try {
+      const res = await breakService.deleteById(id);
+      if (res.data.status) {
+        toast.error('Delete sucessfuly');
+      } else {
+        toast.error('Fail to delete break');
+      }
+    } catch (e) {
+      toast.error('Fail to delete break');
+    }finally{
+      fetchBreaks();
+    }
+
   };
 
-  const handleBreakChange = (index: number, field: keyof Break, value: any) => {
+  const handleBreakChange = (index: number, field: keyof DoctorBreak, value: any) => {
     const newBreaks = [...breaks];
     newBreaks[index] = {
       ...newBreaks[index],
@@ -79,17 +110,17 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
 
   const handleSaveBreaks = async () => {
     try {
-      const breaksToSave = breaks.map(breakItem => ({
-        ...breakItem,
-        doctor: { id: doctorId },
-        branch: { id: branchId },
-      }));
-      
-      await breakService.saveBreaks(breaksToSave);
-      toast.success('Break schedule saved successfully');
+      const res = await breakService.saveBreaks(breaks);
+      if (res.data.status) {
+        toast.success('Break schedule saved successfully');
+      } else {
+        toast.error('Failed to save break schedule');
+      }
     } catch (error) {
       console.error('Error saving breaks:', error);
       toast.error('Failed to save break schedule');
+    }finally{
+      fetchBreaks();
     }
   };
 
@@ -117,7 +148,7 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
                 <div key={index} className="grid md:grid-cols-5 gap-4 items-center p-4 border rounded-md bg-muted/10">
                   <div>
                     <label className="text-sm font-medium mb-1 block">Day</label>
-                    <Select 
+                    <Select
                       value={breakItem.dayOfWeek.toString()}
                       onValueChange={(value) => handleBreakChange(index, 'dayOfWeek', value)}
                     >
@@ -133,47 +164,47 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium mb-1 block">Start Time</label>
-                    <TimePicker 
+                    <TimePicker
                       value={breakItem.breakStart}
                       onChange={(value) => handleBreakChange(index, 'breakStart', value)}
                     />
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium mb-1 block">End Time</label>
-                    <TimePicker 
+                    <TimePicker
                       value={breakItem.breakEnd}
                       onChange={(value) => handleBreakChange(index, 'breakEnd', value)}
                     />
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium mb-1 block">Description</label>
-                    <Input 
-                      placeholder="Break description" 
+                    <Input
+                      placeholder="Break description"
                       value={breakItem.description}
                       onChange={(e) => handleBreakChange(index, 'description', e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="flex items-end justify-center">
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveBreak(index)} className="text-red-500">
+                    <Button variant="ghost" size="icon" onClick={() => handleRemoveBreak(breakItem.id)} className="text-red-500">
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               ))}
-              
+
               <div className="mt-4">
                 <Button variant="outline" onClick={handleAddBreak} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Break
                 </Button>
               </div>
-              
+
               <div className="mt-6 flex justify-end">
                 <Button onClick={handleSaveBreaks}>
                   Save Break Schedule

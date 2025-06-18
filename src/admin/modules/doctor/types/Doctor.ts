@@ -1,4 +1,6 @@
 
+import { DoctorBranch } from "../../appointments/types/DoctorClinic";
+import { Clinic } from "../../clinics/types/Clinic";
 import MedicalCouncil from "./MedicalCouncil";
 import MedicalDegree from "./MedicalDegree";
 
@@ -18,6 +20,7 @@ export interface District {
 }
 
 export interface User {
+  email: string;
   id: number;
   username: string;
   fullname: string;
@@ -34,7 +37,9 @@ export interface Branch {
   city?: string;
   district?: District;
   state?: State;
-  country?: Country;
+  country?: Country; 
+  clinic?:Clinic;
+
 }
 
 export interface Specialization {
@@ -71,6 +76,8 @@ export interface AdditionalInfoDoctor {
 }
 
 export interface Doctor {
+  online: any;
+  imageUrl: string;
   id: number;
   uid: string;
   external?: boolean;
@@ -100,15 +107,16 @@ export interface Doctor {
   reviewCount?: number;
   joiningDate?: string;
   status?: number;
-  imageUrl?: string;
+  image?: string;
   additionalInfoDoctor?: AdditionalInfoDoctor;
   serviceList?: Service[];
   specializationList?: Specialization[];
-  branchList?: Branch[];
+  branchList?: DoctorBranch[];
   medicalDegree?: MedicalDegree;
   // Adding missing properties based on errors
   languageList?: Language[];
   consultationFee?: number | string;
   percentages?: any[];
   pincode?: string;
+  slug?:String;
 }

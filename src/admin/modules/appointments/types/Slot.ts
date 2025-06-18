@@ -1,11 +1,11 @@
 
 import { Branch } from "../../branch/types/Branch";
 import { Doctor } from "../../doctor/types/Doctor";
+import { DoctorBranch } from "./DoctorClinic";
 
 export interface Slot {
     id: number;
-    doctor?: Doctor;
-    branch?: Branch;
+   doctorBranch?:DoctorBranch;
     startTime?: string;
     endTime?: string; 
     availableSlots: number;

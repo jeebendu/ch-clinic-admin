@@ -27,7 +27,7 @@ export const useRoleAccess = (
   useEffect(() => {
     // If not logged in, redirect to login
     if (!AuthService.isLoggedIn()) {
-      navigate('/login');
+      navigate('/');
       return;
     }
 

@@ -127,6 +127,7 @@ const PatientPrescription = () => {
     lastname: "",
     email: "",
     mobile: "",
+    refDoctor:null,
     gender: "",
     dob: new Date(),
     age: 0,
@@ -135,6 +136,7 @@ const PatientPrescription = () => {
       id: 0,
       name: "",
       username: "",
+      uid:"",
       email: "",
       phone: "",
       password: "",
@@ -150,11 +152,13 @@ const PatientPrescription = () => {
     },
     state: {
       id: 0,
-      name: ""
+      name: "",
+      country:null
     },
     district: {
       id: 0,
-      name: ""
+      name: "",
+      state:null
     }
   };
 

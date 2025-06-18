@@ -16,6 +16,7 @@ import BreaksTab from "../components/BreaksTab";
 import LeavesTab from "../components/LeavesTab";
 import HolidaysTab from "../components/HolidaysTab";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 
 const DoctorScheduleView = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,12 +32,12 @@ const DoctorScheduleView = () => {
       
       setLoading(true);
       try {
-        const fetchedDoctor = await doctorService.getById(id);
+        const fetchedDoctor = await doctorService.getById(Number(id));
         setDoctor(fetchedDoctor);
         
         // Set the first branch as default if doctor has branches
         if (fetchedDoctor.branchList && fetchedDoctor.branchList.length > 0) {
-          setSelectedBranch(fetchedDoctor.branchList[0].id);
+          setSelectedBranch(fetchedDoctor.branchList[0]?.branch?.id);
         }
       } catch (error) {
         console.error('Error fetching doctor details:', error);
@@ -50,7 +51,9 @@ const DoctorScheduleView = () => {
   }, [id]);
 
   const handleBranchChange = (branchId: string) => {
-    setSelectedBranch(parseInt(branchId));
+    if(branchId){
+      setSelectedBranch(parseInt(branchId));
+    }
   };
 
   const handleBackClick = () => {
@@ -71,6 +74,7 @@ const DoctorScheduleView = () => {
             </h1>
           </div>
         </div>
+
 
         {loading ? (
           <Card>
@@ -99,9 +103,9 @@ const DoctorScheduleView = () => {
                         <SelectValue placeholder="Select branch" />
                       </SelectTrigger>
                       <SelectContent>
-                        {doctor.branchList && doctor.branchList.map((branch: Branch) => (
-                          <SelectItem key={branch.id} value={branch.id.toString()}>
-                            {branch.name}
+                        {doctor.branchList && doctor.branchList.map((drBranch: DoctorBranch) => (
+                          <SelectItem key={drBranch?.branch?.id} value={drBranch?.branch?.id.toString()}>
+                            {drBranch?.branch?.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

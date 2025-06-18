@@ -43,7 +43,7 @@ const PatientService = {
   list: async (page = 0, size = 10, filter: any) => {
     try {
       const tenantId = getTenantId();
-      const response = await http.post(`${apiUrl}/v1/patient/filter/${page}/${size}`, filter);
+      const response = await http.post(`${apiUrl}/v1/patient/admin/filter/${page}/${size}`, filter);
       console.log("Raw Patient API response:", response);
       return response.data;
     } catch (error) {

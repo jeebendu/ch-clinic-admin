@@ -145,7 +145,7 @@ const ReviewDoctorDialog: React.FC<ReviewDoctorDialogProps> = ({
                 <span className="text-xs font-semibold text-muted-foreground min-w-[60px]">Branches:</span>
                 <span>
                   {(doctor.branchList && doctor.branchList.length > 0)
-                    ? doctor.branchList.map(branch => branch.name).join(', ')
+                    ? doctor.branchList.map(branch => branch.branch.name).join(', ')
                     : "—"}
                 </span>
               </div>

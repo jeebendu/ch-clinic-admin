@@ -84,7 +84,7 @@ const Header = ({
 
   const handleLogout = () => {
     AuthService.logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const [profileOpen, setProfileOpen] = useState(false);

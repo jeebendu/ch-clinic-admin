@@ -1,9 +1,10 @@
 
 import { Doctor } from "../../doctor/types/Doctor";
-import { Clinic } from "../../clinics/types/Clinic";
+import { Branch } from "../../branch/types/Branch";
 
-export interface DoctorClinic {
+export interface DoctorBranch {
   id: number;
-  doctor: Doctor;
-  clinic: Clinic;
+  doctor?: Doctor;
+  branch: Branch;
+  consultationFee?: number; // Added this property
 }

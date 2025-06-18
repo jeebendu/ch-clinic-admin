@@ -252,14 +252,7 @@ const Login = () => {
                   </DialogContent>
                 </Dialog>
               </div>
-              <div className="text-xs text-gray-400 text-center w-full">
-                <div>Demo access: Use the following credentials</div>
-                <div className="mt-1 font-medium">
-                  Admin: admin / password<br />
-                  Doctor: doctor / password<br />
-                  Staff: staff / password
-                </div>
-              </div>
+              
             </CardFooter>
           </Card>
         </div>

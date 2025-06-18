@@ -24,21 +24,19 @@ const PatientRoutes = () => {
     <Routes>
       <Route path="/" element={<Patients />} />
       <Route path="/list" element={<PatientList />} />
-      <Route path="/view/:id" element={<PatientView />} />
+      {/* <Route path="/view/:id" element={<PatientView />} />
       <Route path="/prescription/:id" element={<PatientPrescription />} />
       <Route path="/visit/:id" element={<VisitDetails />} />
       
-      {/* Report view routes */}
       <Route path="/report/audiometry/:id" element={<AudiometryReportView />} />
       <Route path="/report/bera/:id" element={<BeraReportView />} />
       <Route path="/report/abr/:id" element={<ABRReportView />} />
       <Route path="/report/speech/:id" element={<SpeechReportView />} />
-      
-      {/* Report form routes - for creating new reports with patientId param to fetch patient data */}
+
       <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm />} />
       <Route path="/report/new/bera/:patientId" element={<BeraForm standalone={true} />} />
       <Route path="/report/new/abr/:patientId" element={<ABRForm standalone={true} />} />
-      <Route path="/report/new/speech/:patientId" element={<SpeechForm standalone={true} />} />
+      <Route path="/report/new/speech/:patientId" element={<SpeechForm standalone={true} />} /> */}
     </Routes>
   );
 };

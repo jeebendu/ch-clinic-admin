@@ -1,12 +1,7 @@
-// v1/appointment/prescription
-
-
-import http from "@/lib/JwtInterceptor";
-import { Doctor } from "../../doctor/types/Doctor";
+// v1/appointment/prescriptio
 import axios from "axios";
 import { getEnvVariable } from "@/utils/envUtils";
 import { getTenantId } from "@/utils/tenantUtils";
-import { Prescription } from "../../patient/types/Prescription";
 
 const BASE_URL = getEnvVariable('BASE_URL');
 const X_APP_TOKEN = getEnvVariable('X_APP_TOKEN');

@@ -78,14 +78,14 @@ const RoleTable = ({ role, onDelete, onEdit }: RoleTableProps) => {
                     </Button>
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button
+                    {/* <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => onEdit(user)}
                       className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
+                    </Button> */}
                     <Button
                       variant="ghost"
                       size="icon"

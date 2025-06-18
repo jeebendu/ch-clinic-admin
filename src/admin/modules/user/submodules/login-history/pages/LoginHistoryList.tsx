@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -9,6 +10,7 @@ import { FilterOption } from "@/admin/components/FilterCard";
 import { useQuery } from "@tanstack/react-query";
 import LoginHistoryService from "../service/LoginHistoryService";
 import LoginHistoryTable from "../components/LoginHistoryTable";
+import { ClipboardList } from "lucide-react";
 
 const LoginHistoryList = () => {
     const navigate = useNavigate();
@@ -75,16 +77,41 @@ const LoginHistoryList = () => {
 
     return (
         <AdminLayout>
-            <div>
+            <div className="space-y-6">
+                <PageHeader 
+                    title="Login History" 
+                    description="View all user login sessions"
+                    icon={<ClipboardList className="h-5 w-5" />}
+                    onRefreshClick={fetchLoginInfo}
+                    loadedElements={loginHistory.length}
+                    totalElements={totalElements}
+                />
                 
-                <div>
-                    <LoginHistoryTable
-                        loginHistory={loginHistory}
-                    />
-                    {loadingMore && <div>Loading more login history...</div>}
-                    {loginHistory.length >= totalElements && totalElements > 0 && <div>No more login history to load.</div>}
-                </div>
-                
+                {loginHistory.length === 0 && !loadingMore ? (
+                    <div className="flex flex-col items-center justify-center h-64 gap-4 border rounded-lg bg-gray-50">
+                        <ClipboardList className="h-16 w-16 text-gray-300" />
+                        <p className="text-muted-foreground">No login history available.</p>
+                    </div>
+                ) : (
+                    <div className="rounded-md border bg-white shadow-sm">
+                        <LoginHistoryTable
+                            loginHistory={loginHistory}
+                        />
+                        {loadingMore && (
+                            <div className="flex justify-center p-4 border-t">
+                                <div className="flex flex-col items-center space-y-2">
+                                    <div className="animate-spin h-6 w-6 border-4 border-primary border-t-transparent rounded-full"></div>
+                                    <p className="text-sm text-muted-foreground">Loading more login history...</p>
+                                </div>
+                            </div>
+                        )}
+                        {loginHistory.length >= totalElements && totalElements > 0 && (
+                            <div className="py-4 text-center text-sm text-muted-foreground border-t">
+                                No more login history to load.
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </AdminLayout>
     );

@@ -1,3 +1,4 @@
+
 import http from "@/lib/JwtInterceptor";
 import { getEnvVariable } from "@/utils/envUtils";
 import { Branch } from "../types/Branch";
@@ -8,15 +9,21 @@ export const BranchService = {
   list: async () => {
     try {
       const response = await http.get(`${apiUrl}/v1/branch/list`);
-      return response.data; // Return just the data part of the response
+      return response.data;
     } catch (error) {
       console.error("Error fetching branches:", error);
       throw error;
     }
   },
  
-  deleteById: (id: number) => {
-    return http.get(`${apiUrl}/v1/branch/delete/id/${id}`);
+  deleteById: async (id: number) => {
+    try {
+      const response = await http.get(`${apiUrl}/v1/branch/delete/id/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting branch:", error);
+      throw error;
+    }
   },
  
   getById: (id: number) => {
@@ -29,4 +36,3 @@ export const BranchService = {
 };
  
 export default BranchService;
- 

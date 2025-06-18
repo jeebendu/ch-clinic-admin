@@ -7,6 +7,16 @@ const DistrictService = {
   listDistrict: () => {
     return http.get(`/v1/district/list`);
   },
+  listByName: (name: String) => {
+    if (!name) { return; }
+    return http.get(`/v1/public/district/list/${name}`);
+  },
+  listByName: (name:String) => {
+    if(!name){
+      return;
+    }
+  return http.get(`/v1/district/list/${name}`);
+},
 
   getById: (id: number) => {
     return http.get(`/v1/district/id/${id}`);

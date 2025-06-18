@@ -28,9 +28,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Slot } from "../types/Slot";
-import { Doctor } from "../../doctor/types/Doctor";
 import { Branch } from "../../branch/types/Branch";
 import { TimePicker } from "@/admin/components/TimePicker";
+import { Doctor } from "../types/Doctor";
 
 const slotFormSchema = z.object({
   startTime: z.string().min(1, "Start time is required"),
@@ -74,9 +74,7 @@ export function SlotCreationDialog({
   function onSubmit(data: SlotFormValues) {
     const slot: Partial<Slot> = {
       ...data,
-      doctor,
-      branch,
-      id: Date.now(), // Temporary ID for new slots
+      id:null, // Temporary ID for new slots
     };
     onSave(slot);
     form.reset();

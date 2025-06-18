@@ -3,13 +3,13 @@ import { useParams } from 'react-router-dom';
 import AdminLayout from '@/admin/components/AdminLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Doctor } from '../types/Doctor';
-import doctorService from '../services/doctorService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import DoctorProfileSection from '../components/DoctorDetailView/DoctorProfileSection';
 import DoctorProfessionalSection from '../components/DoctorDetailView/DoctorProfessionalSection';
 import DoctorStatsSection from '../components/DoctorDetailView/DoctorStatsSection';
 import DoctorAvailabilitySection from '../components/DoctorDetailView/DoctorAvailabilitySection';
+import DoctorService from '../services/doctorService';
 
 const DoctorDetailView = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +23,7 @@ const DoctorDetailView = () => {
       
       setLoading(true);
       try {
-        const fetchedDoctor = await doctorService.getById(id);
+        const fetchedDoctor = await DoctorService.getById(Number(id));
         setDoctor(fetchedDoctor);
       } catch (error) {
         console.error('Error fetching doctor details:', error);
@@ -39,7 +39,7 @@ const DoctorDetailView = () => {
   const handleSaveDoctor = async (updatedDoctor: Doctor) => {
     try {
       setLoading(true);
-      const response = await doctorService.saveOrUpdate(updatedDoctor);
+      const response = await DoctorService.saveOrUpdateDoctor(updatedDoctor);
       if (response) {
         setDoctor(response);
         toast.success('Doctor information updated successfully');

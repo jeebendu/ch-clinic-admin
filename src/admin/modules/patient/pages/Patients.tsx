@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -5,9 +6,22 @@ import { usePatients } from "../hooks/usePatients";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import PatientSidebar from "../components/PatientSidebar";
 import PageHeader from "@/admin/components/PageHeader";
-import PatientTable from "../components/PatientTable";
 import PatientGrid from "../components/PatientGrid";
+import PatientHorizontalCard from "../components/PatientHorizontalCard";
+import PatientFormDialog from "@/admin/components/dialogs/PatientFormDialog";
 import { Patient } from "../types/Patient";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import PatientService from "../services/patientService";
+import PatientCardSkeleton from "@/admin/components/skeletons/PatientCardSkeleton";
 
 const PatientsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,6 +29,11 @@ const PatientsAdmin = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showFilters, setShowFilters] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState<number | null>(null);
   const { toast } = useToast();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef<number>(0);
@@ -38,7 +57,7 @@ const PatientsAdmin = () => {
     totalElements,
     loadedElements
   } = usePatients({
-    page: 1,
+    page: 0,
     size: 10
   });
 
@@ -98,19 +117,17 @@ const PatientsAdmin = () => {
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedFilters({
-      gender: null,
-      ageGroup: null,
-      lastVisit: null,
-      insuranceProvider: null
+      gender: [],
+      ageGroup: [],
+      lastVisit: []
     });
     
     // Reset filters and fetch patients
     updateFilters({
       searchTerm: "", 
-      gender: null, 
-      ageGroup: null, 
-      lastVisit: null, 
-      insuranceProvider: null,
+      gender: [], 
+      ageGroup: [], 
+      lastVisit: []
     });
   };
 
@@ -130,10 +147,44 @@ const PatientsAdmin = () => {
   };
 
   const handleAddPatient = () => {
-    toast({
-      title: "Add Patient",
-      description: "This feature is coming soon.",
-    });
+    setEditingPatient(null);
+    setShowAddDialog(true);
+  };
+
+  const handleEditPatient = (patient: Patient) => {
+    setEditingPatient(patient);
+    setShowEditDialog(true);
+  };
+
+  const handleDeletePatient = (id: number) => {
+    setPatientToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (patientToDelete === null) return;
+    
+    try {
+      await PatientService.deleteById(patientToDelete);
+      toast({
+        title: "Patient deleted",
+        description: "Patient has been successfully deleted.",
+        className: "bg-clinic-primary text-white"
+      });
+      refreshPatients();
+      setDeleteDialogOpen(false);
+      setPatientToDelete(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete patient.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    refreshPatients();
   };
 
   // Save scroll position before loading more data
@@ -173,66 +224,110 @@ const PatientsAdmin = () => {
   };
 
   return (
-    <AdminLayout 
-      rightSidebar={showSidebar ? <PatientSidebar patient={selectedPatient} onClose={() => setShowSidebar(false)} /> : undefined}
-      onUserClick={() => setShowSidebar(!showSidebar)}
-      showAddButton={true}
-      onAddButtonClick={handleAddPatient}
-    >
-      <PageHeader 
-        title="Patients"
-        onViewModeToggle={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-        viewMode={viewMode}
+    <>
+      <AdminLayout 
+        rightSidebar={showSidebar ? <PatientSidebar patient={selectedPatient} onClose={() => setShowSidebar(false)} /> : undefined}
+        onUserClick={() => setShowSidebar(!showSidebar)}
         showAddButton={true}
-        addButtonLabel="New Patient"
         onAddButtonClick={handleAddPatient}
-        onRefreshClick={refreshPatients}
-        onFilterToggle={() => setShowFilters(!showFilters)}
-        showFilter={showFilters}
-        loadedElements={loadedElements}
-        totalElements={totalElements}
-        onSearchChange={handleSearchChange}
-        searchValue={searchTerm}
+      >
+        <PageHeader 
+          title="Patients"
+          onViewModeToggle={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
+          viewMode={viewMode}
+          showAddButton={true}
+          addButtonLabel="New Patient"
+          onAddButtonClick={handleAddPatient}
+          onRefreshClick={refreshPatients}
+          onFilterToggle={() => setShowFilters(!showFilters)}
+          showFilter={showFilters}
+          loadedElements={loadedElements}
+          totalElements={totalElements}
+          onSearchChange={handleSearchChange}
+          searchValue={searchTerm}
+        />
+
+        {showFilters && (
+          <FilterCard 
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            filters={filterOptions}
+            selectedFilters={selectedFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={clearFilters}
+          />
+        )}
+        <div 
+          ref={scrollContainerRef}
+          className="overflow-auto flex-1 pb-6" 
+          onScroll={handleScroll}
+          style={{ maxHeight: 'calc(100vh - 220px)' }}
+        >
+          {viewMode === 'list' ? (
+            <div className="space-y-3">
+              {loading && patients.length === 0 ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <PatientCardSkeleton key={index} />
+                ))
+              ) : (
+                patients.map((patient) => (
+                  <PatientHorizontalCard
+                    key={patient.id}
+                    patient={patient}
+                    onView={handlePatientClick}
+                    onEdit={handleEditPatient}
+                    onDelete={handleDeletePatient}
+                    onPatientClick={handlePatientClick}
+                  />
+                ))
+              )}
+            </div>
+          ) : (
+            <PatientGrid 
+              patients={patients}
+              loading={loading}
+            />
+          )}
+          
+          {loading && patients.length > 0 && (
+            <div className="flex justify-center my-4">
+              <div className="animate-pulse bg-gray-200 h-8 w-40 rounded-md"></div>
+            </div>
+          )}
+        </div>
+      </AdminLayout>
+
+      <PatientFormDialog
+        isOpen={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        onSave={handleFormSuccess}
       />
 
-      {showFilters && (
-        <FilterCard 
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          filters={filterOptions}
-          selectedFilters={selectedFilters}
-          onFilterChange={handleFilterChange}
-          onClearFilters={clearFilters}
-        />
-      )}
+      <PatientFormDialog
+        isOpen={showEditDialog}
+        onClose={() => setShowEditDialog(false)}
+        onSave={handleFormSuccess}
+        patient={editingPatient}
+      />
 
-     
-      <div 
-        ref={scrollContainerRef}
-        className="overflow-auto flex-1 pb-6" 
-        onScroll={handleScroll}
-        style={{ maxHeight: 'calc(100vh - 220px)' }}
-      >
-        {viewMode === 'list' ? (
-          <PatientTable 
-            patients={patients}
-            onDelete={(id) => console.log('Delete patient:', id)}
-            loading={loading}
-          />
-        ) : (
-          <PatientGrid 
-            patients={patients}
-            loading={loading}
-          />
-        )}
-        
-        {loading && patients.length > 0 && (
-          <div className="flex justify-center my-4">
-            <div className="animate-pulse bg-gray-200 h-8 w-40 rounded-md"></div>
-          </div>
-        )}
-      </div>
-    </AdminLayout>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the patient
+              and remove all associated data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPatientToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

@@ -9,80 +9,93 @@ import { toast } from "sonner";
 import { Calendar, Plus, Trash } from "lucide-react";
 import { format } from "date-fns";
 import { holidayService } from "../services/holidayService";
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import { ClinicHoliday } from "../types/DoctorAvailability";
+import BranchService from "@/admin/modules/branch/services/branchService";
 
 interface HolidaysTabProps {
   doctorId: number;
   branchId: number;
 }
 
-interface Holiday {
-  id: number;
-  branchId: number;
-  holidayDate: Date | string;
-  reason: string;
-}
-
 const HolidaysTab: React.FC<HolidaysTabProps> = ({ doctorId, branchId }) => {
   const [loading, setLoading] = useState(true);
-  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [branch, setBranch] = useState<Branch>(null);
+  const [holidays, setHolidays] = useState<ClinicHoliday[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newHoliday, setNewHoliday] = useState<Partial<Holiday>>({
-    branchId,
-    holidayDate: new Date(),
+  const [newHoliday, setNewHoliday] = useState<ClinicHoliday>({
+    id: null,
+    branch: branch,
+    date: new Date(),
     reason: ""
   });
-  
+
   useEffect(() => {
-    const fetchHolidays = async () => {
-      setLoading(true);
-      try {
-        const branchHolidays = await holidayService.getByBranch(branchId);
-        setHolidays(branchHolidays || []);
-      } catch (error) {
-        console.error('Error fetching branch holidays:', error);
-        toast.error('Failed to load holiday information');
-      } finally {
-        setLoading(false);
-      }
-    };
 
     if (branchId) {
       fetchHolidays();
+      fetchingBranchById();
     }
   }, [branchId]);
 
+  useEffect(() => {
+    if (branch) {
+      setNewHoliday((prev) => ({ ...prev, branch: branch }))
+    }
+  }, [branch]);
+
+  const fetchingBranchById = async () => {
+    try {
+      const res = await BranchService.getById(branchId);
+      setBranch(res.data)
+    } catch (error) {
+      console.log("Fail to fetching branch data");
+    }
+  }
+
+  const fetchHolidays = async () => {
+    setLoading(true);
+    try {
+      const res = await holidayService.getByBranch(branchId);
+      setHolidays(res.data);
+    } catch (error) {
+      console.error('Error fetching branch holidays:', error);
+      toast.error('Failed to load holiday information');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddHoliday = async () => {
     try {
-      // Validation
-      if (!newHoliday.holidayDate) {
+      if (!newHoliday.date) {
         toast.error("Please select a date");
         return;
       }
-      
+
       if (!newHoliday.reason) {
         toast.error("Please provide a reason for the holiday");
         return;
       }
-      
-      const holidayToAdd = {
-        ...newHoliday,
-        branchId
-      };
-      
-      const savedHoliday = await holidayService.saveHoliday(holidayToAdd);
-      setHolidays([...holidays, savedHoliday]);
-      setIsAddDialogOpen(false);
-      toast.success('Holiday added successfully');
-      
-      // Reset the form
-      setNewHoliday({
-        branchId,
-        holidayDate: new Date(),
-        reason: ""
-      });
+
+      const res = await holidayService.saveHoliday(newHoliday);
+      if (res.data.status) {
+        toast.success('Holiday added successfully');
+        setIsAddDialogOpen(false);
+        setNewHoliday({
+          id: null,
+          branch: null,
+          date: new Date(),
+          reason: ""
+        });
+      } else {
+        toast.error('Failed to add holiday');
+      }
     } catch (error) {
       console.error('Error adding holiday:', error);
       toast.error('Failed to add holiday');
+    } finally {
+      fetchHolidays();
     }
   };
 
@@ -94,6 +107,8 @@ const HolidaysTab: React.FC<HolidaysTabProps> = ({ doctorId, branchId }) => {
     } catch (error) {
       console.error('Error deleting holiday:', error);
       toast.error('Failed to delete holiday');
+    } finally {
+      fetchHolidays();
     }
   };
 
@@ -129,7 +144,7 @@ const HolidaysTab: React.FC<HolidaysTabProps> = ({ doctorId, branchId }) => {
                     <div key={holiday.id} className="flex justify-between items-center p-4 border rounded-md">
                       <div>
                         <h4 className="font-medium">
-                          {format(new Date(holiday.holidayDate), "dd MMMM yyyy")}
+                          {format(new Date(holiday.date), "dd MMMM yyyy")}
                         </h4>
                         <p className="text-sm text-muted-foreground mt-1">{holiday.reason}</p>
                       </div>
@@ -154,17 +169,17 @@ const HolidaysTab: React.FC<HolidaysTabProps> = ({ doctorId, branchId }) => {
           <div className="space-y-4 py-4">
             <div>
               <label className="text-sm font-medium mb-1 block">Date</label>
-              <DatePicker 
-                date={newHoliday.holidayDate ? new Date(newHoliday.holidayDate) : undefined} 
-                onDateChange={(date) => setNewHoliday({...newHoliday, holidayDate: date})}
+              <DatePicker
+                date={newHoliday.date ? new Date(newHoliday.date) : undefined}
+                onDateChange={(date) => setNewHoliday({ ...newHoliday, date: date })}
               />
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Reason</label>
-              <Input 
-                placeholder="Reason for holiday" 
+              <Input
+                placeholder="Reason for holiday"
                 value={newHoliday.reason || ""}
-                onChange={(e) => setNewHoliday({...newHoliday, reason: e.target.value})}
+                onChange={(e) => setNewHoliday({ ...newHoliday, reason: e.target.value })}
               />
             </div>
           </div>

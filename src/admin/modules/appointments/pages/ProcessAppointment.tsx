@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, setDay } from "date-fns";
 import {
   ArrowLeft,
   Save,
@@ -42,10 +42,9 @@ import {
 } from "@/components/ui/popover";
 import { getAppointmentById } from "../services/appointmentService";
 import { Appointment } from "../types/Appointment";
-import { Patient } from "../../patient/types/Patient";
-import { LabTest, Medicines, Prescription } from "../../patient/types/Prescription";
-import PrintAppointmentButton from "../components/PrintAppointmentButton";
 import { createPrescription } from "../services/PrescriptionService";
+import { Patient } from "../types/Patient";
+import { LabTest, Medicines } from "../types/Doctor";
 
 const consultationSchema = z.object({
   temperature: z.string().optional(),
@@ -186,7 +185,7 @@ const ProcessAppointment = () => {
       id:null,
       medicines: medications,
       laoratoryTestList: labTests,
-      doctor:appointment.doctorClinic.doctor,
+      doctor:appointment.doctorBranch.doctor,
       patient:appointment.patient
     } 
   const response=await  createPrescription(appointment.id,appointmentObj);
@@ -271,9 +270,7 @@ const ProcessAppointment = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Appointments
           </Button>
-          {appointment && (
-            <PrintAppointmentButton appointment={appointment} />
-          )}
+
         </div>
         <Card className="mt-4">
           <CardContent className="grid gap-4">

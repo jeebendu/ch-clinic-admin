@@ -1,6 +1,5 @@
 
 import { Route, Routes, Navigate } from "react-router-dom";
-import DoctorList from "./pages/DoctorList";
 import SpecializationList from "./submodules/specialization/pages/SpecializationList";
 import ServiceList from "./submodules/services/pages/ServiceList";
 import PercentageList from "./submodules/percentage/pages/PercentageList";
@@ -11,6 +10,7 @@ import AuthService from "@/services/authService";
 import SpecialityList from "./doctor-speciality/pages/SpecialityList";
 import DoctorDetailView from "./pages/DoctorDetailView";
 import DoctorScheduleView from "./submodules/availability/pages/DoctorScheduleView";
+import DoctorListPage from "./pages/DoctorListPage";
 
 const DoctorRoutes = () => {
   // Role-based access control for doctor module
@@ -37,8 +37,8 @@ const DoctorRoutes = () => {
   
   return (
     <Routes>
-      <Route path="/" element={<DoctorList />} />
-      <Route path="/doctors/*" element={<DoctorList />} />
+      <Route path="/" element={<DoctorListPage />} />
+      <Route path="/doctors/*" element={<DoctorListPage />} />
       <Route path="/view/:id" element={<DoctorDetailView />} />
       <Route path="/availability/:id" element={<DoctorScheduleView />} />
       <Route path="/specializations/*" element={<SpecializationList />} />

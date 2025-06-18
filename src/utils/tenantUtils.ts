@@ -33,6 +33,6 @@ export const getTenantId = (): string => {
  * Gets the file URL for tenant assets
  */
 export const getTenantFileUrl = (fileName: string, type: 'logo' | 'favicon' | 'banner'): string => {
-  if (!fileName) return '';
+  if (!fileName) return 'https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';
   return `${getEnvVariable('BASE_URL')}/tenants/public/download?fileName=${fileName}&type=${type}`;
 };

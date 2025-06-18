@@ -63,7 +63,7 @@ const UserTable = ({ user, onDelete, onEdit }: UserTableProps) => {
                                     <TableCell>{user?.user?.email}</TableCell>
                                     <TableCell>{user?.user?.phone}</TableCell>
                                     <TableCell>
-                                        {format(user?.user.effectiveFrom, 'yyyy-MM-dd')}
+                                        {user?.user.effectiveFrom? format(user?.user.effectiveFrom, 'yyyy-MM-dd') :format(new Date(), 'yyyy-MM-dd')}
                                     </TableCell>
 
 

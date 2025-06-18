@@ -1,11 +1,9 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Appointment } from '../types/Appointment';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { format, parseISO } from 'date-fns';
-import { Loader2, Video, MapPin, Bell, ClipboardList, PlayCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Link } from 'react-router-dom';
+import { Loader2, Bell } from 'lucide-react';
+import AppointmentCard from './AppointmentCard';
+import AppointmentCardSkeleton from '@/admin/components/skeletons/AppointmentCardSkeleton';
 
 interface InfiniteAppointmentListProps {
   appointments: Appointment[];
@@ -14,6 +12,10 @@ interface InfiniteAppointmentListProps {
   loadMore: () => void;
   onAppointmentClick: (appointment: Appointment) => void;
   onStartAppointment: (appointment: Appointment) => void;
+  onEditAppointment?: (appointment: Appointment) => void;
+  onPayment?: (appointment: Appointment) => void;
+  onProcess?: (appointment: Appointment) => void;
+  onPatientClick?: (appointment: Appointment) => void;
 }
 
 const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
@@ -22,7 +24,11 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
   hasMore,
   loadMore,
   onAppointmentClick,
-  onStartAppointment
+  onStartAppointment,
+  onEditAppointment,
+  onPayment,
+  onProcess,
+  onPatientClick
 }) => {
   const observer = useRef<IntersectionObserver | null>(null);
   const [visibleAppointments, setVisibleAppointments] = useState<Appointment[]>([]);
@@ -64,150 +70,49 @@ const AppointmentList: React.FC<InfiniteAppointmentListProps> = ({
     };
   }, [loading, hasMore, loadMore]);
 
+  const handlePayment = (appointment: Appointment) => {
+    console.log('Payment for appointment:', appointment.id);
+    onPayment?.(appointment);
+  };
+
+  const handleProcess = (appointment: Appointment) => {
+    console.log('Process appointment:', appointment.id);
+    onProcess?.(appointment);
+  };
+
   if (!appointments.length && !loading) {
     return (
       <div className="bg-white rounded-lg p-8 text-center">
         <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-700 mb-2">No appointments found</h3>
-        <p className="text-gray-500">No upcoming appointments match your current filters.</p>
+        <p className="text-gray-500">No appointments match your current filters.</p>
       </div>
     );
   }
 
-  const getAppointmentTypeIcon = (type: string) => {
-    switch (type) {
-      case 'video-call':
-        return <Video className="w-4 h-4 mr-1.5" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusBadgeStyle = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'upcoming':
-        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'completed':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'in_progress':
-        return 'bg-amber-100 text-amber-800 hover:bg-amber-200';
-      default:
-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-    }
-  };
-
-  const formatTime = (timeString: string | null | undefined) => {
-    if (!timeString) return "Time not available";
-    
-    try {
-      return format(parseISO(`1970-01-01T${timeString}`), "hh:mm a");
-    } catch (error) {
-      console.error("Error formatting time:", error, timeString);
-      return "Time not available";
-    }
-  };
-
-  const formatDate = (dateString: string | Date | null | undefined) => {
-    if (!dateString) return "Date not available";
-    
-    try {
-      if (typeof dateString === 'object') {
-        return format(dateString, "EEE, MMM d, yyyy");
-      }
-      return format(new Date(dateString), "EEE, MMM d, yyyy");
-    } catch (error) {
-      console.error("Error formatting date:", error, dateString);
-      return "Date not available";
-    }
-  };
-
   return (
     <div className="space-y-4 mb-6" ref={listContainerRef}>
-      {visibleAppointments.map((appointment) => (
-        <div
-          key={appointment.id}
-          className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 p-4 hover:border-gray-300 transition-all cursor-pointer"
-          onClick={() => onAppointmentClick(appointment)}
-        >
-          <div className="flex flex-wrap md:flex-nowrap gap-4 items-start justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="h-14 w-14 rounded-full bg-gray-200 relative overflow-hidden flex-shrink-0">
-                {appointment.patient.firstname && (
-                  <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 text-lg font-semibold">
-                    {appointment.patient?.firstname?.charAt(0)}
-                    {appointment.patient?.lastname?.charAt(0)}
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="font-semibold text-lg truncate">
-                    {appointment.patient.firstname} {appointment.patient.lastname}
-                  </h3>
-                  <Badge variant="outline" className={cn("rounded-full", getStatusBadgeStyle(appointment.status.toString()))}>
-                    {appointment.status.toString().charAt(0).toUpperCase() + appointment.status.toString().slice(1).toLowerCase()}
-                  </Badge>
-                </div>
-                
-                <div className="text-gray-500 flex items-center text-sm mb-1">
-                  <span>
-                    #{appointment.id} · {appointment?.doctorClinic?.doctor?.firstname} {appointment?.doctorClinic?.doctor?.lastname}
-                  </span>
-                </div>
-
-                  <div className="flex items-center text-gray-500 text-sm">
-                    <MapPin className="h-3.5 w-3.5 mr-1" />
-                    <span className="truncate">{appointment?.patient.city},{appointment?.patient?.district? appointment?.patient?.district?.name:""},{appointment?.patient?.state ? appointment?.patient?.state?.name:""}</span>
-                  </div>
-
-              </div>
-            </div>
-            
-            <div className="w-full md:w-auto flex flex-col items-end gap-2">
-              <div className="flex flex-col items-end gap-1">
-                <div className="text-sm text-gray-500">
-                  {formatDate(appointment.slot?.date)}
-                </div>
-                <div className="font-medium">
-                  {formatTime(appointment.slot?.startTime)}
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 mt-1">
-                <Link 
-                  to={`/admin/appointments/process/${appointment.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
-                >
-                  <ClipboardList className="h-4 w-4" />
-                  <span>Process</span>
-                </Link>
-                
-                {(appointment.status.toString().toLowerCase() === 'upcoming') && (
-                  <Link 
-                    to={`/admin/appointments/process/${appointment.id}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onStartAppointment(appointment);
-                    }}
-                  >
-                    <Button 
-                      size="sm"
-                      className="bg-primary text-white hover:bg-primary/90 rounded-full h-8 flex items-center gap-1"
-                    >
-                      <PlayCircle className="h-4 w-4" />
-                      <span>Start</span>
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
+      {/* Horizontal card layout with highlighting */}
+      <div className="space-y-3">
+        {loading && appointments.length === 0 ? (
+          Array.from({ length: 5 }).map((_, index) => (
+            <AppointmentCardSkeleton key={index} />
+          ))
+        ) : (
+          visibleAppointments.map((appointment) => (
+            <AppointmentCard
+              key={appointment.id}
+              appointment={appointment}
+              onView={onAppointmentClick}
+              onEdit={onEditAppointment || onAppointmentClick}
+              onStart={onStartAppointment}
+              onPayment={handlePayment}
+              onProcess={handleProcess}
+              onPatientClick={onPatientClick}
+            />
+          ))
+        )}
+      </div>
       
       {(loading || hasMore) && (
         <div 

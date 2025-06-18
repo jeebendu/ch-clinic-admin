@@ -33,21 +33,19 @@ const PatientTable = ({
 }: PatientTableProps) => {
   const navigate = useNavigate();
 
-  const handlePatientClick = (patient: Patient) => {
-    // Always navigate to the patient view page instead of using onPatientClick
-    navigate(`/admin/patients/view/${patient.id}`);
-  };
+
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Age</TableHead>
-            <TableHead>Gender</TableHead>
-            <TableHead>Phone</TableHead>
+            <TableHead>Name/UID</TableHead>
+            <TableHead>Gender/Age</TableHead>
+            <TableHead>Contact</TableHead>
             <TableHead>Last Visit</TableHead>
+            <TableHead>Total Visit</TableHead>
+            <TableHead>Doctor</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -89,18 +87,23 @@ const PatientTable = ({
             patients.map((patient) => (
               <TableRow 
                 key={patient.id}
-                className="cursor-pointer hover:bg-gray-50"
-                onClick={() => handlePatientClick(patient)}
+                className="cursor-custom hover:bg-gray-50"
               >
                 <TableCell className="font-medium">
-                  {patient.fullName || `${patient.firstname} ${patient.lastname}`}
+                  <p>{patient.fullName || `${patient.firstname} ${patient.lastname}`}</p>
+                  
+                  <p>{patient.uid}</p>
                 </TableCell>
-                <TableCell>{patient.age}</TableCell>
-                <TableCell>{patient.gender}</TableCell>
-                <TableCell>{patient.user?.phone}</TableCell>
+                <TableCell>{patient.gender}/ {patient.age?patient.age:"NA"}</TableCell>
+                <TableCell>
+                  <p>{patient.user?.phone}</p>
+                  <p>{patient.user?.email}</p>
+                </TableCell>
                 <TableCell>
                   {patient.lastVisit ? format(new Date(patient.lastVisit), 'dd MMM yyyy') : 'No visits'}
                 </TableCell>
+                <TableCell>N/A</TableCell>
+                <TableCell>N/A</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 text-xs rounded-full ${patient.createdTime ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {patient.createdTime ? 'Active' : 'Inactive'}
@@ -120,6 +123,8 @@ const PatientTable = ({
                       <Eye className="h-4 w-4" />
                     </Button>
                   )}
+
+                  
                   {onEdit && (
                     <Button 
                       variant="ghost" 

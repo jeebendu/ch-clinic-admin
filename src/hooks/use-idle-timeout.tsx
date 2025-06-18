@@ -75,7 +75,7 @@ export const useIdleTimeout = () => {
 
   const handleFullLogout = () => {
     AuthService.logout();
-    navigate('/login');
+    navigate('/');
     toast({
       title: "Logged Out",
       description: "You have been logged out. Please sign in again.",

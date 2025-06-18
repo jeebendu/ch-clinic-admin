@@ -97,9 +97,9 @@ const DoctorProfessionalSection: React.FC<DoctorProfessionalSectionProps> = ({ d
           <h4 className="text-sm font-medium text-muted-foreground mb-2">Associated Branches</h4>
           <div className="flex flex-wrap gap-2">
             {doctor.branchList?.length > 0 ? (
-              doctor.branchList.map((branch) => (
-                <Badge key={branch.id} className="bg-brand-primary/10 text-brand-primary border-brand-primary/30">
-                  {branch.name}
+              doctor.branchList.map((drBranch) => (
+                <Badge key={drBranch?.branch?.id} className="bg-brand-primary/10 text-brand-primary border-brand-primary/30">
+                  {drBranch.branch.name}
                 </Badge>
               ))
             ) : (

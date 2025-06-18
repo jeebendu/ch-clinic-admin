@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Doctor } from "../../types/Doctor";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { ReferralDoctorService, ReferralSummary } from "../../../reports/services/ReferralDoctorService";
+// import { ReferralDoctorService, ReferralSummary } from "../../../reports/services/ReferralDoctorService";
 
 interface DoctorStatsSectionProps {
   doctor: Doctor;
@@ -21,11 +21,7 @@ const DoctorStatsSection: React.FC<DoctorStatsSectionProps> = ({ doctor }) => {
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth() + 1;
         
-        const data = await ReferralDoctorService.getReferralStats(
-          currentYear, 
-          currentMonth,
-          doctor.id.toString()
-        );
+        const data = [];
         
         if (data && data.length > 0) {
           // Transform the data for the chart

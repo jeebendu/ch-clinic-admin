@@ -1,7 +1,8 @@
 
 export interface FamilyMember {
   id: number;
-  fullName?: string;
+  name?: string;
+  relationship?: string;
   relation?: string;
   phone?: string;
   dob?: Date;

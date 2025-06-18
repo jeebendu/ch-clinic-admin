@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
-// Updated import with correct casing
 import BranchService from '@/admin/modules/branch/services/branchService';
 import { Branch } from "../types/Branch";
 import BranchTable from "../components/BranchTable";
@@ -30,7 +28,7 @@ const BranchList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>(isMobile ? 'list' : 'grid');
+  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
@@ -53,21 +51,18 @@ const BranchList = () => {
       ]
     },
     {
-      id: 'location',
-      label: 'Location',
+      id: 'type',
+      label: 'Type',
       options: [
-        { id: 'central', label: 'Central' },
-        { id: 'east', label: 'East' },
-        { id: 'west', label: 'West' },
-        { id: 'north', label: 'North' },
-        { id: 'south', label: 'South' }
+        { id: 'primary', label: 'Primary' },
+        { id: 'secondary', label: 'Secondary' }
       ]
     }
   ]);
   
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
     status: [],
-    location: []
+    type: []
   });
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -84,7 +79,7 @@ const BranchList = () => {
 
   const filteredBranches = branches.filter(branch => {
     if (searchTerm && !branch.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !branch.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !branch.code?.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !branch.location.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
@@ -94,20 +89,20 @@ const BranchList = () => {
       if (!statusMatch) return false;
     }
 
-    if (selectedFilters.location.length > 0) {
-      const locationMatch = selectedFilters.location.includes(branch.location.toLowerCase());
-      if (!locationMatch) return false;
+    if (selectedFilters.type.length > 0) {
+      const typeMatch = selectedFilters.type.includes(branch.primary ? 'primary' : 'secondary');
+      if (!typeMatch) return false;
     }
 
     return true;
   });
 
   useEffect(() => {
-    setViewMode(isMobile ? 'list' : 'grid');
+    setViewMode('list'); // Always default to list
   }, [isMobile]);
 
   const toggleViewMode = () => {
-    setViewMode(viewMode === 'list' ? 'grid' : 'list');
+    setViewMode(viewMode === 'list' ? 'table' : 'list');
   };
 
   const handleAddBranch = () => {
@@ -171,7 +166,7 @@ const BranchList = () => {
   const handleClearFilters = () => {
     setSelectedFilters({
       status: [],
-      location: []
+      type: []
     });
     setSearchTerm("");
   };
@@ -277,7 +272,7 @@ const BranchList = () => {
           </div>
         ) : (
           <div>
-            {viewMode === 'grid' ? (
+            {viewMode === 'table' ? (
               <BranchTable 
                 branches={filteredBranches} 
                 onDelete={handleDeleteBranch}

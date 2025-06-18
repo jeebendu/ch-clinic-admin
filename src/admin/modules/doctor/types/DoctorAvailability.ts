@@ -1,12 +1,15 @@
+import { Branch } from "../../branch/types/Branch";
+import { Doctor } from "./Doctor";
 
 export type DoctorAvailability = {
-  id: number;
-  doctorId: number;
-  dayOfWeek: string;
+  dayOfWeek: String;
+  active: boolean;
   startTime: string;
   endTime: string;
-  breakStartTime?: string;
-  breakEndTime?: string;
+  slotDuration: number;
+  branch: Branch;
+  doctor: Doctor;
+  id: number;
 };
   
 export type DoctorLeave = {

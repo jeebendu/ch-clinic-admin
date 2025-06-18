@@ -25,11 +25,11 @@ const UsersList = () => {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [showFilter, setShowFilter] = useState(false);
-  
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
-  
-  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+
+  const [userToEdit, setUserToEdit] = useState<Staff | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   const [filters, setFilters] = useState<FilterOption[]>([
@@ -53,7 +53,7 @@ const UsersList = () => {
       ]
     }
   ]);
-  
+
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
     status: [],
     location: []
@@ -63,32 +63,12 @@ const UsersList = () => {
     queryKey: ['user', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
       const response = await UserService.paginatedList(page, size, searchTerm);
-      console.log("User API response (direct):", response);
       return response.data.content;
     },
   });
 
-  const branches = Array.isArray(data) ? data : [];
+  const userList = Array.isArray(data) ? data : [];
 
-  const filteredUsers = branches.filter(user => {
-    if (searchTerm && !user.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !user.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !user.location.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
-
-    if (selectedFilters.status.length > 0) {
-      const statusMatch = selectedFilters.status.includes(user.active ? 'active' : 'inactive');
-      if (!statusMatch) return false;
-    }
-
-    if (selectedFilters.location.length > 0) {
-      const locationMatch = selectedFilters.location.includes(user.location.toLowerCase());
-      if (!locationMatch) return false;
-    }
-
-    return true;
-  });
 
   useEffect(() => {
     setViewMode(isMobile ? 'list' : 'grid');
@@ -110,12 +90,12 @@ const UsersList = () => {
     refetch();
   };
 
-  const handleSaveUser = (userData: User) => {
-    UserService.saveOrUpdate(userData)
+  const handleSaveUser = (staffData: Staff) => {
+    UserService.saveOrUpdate(staffData)
       .then(() => {
         toast({
           title: "Success",
-          description: `User ${userData.id ? "updated" : "created"} successfully`,
+          description: `User ${staffData.id ? "updated" : "created"} successfully`,
           className: "bg-clinic-primary text-white",
         });
         handleCloseForm();
@@ -124,33 +104,49 @@ const UsersList = () => {
         console.error("Error saving user:", error);
         toast({
           title: "Error",
-          description: `Failed to ${userData.id ? "update" : "create"} user`,
+          description: `Failed to ${staffData.id ? "update" : "create"} user`,
           variant: "destructive",
         });
       });
   };
 
-  const handleEditUser = (user: Staff) => {
-    const userData: User = {
-      id: user.id,
-      uid: user.uid,
-      name: `${user.firstname} ${user.lastname}`,
-      username: user.user?.username || '',
-      email: user.user?.email,
-      phone: user.user?.phone,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      gender: user.gender,
-      dob: user.dob,
-      branch: user.user?.branch,
-      role: user.user?.role,
-      password: user.user?.password,
-      effectiveFrom: user.user?.effectiveFrom,
-      effectiveTo: user.user?.effectiveTo,
-      image: user.user?.image,
-      status: user.user?.status
-    };
+
+
+  const handleEditUser = (staff: Staff) => {
     
+    const userData: Staff = {
+      id: staff?.id,
+      uid: staff?.uid,
+      name: `${staff?.firstname} ${staff?.lastname}`,
+      age: staff?.age,
+      whatsappNo: staff?.whatsappNo,
+      lastVisitedOn: staff?.lastVisitedOn,
+      branchList: staff?.branchList,
+
+      firstname: staff?.firstname,
+      lastname: staff?.lastname,
+      gender: staff?.gender,
+      dob: staff?.dob,
+      user: {
+        id: staff?.user?.id,
+        uid: staff?.user?.uid,
+        name: `${staff?.firstname} ${staff.lastname}`,
+        username: staff?.user?.username,
+        email: staff?.user?.email,
+        phone: staff?.user?.phone,
+        firstname: staff?.user?.firstname,
+        lastname: staff?.user?.lastname,
+        branch: staff?.user?.branch,
+        role: staff?.user?.role,
+        password: staff?.user?.password,
+        effectiveFrom: staff?.user?.effectiveFrom,
+        effectiveTo: staff?.user?.effectiveTo,
+        image: staff?.user?.image,
+        status: staff?.user?.status
+      }
+
+    };
+
     setUserToEdit(userData);
     setIsEditFormOpen(true);
   };
@@ -162,7 +158,7 @@ const UsersList = () => {
 
   const confirmDelete = async () => {
     if (userToDelete === null) return;
-    
+
     try {
       await UserService.deleteById(userToDelete);
       toast({
@@ -184,14 +180,14 @@ const UsersList = () => {
 
   const handleFilterChange = (filterId: string, optionId: string) => {
     setSelectedFilters(prev => {
-      const newFilters = {...prev};
-      
+      const newFilters = { ...prev };
+
       if (newFilters[filterId].includes(optionId)) {
         newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
       } else {
         newFilters[filterId] = [...newFilters[filterId], optionId];
       }
-      
+
       return newFilters;
     });
   };
@@ -213,13 +209,13 @@ const UsersList = () => {
               <DrawerTitle className="text-clinic-primary">Add New User</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm user={null} onSuccess={handleCloseForm} />
+              <UserForm staff={null} onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
       );
-    } 
-    
+    }
+
     return (
       <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="max-w-3xl">
@@ -227,7 +223,7 @@ const UsersList = () => {
             <DialogTitle className="text-clinic-primary">Add New User</DialogTitle>
             <DialogDescription>Add a new User to your clinic network.</DialogDescription>
           </DialogHeader>
-          <UserForm user={null} onSuccess={handleCloseForm} />
+          <UserForm staff={null} onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );
@@ -235,7 +231,7 @@ const UsersList = () => {
 
   const renderEditForm = () => {
     if (!userToEdit) return null;
-    
+
     if (isMobile) {
       return (
         <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
@@ -244,13 +240,13 @@ const UsersList = () => {
               <DrawerTitle className="text-clinic-primary">Edit User</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              <UserForm user={userToEdit} onSuccess={handleCloseForm} />
+              <UserForm staff={userToEdit} onSuccess={handleCloseForm} />
             </div>
           </DrawerContent>
         </Drawer>
       );
-    } 
-    
+    }
+
     return (
       <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
         <DialogContent className="max-w-3xl">
@@ -258,20 +254,20 @@ const UsersList = () => {
             <DialogTitle className="text-clinic-primary">Edit User</DialogTitle>
             <DialogDescription>Update user information.</DialogDescription>
           </DialogHeader>
-          <UserForm user={userToEdit} onSuccess={handleCloseForm} />
+          <UserForm staff={userToEdit} onSuccess={handleCloseForm} />
         </DialogContent>
       </Dialog>
     );
   };
 
-  const totalElements = filteredUsers.length || 0;
-  const loadedElements = filteredUsers.length || 0;
+  const totalElements = userList.length || 0;
+  const loadedElements = userList.length || 0;
 
   return (
     <AdminLayout>
       <div className="space-y-4">
-        <PageHeader 
-          title="Users" 
+        <PageHeader
+          title="Users"
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
           showAddButton={true}
@@ -285,7 +281,7 @@ const UsersList = () => {
         />
 
         {showFilter && (
-          <FilterCard 
+          <FilterCard
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             filters={filters}
@@ -306,8 +302,8 @@ const UsersList = () => {
         ) : (
           <div>
             {viewMode === 'grid' && (
-              <UserTable 
-                user={filteredUsers} 
+              <UserTable
+                user={userList}
                 onDelete={handleDeleteUser}
                 onEdit={handleEditUser}
               />
@@ -315,7 +311,7 @@ const UsersList = () => {
           </div>
         )}
       </div>
-      
+
       {renderForm()}
       {renderEditForm()}
 

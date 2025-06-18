@@ -17,13 +17,23 @@ export const useTenant = () => {
   // Update document title and favicon when tenant info loads
   useEffect(() => {
     if (query.data) {
-      // Update page title
-      document.title = query.data.title;
-      
-      // Update favicon if needed
-      const favicon = document.querySelector('link[rel="icon"]');
-      if (favicon && query.data.favIcon) {
-        favicon.setAttribute('href', query.data.favIcon);
+      if (query.data.info) {
+        // Handle error/info message returned by backend
+        alert(query.data.info); // Or show a custom UI message component instead of alert
+        // Optionally, you can also set a fallback page title or favicon here:
+        document.title = 'Clinic SaaS Portal - Error';
+      } else {
+        // Normal flow: update page title and favicon
+        if (query.data.title) {
+          document.title = query.data.title;
+        }
+        
+        if (query.data.favIcon) {
+          const favicon = document.querySelector('link[rel="icon"]');
+          if (favicon) {
+            favicon.setAttribute('href', query.data.favIcon);
+          }
+        }
       }
     }
   }, [query.data]);

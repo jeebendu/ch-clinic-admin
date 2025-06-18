@@ -2,6 +2,7 @@ import http from "@/lib/JwtInterceptor";
 import { Doctor } from "../types/Doctor";
 import { isProduction } from "@/utils/envUtils";
 import { PaginatedResponse } from "@/types/common";
+import { DoctorsFilter } from "../hooks/useDoctors";
 
 // Real implementation would use these endpoints
 const DoctorService = {
@@ -16,7 +17,11 @@ const DoctorService = {
   },
 
   getById: async (id: number): Promise<Doctor> => {
-    const response = await http.get<Doctor>(`/v1/doctor/${id}`);
+    const response = await http.get<Doctor>(`/v1/doctor/id/${id}`);
+    return response.data;
+  },
+  getBySlug: async (slug: string): Promise<Doctor> => {
+    const response = await http.get<Doctor>(`/v1/doctor/slug/${slug}`);
     return response.data;
   },
 
@@ -31,17 +36,27 @@ const DoctorService = {
   },
 
   delete: async (id: number): Promise<void> => {
-    await http.delete(`/v1/doctor/${id}`);
+    await http.delete(`/v1/doctor/id/${id}`);
+  },
+    publishDoctorOnline: async (id: number) => {
+   return await http.get(`/v1/doctor/publish-online/doctor/${id}`);
   },
 
   fetchPaginated: async (
     page: number,
     size: number,
-    filter: { value: string | null; doctorType: boolean | null; specialization: string | null }
+    filter: DoctorsFilter
   ): Promise<PaginatedResponse<Doctor>> => {
+
+    const filterObj: any = {
+      value: filter.searchTerm || null,
+      doctorType: filter.doctorType || null,
+      specializationId: filter.specialization || null,
+    }
+
     const response = await http.post<PaginatedResponse<Doctor>>(
-      `/v1/doctor/filter/${page}/${size}`,
-      filter
+      `/v1/doctor/admin/filter/${page}/${size}`,
+      filterObj
     );
     return response.data;
   }

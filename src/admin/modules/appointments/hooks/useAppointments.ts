@@ -63,8 +63,8 @@ export const useAppointments = (initialParams: AppointmentQueryParams) => {
   // Load more appointments
   const loadMore = () => {
     if (!loading && hasMore) {
-      const nextPage = queryParams.page + 1;
-      const nextParams = { ...queryParams, page: nextPage };
+      const nextPage = queryParams.pageno + 1;
+      const nextParams = { ...queryParams, pageno: nextPage };
       setQueryParams(nextParams);
       fetchAppointments(nextParams, true);
     }

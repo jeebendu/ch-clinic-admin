@@ -7,7 +7,7 @@ const AppointmentRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<AppointmentsAdmin />} />
-      <Route path="/process/:appointmentId" element={<ProcessAppointment />} />
+      <Route path="/id/:appointmentId" element={<ProcessAppointment />} />
     </Routes>
   );
 };

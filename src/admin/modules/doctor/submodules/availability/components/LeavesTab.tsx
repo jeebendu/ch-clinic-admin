@@ -11,6 +11,10 @@ import { Calendar, Plus, Trash } from "lucide-react";
 import { format, isAfter, isBefore, parseISO } from "date-fns";
 import { leaveService } from "../services/leaveService";
 import { DoctorLeave } from "../types/DoctorAvailability";
+import { Doctor } from "../../../types/Doctor";
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import BranchService from "@/admin/modules/branch/services/branchService";
+import DoctorService from "../../../services/doctorService";
 
 interface LeavesTabProps {
   doctorId: number;
@@ -21,76 +25,109 @@ const LeavesTab: React.FC<LeavesTabProps> = ({ doctorId, branchId }) => {
   const [loading, setLoading] = useState(true);
   const [leaves, setLeaves] = useState<DoctorLeave[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newLeave, setNewLeave] = useState<Partial<DoctorLeave>>({
-    doctor: { id: doctorId },
-    startDate: new Date(),
-    endDate: new Date(),
-    reason: ""
-  });
-  
-  useEffect(() => {
-    const fetchLeaves = async () => {
-      setLoading(true);
-      try {
-        const doctorLeaves = await leaveService.getByDoctor(doctorId);
-        setLeaves(doctorLeaves || []);
-      } catch (error) {
-        console.error('Error fetching doctor leaves:', error);
-        toast.error('Failed to load leave information');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [doctor, setDoctor] = useState<Doctor>(null);
+  const [branch, setBranch] = useState<Branch>(null);
 
-    if (doctorId) {
+  const [newLeave, setNewLeave] = useState<DoctorLeave>({
+    id: null,
+    doctor: doctor,
+    branch: branch,
+    leaveEnd: new Date(),
+    leaveStart: new Date(),
+    reason: "",
+    approved:false
+  });
+  leaveStart: Date;
+
+  useEffect(() => {
+    if (doctorId && branchId) {
       fetchLeaves();
+      fetchDoctorById();
+      fetchingBranchById();
     }
-  }, [doctorId]);
+  }, [doctorId, branchId]);
+
+    useEffect(() => {
+    if (doctor && branch) {
+setNewLeave((prev)=>({...prev,doctor:doctor,branch:branch}))
+    }
+  }, [doctor, branch]);
+
+  const fetchLeaves = async () => {
+    setLoading(true);
+    try {
+      const doctorLeaves = await leaveService.getByDoctorAndBranch(doctorId, branchId);
+      setLeaves(doctorLeaves.data);
+    } catch (error) {
+      console.error('Error fetching doctor leaves:', error);
+      toast.error('Failed to load leave information');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const fetchingBranchById = async () => {
+    try {
+      const res = await BranchService.getById(branchId);
+      setBranch(res.data)
+    } catch (error) {
+      console.log("Fail to fetching branch data");
+    }
+  }
+
+  const fetchDoctorById = async () => {
+    try {
+      const data = await DoctorService.getById(doctorId)
+      setDoctor(data)
+    } catch (error) {
+      console.log("Fail to fetching branch data");
+    }
+  }
+
+
 
   const handleAddLeave = async () => {
     try {
       // Validation
-      if (!newLeave.startDate || !newLeave.endDate) {
+      if (!newLeave.leaveStart || !newLeave.leaveEnd) {
         toast.error("Please select start and end dates");
         return;
       }
-      
-      if (isAfter(new Date(newLeave.startDate), new Date(newLeave.endDate))) {
+
+      if (isAfter(new Date(newLeave.leaveStart), new Date(newLeave.leaveEnd))) {
         toast.error("End date must be after start date");
         return;
       }
-      
-      const leaveToAdd = {
-        ...newLeave,
-        doctor: { id: doctorId }
-      };
-      
-      const savedLeave = await leaveService.saveLeave(leaveToAdd);
-      setLeaves([...leaves, savedLeave]);
+
+      const res = await leaveService.saveLeave(newLeave);
+      if (res.data.status) {
+        toast.success('Leave added successfully');
+      } else {
+        toast.error('Failed to add leave');
+      }
       setIsAddDialogOpen(false);
-      toast.success('Leave added successfully');
-      
-      // Reset the form
-      setNewLeave({
-        doctor: { id: doctorId },
-        startDate: new Date(),
-        endDate: new Date(),
-        reason: ""
-      });
+
     } catch (error) {
       console.error('Error adding leave:', error);
       toast.error('Failed to add leave');
+    } finally {
+      fetchLeaves();
     }
   };
 
   const handleDeleteLeave = async (id: number) => {
     try {
-      await leaveService.deleteLeave(id);
-      setLeaves(leaves.filter(leave => leave.id !== id));
-      toast.success('Leave deleted successfully');
+      const res = await leaveService.deleteLeave(id);
+      if (res.data.status) {
+        toast.success('Leave deleted successfully');
+      } else {
+        toast.error('Failed to delete leave');
+      }
     } catch (error) {
-      console.error('Error deleting leave:', error);
       toast.error('Failed to delete leave');
+    } finally {
+      fetchLeaves();
     }
   };
 
@@ -126,7 +163,7 @@ const LeavesTab: React.FC<LeavesTabProps> = ({ doctorId, branchId }) => {
                     <div key={leave.id} className="flex justify-between items-center p-4 border rounded-md">
                       <div>
                         <h4 className="font-medium">
-                          {format(new Date(leave.startDate), "dd MMM yyyy")} - {format(new Date(leave.endDate), "dd MMM yyyy")}
+                          {format(new Date(leave.leaveStart), "dd MMM yyyy")} - {format(new Date(leave.leaveEnd), "dd MMM yyyy")}
                         </h4>
                         <p className="text-sm text-muted-foreground mt-1">{leave.reason || "No reason provided"}</p>
                       </div>
@@ -152,25 +189,25 @@ const LeavesTab: React.FC<LeavesTabProps> = ({ doctorId, branchId }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Start Date</label>
-                <DatePicker 
-                  date={newLeave.startDate ? new Date(newLeave.startDate) : undefined} 
-                  onDateChange={(date) => setNewLeave({...newLeave, startDate: date})}
+                <DatePicker
+                  date={newLeave.leaveStart ? new Date(newLeave.leaveStart) : undefined}
+                  onDateChange={(date) => setNewLeave({ ...newLeave, leaveStart: date })}
                 />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">End Date</label>
-                <DatePicker 
-                  date={newLeave.endDate ? new Date(newLeave.endDate) : undefined} 
-                  onDateChange={(date) => setNewLeave({...newLeave, endDate: date})}
+                <DatePicker
+                  date={newLeave.leaveEnd ? new Date(newLeave.leaveEnd) : undefined}
+                  onDateChange={(date) => setNewLeave({ ...newLeave, leaveEnd: date })}
                 />
               </div>
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Reason</label>
-              <Textarea 
-                placeholder="Reason for leave" 
+              <Textarea
+                placeholder="Reason for leave"
                 value={newLeave.reason || ""}
-                onChange={(e) => setNewLeave({...newLeave, reason: e.target.value})}
+                onChange={(e) => setNewLeave({ ...newLeave, reason: e.target.value })}
               />
             </div>
           </div>

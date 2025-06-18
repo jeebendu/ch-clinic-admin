@@ -1,19 +1,24 @@
-import { Country, State } from "../../core/types/Address";
-import { District } from "../../core/types/District";
+
+import { District } from "../../core/types/Address";
+import { State } from "../../core/types/Address";
+import { Country } from "../../core/types/Address";
+import { Clinic } from "../../clinics/types/Clinic";
 
 export interface Branch {
   id: number;
   name: string;
-  code: string;
+  code?: string;
   location: string;
-  active?: boolean;
-  state: State | null;
-  district: District | null;
   city: string;
-  country:Country | null;
-  mapurl?: string;
+  district?: District;
+  state?: State;
+  country?: Country;
   pincode: number;
-  image?: string;
+  active: boolean;
+  primary: boolean;
+  mapurl?: string;
   latitude?: number;
   longitude?: number;
+  image?: string;
+  clinic?: Clinic;
 }

@@ -7,18 +7,18 @@ const apiUrl = getEnvVariable('API_URL');
 
 export const RoleService = {
   list: () => {
-    return http.get<Role[]>(`${apiUrl}/v1/role/list`);
+    return http.get<Role[]>(`${apiUrl}/v1/users/role/list`);
   },
 
   deleteById: (id: number) => {
-    return http.get<any>(`${apiUrl}/v1/role/delete/id/${id}`);
+    return http.get<any>(`${apiUrl}/v1/users/role/delete/id/${id}`);
   },
 
   getById: (id: number) => {
-    return http.get<Role>(`${apiUrl}/v1/role/id/${id}`);
+    return http.get<Role>(`${apiUrl}/v1/users/role/id/${id}`);
   },
 
   saveOrUpdate: (role: Role) => {
-    return http.post<any>(`${apiUrl}/v1/role/saveOrUpdate`, role);
+    return http.post<any>(`${apiUrl}/v1/users/role/saveOrUpdate`, role);
   }
 };

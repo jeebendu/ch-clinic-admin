@@ -52,9 +52,9 @@ const QuickPatientForm = ({ onFormClose }: QuickPatientFormProps) => {
     try {
       // Search for existing patients
       const results = await patientListService.searchPatients(searchQuery);
-      setSearchResults(results);
+      setSearchResults(results.data);
       
-      if (results.length === 0) {
+      if (results.data.length === 0) {
         toast({
           title: "No patients found",
           description: "You can create a new patient with this information.",

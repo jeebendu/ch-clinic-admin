@@ -3,10 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { Doctor } from "../types/Doctor";
 import doctorService from "../services/doctorService";
 
-interface DoctorsFilter {
+export interface DoctorsFilter {
   page: number;
   size: number;
-  searchTerm?: string;
+  searchTerm?: string | null;
   doctorType?: string | null;
   specialization?: string | null;
 }
@@ -32,7 +32,7 @@ export const useDoctors = (initialFilters: DoctorsFilter) => {
       if (filters.doctorType) filterParams.doctorType = filters.doctorType;
       if (filters.specialization) filterParams.specializationId = filters.specialization;
 
-      const response = await doctorService.filterDoctor(filterParams);
+      const response = await doctorService.fetchPaginated(filters.page,filters.size,filters);
       
       if (response) {
         setDoctors(response.content || []);

@@ -17,14 +17,15 @@ interface PatientGridProps {
 
 const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientClick }) => {
   const navigate = useNavigate();
-  
+
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
+    if (!name || name == null || name == "") return name;
+    return name.split(' ')
       .map(part => part[0])
       .join('')
       .toUpperCase()
       .substring(0, 2);
+
   };
 
   const getLastVisitClass = (lastVisit?: string) => {
@@ -39,7 +40,7 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
     if (diffDays <= 180) return 'bg-blue-100 text-blue-800';
     return 'bg-amber-100 text-amber-800';
   };
-  
+
   const handlePatientClick = (patient: Patient) => {
     if (onPatientClick) {
       onPatientClick(patient);
@@ -56,7 +57,7 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-white">
                 <AvatarImage src={patient.photoUrl} />
-                <AvatarFallback className="text-lg">{getInitials(patient.fullName)}</AvatarFallback>
+                <AvatarFallback className="text-lg">{getInitials(patient?.fullName?patient?.fullName:patient?.firstname+" "+patient?.lastname)}</AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="font-semibold text-lg">{patient.fullName}</h3>
@@ -68,19 +69,19 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
               </div>
             </div>
           </div>
-          
+
           <CardContent className="p-4">
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-muted-foreground" />
                 <span>{patient.whatsappNo}</span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-muted-foreground" />
                 <span className="truncate">{patient?.user?.email}</span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span>Last Visit: </span>
@@ -92,23 +93,16 @@ const PatientGrid: React.FC<PatientGridProps> = ({ patients, loading, onPatientC
                   <Badge variant="outline" className="bg-gray-100">None</Badge>
                 )}
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-muted-foreground" />
                 <span>{patient.insuranceProvider || 'No Insurance'}</span>
               </div>
             </div>
           </CardContent>
-          
-          <CardFooter className="p-2 flex justify-end border-t bg-gray-50">
-            <Button variant="ghost" size="sm" className="gap-1">
-              <Eye className="w-4 h-4" />
-              <span>View Details</span>
-            </Button>
-          </CardFooter>
         </Card>
       ))}
-      
+
       {loading && (
         Array(4).fill(0).map((_, index) => (
           <Card key={`skeleton-${index}`} className="overflow-hidden">

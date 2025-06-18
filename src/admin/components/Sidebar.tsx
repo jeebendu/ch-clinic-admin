@@ -72,18 +72,7 @@ const navItems: NavItem[] = [
     href: "/admin/patients", 
     roles: ["Admin", "Doctor", "Staff"] 
   },
-  { 
-    icon: <Clock className="h-5 w-5" />, 
-    label: "Schedule", 
-    href: "/admin/schedule", 
-    roles: ["Admin", "Doctor", "Staff"] 
-  },
-  { 
-    icon: <CalendarDays className="h-5 w-5" />, 
-    label: "Availability & Leaves", 
-    href: "/admin/doctor-availability", 
-    roles: ["Admin", "Doctor"] 
-  },
+  
   { 
     icon: <UserCircle className="h-5 w-5" />, 
     label: "Doctors", 
@@ -111,12 +100,7 @@ const navItems: NavItem[] = [
       },
     ]
   },
-  { 
-    icon: <Ear className="h-5 w-5" />, 
-    label: "Audiometry", 
-    href: "/admin/audiometry", 
-    roles: ["Admin", "Doctor", "Staff"] 
-  },
+ 
   { 
     icon: <BarChart2 className="h-5 w-5" />, 
     label: "Reports", 
@@ -162,66 +146,7 @@ const navItems: NavItem[] = [
     label: "Enquiries", 
     href: "/admin/enquiry", 
     roles: ["Admin", "Doctor", "Staff"] 
-  },
-  { 
-    icon: <Package className="h-5 w-5" />, 
-    label: "Product",
-    roles: ["Admin"],
-    submenu: [
-      {
-        label: "Product List",
-        href: "/admin/product",
-        roles: ["Admin"]
-      },
-      {
-        label: "Brand",
-        href: "/admin/brand",
-        roles: ["Admin"]
-      },
-      {
-        label: "Category",
-        href: "/admin/category",
-        roles: ["Admin"]
-      },
-      {
-        label: "Type",
-        href: "/admin/product-type",
-        roles: ["Admin"]
-      }
-    ]
-  },
-  { 
-    icon: <Settings className="h-5 w-5" />, 
-    label: "Settings", 
-    roles: ["Admin"],
-    submenu: [
-      {
-        label: "Settings",
-        href: "/admin/settings",
-        roles: ["Admin"]
-      },
-      {
-        label: "Sequence",
-        href: "/admin/sequence",
-        roles: ["Admin"]
-      },
-      {
-        label: "Repair Company",
-        href: "/admin/repair-company",
-        roles: ["Admin"]
-      },
-      {
-        label: "Courier",
-        href: "/admin/courier",
-        roles: ["Admin"]
-      },
-      {
-        label: "Distributor",
-        href: "/admin/distributor",
-        roles: ["Admin"]
-      }
-    ]
-  },
+  }
 ];
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
@@ -238,7 +163,12 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     );
   };
 
-  const tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
+  // Get tenant logo URL
+  let tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
+  if (!tenantLogoUrl) {
+    tenantLogoUrl = 'https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';
+  }
+  console.log("Tenant Logo URL:", tenantLogoUrl);
 
   useEffect(() => {
     const handleQuickForm = () => {
@@ -276,7 +206,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
       "text-sidebar-foreground h-full transition-all duration-300 flex flex-col",
       collapsed ? "w-[70px]" : "w-64"
     )}>
-      <div className="p-4 flex-none border-b flex items-center">
+      <div className="p-3 flex-none border-b flex items-center">
         {tenantLogoUrl && (
           <div className={cn(
             "flex items-center",

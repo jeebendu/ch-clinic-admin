@@ -177,9 +177,9 @@ const [roleList,setRoleList] = useState<Role[]>([]);
       return (
         <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
           <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
+            {/* <DrawerHeader className="border-b border-clinic-accent">
               <DrawerTitle className="text-clinic-primary">Add New Role</DrawerTitle>
-            </DrawerHeader>
+            </DrawerHeader> */}
             <div className="px-4 pb-4">
               {/* <ExpenseForm onSuccess={handleCloseForm} /> */}
             </div>
@@ -191,10 +191,10 @@ const [roleList,setRoleList] = useState<Role[]>([]);
     return (
       <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
+          {/* <DialogHeader className="border-b border-clinic-accent pb-4">
             <DialogTitle className="text-clinic-primary">Add New Role</DialogTitle>
             <DialogDescription>Add a new Role to your network.</DialogDescription>
-          </DialogHeader>
+          </DialogHeader> */}
           {/* <ExpenseForm onSuccess={handleCloseForm} /> */}
         </DialogContent>
       </Dialog>
@@ -208,9 +208,9 @@ const [roleList,setRoleList] = useState<Role[]>([]);
       return (
         <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
           <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
+            {/* <DrawerHeader className="border-b border-clinic-accent">
               <DrawerTitle className="text-clinic-primary">Edit Role</DrawerTitle>
-            </DrawerHeader>
+            </DrawerHeader> */}
             <div className="px-4 pb-4">
               {/* <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} /> */}
             </div>
@@ -222,10 +222,10 @@ const [roleList,setRoleList] = useState<Role[]>([]);
     return (
       <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
+          {/* <DialogHeader className="border-b border-clinic-accent pb-4">
             <DialogTitle className="text-clinic-primary">Edit Role</DialogTitle>
             <DialogDescription>Update role information.</DialogDescription>
-          </DialogHeader>
+          </DialogHeader> */}
           {/* <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} /> */}
         </DialogContent>
       </Dialog>
@@ -242,7 +242,7 @@ const [roleList,setRoleList] = useState<Role[]>([]);
           title="Role" 
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
-          showAddButton={true}
+          showAddButton={false}
           addButtonLabel="Add Role"
           onAddButtonClick={handleAddRole}
           onRefreshClick={() => refetch()}
