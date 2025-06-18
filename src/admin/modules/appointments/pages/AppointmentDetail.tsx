@@ -49,13 +49,14 @@ const mockAppointment = {
     firstname: "John",
     lastname: "Doe",
     gender: "Male",
-    dob: "1990-05-15",
+    dob: new Date("1990-05-15"), // Use Date object
     age: 34,
     email: "john.doe@email.com",
     mobile: "+1234567890",
     address: "123 Main St",
     state: { id: 1, name: "State" },
     district: { id: 1, name: "District" },
+    refDoctor: { id: 1, name: "Dr. Smith" }, // Added refDoctor
     user: {
       email: "john.doe@email.com",
       phone: "+1234567890"

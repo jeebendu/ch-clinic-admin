@@ -63,9 +63,9 @@ const ClinicService = {
       return ClinicMockService.getClinicStatus ? 
         ClinicMockService.getClinicStatus(id) : 
         Promise.resolve({
-          databaseStatus: 'created',
+          databaseStatus: 'created' as const,
           schemaVersion: '1.0.0',
-          userCreationStatus: 'created',
+          userCreationStatus: 'created' as const,
           lastPasswordResetSent: new Date().toISOString()
         });
     }
@@ -84,7 +84,7 @@ const ClinicService = {
   updateUserContact: (clinicId: number, userId: number, data: {email?: string, phone?: string}): Promise<any> => {
     if (isDemoMode()) {
       return ClinicMockService.updateUserContact ? 
-        ClinicMockService.updateUserContact(clinicId, userId, data) : 
+        ClinicMockService.updateUserContact(clinicId, userId, { email: data.email || '', phone: data.phone || '' }) : 
         Promise.resolve({});
     }
     return http.put(`${apiUrl}/v1/clinic/${clinicId}/users/${userId}/contact`, data).then(response => response.data);

@@ -19,14 +19,14 @@ export interface Patient {
   whatsappNo?: string;
   alternativeContact?: string; // Added this property
   gender: string;
-  dob: Date;
+  dob: Date; // Always Date, not string | Date
   age: number;
   address: string;
   city?: string;
   state: State;
   district: District;
   branch?: Branch;
-  refDoctor: Doctor | null;
+  refDoctor?: Doctor | null; // Made optional
   user: User;
   photoUrl?: string;
   insuranceProvider?: string;

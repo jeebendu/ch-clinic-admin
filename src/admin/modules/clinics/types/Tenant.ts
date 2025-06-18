@@ -12,5 +12,15 @@ export interface Tenant {
   logo: string;
   status: string;
   schemaName: string;
-  plan?: any; // Using any for now since Plan type doesn't exist
+  clinicStatus?: ClinicStatus; // Added this property
+}
+
+export interface ClinicStatus {
+  databaseStatus: 'created' | 'pending' | 'failed';
+  schemaVersion: string;
+  userCreationStatus: 'created' | 'pending' | 'failed';
+  lastPasswordResetSent?: string;
+  adminUserId?: number;
+  adminEmail?: string;
+  adminPhone?: string;
 }
