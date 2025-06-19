@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -140,12 +139,6 @@ const navItems: NavItem[] = [
     icon: <Building2 className="h-5 w-5" />, 
     label: "Branches", 
     href: "/admin/branch", 
-    roles: ["Admin"] 
-  },
-  { 
-    icon: <Settings className="h-5 w-5" />, 
-    label: "Clinic Profile", 
-    href: "/admin/clinic-profile", 
     roles: ["Admin"] 
   },
   { 

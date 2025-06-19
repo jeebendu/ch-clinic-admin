@@ -1,266 +1,303 @@
+
 import { Clinic } from "../../types/Clinic";
-import { ClinicRequest } from "../../types/ClinicRequest";
-import { Branch } from "../../../branch/types/Branch";
-import { Country, District, State } from "../../../core/types/Address";
+import { ClinicStatus } from "../../types/ClinicStatus";
+import { Country, State, District } from "../../../core/types/Address";
 
-// Mock country, state, and district data
-const mockCountry: Country = { id: 1, name: "India", code: "IN", status: true };
-const mockState: State = { id: 1, name: "Karnataka", country: mockCountry };
-const mockDistrict: District = { id: 1, name: "Bangalore Urban", state: mockState };
+// Define mock country, states, and districts for use in branch data
+const mockCountry: Country = {
+  id: 1,
+  name: "USA",
+  code: "US",
+  status: true,
+  iso: "US"
+};
 
-const clinicMockService = {
-  list: (): Promise<Clinic[]> => {
-    return Promise.resolve([
+const mockStates: Record<string, State> = {
+  "New York": {
+    id: 1,
+    name: "New York",
+    country: mockCountry
+  },
+  "Illinois": {
+    id: 2,
+    name: "Illinois",
+    country: mockCountry
+  }
+};
+
+const mockDistricts: Record<string, District> = {
+  "Manhattan": {
+    id: 1,
+    name: "Manhattan",
+    state: mockStates["New York"]
+  },
+  "Brooklyn": {
+    id: 2,
+    name: "Brooklyn",
+    state: mockStates["New York"]
+  },
+  "Cook": {
+    id: 3,
+    name: "Cook",
+    state: mockStates["Illinois"]
+  }
+};
+
+// Sample clinic data for development/testing
+const mockClinics: Clinic[] = [
+  {
+    id: 1,
+    name: "City Hospital",
+    email: "admin@cityhospital.com",
+    contact: "+1234567890",
+    address: "123 Main Street, New York",
+    plan: {
+      features: {
+        id: 1,
+        module: {
+          id: 1,
+          name: "Appointments",
+          code: "appointments"
+        },
+        print: true
+      }
+    },
+    createdTime: new Date("2023-01-15"),
+    branchList: [
       {
         id: 1,
-        name: "City Medical Center",
-        email: "info@citymedical.com",
-        contact: "+91-9876543210",
-        address: "123 Main Street, Bangalore",
-        createdTime: "2024-01-15T10:30:00Z",
-        tenant: {
-          id: 1,
-          name: "City Medical Center",
-          url: "citymedical.clinic.com",
-          phone: "+91-9876543210",
-          clientId: "client_city_medical",
-          clientUrl: "https://citymedical.clinic.com",
-          title: "City Medical Center - Complete Healthcare",
-          favIcon: "https://citymedical.com/favicon.ico",
-          bannerHome: "https://citymedical.com/banner.jpg",
-          logo: "https://citymedical.com/logo.png",
-          status: "active",
-          schemaName: "city_medical_db"
-        },
-        branches: [
-          {
-            id: 1,
-            name: "Main Branch",
-            code: "MAIN",
-            location: "Central Bangalore",
-            mapurl: "https://maps.google.com/main",
-            pincode: 560001,
-            image: "https://example.com/branch1.jpg",
-            latitude: 12.9716,
-            longitude: 77.5946,
-            city: "Bangalore",
-            state: mockState,
-            district: mockDistrict,
-            country: mockCountry,
-            active: true,
-            primary: true,
-            clinic: { id: 1, name: "City Medical Center" }
-          },
-          {
-            id: 2,
-            name: "Secondary Branch",
-            code: "SEC",
-            location: "North Bangalore",
-            mapurl: "https://maps.google.com/secondary",
-            pincode: 560002,
-            image: "https://example.com/branch2.jpg",
-            latitude: 12.9916,
-            longitude: 77.6046,
-            city: "Bangalore",
-            state: mockState,
-            district: mockDistrict,
-            country: mockCountry,
-            active: true,
-            primary: false,
-            clinic: { id: 1, name: "City Medical Center" }
-          }
-        ]
+        name: "Main Branch",
+        location: "Downtown",
+        code: "MAIN-001",
+        state: mockStates["New York"],
+        district: mockDistricts["Manhattan"],
+        city: "New York City",
+        country: mockCountry,
+        pincode: 10001
       },
       {
         id: 2,
-        name: "Health Plus Clinic",
-        email: "contact@healthplus.com",
-        contact: "+91-9876543211",
-        address: "456 Health Street, Bangalore",
-        createdTime: "2024-02-10T14:20:00Z",
-        tenant: {
-          id: 2,
-          name: "Health Plus Clinic",
-          url: "healthplus.clinic.com",
-          phone: "+91-9876543211",
-          clientId: "client_health_plus",
-          clientUrl: "https://healthplus.clinic.com",
-          title: "Health Plus Clinic - Your Health Partner",
-          favIcon: "https://healthplus.com/favicon.ico",
-          bannerHome: "https://healthplus.com/banner.jpg",
-          logo: "https://healthplus.com/logo.png",
-          status: "active",
-          schemaName: "health_plus_db"
-        },
-        branches: [
-          {
-            id: 3,
-            name: "Health Plus Main",
-            code: "HPM",
-            location: "South Bangalore",
-            mapurl: "https://maps.google.com/healthplus",
-            pincode: 560003,
-            image: "https://example.com/branch3.jpg",
-            latitude: 12.9516,
-            longitude: 77.5746,
-            city: "Bangalore",
-            state: mockState,
-            district: mockDistrict,
-            country: mockCountry,
-            active: true,
-            primary: true,
-            clinic: { id: 2, name: "Health Plus Clinic" }
-          }
-        ]
+        name: "North Wing",
+        location: "Uptown",
+        code: "NORTH-002",
+        state: mockStates["New York"],
+        district: mockDistricts["Brooklyn"],
+        city: "New York City",
+        country: mockCountry,
+        pincode: 10002
       }
-    ]);
+    ],
+    tenant: {
+      id: 1,
+      status: "active",
+      clientId: "city-hospital",
+      clientUrl: "cityhospital.clinichub.care",
+      title: "City Hospital",
+      favIcon: "https://placehold.co/32x32",
+      bannerHome: "https://placehold.co/1200x300",
+      logo: "https://placehold.co/200x80",
+      schemaName: "city_hospital_db"
+    }
+  },
+  {
+    id: 2,
+    name: "Wellness Clinic",
+    email: "info@wellnessclinic.com",
+    contact: "+1987654321",
+    address: "456 Health Avenue, Chicago",
+    plan: {
+      features: {
+        id: 2,
+        module: {
+          id: 2,
+          name: "Billing",
+          code: "billing"
+        },
+        print: true
+      }
+    },
+    createdTime: new Date("2023-02-20"),
+    branchList: [
+      {
+        id: 3,
+        name: "Main Clinic",
+        location: "Central",
+        code: "WC-MAIN",
+        state: mockStates["Illinois"],
+        district: mockDistricts["Cook"],
+        city: "Chicago",
+        country: mockCountry,
+        pincode: 60601
+      }
+    ],
+    tenant: {
+      id: 2,
+      status: "active",
+      clientId: "wellness-clinic",
+      clientUrl: "wellness.clinichub.care",
+      title: "Wellness Clinic",
+      favIcon: "https://placehold.co/32x32",
+      bannerHome: "https://placehold.co/1200x300",
+      logo: "https://placehold.co/200x80",
+      schemaName: "wellness_clinic_db"
+    }
+  },
+  {
+    id: 3,
+    name: "Dental Care Center",
+    email: "contact@dentalcare.com",
+    contact: "+1122334455",
+    address: "789 Smile Street, Boston",
+    plan: {
+      features: {
+        id: 3,
+        module: {
+          id: 3,
+          name: "Patient Records",
+          code: "patient_records"
+        },
+        print: false
+      }
+    },
+    createdTime: new Date("2023-03-10"),
+    branchList: [],
+    tenant: {
+      id: 3,
+      status: "inactive",
+      clientId: "dental-care",
+      clientUrl: "dentalcare.clinichub.care",
+      title: "Dental Care Center",
+      favIcon: "https://placehold.co/32x32",
+      bannerHome: "https://placehold.co/1200x300",
+      logo: "https://placehold.co/200x80",
+      schemaName: "dental_care_db"
+    }
+  }
+];
+
+// Mock clinic statuses
+const mockClinicStatuses: Record<number, ClinicStatus> = {
+  1: {
+    databaseStatus: 'created',
+    schemaVersion: '1.0.5',
+    userCreationStatus: 'created',
+    lastPasswordResetSent: new Date().toISOString(),
+    adminUserId: 101,
+    adminEmail: 'admin@cityhospital.com',
+    adminPhone: '+1234567890'
+  },
+  2: {
+    databaseStatus: 'created',
+    schemaVersion: '1.0.3',
+    userCreationStatus: 'created',
+    lastPasswordResetSent: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    adminUserId: 102,
+    adminEmail: 'admin@wellnessclinic.com',
+    adminPhone: '+1987654321'
+  },
+  3: {
+    databaseStatus: 'failed',
+    schemaVersion: '1.0.0',
+    userCreationStatus: 'pending',
+    adminUserId: 103,
+    adminEmail: 'admin@dentalcare.com'
+  }
+};
+
+// Mock service implementation
+const ClinicMockService = {
+  getPublicInfo: (clinicId: string): Promise<Clinic> => {
+    const found = mockClinics.find(clinic => clinic.tenant?.clientId === clinicId);
+    return found 
+      ? Promise.resolve(found)
+      : Promise.reject(new Error("Clinic not found"));
+  },
+  
+  list: (): Promise<Clinic[]> => {
+    return Promise.resolve(mockClinics);
   },
 
   getById: (id: number): Promise<Clinic> => {
-    return Promise.resolve({
-      id: 1,
-      name: "City Medical Center",
-      email: "info@citymedical.com",
-      contact: "+91-9876543210",
-      address: "123 Main Street, Bangalore",
-      createdTime: "2024-01-15T10:30:00Z",
-      tenant: {
-        id: 1,
-        name: "City Medical Center",
-        url: "citymedical.clinic.com",
-        phone: "+91-9876543210",
-        clientId: "client_city_medical",
-        clientUrl: "https://citymedical.clinic.com",
-        title: "City Medical Center - Complete Healthcare",
-        favIcon: "https://citymedical.com/favicon.ico",
-        bannerHome: "https://citymedical.com/banner.jpg",
-        logo: "https://citymedical.com/logo.png",
-        status: "active",
-        schemaName: "city_medical_db"
-      },
-      branches: [
-        {
-          id: 1,
-          name: "Main Branch",
-          code: "MAIN",
-          location: "Central Bangalore",
-          mapurl: "https://maps.google.com/main",
-          pincode: 560001,
-          image: "https://example.com/branch1.jpg",
-          latitude: 12.9716,
-          longitude: 77.5946,
-          city: "Bangalore",
-          state: mockState,
-          district: mockDistrict,
-          country: mockCountry,
-          active: true,
-          primary: true,
-          clinic: { id: 1, name: "City Medical Center" }
-        }
-      ]
-    });
+    const found = mockClinics.find(clinic => clinic.id === id);
+    return found 
+      ? Promise.resolve(found)
+      : Promise.reject(new Error("Clinic not found"));
   },
 
-  create: (clinic: Omit<Clinic, 'id'>): Promise<Clinic> => {
-    return Promise.resolve({
-      id: Date.now(),
-      ...clinic
-    });
-  },
-
-  update: (id: number, clinic: Partial<Clinic>): Promise<Clinic> => {
-    return Promise.resolve({
-      id,
-      name: clinic.name || "Updated Clinic",
-      email: clinic.email || "updated@clinic.com",
-      contact: clinic.contact || "+91-0000000000",
-      address: clinic.address || "Updated Address",
-      ...clinic
-    });
-  },
-
-  getPublicInfo: (clinicId: string): Promise<Clinic> => {
-    return Promise.resolve({
-      id: 1,
-      name: "City Medical Center",
-      email: "info@citymedical.com",
-      contact: "+91-9876543210",
-      address: "123 Main Street, Bangalore",
-      createdTime: "2024-01-15T10:30:00Z",
-      tenant: {
-        id: 1,
-        name: "City Medical Center",
-        url: "citymedical.clinic.com",
-        phone: "+91-9876543210",
-        clientId: "client_city_medical",
-        clientUrl: "https://citymedical.clinic.com",
-        title: "City Medical Center - Complete Healthcare",
-        favIcon: "https://citymedical.com/favicon.ico",
-        bannerHome: "https://citymedical.com/banner.jpg",
-        logo: "https://citymedical.com/logo.png",
-        status: "active",
-        schemaName: "city_medical_db"
-      },
-      branches: [
-        {
-          id: 1,
-          name: "Main Branch",
-          code: "MAIN",
-          location: "Central Bangalore",
-          mapurl: "https://maps.google.com/main",
-          pincode: 560001,
-          image: "https://example.com/branch1.jpg",
-          latitude: 12.9716,
-          longitude: 77.5946,
-          city: "Bangalore",
-          state: mockState,
-          district: mockDistrict,
-          country: mockCountry,
-          active: true,
-          primary: true,
-          clinic: { id: 1, name: "City Medical Center" }
-        }
-      ]
-    });
+  saveOrUpdate: (clinic: Partial<Clinic>): Promise<Clinic> => {
+    if (clinic.id) {
+      const index = mockClinics.findIndex(c => c.id === clinic.id);
+      if (index >= 0) {
+        mockClinics[index] = { ...mockClinics[index], ...clinic } as Clinic;
+        return Promise.resolve(mockClinics[index]);
+      }
+    }
+    
+    const newClinic = {
+      ...clinic,
+      id: Math.max(...mockClinics.map(c => c.id)) + 1,
+      createdTime: new Date(),
+    } as Clinic;
+    
+    mockClinics.push(newClinic);
+    return Promise.resolve(newClinic);
   },
 
   deleteById: (id: number): Promise<void> => {
-    return Promise.resolve();
+    const index = mockClinics.findIndex(clinic => clinic.id === id);
+    if (index >= 0) {
+      mockClinics.splice(index, 1);
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error("Clinic not found"));
   },
 
   updateStatus: (id: number, active: boolean): Promise<Clinic> => {
-    return Promise.resolve({
-      id,
-      name: "Updated Clinic",
-      email: "updated@clinic.com",
-      contact: "+91-0000000000",
-      address: "Updated Address"
-    });
+    const index = mockClinics.findIndex(clinic => clinic.id === id);
+    if (index >= 0) {
+      if (mockClinics[index].tenant) {
+        mockClinics[index].tenant.status = active ? 'active' : 'inactive';
+      }
+      return Promise.resolve(mockClinics[index]);
+    }
+    return Promise.reject(new Error("Clinic not found"));
   },
 
-  getClinicStatus: (id: number) => {
-    return Promise.resolve({
-      databaseStatus: 'created' as const,
-      schemaVersion: '1.0.0',
-      userCreationStatus: 'created' as const,
-      lastPasswordResetSent: '2024-01-15T10:30:00Z',
-      adminUserId: 1,
-      adminEmail: 'admin@citymedical.com',
-      adminPhone: '+91-9876543210'
-    });
+  // New methods for clinic status
+  getClinicStatus: (id: number): Promise<ClinicStatus> => {
+    const status = mockClinicStatuses[id];
+    return status 
+      ? Promise.resolve(status)
+      : Promise.resolve({
+          databaseStatus: 'pending',
+          schemaVersion: '0.0.0',
+          userCreationStatus: 'pending'
+        });
   },
 
   resendPasswordEmail: (clinicId: number, userId: number): Promise<void> => {
+    const status = mockClinicStatuses[clinicId];
+    if (status) {
+      status.lastPasswordResetSent = new Date().toISOString();
+    }
+    console.log(`Mock: Password reset email sent for clinic ${clinicId}, user ${userId}`);
     return Promise.resolve();
   },
 
-  updateUserContact: (clinicId: number, userId: number, contactInfo: { email: string, phone: string }) => {
-    return Promise.resolve(true);
-  },
-
-  delete: (id: number): Promise<boolean> => {
-    return Promise.resolve(true);
-  },
+  updateUserContact: (clinicId: number, userId: number, data: {email?: string, phone?: string}): Promise<any> => {
+    const status = mockClinicStatuses[clinicId];
+    if (status) {
+      if (data.email) status.adminEmail = data.email;
+      if (data.phone) status.adminPhone = data.phone;
+    }
+    console.log(`Mock: Updated contact info for clinic ${clinicId}, user ${userId}`, data);
+    return Promise.resolve({
+      success: true,
+      userId,
+      email: data.email,
+      phone: data.phone
+    });
+  }
 };
 
-export default clinicMockService;
+export default ClinicMockService;

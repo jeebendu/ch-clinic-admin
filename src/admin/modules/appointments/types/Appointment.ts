@@ -1,4 +1,3 @@
-
 import { FamilyMember } from "./FamilyMember";
 
 export interface Appointment {
@@ -9,7 +8,6 @@ export interface Appointment {
   status: string;
   paymentStatus: string;
   consultationFee: number;
-  notes?: string;
   appointmentType: {
     id: number;
     name: string;
@@ -20,24 +18,8 @@ export interface Appointment {
     firstname: string;
     lastname: string;
     phone: string;
-    mobile: string;
-    email: string;
     gender: string;
     dob: string | Date;
-    age: number;
-    address: string;
-    state: {
-      id: number;
-      name: string;
-    };
-    district: {
-      id: number;
-      name: string;
-    };
-    refDoctor: {
-      id: number;
-      name: string;
-    } | null;
     user: {
       id: number;
       email: string;
@@ -52,9 +34,6 @@ export interface Appointment {
     lastname: string;
     qualification: string;
     expYear: number;
-    gender: number;
-    online?: boolean;
-    imageUrl?: string;
     specializationList: {
       id: number;
       name: string;
@@ -64,7 +43,6 @@ export interface Appointment {
     id: number;
     name: string;
     location: string;
-    city: string;
   };
   doctorBranch: {
     id: number;

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -49,14 +50,8 @@ const mockAppointment = {
     firstname: "John",
     lastname: "Doe",
     gender: "Male",
-    dob: new Date("1990-05-15"), // Use Date object
+    dob: "1990-05-15",
     age: 34,
-    email: "john.doe@email.com",
-    mobile: "+1234567890",
-    address: "123 Main St",
-    state: { id: 1, name: "State" },
-    district: { id: 1, name: "District" },
-    refDoctor: { id: 1, name: "Dr. Smith" }, // Added refDoctor
     user: {
       email: "john.doe@email.com",
       phone: "+1234567890"
@@ -69,9 +64,6 @@ const mockAppointment = {
     lastname: "Johnson",
     qualification: "MBBS, MD",
     expYear: 8,
-    gender: 1,
-    online: true,
-    imageUrl: "",
     specializationList: [
       { id: 1, name: "Cardiology" },
       { id: 2, name: "Internal Medicine" }
@@ -84,18 +76,13 @@ const mockAppointment = {
       name: "Main Branch",
       code: "MB001",
       location: "Downtown",
-      city: "Downtown",
       pincode: "12345",
       district: { name: "Central District" },
       state: { name: "State" },
       country: { name: "Country" },
       clinic: {
         id: 1,
-        name: "City Medical Center",
-        email: "admin@citymedical.com",
-        contact: "+1-555-0123",
-        address: "123 Main St",
-        plan: { id: 1, name: "Basic Plan" }
+        name: "City Medical Center"
       }
     }
   }
@@ -515,7 +502,7 @@ const AppointmentDetail: React.FC = () => {
 
       {/* Profile Dialogs */}
       <DoctorProfileDialog
-        doctor={appointment?.doctor || null}
+        doctor={appointment.doctor || null}
         isOpen={showDoctorProfile}
         onClose={() => setShowDoctorProfile(false)}
       />

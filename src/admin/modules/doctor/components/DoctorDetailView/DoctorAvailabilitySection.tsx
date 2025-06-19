@@ -16,7 +16,7 @@ const DoctorAvailabilitySection: React.FC<DoctorAvailabilitySectionProps> = ({ d
   const handleViewAvailabilityClick = () => {
     navigate(`/admin/doctor/availability/${doctor.id}`);
   };
-  console.log(doctor)
+  
   return (
     <Card>
       <CardHeader>

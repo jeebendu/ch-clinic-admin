@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,8 +10,7 @@ import {
   Settings, 
   UserCircle,
   Moon,
-  Sun,
-  Building2
+  Sun
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -161,10 +159,6 @@ const Header = ({
               <DropdownMenuItem onClick={() => navigate('/admin/profile')}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/admin/clinic-profile')}>
-                <Building2 className="mr-2 h-4 w-4" />
-                Clinic Profile
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/admin/settings')}>
                 <Settings className="mr-2 h-4 w-4" />

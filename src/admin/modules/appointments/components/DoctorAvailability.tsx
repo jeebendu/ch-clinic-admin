@@ -19,8 +19,8 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TimePicker } from "@/admin/components/TimePicker";
-import { DAYS_OF_WEEK } from "../types/Appointment";
-import { DayAvailability, AvailabilityTimeSlot } from "../types/Availability";
+import { DAYS_OF_WEEK, TimeSlot } from "../types/Appointment";
+import { DayAvailability } from "../types/Availability";
 import DoctorService from "../../doctor/services/doctorService";
 import { DoctorLeaves } from "../../doctor/pages/DoctorLeaves";
 
@@ -89,7 +89,7 @@ export default function DoctorAvailability() {
   };
 
   const addTimeSlot = () => {
-    const newSlot: AvailabilityTimeSlot = {
+    const newSlot: TimeSlot = {
       id: Date.now().toString(),
       day: selectedDay,
       startTime: "09:00 AM",
@@ -101,7 +101,7 @@ export default function DoctorAvailability() {
     });
   };
 
-  const updateSlot = (slotId: string, updates: Partial<AvailabilityTimeSlot>) => {
+  const updateSlot = (slotId: string, updates: Partial<TimeSlot>) => {
     updateAvailability(selectedDay, {
       slots: currentDayData.slots.map(slot => 
         slot.id === slotId ? { ...slot, ...updates } : slot
@@ -145,7 +145,7 @@ export default function DoctorAvailability() {
     }
 
     // Generate slots from 9 AM to 5 PM with the given duration
-    const slots: AvailabilityTimeSlot[] = [];
+    const slots: TimeSlot[] = [];
     let currentHour = 9;
     let currentMinute = 0;
     let period = "AM";
@@ -159,7 +159,7 @@ export default function DoctorAvailability() {
       
       // Add slot
       slots.push({
-        id: (Date.now() + slots.length).toString(),
+        id: Date.now().toString() + slots.length,
         day: selectedDay,
         startTime: timeStr,
         capacity: 2
@@ -189,7 +189,6 @@ export default function DoctorAvailability() {
     });
   };
 
-  
   return (
     <AdminLayout>
       <div className="p-6">

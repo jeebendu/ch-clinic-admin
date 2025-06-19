@@ -8,8 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Doctor } from '../types/Doctor';
-import { Eye, Edit, Globe, CheckCircle, Phone, Mail, UserCheck, UserX } from 'lucide-react';
+import { Doctor } from '../../types/Doctor';
+import { Phone, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +24,7 @@ interface DoctorTableProps {
   onPublishClick?: (doctor: Doctor) => void;
   onVerifyClick?: (doctor: Doctor) => void;
   onVisibilityToggle?: (doctor: Doctor, isVisible: boolean) => void;
+  getRowActions: (doctor: Doctor) => RowAction[];
 }
 
 const DoctorTable: React.FC<DoctorTableProps> = ({
@@ -34,47 +35,10 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
   onPublishClick,
   onVerifyClick,
   onVisibilityToggle,
+  getRowActions,
 }) => {
   const getInitials = (firstname: string = '', lastname: string = '') => {
     return `${firstname.charAt(0) || ''}${lastname.charAt(0) || ''}`.toUpperCase();
-  };
-
-  const getActions = (doctor: Doctor): RowAction[] => {
-    const actions: RowAction[] = [];
-
-    actions.push({
-      label: "View",
-      icon: <Eye className="h-4 w-4" />,
-      onClick: () => onViewClick(doctor),
-      className: "text-teal-500 hover:text-teal-700 hover:bg-teal-50"
-    });
-
-    actions.push({
-      label: "Edit",
-      icon: <Edit className="h-4 w-4" />,
-      onClick: () => onEditClick(doctor),
-      className: "text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-    });
-
-    if (!doctor.publishedOnline && onPublishClick) {
-      actions.push({
-        label: "Publish",
-        icon: <Globe className="h-4 w-4" />,
-        onClick: () => onPublishClick(doctor),
-        className: "text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-      });
-    }
-
-    if (!doctor.verified && onVerifyClick) {
-      actions.push({
-        label: "Verify",
-        icon: <CheckCircle className="h-4 w-4" />,
-        onClick: () => onVerifyClick(doctor),
-        className: "text-green-600 hover:text-green-800 hover:bg-green-50"
-      });
-    }
-
-    return actions;
   };
 
   return (
@@ -212,7 +176,7 @@ const DoctorTable: React.FC<DoctorTableProps> = ({
                   />
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <RowActions actions={getActions(doctor)} />
+                  <RowActions actions={getRowActions(doctor)} />
                 </TableCell>
               </TableRow>
             ))}

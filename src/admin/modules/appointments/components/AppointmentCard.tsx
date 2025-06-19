@@ -355,6 +355,13 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
 
             {/* Actions */}
             <div className="flex justify-end items-start mt-2 sm:mt-0 sm:w-[100px] flex-shrink-0">
+              {/* <div className="flex gap-1">
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={handleViewClick}>
+                  <Eye className="h-4 w-4" />
+                  <span className="sr-only">View Details</span>
+                </Button>
+              </div> */}
+
                <div className="flex flex-col items-end gap-1">
               <div className="flex flex-wrap justify-end gap-2 mb-1">
                 <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={handleViewClick}>
@@ -415,7 +422,10 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 )}
               </div>
               </div>
-            </div>
+              </div>
+
+
+           
           </div>
         </div>
       </Card>

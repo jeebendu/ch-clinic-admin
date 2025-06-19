@@ -1,21 +1,17 @@
 
-export const isDemoMode = (): boolean => {
-  return import.meta.env.VITE_DEMO_MODE === 'true' || false;
+/**
+ * Check if the application is running in production mode
+ * based on the VITE_PRODUCTION environment variable
+ */
+export const isProduction = (): boolean => {
+  return import.meta.env.VITE_PRODUCTION === 'true';
 };
 
-export const getApiUrl = (): string => {
-  return import.meta.env.VITE_BASE_URL || '';
-};
-
+/**
+ * Get environment variable from import.meta.env
+ * @param key The name of the environment variable
+ * @returns The value of the environment variable or empty string if not found
+ */
 export const getEnvVariable = (key: string): string => {
-  switch (key) {
-    case 'API_URL':
-      return import.meta.env.VITE_API_URL || '';
-    case 'BASE_URL':
-      return import.meta.env.VITE_BASE_URL || '';
-    case 'DEFAULT_TENANT':
-      return import.meta.env.VITE_DEFAULT_TENANT || 'default';
-    default:
-      return import.meta.env[`VITE_${key}`] || '';
-  }
+  return (import.meta.env[`VITE_${key}`] as string) || '';
 };

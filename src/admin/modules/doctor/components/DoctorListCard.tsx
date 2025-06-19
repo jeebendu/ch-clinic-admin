@@ -3,6 +3,7 @@ import React from 'react';
 import { Doctor } from '../types/Doctor';
 import DoctorHorizontalCard from './DoctorHorizontalCard';
 import DoctorCardSkeleton from '@/admin/components/skeletons/DoctorCardSkeleton';
+import { RowAction } from '@/components/ui/RowActions';
 
 interface DoctorListCardProps {
   doctors: Doctor[];
@@ -12,6 +13,7 @@ interface DoctorListCardProps {
   onVerifyClick: (doctor: Doctor) => void;
   onVisibilityToggle: (doctor: Doctor, active: boolean) => void;
   onDoctorClick: (doctor: Doctor) => void;
+  getRowActions: (doctor: Doctor) => RowAction[];
 }
 
 const DoctorListCard: React.FC<DoctorListCardProps> = ({
@@ -21,7 +23,8 @@ const DoctorListCard: React.FC<DoctorListCardProps> = ({
   onPublishClick,
   onVerifyClick,
   onVisibilityToggle,
-  onDoctorClick
+  onDoctorClick,
+  getRowActions,
 }) => {
   if (loading && doctors.length === 0) {
     return (
@@ -43,7 +46,8 @@ const DoctorListCard: React.FC<DoctorListCardProps> = ({
           onPublishClick={onPublishClick}
           onVerifyClick={onVerifyClick}
           onVisibilityToggle={onVisibilityToggle}
-          onDoctorClick={onDoctorClick}
+          onDoctorClick={onDoctorClick} 
+          getRowActions={getRowActions}          
         />
       ))}
       

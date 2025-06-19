@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { 
   Building, 
@@ -79,9 +78,9 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
       }
     } else if (mockClinics.length > 0) {
       // Set default clinic if none is saved
-      setSelectedClinic(mockClinics[0].uid || mockClinics[0].id.toString());
+      setSelectedClinic(mockClinics[0].uid);
       setCurrentClinicName(mockClinics[0].name);
-      localStorage.setItem("selectedClinic", mockClinics[0].uid || mockClinics[0].id.toString());
+      localStorage.setItem("selectedClinic", mockClinics[0].uid);
     }
     
     if (savedBranch) {
@@ -101,9 +100,9 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
     
     // In a real app, you would fetch branches for the selected clinic from an API
     const mockBranches: Branch[] = [
-      { id: 1, name: "Main Branch", code: "MB", location: "Central", active: true, primary: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
-      { id: 2, name: "Secondary Branch", code: "SB", location: "East", active: true, primary: false, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
-      { id: 3, name: "Downtown Branch", code: "DB", location: "West", active: true, primary: false, state: mockState, district: mockDistrict, country: mockCountry, city: "City 2", mapurl: "", pincode: 123457, image: "", latitude: 0, longitude: 0 },
+      { id: 1, name: "Main Branch", code: "MB", location: "Central", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
+      { id: 2, name: "Secondary Branch", code: "SB", location: "East", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
+      { id: 3, name: "Downtown Branch", code: "DB", location: "West", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 2", mapurl: "", pincode: 123457, image: "", latitude: 0, longitude: 0 },
     ];
     
     setBranches(mockBranches);
@@ -130,7 +129,7 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
     setSelectedClinic(value);
     localStorage.setItem("selectedClinic", value);
     
-    const clinic = mockClinics.find(c => (c.uid || c.id.toString()) === value);
+    const clinic = mockClinics.find(c => c.uid === value);
     if (clinic) {
       setCurrentClinicName(clinic.name);
     }
@@ -186,15 +185,15 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
               <CommandGroup>
                 {mockClinics.map((clinic) => (
                   <CommandItem
-                    key={clinic.uid || clinic.id}
-                    value={clinic.uid || clinic.id.toString()}
-                    onSelect={() => handleClinicChange(clinic.uid || clinic.id.toString())}
+                    key={clinic.uid}
+                    value={clinic.uid}
+                    onSelect={() => handleClinicChange(clinic.uid)}
                     className="flex items-center gap-2 py-2"
                   >
                     <Building className="h-4 w-4 text-muted-foreground" />
                     <span className={cn(
                       "text-sm",
-                      selectedClinic === (clinic.uid || clinic.id.toString()) ? "font-medium" : ""
+                      selectedClinic === clinic.uid ? "font-medium" : ""
                     )}>
                       {clinic.name}
                     </span>

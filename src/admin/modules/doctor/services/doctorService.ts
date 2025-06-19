@@ -4,7 +4,6 @@ import { isProduction } from "@/utils/envUtils";
 import { PaginatedResponse } from "@/types/common";
 import { DoctorsFilter } from "../hooks/useDoctors";
 
-// Real implementation would use these endpoints
 const DoctorService = {
   getAllDoctors: async (): Promise<Doctor[]> => {
     try {
@@ -20,10 +19,6 @@ const DoctorService = {
     const response = await http.get<Doctor>(`/v1/doctor/id/${id}`);
     return response.data;
   },
-  getBySlug: async (slug: string): Promise<Doctor> => {
-    const response = await http.get<Doctor>(`/v1/doctor/slug/${slug}`);
-    return response.data;
-  },
 
   saveOrUpdateDoctor: async (doctor: Doctor): Promise<any> => {
     try {
@@ -35,11 +30,32 @@ const DoctorService = {
     }
   },
 
+  saveOrUpdate: async (doctor: any): Promise<any> => {
+    try {
+      const response = await http.post<any>('/v1/doctor/saveOrUpdate', doctor);
+      return response.data;
+    } catch (error) {
+      console.error("Error saving doctor:", error);
+      throw error;
+    }
+  },
+
   delete: async (id: number): Promise<void> => {
     await http.delete(`/v1/doctor/id/${id}`);
   },
-    publishDoctorOnline: async (id: number) => {
-   return await http.get(`/v1/doctor/publish-online/doctor/${id}`);
+
+  deleteById: async (id: number): Promise<any> => {
+    try {
+      const response = await http.delete(`/v1/doctor/id/${id}`);
+      return { status: true };
+    } catch (error) {
+      console.error("Error deleting doctor:", error);
+      return { status: false };
+    }
+  },
+
+  publishDoctorOnline: async (id: number) => {
+    return await http.get(`/v1/doctor/publish-online/doctor/${id}`);
   },
 
   fetchPaginated: async (
@@ -47,7 +63,6 @@ const DoctorService = {
     size: number,
     filter: DoctorsFilter
   ): Promise<PaginatedResponse<Doctor>> => {
-
     const filterObj: any = {
       value: filter.searchTerm || null,
       doctorType: filter.doctorType || null,

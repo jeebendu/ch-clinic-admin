@@ -1,8 +1,10 @@
+
 import React, { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
-import DoctorForm from "../components/DoctorForm";
 import DoctorView from "../components/DoctorView";
+import DoctorTable from "../components/doctor/DoctorTable";
+import DoctorFormDialog from "../components/dialogs/DoctorFormDialog";
 import { useDoctors } from "../hooks/useDoctors";
 import { toast } from "sonner";
 import DoctorOnboardingForm from "../components/DoctorOnboardingForm";
@@ -11,30 +13,29 @@ import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import { Doctor } from "../types/Doctor";
 import SpecialityService from "../doctor-speciality/services/SpecialityService";
 import DoctorListCard from "../components/DoctorListCard";
-import DoctorGrid from "../components/DoctorGrid";
 import { useNavigate } from "react-router-dom";
 import DoctorService from "../services/doctorService";
+import { RowAction } from "@/components/ui/RowActions";
+import { CheckCircle, Edit, Eye, Globe, Trash } from "lucide-react";
 
 const DoctorListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [showForm, setShowForm] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
-  const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
-  const [reviewDoctor, setReviewDoctor] = useState(null);
+  const [reviewDoctor, setReviewDoctor] = useState<Doctor | null>(null);
   const [showFilters, setShowFilters] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
-  // Add filter states
+
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
     doctorType: [],
     specialization: []
   });
 
-  // Define filter options
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
     {
       id: 'doctorType',
@@ -50,9 +51,6 @@ const DoctorListPage = () => {
       options: []
     }
   ]);
-
-
-
 
   const {
     doctors,
@@ -71,8 +69,56 @@ const DoctorListPage = () => {
     specialization: null
   });
 
+  // Centralized row actions defined at parent level
+  const getRowActions = (doctor: Doctor): RowAction[] => {
+    const actions: RowAction[] = [];
+
+    actions.push({
+      label: "View",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: () => handleViewDoctor(doctor),
+      className: "text-teal-500 hover:text-teal-700 hover:bg-teal-50"
+    });
+
+    actions.push({
+      label: "Edit",
+      icon: <Edit className="h-4 w-4" />,
+      onClick: () => handleEditDoctor(doctor),
+      className: "text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+    });
+
+    if (!doctor.publishedOnline) {
+      actions.push({
+        label: "Publish",
+        icon: <Globe className="h-4 w-4" />,
+        onClick: () => handlePublishDoctor(doctor),
+        className: "text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+      });
+    }
+
+    if (!doctor.verified) {
+      actions.push({
+        label: "Verify",
+        icon: <CheckCircle className="h-4 w-4" />,
+        onClick: () => handleVerifyDoctor(doctor),
+        className: "text-green-600 hover:text-green-800 hover:bg-green-50"
+      });
+    }
+
+    actions.push({
+      label: "Delete",
+      icon: <Trash className="h-4 w-4" />,
+      onClick: () => handleDeleteDoctor(doctor.id),
+      variant: "destructive",
+      confirm: true,
+      confirmTitle: "Delete Doctor",
+      confirmDescription: "Are you sure you want to delete this doctor? This action cannot be undone."
+    });
+
+    return actions;
+  };
+
   const handleFilterChange = (filterId: string, optionId: string) => {
-    console.log(optionId)
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
       if (newFilters[filterId]?.includes(optionId)) {
@@ -81,7 +127,6 @@ const DoctorListPage = () => {
         newFilters[filterId] = [...(newFilters[filterId] || []), optionId];
       }
 
-      // Update the filters using the updateFilters function
       updateFilters({
         doctorType: newFilters.doctorType[0] || null,
         specialization: newFilters.specialization[0] || null,
@@ -109,7 +154,6 @@ const DoctorListPage = () => {
     try {
       const response = await SpecialityService.list();
       if (response) {
-        console.log(response)
         setFilterOptions(prevOptions => {
           return prevOptions.map(option => {
             if (option.id === 'specialization') {
@@ -132,7 +176,6 @@ const DoctorListPage = () => {
     }
   };
 
-
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedFilters({
@@ -146,7 +189,6 @@ const DoctorListPage = () => {
     });
   };
 
-
   const handleViewModeToggle = () => {
     setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
@@ -156,31 +198,22 @@ const DoctorListPage = () => {
     setShowForm(true);
   };
 
-  const handleEditDoctor = (doctor: any) => {
+  const handleEditDoctor = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
     setShowForm(true);
   };
 
-  const handleViewDoctor = (doctor: any) => {
+  const handleViewDoctor = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
     setShowViewModal(true);
   };
+
   const handleFormClose = () => {
     setShowForm(false);
     setSelectedDoctor(null);
   };
 
-  const handleFormSubmit = async (doctor: any) => {
-    try {
-      const resp = await DoctorService.saveOrUpdateDoctor(doctor);
-      if (resp.status) {
-        toast.success("Doctor saved!");
-      } else {
-        toast.error("Error, unable to save doctor!");
-      }
-    } catch (e) {
-      toast.error("Failed to save doctor!");
-    }
+  const handleFormSave = async () => {
     setShowForm(false);
     refreshDoctors();
   };
@@ -199,7 +232,6 @@ const DoctorListPage = () => {
 
   const handleOnboardingSubmit = async (doctor: Doctor) => {
     try {
-      console.log(doctor)
       const response = await DoctorService.saveOrUpdateDoctor(doctor);
       if (response.status) {
         toast.success("Doctor published online successfully!");
@@ -214,7 +246,7 @@ const DoctorListPage = () => {
     }
   };
 
-  const handleVerifyClick = (doctor: Doctor) => {
+  const handleVerifyDoctor = (doctor: Doctor) => {
     setReviewDoctor(doctor);
     setShowReviewDialog(true);
   };
@@ -236,8 +268,22 @@ const DoctorListPage = () => {
     }
   };
 
+  const handleDeleteDoctor = async (doctorId: number) => {
+    try {
+      const response = await DoctorService.delete(doctorId);
+      if (response.status) {
+        toast.success("Doctor deleted successfully!");
+        refreshDoctors();
+      } else {
+        toast.error("Error deleting doctor!");
+      }
+    } catch (error) {
+      console.error("Error deleting doctor:", error);
+      toast.error("Failed to delete doctor!");
+    }
+  };
+
   const handlePublishOnline = async (doctor: Doctor, active: boolean) => {
-    console.log(active)
     const res = await DoctorService.publishDoctorOnline(doctor?.id);
     if (res.data.status) {
       refreshDoctors();
@@ -245,7 +291,7 @@ const DoctorListPage = () => {
     } else {
       toast.error("Something went wrong");
     }
-  }
+  };
 
   return (
     <AdminLayout>
@@ -279,11 +325,12 @@ const DoctorListPage = () => {
 
         <div className="flex-1 overflow-auto">
           {viewMode === 'grid' ? (
-            <DoctorGrid
+            <DoctorTable
               doctors={doctors}
               loading={loading}
-              onDoctorClick={handleViewDoctor}
-              onEditClick={handleEditDoctor}
+              onEdit={handleEditDoctor}
+              onDelete={handleDeleteDoctor}
+              getRowActions={getRowActions}
             />
           ) : (
             <DoctorListCard
@@ -291,22 +338,21 @@ const DoctorListPage = () => {
               loading={loading}
               onEditClick={handleEditDoctor}
               onPublishClick={handlePublishDoctor}
-              onVerifyClick={handleVerifyClick}
+              onVerifyClick={handleVerifyDoctor}
               onVisibilityToggle={handlePublishOnline}
-              onDoctorClick={(doctor: Doctor) => navigate(`/admin/doctor/view/${doctor.id}`)} />
-
+              onDoctorClick={(doctor: Doctor) => navigate(`/admin/doctor/view/${doctor.id}`)} 
+              getRowActions={getRowActions}
+            />
           )}
         </div>
       </div>
 
-      {showForm && (
-        <DoctorForm
-          isOpen={showForm}
-          onClose={handleFormClose}
-          onSubmit={handleFormSubmit}
-          doctor={selectedDoctor}
-        />
-      )}
+      <DoctorFormDialog
+        isOpen={showForm}
+        onClose={handleFormClose}
+        onSave={handleFormSave}
+        doctor={selectedDoctor}
+      />
 
       {showViewModal && selectedDoctor && (
         <DoctorView

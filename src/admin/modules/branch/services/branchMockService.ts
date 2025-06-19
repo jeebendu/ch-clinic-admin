@@ -1,128 +1,117 @@
+
 import { Branch } from "../types/Branch";
-import { Country, District, State } from "../../core/types/Address";
+import { Country } from "../../core/types/Country";
+import { State } from "../../core/types/State";
+import { District } from "../../core/types/District";
 
-// Mock data
-const mockCountry: Country = { id: 1, name: "India", code: "IN", status: true };
-const mockState: State = { id: 1, name: "Maharashtra", country: mockCountry };
-const mockDistrict: District = { id: 1, name: "Mumbai", state: mockState };
+/**
+ * Generate mock branches data for development
+ */
+export  const getMockBranches = (page: number, size: number, searchTerm?: string) => {
+  const mockBranches: Branch[] = [];
 
-let mockBranches: Branch[] = [
-  {
-    id: 1,
-    name: "Main Branch",
-    location: "Downtown",
-    mapurl: "https://maps.google.com",
-    pincode: 400001,
-    code: "MB001",
-    country: mockCountry,
-    state: mockState,
-    district: mockDistrict,
-    city: "Mumbai",
-    active: true,
-    primary: true,
-    image: "",
-    latitude: 19.0760,
-    longitude: 72.8777
-  },
-  {
-    id: 2,
-    name: "Secondary Branch",
-    location: "Andheri",
-    mapurl: "https://maps.google.com",
-    pincode: 400053,
-    code: "MB002",
-    country: mockCountry,
-    state: mockState,
-    district: mockDistrict,
-    city: "Mumbai",
-    active: true,
-    primary: false,
-    image: "",
-    latitude: 19.1199,
-    longitude: 72.8412
-  },
-  {
-    id: 3,
-    name: "Third Branch",
-    location: "Bandra",
-    mapurl: "https://maps.google.com",
-    pincode: 400050,
-    code: "MB003",
-    country: mockCountry,
-    state: mockState,
-    district: mockDistrict,
-    city: "Mumbai",
-    active: true,
-    primary: false,
-    image: "",
-    latitude: 19.0573,
-    longitude: 72.8353
+  // Generate 50 mock branches
+  for (let i = 0; i < 50; i++) {
+    const mockCountry: Country = {
+      id: i % 3 + 1,
+      name: `Country ${i % 3 + 1}`,
+      code: `C${i % 3 + 1}`,
+      iso: `ISO${i % 3 + 1}`,
+      status: true,
+    };
+
+    const mockState: State = {
+      id: i % 5 + 1,
+      name: `State ${i % 5 + 1}`,
+      country: mockCountry,
+    };
+
+    const mockDistrict: District = {
+      id: i % 7 + 1,
+      name: `District ${i % 7 + 1}`,
+      state: mockState,
+    };
+
+    const mockBranch: Branch = {
+      id: i + 1,
+      name: `Branch ${i + 1}`,
+      location: `Location ${i + 1}`,
+      mapurl: `https://maps.example.com/branch${i + 1}`,
+      pincode: 10000 + i,
+      code: `BR${i + 1}`,
+      country: mockCountry,
+      state: mockState,
+      district: mockDistrict,
+      city: `City ${i + 1}`,
+    };
+
+    mockBranches.push(mockBranch);
   }
-];
 
-const BranchMockService = {
-  list: (): Promise<Branch[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(mockBranches.map(branch => ({
-          ...branch,
-          active: true,
-          primary: branch.id === 1
-        })));
-      }, 500);
-    });
-  },
-  saveOrUpdate: (branch: Branch): Promise<Branch> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (branch.id) {
-          mockBranches = mockBranches.map(b => b.id === branch.id ? { ...b, ...branch } : b);
-        } else {
-          const newId = mockBranches.length > 0 ? Math.max(...mockBranches.map(b => b.id)) + 1 : 1;
-          mockBranches.push({ ...branch, id: newId });
-        }
-        resolve({ ...branch, active: true, primary: branch.id === 1 });
-      }, 500);
-    });
-  },
-  deleteById: (id: number): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        mockBranches = mockBranches.filter(b => b.id !== id);
-        resolve();
-      }, 500);
-    });
-  },
-  getById: (id: number): Promise<Branch> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const branch = mockBranches.find(b => b.id === id);
-        if (branch) {
-          resolve({
-            ...branch,
-            active: true,
-            primary: branch.id === 1
-          });
-        } else {
-          reject(new Error('Branch not found'));
-        }
-      }, 500);
-    });
-  },
-  
-  updateStatus: (id: number, active: boolean): Promise<Branch> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const branchIndex = mockBranches.findIndex(b => b.id === id);
-        if (branchIndex !== -1) {
-          mockBranches[branchIndex] = { ...mockBranches[branchIndex], active };
-          resolve(mockBranches[branchIndex]);
-        } else {
-          reject(new Error('Branch not found'));
-        }
-      }, 500);
-    });
+  // Apply search filter
+  let filteredBranches = [...mockBranches];
+  if (searchTerm) {
+    const term = searchTerm.toLowerCase();
+    filteredBranches = filteredBranches.filter(
+      (branch) =>
+        branch.name.toLowerCase().includes(term) ||
+        branch.location.toLowerCase().includes(term) ||
+        branch.code.toLowerCase().includes(term)
+    );
   }
+
+  // Paginate
+  const startIndex = page * size;
+  const paginatedBranches = filteredBranches.slice(startIndex, startIndex + size);
+
+  return Promise.resolve({
+    data: {
+      content: paginatedBranches,
+      totalElements: filteredBranches.length,
+      totalPages: Math.ceil(filteredBranches.length / size),
+      size: size,
+      number: page,
+      last: startIndex + size >= filteredBranches.length,
+    },
+  });
 };
 
-export default BranchMockService;
+/**
+ * Mock function to get a single branch by ID
+ */
+export const getMockBranchById = async (id: number): Promise<Branch> => {
+  const mockCountry: Country = {
+    id: 1,
+    name: "Country 1",
+    code: "C1",
+    iso: "ISO1",
+    status: true,
+  };
+
+  const mockState: State = {
+    id: 1,
+    name: "State 1",
+    country: mockCountry,
+  };
+
+  const mockDistrict: District = {
+    id: 1,
+    name: "District 1",
+    state: mockState,
+  };
+
+  const mockBranch: Branch = {
+    id: id,
+    name: `Branch ${id}`,
+    location: `Location ${id}`,
+    mapurl: `https://maps.example.com/branch${id}`,
+    pincode: 10000 + id,
+    code: `BR${id}`,
+    country: mockCountry,
+    state: mockState,
+    district: mockDistrict,
+    city: `City ${id}`,
+  };
+
+  return Promise.resolve(mockBranch);
+};

@@ -1,15 +1,13 @@
 
+export type CheckInStatus = 'not_checked_in' | 'checked_in' | 'in_consultation' | 'completed';
+
 export interface PaymentInfo {
-  id?: string;
-  amount: number;
   paymentType: 'cash' | 'card' | 'upi' | 'bank_transfer' | 'insurance';
+  amount: number;
   transactionId?: string;
   paymentDate: Date;
-  status?: 'completed' | 'pending' | 'failed';
   notes?: string;
 }
-
-export type CheckInStatus = 'not_checked_in' | 'checked_in' | 'in_consultation' | 'completed';
 
 export interface AppointmentWorkflow {
   appointmentId: number;

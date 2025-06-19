@@ -3,25 +3,21 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { 
-  Eye, 
-  Edit, 
   Phone, 
   Mail, 
   User, 
   Stethoscope,
-  Globe,
-  CheckCircle,
   Award,
-  Settings,
+  CheckCircle,
   Shield,
   ShieldCheck
 } from 'lucide-react';
 import { Doctor } from '../types/Doctor';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import RowActions, { RowAction } from '@/components/ui/RowActions';
 
 interface DoctorHorizontalCardProps {
   doctor: Doctor;
@@ -31,6 +27,7 @@ interface DoctorHorizontalCardProps {
   onVisibilityToggle?: (doctor: Doctor, active: boolean) => void;
   onDoctorClick?: (doctor: Doctor) => void;
   onOnlineToggle?: (doctor: Doctor, online: boolean) => void;
+  getRowActions: (doctor: Doctor) => RowAction[];
 }
 
 const DoctorHorizontalCard: React.FC<DoctorHorizontalCardProps> = ({
@@ -40,7 +37,8 @@ const DoctorHorizontalCard: React.FC<DoctorHorizontalCardProps> = ({
   onVerifyClick,
   onVisibilityToggle,
   onDoctorClick,
-  onOnlineToggle
+  onOnlineToggle,
+  getRowActions
 }) => {
   const isMobile = useIsMobile();
 
@@ -215,54 +213,7 @@ const DoctorHorizontalCard: React.FC<DoctorHorizontalCardProps> = ({
 
           {/* Actions Section */}
           <div className="flex justify-end items-start mt-2 sm:mt-0 sm:w-[120px] flex-shrink-0">
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 w-7 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDoctorClick?.(doctor);
-                }}
-                title="View Doctor"
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              
-              {onEditClick && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 w-7 p-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditClick(doctor);
-                  }}
-                  title="Edit Doctor"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              )}
-
-              
-
-              {onPublishClick && !doctor.publishedOnline && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 w-7 p-0 text-blue-600"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onPublishClick(doctor);
-                  }}
-                  title="Publish Online"
-                >
-                  <Globe className="h-4 w-4" />
-                </Button>
-              )}
-
-             
-            </div>
+            <RowActions actions={getRowActions(doctor)} />
           </div>
         </div>
       </div>
