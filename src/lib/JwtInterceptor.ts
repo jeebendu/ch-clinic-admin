@@ -70,6 +70,30 @@ http.interceptors.response.use(
       }
     }
     
+    // Handle 500 errors that are JWT related (backend sends 500 instead of 401 for expired JWT)
+    if (error.response && error.response.status === 500) {
+      const errorMessage = error.response.data?.message || '';
+      const errorTrace = error.response.data?.trace || '';
+      
+      // Check if it's a JWT expiration error
+      if (errorMessage.includes('JWT expired') || errorTrace.includes('ExpiredJwtException')) {
+        console.error('JWT Token expired (500 error):', errorMessage);
+        
+        // Clear local storage
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('selectedClinic');
+        localStorage.removeItem('selectedBranch');
+        
+        // Redirect to login page if not already there
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
+        
+        return Promise.reject(error);
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
