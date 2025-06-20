@@ -44,6 +44,7 @@ const BranchForm: React.FC<BranchFormProps> = ({ branch, onSuccess }) => {
   const [districtList, setDistrictList] = useState<District[]>([]);
   const [districtSearch, setDistrictSearch] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<District | null>(null);
+  const [isCoordinatesAutoExtracted, setIsCoordinatesAutoExtracted] = useState<boolean>(false);
 
   // Set default values for the form
   const defaultValues: Partial<FormValues> = {
@@ -72,6 +73,64 @@ const BranchForm: React.FC<BranchFormProps> = ({ branch, onSuccess }) => {
       setDistrictSearch(branch.district.name);
     }
   }, [branch]);
+
+  // Function to extract coordinates from Google Maps URL
+  const extractCoordinatesFromUrl = (url: string) => {
+    try {
+      // Pattern for @lat,lng,zoom format
+      const atPattern = /@(-?\d+\.?\d*),(-?\d+\.?\d*)/;
+      const atMatch = url.match(atPattern);
+      
+      if (atMatch) {
+        return {
+          latitude: parseFloat(atMatch[1]).toString(),
+          longitude: parseFloat(atMatch[2]).toString()
+        };
+      }
+
+      // Pattern for !3d and !4d format (latitude and longitude)
+      const coordPattern = /!3d(-?\d+\.?\d*).*!4d(-?\d+\.?\d*)/;
+      const coordMatch = url.match(coordPattern);
+      
+      if (coordMatch) {
+        return {
+          latitude: parseFloat(coordMatch[1]).toString(),
+          longitude: parseFloat(coordMatch[2]).toString()
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error extracting coordinates:", error);
+      return null;
+    }
+  };
+
+  // Watch for changes in mapurl field
+  const mapUrl = form.watch("mapurl");
+
+  useEffect(() => {
+    if (mapUrl && mapUrl.includes("google.com/maps")) {
+      const coordinates = extractCoordinatesFromUrl(mapUrl);
+      if (coordinates) {
+        form.setValue("latitude", coordinates.latitude);
+        form.setValue("longitude", coordinates.longitude);
+        setIsCoordinatesAutoExtracted(true);
+        
+        toast({
+          title: "Coordinates extracted",
+          description: `Latitude: ${coordinates.latitude}, Longitude: ${coordinates.longitude}`,
+        });
+      }
+    } else if (!mapUrl) {
+      // Clear coordinates if map URL is cleared
+      if (isCoordinatesAutoExtracted) {
+        form.setValue("latitude", "");
+        form.setValue("longitude", "");
+        setIsCoordinatesAutoExtracted(false);
+      }
+    }
+  }, [mapUrl, form, toast, isCoordinatesAutoExtracted]);
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -196,19 +255,25 @@ const BranchForm: React.FC<BranchFormProps> = ({ branch, onSuccess }) => {
           <FormField
             control={form.control}
             name="mapurl"
-            label="Map URL (Optional)"
+            label="Map URL"
+            placeholder="Paste Google Maps URL here"
+            className="md:col-span-2"
           />
 
           <FormField
             control={form.control}
             name="latitude"
-            label="Latitude (Optional)"
+            label="Latitude"
+            disabled={isCoordinatesAutoExtracted}
+            placeholder={isCoordinatesAutoExtracted ? "Auto-extracted from Map URL" : "Enter latitude"}
           />
 
           <FormField
             control={form.control}
             name="longitude"
-            label="Longitude (Optional)"
+            label="Longitude"
+            disabled={isCoordinatesAutoExtracted}
+            placeholder={isCoordinatesAutoExtracted ? "Auto-extracted from Map URL" : "Enter longitude"}
           />
 
           <div className="flex items-center space-x-2">
