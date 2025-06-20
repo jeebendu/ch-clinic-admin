@@ -12,20 +12,14 @@ import BranchService from "@/admin/modules/branch/services/branchService";
 import DoctorService from "../../../services/doctorService";
 
 interface WeeklyScheduleTabProps {
-  doctorId: number;
-  branchId: number;
+  doctor: Doctor;
+  branchObj: Branch;
 }
 
-
-
-
-
-
-
-const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorId, branchId }) => {
+const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj }) => {
   const [loading, setLoading] = useState(true);
-  const [doctor, setDoctor] = useState<Doctor>(null);
-  const [branch, setBranch] = useState<Branch>(null);
+  // const [doctor, setDoctor] = useState<Doctor>(null);
+  // const [branch, setBranch] = useState<Branch>(null);
 
 
 
@@ -42,73 +36,40 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorId, branchI
   ]);
 
   useEffect(() => {
-    if (doctorId && branchId) {
+    if (doctor && doctor?.id && branchObj && branchObj?.id) {
       fetchAvailability();
-      fetchDoctorById();
-      fetchingBranchById();
     }
-  }, [doctorId, branchId]);
+  }, [doctor, branchObj]);
 
 
   useEffect(() => {
-    if (doctor && branch) {
+   if (doctor && doctor?.id && branchObj && branchObj?.id) {console.log(branchObj)
       setSchedules((prev) =>
         prev.map((schedule) => ({
           ...schedule,
           doctor: doctor,
-          branch: branch
+          branch: branchObj
         }))
       );
     }
-  }, [doctor, branch]);
+  }, [doctor, branchObj]);
 
-  const fetchingBranchById = async () => {
-    try {
-      const res = await BranchService.getById(branchId);
-      setBranch(res.data);
-      setSchedules((prev) =>
-        prev.map((schedule) => ({
-          ...schedule,
-          doctor: doctor,
-          branch: res.data
-        }))
-      );
-    } catch (error) {
-      console.log("Fail to fetching branch data");
-    }
-  }
-
-  const fetchDoctorById = async () => {
-    try {
-      const data = await DoctorService.getById(doctorId)
-      setDoctor(data);
-      setSchedules((prev) =>
-        prev.map((schedule) => ({
-          ...schedule,
-          doctor: data,
-          branch: branch
-        }))
-      );
-    } catch (error) {
-      console.log("Fail to fetching branch data");
-    }
-  }
 
   const fetchAvailability = async () => {
     setLoading(true);
     try {
-      const availabilities = await availabilityService.getByDoctorAndBranch(doctorId, branchId);
+      const availabilities = await availabilityService.getByDoctorAndBranch(doctor.id, branchObj.id);
       if (availabilities.data && availabilities.data.length > 0) {
         setSchedules(availabilities.data);
       } else {
         setSchedules([
-          { dayOfWeek: "Sunday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-          { dayOfWeek: "Monday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-          { dayOfWeek: "Tuesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-          { dayOfWeek: "Wednesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-          { dayOfWeek: "Thursday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-          { dayOfWeek: "Friday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-          { dayOfWeek: "Saturday", active: false, startTime: "09:00", endTime: "14:00", slotDuration: 15, branch: null, doctor: null, id: null }
+          { dayOfWeek: "Sunday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
+          { dayOfWeek: "Monday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
+          { dayOfWeek: "Tuesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
+          { dayOfWeek: "Wednesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
+          { dayOfWeek: "Thursday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
+          { dayOfWeek: "Friday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
+          { dayOfWeek: "Saturday", active: false, startTime: "09:00", endTime: "14:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null }
         ]);
       }
     } catch (error) {

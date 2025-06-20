@@ -17,27 +17,30 @@ import LeavesTab from "../components/LeavesTab";
 import HolidaysTab from "../components/HolidaysTab";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
+import BranchService from "@/admin/modules/branch/services/branchService";
 
 const DoctorScheduleView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
+  const [branchObj, setBranchObj] = useState<Branch>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("weekly-schedule");
 
   useEffect(() => {
     const fetchDoctor = async () => {
       if (!id) return;
-      
+
       setLoading(true);
       try {
         const fetchedDoctor = await doctorService.getById(Number(id));
         setDoctor(fetchedDoctor);
-        
+
         // Set the first branch as default if doctor has branches
         if (fetchedDoctor.branchList && fetchedDoctor.branchList.length > 0) {
           setSelectedBranch(fetchedDoctor.branchList[0]?.branch?.id);
+          setBranchObj(fetchedDoctor.branchList[0]?.branch);
         }
       } catch (error) {
         console.error('Error fetching doctor details:', error);
@@ -51,10 +54,25 @@ const DoctorScheduleView = () => {
   }, [id]);
 
   const handleBranchChange = (branchId: string) => {
-    if(branchId){
+    if (branchId) {
       setSelectedBranch(parseInt(branchId));
     }
   };
+
+
+  useEffect(() => {
+    fetchingBranchById();
+  }, [selectedBranch]);
+
+    const fetchingBranchById = async () => {
+    try {
+      const res = await BranchService.getById(selectedBranch);
+      setBranchObj(res.data);
+    } catch (error) {
+      console.log("Fail to fetching branch data");
+    }
+  }
+
 
   const handleBackClick = () => {
     navigate(`/admin/doctor/view/${id}`);
@@ -95,8 +113,8 @@ const DoctorScheduleView = () => {
                     <p className="text-sm text-muted-foreground mb-4">
                       Configure availability for a specific branch
                     </p>
-                    <Select 
-                      value={selectedBranch?.toString()} 
+                    <Select
+                      value={selectedBranch?.toString()}
                       onValueChange={handleBranchChange}
                     >
                       <SelectTrigger className="w-full md:w-[250px]">
@@ -127,20 +145,20 @@ const DoctorScheduleView = () => {
                 <TabsTrigger value="leaves">Leaves</TabsTrigger>
                 <TabsTrigger value="holidays">Holidays</TabsTrigger>
               </TabsList>
-              
-              {selectedBranch ? (
+
+              {selectedBranch && branchObj ? (
                 <>
                   <TabsContent value="weekly-schedule">
-                    <WeeklyScheduleTab doctorId={doctor.id} branchId={selectedBranch} />
+                    <WeeklyScheduleTab doctor={doctor} branchObj={branchObj} />
                   </TabsContent>
                   <TabsContent value="breaks">
-                    <BreaksTab doctorId={doctor.id} branchId={selectedBranch} />
+                    <BreaksTab doctor={doctor} branchObj={branchObj} />
                   </TabsContent>
                   <TabsContent value="leaves">
-                    <LeavesTab doctorId={doctor.id} branchId={selectedBranch} />
+                    <LeavesTab doctor={doctor} branchObj={branchObj} />
                   </TabsContent>
                   <TabsContent value="holidays">
-                    <HolidaysTab doctorId={doctor.id} branchId={selectedBranch} />
+                    <HolidaysTab doctor={doctor} branchObj={branchObj} />
                   </TabsContent>
                 </>
               ) : (

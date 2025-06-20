@@ -15,8 +15,8 @@ import DoctorService from "../../../services/doctorService";
 import { DoctorBreak } from "../types/DoctorAvailability";
 
 interface BreaksTabProps {
-  doctorId: number;
-  branchId: number;
+  doctor: Doctor;
+  branchObj: Branch;
 }
 
 
@@ -31,25 +31,21 @@ const weekDays = [
   { value: "Saturday", label: "Saturday" }
 ];
 
-const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
+const BreaksTab: React.FC<BreaksTabProps> = ({ doctor, branchObj }) => {
   const [loading, setLoading] = useState(true);
   const [breaks, setBreaks] = useState<DoctorBreak[]>([]);
-  const [doctor, setDoctor] = useState<Doctor>(null);
-  const [branch, setBranch] = useState<Branch>(null);
 
 
   useEffect(() => {
-    if (doctorId && branchId) {
+    if (doctor && doctor?.id && branchObj && branchObj?.id) {
       fetchBreaks();
-      fetchDoctorById();
-      fetchingBranchById();
     }
-  }, [doctorId, branchId]);
+  }, [doctor, branchObj]);
 
   const fetchBreaks = async () => {
     setLoading(true);
     try {
-      const doctorBreaks = await breakService.getByDoctorAndBranch(doctorId, branchId);
+      const doctorBreaks = await breakService.getByDoctorAndBranch(doctor.id, branchObj.id);
       setBreaks(doctorBreaks.data);
     } catch (error) {
       toast.error('Failed to load break schedule');
@@ -57,29 +53,13 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
       setLoading(false);
     }
   };
-  const fetchingBranchById = async () => {
-    try {
-      const res = await BranchService.getById(branchId);
-      setBranch(res.data)
-    } catch (error) {
-      console.log("Fail to fetching branch data");
-    }
-  }
 
-  const fetchDoctorById = async () => {
-    try {
-      const data = await DoctorService.getById(doctorId)
-      setDoctor(data)
-    } catch (error) {
-      console.log("Fail to fetching branch data");
-    }
-  }
 
 
   const handleAddBreak = () => {
     setBreaks([
       ...breaks,
-      { dayOfWeek: "Sunday", breakStart: "12:00", breakEnd: "13:00", description: "Lunch Break", branch: branch, doctor: doctor }
+      { dayOfWeek: "Sunday", breakStart: "12:00", breakEnd: "13:00", description: "Lunch Break", branch: branchObj, doctor: doctor }
     ]);
   };
 
@@ -93,7 +73,7 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
       }
     } catch (e) {
       toast.error('Fail to delete break');
-    }finally{
+    } finally {
       fetchBreaks();
     }
 
@@ -119,7 +99,7 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctorId, branchId }) => {
     } catch (error) {
       console.error('Error saving breaks:', error);
       toast.error('Failed to save break schedule');
-    }finally{
+    } finally {
       fetchBreaks();
     }
   };

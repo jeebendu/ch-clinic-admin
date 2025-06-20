@@ -12,51 +12,38 @@ import { holidayService } from "../services/holidayService";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 import { ClinicHoliday } from "../types/DoctorAvailability";
 import BranchService from "@/admin/modules/branch/services/branchService";
+import { Doctor } from "../../../types/Doctor";
 
 interface HolidaysTabProps {
-  doctorId: number;
-  branchId: number;
+  doctor: Doctor;
+  branchObj: Branch;
 }
 
-const HolidaysTab: React.FC<HolidaysTabProps> = ({ doctorId, branchId }) => {
+const HolidaysTab: React.FC<HolidaysTabProps> = ({ doctor, branchObj }) => {
   const [loading, setLoading] = useState(true);
-  const [branch, setBranch] = useState<Branch>(null);
+  // const [branch, setBranch] = useState<Branch>(null);
   const [holidays, setHolidays] = useState<ClinicHoliday[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newHoliday, setNewHoliday] = useState<ClinicHoliday>({
     id: null,
-    branch: branch,
+    branch: branchObj,
     date: new Date(),
     reason: ""
   });
 
   useEffect(() => {
-
-    if (branchId) {
+   if (branchObj && branchObj?.id) {
+     setNewHoliday((prev) => ({ ...prev, branch: branchObj }));
       fetchHolidays();
-      fetchingBranchById();
     }
-  }, [branchId]);
+  }, [branchObj]);
 
-  useEffect(() => {
-    if (branch) {
-      setNewHoliday((prev) => ({ ...prev, branch: branch }))
-    }
-  }, [branch]);
 
-  const fetchingBranchById = async () => {
-    try {
-      const res = await BranchService.getById(branchId);
-      setBranch(res.data)
-    } catch (error) {
-      console.log("Fail to fetching branch data");
-    }
-  }
 
   const fetchHolidays = async () => {
     setLoading(true);
     try {
-      const res = await holidayService.getByBranch(branchId);
+      const res = await holidayService.getByBranch(branchObj.id);
       setHolidays(res.data);
     } catch (error) {
       console.error('Error fetching branch holidays:', error);

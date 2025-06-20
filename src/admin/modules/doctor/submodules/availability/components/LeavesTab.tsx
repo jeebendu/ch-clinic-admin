@@ -17,21 +17,21 @@ import BranchService from "@/admin/modules/branch/services/branchService";
 import DoctorService from "../../../services/doctorService";
 
 interface LeavesTabProps {
-  doctorId: number;
-  branchId: number;
+    doctor: Doctor;
+  branchObj: Branch;
 }
 
-const LeavesTab: React.FC<LeavesTabProps> = ({ doctorId, branchId }) => {
+const LeavesTab: React.FC<LeavesTabProps> = ({ doctor, branchObj }) => {
   const [loading, setLoading] = useState(true);
   const [leaves, setLeaves] = useState<DoctorLeave[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [doctor, setDoctor] = useState<Doctor>(null);
-  const [branch, setBranch] = useState<Branch>(null);
+  // const [doctor, setDoctor] = useState<Doctor>(null);
+  // const [branch, setBranch] = useState<Branch>(null);
 
   const [newLeave, setNewLeave] = useState<DoctorLeave>({
     id: null,
     doctor: doctor,
-    branch: branch,
+    branch: branchObj,
     leaveEnd: new Date(),
     leaveStart: new Date(),
     reason: "",
@@ -40,23 +40,17 @@ const LeavesTab: React.FC<LeavesTabProps> = ({ doctorId, branchId }) => {
   leaveStart: Date;
 
   useEffect(() => {
-    if (doctorId && branchId) {
+    if (doctor && doctor?.id && branchObj && branchObj?.id) {
+      setNewLeave((prev)=>({...prev,doctor:doctor,branch:branchObj}))
       fetchLeaves();
-      fetchDoctorById();
-      fetchingBranchById();
     }
-  }, [doctorId, branchId]);
+  }, [doctor, branchObj]);
 
-    useEffect(() => {
-    if (doctor && branch) {
-setNewLeave((prev)=>({...prev,doctor:doctor,branch:branch}))
-    }
-  }, [doctor, branch]);
 
   const fetchLeaves = async () => {
     setLoading(true);
     try {
-      const doctorLeaves = await leaveService.getByDoctorAndBranch(doctorId, branchId);
+      const doctorLeaves = await leaveService.getByDoctorAndBranch(doctor.id, branchObj.id);
       setLeaves(doctorLeaves.data);
     } catch (error) {
       console.error('Error fetching doctor leaves:', error);
@@ -66,24 +60,6 @@ setNewLeave((prev)=>({...prev,doctor:doctor,branch:branch}))
     }
   };
 
-
-  const fetchingBranchById = async () => {
-    try {
-      const res = await BranchService.getById(branchId);
-      setBranch(res.data)
-    } catch (error) {
-      console.log("Fail to fetching branch data");
-    }
-  }
-
-  const fetchDoctorById = async () => {
-    try {
-      const data = await DoctorService.getById(doctorId)
-      setDoctor(data)
-    } catch (error) {
-      console.log("Fail to fetching branch data");
-    }
-  }
 
 
 
