@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import AdminRoutes from "./admin/AdminRoutes";
 import { useTenant } from "./hooks/use-tenant";
 import ResetPassword from "./pages/ResetPassword";
+import PublicPatientRegistration from "./pages/PublicPatientRegistration";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,9 @@ const App = () => (
 
             {/* Reset password route */}
             <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Public patient registration route */}
+            <Route path="/register-patient" element={<PublicPatientRegistration />} />
 
             {/* Admin routes */}
             <Route path="/admin/*" element={<AdminRoutes />} />
