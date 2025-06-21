@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -131,6 +132,11 @@ const navItems: NavItem[] = [
       {
         label: "Login History",
         href: "/admin/users/login-history",
+        roles: ["Admin"]
+      },
+      {
+        label: "Clinic Profile",
+        href: "/clinic-profile",
         roles: ["Admin"]
       }
     ]
