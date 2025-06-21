@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Phone, Mail, Calendar, MapPin, Users } from "lucide-react";
 import PatientService from "@/admin/modules/patient/services/patientService";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
+import { useTenant } from "@/hooks/use-tenant";
+import { getTenantFileUrl } from "@/utils/tenantUtils";
 
 const publicPatientSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
@@ -36,6 +38,7 @@ const PublicPatientForm = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<{ name: string, id: number } | null>(null);
   
   const { toast } = useToast();
+  const { tenant, isLoading } = useTenant();
   
   const form = useForm<PublicPatientFormData>({
     resolver: zodResolver(publicPatientSchema),
@@ -100,6 +103,12 @@ const PublicPatientForm = () => {
     }
   };
 
+  // Get tenant logo URL
+  let tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
+  if (!tenantLogoUrl) {
+    tenantLogoUrl = 'https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';
+  }
+
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -110,7 +119,7 @@ const PublicPatientForm = () => {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Registration Complete!</h2>
             <p className="text-gray-600 mb-6">
-              Thank you for registering. Please proceed to the reception desk for further assistance.
+              Thank you for registering with {tenant?.title || 'our clinic'}. Please proceed to the reception desk for further assistance.
             </p>
             <Button 
               onClick={() => {
@@ -129,11 +138,37 @@ const PublicPatientForm = () => {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading clinic information...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-2xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader className="text-center bg-white border-b">
+            {/* Tenant Logo and Name */}
+            {tenant && (
+              <div className="mb-4">
+                <img 
+                  src={tenantLogoUrl} 
+                  alt={tenant.title || 'Clinic Logo'} 
+                  className="h-16 w-auto mx-auto mb-2"
+                />
+                <h3 className="text-lg font-semibold text-gray-700">{tenant.title}</h3>
+                {tenant.description && (
+                  <p className="text-sm text-gray-500 mt-1">{tenant.description}</p>
+                )}
+              </div>
+            )}
+            
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <User className="w-8 h-8 text-blue-600" />
             </div>

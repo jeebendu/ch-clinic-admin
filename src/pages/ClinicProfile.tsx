@@ -20,6 +20,7 @@ import {
 import QRCode from 'qrcode';
 import { Clinic } from "@/admin/modules/clinics/types/Clinic";
 import { useToast } from "@/hooks/use-toast";
+import AdminLayout from "@/admin/components/AdminLayout";
 
 // Mock clinic data - in real app, this would come from API
 const mockClinic: Clinic = {
@@ -107,225 +108,227 @@ const ClinicProfile = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{mockClinic.name}</h1>
-          <p className="text-gray-600 mt-1">Clinic Profile & Patient Registration</p>
-        </div>
-        <Badge variant={mockClinic.active ? "default" : "secondary"} className="px-3 py-1">
-          {mockClinic.active ? (
-            <>
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Active
-            </>
-          ) : (
-            <>
-              <XCircle className="w-4 h-4 mr-1" />
-              Inactive
-            </>
-          )}
-        </Badge>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Clinic Details */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-600" />
-                Basic Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Phone</p>
-                    <p className="font-medium">{mockClinic.contact}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Email</p>
-                    <p className="font-medium">{mockClinic.email}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Globe className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Plan</p>
-                    <p className="font-medium">{mockClinic.plan.name}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Users className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Branches</p>
-                    <p className="font-medium">{mockClinic.branches?.length || 0} Active</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Address Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-green-600" />
-                Address Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-600">Full Address</p>
-                  <p className="font-medium">{mockClinic.address}</p>
-                </div>
-                
-                <Separator />
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">City</p>
-                    <p className="font-medium">{mockClinic.city}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">District</p>
-                    <p className="font-medium">{mockClinic.district?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">State</p>
-                    <p className="font-medium">{mockClinic.state?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Pincode</p>
-                    <p className="font-medium">{mockClinic.pincode}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Timeline Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-purple-600" />
-                Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Created</p>
-                  <p className="font-medium">
-                    {mockClinic.createdTime ? new Date(mockClinic.createdTime).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Last Modified</p>
-                  <p className="font-medium">
-                    {mockClinic.modifiedTime ? new Date(mockClinic.modifiedTime).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+    <AdminLayout>
+      <div className="container mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{mockClinic.name}</h1>
+            <p className="text-gray-600 mt-1">Clinic Profile & Patient Registration</p>
+          </div>
+          <Badge variant={mockClinic.active ? "default" : "secondary"} className="px-3 py-1">
+            {mockClinic.active ? (
+              <>
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Active
+              </>
+            ) : (
+              <>
+                <XCircle className="w-4 h-4 mr-1" />
+                Inactive
+              </>
+            )}
+          </Badge>
         </div>
 
-        {/* QR Code Section */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-indigo-600" />
-                Patient Registration QR
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Generate a QR code that patients can scan to register for walk-in appointments.
-              </p>
-              
-              <div className="flex flex-col gap-3">
-                <Button 
-                  onClick={generateQRCode} 
-                  disabled={isGeneratingQR}
-                  className="w-full"
-                >
-                  {isGeneratingQR ? "Generating..." : "Generate QR Code"}
-                </Button>
-                
-                {qrCodeUrl && (
-                  <>
-                    <div className="flex justify-center p-4 bg-white border rounded-lg">
-                      <img 
-                        src={qrCodeUrl} 
-                        alt="Patient Registration QR Code"
-                        className="w-48 h-48"
-                      />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Clinic Details */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Basic Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{mockClinic.contact}</p>
                     </div>
-                    
-                    <Button 
-                      onClick={downloadQRCode}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download HD QR Code
-                    </Button>
-                    
-                    <div className="text-xs text-gray-500 text-center">
-                      <p>QR Code links to:</p>
-                      <p className="font-mono break-all">
-                        {window.location.origin}/register-patient
-                      </p>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-medium">{mockClinic.email}</p>
                     </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Plan</p>
+                      <p className="font-medium">{mockClinic.plan.name}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Users className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Branches</p>
+                      <p className="font-medium">{mockClinic.branches?.length || 0} Active</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Quick Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Stats</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Status</span>
-                <Badge variant={mockClinic.active ? "default" : "secondary"}>
-                  {mockClinic.active ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Clinic ID</span>
-                <span className="font-mono text-sm">{mockClinic.id}</span>
-              </div>
-              
-              {mockClinic.uid && (
+            {/* Address Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-green-600" />
+                  Address Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Full Address</p>
+                    <p className="font-medium">{mockClinic.address}</p>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">City</p>
+                      <p className="font-medium">{mockClinic.city}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">District</p>
+                      <p className="font-medium">{mockClinic.district?.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">State</p>
+                      <p className="font-medium">{mockClinic.state?.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Pincode</p>
+                      <p className="font-medium">{mockClinic.pincode}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Timeline Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                  Timeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Created</p>
+                    <p className="font-medium">
+                      {mockClinic.createdTime ? new Date(mockClinic.createdTime).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Last Modified</p>
+                    <p className="font-medium">
+                      {mockClinic.modifiedTime ? new Date(mockClinic.modifiedTime).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* QR Code Section */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-indigo-600" />
+                  Patient Registration QR
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Generate a QR code that patients can scan to register for walk-in appointments.
+                </p>
+                
+                <div className="flex flex-col gap-3">
+                  <Button 
+                    onClick={generateQRCode} 
+                    disabled={isGeneratingQR}
+                    className="w-full"
+                  >
+                    {isGeneratingQR ? "Generating..." : "Generate QR Code"}
+                  </Button>
+                  
+                  {qrCodeUrl && (
+                    <>
+                      <div className="flex justify-center p-4 bg-white border rounded-lg">
+                        <img 
+                          src={qrCodeUrl} 
+                          alt="Patient Registration QR Code"
+                          className="w-48 h-48"
+                        />
+                      </div>
+                      
+                      <Button 
+                        onClick={downloadQRCode}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download HD QR Code
+                      </Button>
+                      
+                      <div className="text-xs text-gray-500 text-center">
+                        <p>QR Code links to:</p>
+                        <p className="font-mono break-all">
+                          {window.location.origin}/register-patient
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Stats</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">UID</span>
-                  <span className="font-mono text-sm">{mockClinic.uid}</span>
+                  <span className="text-sm text-gray-600">Status</span>
+                  <Badge variant={mockClinic.active ? "default" : "secondary"}>
+                    {mockClinic.active ? "Active" : "Inactive"}
+                  </Badge>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Clinic ID</span>
+                  <span className="font-mono text-sm">{mockClinic.id}</span>
+                </div>
+                
+                {mockClinic.uid && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">UID</span>
+                    <span className="font-mono text-sm">{mockClinic.uid}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
