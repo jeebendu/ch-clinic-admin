@@ -91,7 +91,7 @@ const Header = ({
   const profileRef = useRef<HTMLDivElement>(null);
 
   return (
-    <>
+    
       <header className={cn(
         "admin-header h-14 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 bg-white shadow-sm",
         isLocked ? "blur-sm pointer-events-none" : ""
@@ -158,7 +158,11 @@ const Header = ({
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate('/admin/profile')}>
                 <UserCircle className="mr-2 h-4 w-4" />
-                Profile
+                My Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/clinic-profile')}>
+                <UserCircle className="mr-2 h-4 w-4" />
+                Clinic Profile
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/admin/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
@@ -173,7 +177,7 @@ const Header = ({
           </DropdownMenu>
         </div>
       </header>
-    </>
+    
   );
 };
 

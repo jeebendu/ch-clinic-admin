@@ -128,7 +128,7 @@ export const AdminLayout = ({
   ), [sidebarCollapsed, toggleSidebar, handleUserClick]);
 
   return (
-    <div className="flex h-screen bg-[#eff5ff]">
+    <div className="flex h-screen bg-[#f8fafc]">
       {/* Mobile overlay */}
       <div 
         className={cn(

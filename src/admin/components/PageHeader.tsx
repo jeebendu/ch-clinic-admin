@@ -45,7 +45,6 @@ export const PageHeader = ({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 py-1">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold">{title}</h1>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
           {loadedElements !== undefined && totalElements !== undefined && (
             <p className="text-sm text-muted-foreground">
               Showing {loadedElements} of {totalElements} items

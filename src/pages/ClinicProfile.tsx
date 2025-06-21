@@ -4,6 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Building2, 
   Phone, 
@@ -15,46 +20,37 @@ import {
   Calendar,
   Users,
   CheckCircle,
-  XCircle
+  XCircle,
+  Edit,
+  Upload,
+  Save,
+  Loader2
 } from "lucide-react";
 import QRCode from 'qrcode';
 import { Clinic } from "@/admin/modules/clinics/types/Clinic";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/admin/components/AdminLayout";
-
-// Mock clinic data - in real app, this would come from API
-const mockClinic: Clinic = {
-  id: 1,
-  name: "HealthCare Plus Clinic",
-  email: "contact@healthcareplus.com",
-  contact: "+1 (555) 123-4567",
-  address: "123 Medical Center Drive, Suite 200, Healthcare City, HC 12345",
-  city: "Healthcare City",
-  pincode: 12345,
-  plan: {
-    id: 1,
-    name: "Premium Plan"
-  },
-  state: {
-    id: 1,
-    name: "Healthcare State"
-  },
-  district: {
-    id: 1,
-    name: "Medical District"
-  },
-  country: {
-    id: 1,
-    name: "United States"
-  },
-  active: true,
-  createdTime: new Date('2023-01-15'),
-  modifiedTime: new Date('2024-12-01')
-};
+import ClinicService from "@/admin/modules/clinics/services/clinic/clinicService";
+import StateService from "@/admin/modules/core/services/state/stateService";
+import DistrictService from "@/admin/modules/core/services/district/districtService";
+import { State, District } from "@/admin/modules/core/types/Address";
 
 const ClinicProfile = () => {
+  const [clinic, setClinic] = useState<Clinic | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const [states, setStates] = useState<State[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  
+  // Form data
+  const [formData, setFormData] = useState<Partial<Clinic>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
@@ -62,6 +58,107 @@ const ClinicProfile = () => {
     // Automatically generate QR code on component mount
     generateQRCode();
   }, []);
+
+  useEffect(() => {
+    fetchClinicData();
+    fetchStates();
+  }, []);
+
+  const fetchClinicData = async () => {
+    try {
+      setIsLoading(true);
+      // Assuming clinic ID is 1 for now - in real app, this would come from context/params
+      const clinicData = await ClinicService.getById(1);
+      setClinic(clinicData);
+      setFormData(clinicData);
+    } catch (error) {
+      console.error('Error fetching clinic data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load clinic data.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchStates = async () => {
+    try {
+      const stateList = await StateService.list();
+      setStates(stateList);
+    } catch (error) {
+      console.error('Error fetching states:', error);
+    }
+  };
+
+  const fetchDistricts = async (stateId: number) => {
+    try {
+      const districtList = await DistrictService.listByState(stateId);
+      setDistricts(districtList);
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+    }
+  };
+
+  const handleStateChange = (stateId: string) => {
+    const selectedState = states.find(s => s.id === parseInt(stateId));
+    setFormData(prev => ({ ...prev, state: selectedState }));
+    if (selectedState) {
+      fetchDistricts(selectedState.id);
+    }
+  };
+
+  const handleDistrictChange = (districtId: string) => {
+    const selectedDistrict = districts.find(d => d.id === parseInt(districtId));
+    setFormData(prev => ({ ...prev, district: selectedDistrict }));
+  };
+
+  const handleFileChange = (file: File | null, type: 'logo' | 'favicon' | 'banner') => {
+    switch (type) {
+      case 'logo':
+        setLogoFile(file);
+        break;
+      case 'favicon':
+        setFaviconFile(file);
+        break;
+      case 'banner':
+        setBannerFile(file);
+        break;
+    }
+  };
+
+  const handleSaveClinic = async () => {
+    try {
+      setIsSaving(true);
+      
+      // Create FormData for file uploads if needed
+      const clinicData = {
+        ...formData,
+        // Handle file uploads here - in real implementation, you'd upload files first
+        // and then update the clinic with the file URLs
+      };
+
+      await ClinicService.saveOrUpdate(clinicData);
+      
+      toast({
+        title: "Success",
+        description: "Clinic details updated successfully."
+      });
+      
+      setIsEditModalOpen(false);
+      fetchClinicData(); // Refresh data
+    } catch (error) {
+      console.error('Error saving clinic:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update clinic details.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const generateQRCode = async () => {
     try {
@@ -97,10 +194,10 @@ const ClinicProfile = () => {
   };
 
   const downloadQRCode = () => {
-    if (!qrCodeUrl) return;
+    if (!qrCodeUrl || !clinic) return;
 
     const link = document.createElement('a');
-    link.download = `${mockClinic.name.replace(/\s+/g, '_')}_Registration_QR.png`;
+    link.download = `${clinic.name.replace(/\s+/g, '_')}_Registration_QR.png`;
     link.href = qrCodeUrl;
     document.body.appendChild(link);
     link.click();
@@ -112,28 +209,258 @@ const ClinicProfile = () => {
     });
   };
 
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Loading clinic profile...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!clinic) {
+    return (
+      <AdminLayout>
+        <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-gray-600">Clinic data not found.</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="container mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{mockClinic.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{clinic.name}</h1>
             <p className="text-gray-600 mt-1">Clinic Profile & Patient Registration</p>
           </div>
-          <Badge variant={mockClinic.active ? "default" : "secondary"} className="px-3 py-1">
-            {mockClinic.active ? (
-              <>
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Active
-              </>
-            ) : (
-              <>
-                <XCircle className="w-4 h-4 mr-1" />
-                Inactive
-              </>
-            )}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant={clinic.active ? "default" : "secondary"} className="px-3 py-1">
+              {clinic.active ? (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Active
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-1" />
+                  Inactive
+                </>
+              )}
+            </Badge>
+            
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Edit Clinic Profile</DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-6 py-4">
+                  {/* Basic Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Clinic Name *</Label>
+                      <Input
+                        id="name"
+                        value={formData.name || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Enter clinic name"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Enter email"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="contact">Phone *</Label>
+                      <Input
+                        id="contact"
+                        value={formData.contact || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, contact: e.target.value }))}
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City *</Label>
+                      <Input
+                        id="city"
+                        value={formData.city || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                        placeholder="Enter city"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Address */}
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address *</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      placeholder="Enter full address"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  {/* State and District */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State</Label>
+                      <Select value={formData.state?.id?.toString()} onValueChange={handleStateChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {states.map(state => (
+                            <SelectItem key={state.id} value={state.id.toString()}>
+                              {state.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="district">District</Label>
+                      <Select value={formData.district?.id?.toString()} onValueChange={handleDistrictChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select district" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {districts.map(district => (
+                            <SelectItem key={district.id} value={district.id.toString()}>
+                              {district.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="pincode">Pincode</Label>
+                    <Input
+                      id="pincode"
+                      type="number"
+                      value={formData.pincode || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pincode: parseInt(e.target.value) || 0 }))}
+                      placeholder="Enter pincode"
+                    />
+                  </div>
+                  
+                  {/* File Uploads */}
+                  <Separator />
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Brand Assets</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Logo</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'logo')}
+                            className="hidden"
+                            id="logo-upload"
+                          />
+                          <Label
+                            htmlFor="logo-upload"
+                            className="cursor-pointer text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            {logoFile ? logoFile.name : "Upload Logo"}
+                          </Label>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Favicon</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'favicon')}
+                            className="hidden"
+                            id="favicon-upload"
+                          />
+                          <Label
+                            htmlFor="favicon-upload"
+                            className="cursor-pointer text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            {faviconFile ? faviconFile.name : "Upload Favicon"}
+                          </Label>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Banner</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'banner')}
+                            className="hidden"
+                            id="banner-upload"
+                          />
+                          <Label
+                            htmlFor="banner-upload"
+                            className="cursor-pointer text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            {bannerFile ? bannerFile.name : "Upload Banner"}
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Save Button */}
+                  <div className="flex justify-end pt-4">
+                    <Button onClick={handleSaveClinic} disabled={isSaving}>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -153,7 +480,7 @@ const ClinicProfile = () => {
                     <Phone className="w-4 h-4 text-gray-400" />
                     <div>
                       <p className="text-sm text-gray-600">Phone</p>
-                      <p className="font-medium">{mockClinic.contact}</p>
+                      <p className="font-medium">{clinic.contact}</p>
                     </div>
                   </div>
                   
@@ -161,7 +488,7 @@ const ClinicProfile = () => {
                     <Mail className="w-4 h-4 text-gray-400" />
                     <div>
                       <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-medium">{mockClinic.email}</p>
+                      <p className="font-medium">{clinic.email}</p>
                     </div>
                   </div>
                   
@@ -169,7 +496,7 @@ const ClinicProfile = () => {
                     <Globe className="w-4 h-4 text-gray-400" />
                     <div>
                       <p className="text-sm text-gray-600">Plan</p>
-                      <p className="font-medium">{mockClinic.plan.name}</p>
+                      <p className="font-medium">{clinic.plan?.name || 'N/A'}</p>
                     </div>
                   </div>
                   
@@ -177,7 +504,7 @@ const ClinicProfile = () => {
                     <Users className="w-4 h-4 text-gray-400" />
                     <div>
                       <p className="text-sm text-gray-600">Branches</p>
-                      <p className="font-medium">{mockClinic.branches?.length || 0} Active</p>
+                      <p className="font-medium">{clinic.branches?.length || 0} Active</p>
                     </div>
                   </div>
                 </div>
@@ -196,7 +523,7 @@ const ClinicProfile = () => {
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm text-gray-600">Full Address</p>
-                    <p className="font-medium">{mockClinic.address}</p>
+                    <p className="font-medium">{clinic.address}</p>
                   </div>
                   
                   <Separator />
@@ -204,19 +531,19 @@ const ClinicProfile = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">City</p>
-                      <p className="font-medium">{mockClinic.city}</p>
+                      <p className="font-medium">{clinic.city}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">District</p>
-                      <p className="font-medium">{mockClinic.district?.name}</p>
+                      <p className="font-medium">{clinic.district?.name || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">State</p>
-                      <p className="font-medium">{mockClinic.state?.name}</p>
+                      <p className="font-medium">{clinic.state?.name || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Pincode</p>
-                      <p className="font-medium">{mockClinic.pincode}</p>
+                      <p className="font-medium">{clinic.pincode || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -236,13 +563,13 @@ const ClinicProfile = () => {
                   <div>
                     <p className="text-sm text-gray-600">Created</p>
                     <p className="font-medium">
-                      {mockClinic.createdTime ? new Date(mockClinic.createdTime).toLocaleDateString() : 'N/A'}
+                      {clinic.createdTime ? new Date(clinic.createdTime).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Last Modified</p>
                     <p className="font-medium">
-                      {mockClinic.modifiedTime ? new Date(mockClinic.modifiedTime).toLocaleDateString() : 'N/A'}
+                      {clinic.modifiedTime ? new Date(clinic.modifiedTime).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -306,20 +633,20 @@ const ClinicProfile = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Status</span>
-                  <Badge variant={mockClinic.active ? "default" : "secondary"}>
-                    {mockClinic.active ? "Active" : "Inactive"}
+                  <Badge variant={clinic.active ? "default" : "secondary"}>
+                    {clinic.active ? "Active" : "Inactive"}
                   </Badge>
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Clinic ID</span>
-                  <span className="font-mono text-sm">{mockClinic.id}</span>
+                  <span className="font-mono text-sm">{clinic.id}</span>
                 </div>
                 
-                {mockClinic.uid && (
+                {clinic.uid && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">UID</span>
-                    <span className="font-mono text-sm">{mockClinic.uid}</span>
+                    <span className="font-mono text-sm">{clinic.uid}</span>
                   </div>
                 )}
               </CardContent>
