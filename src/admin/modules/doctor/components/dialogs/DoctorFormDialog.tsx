@@ -20,8 +20,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Doctor } from "../../types/Doctor";
 import DoctorService from "../../services/doctorService";
 import SpecialityService from "../../doctor-speciality/services/SpecialityService";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import ChipSelector from "@/components/ui/ChipSelector";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const doctorFormSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
@@ -50,6 +52,18 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
   const [selectedSpecializations, setSelectedSpecializations] = useState<Array<{ id: number, name: string }>>([]);
   const [availableSpecializations, setAvailableSpecializations] = useState<Array<{ id: number, name: string }>>([]);
   const [loadingSpecializations, setLoadingSpecializations] = useState(false);
+  
+  // New state for profile image
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string>("");
+  
+  // New state for languages
+  const [selectedLanguages, setSelectedLanguages] = useState<Array<{ id: number, name: string }>>([]);
+  const [availableLanguages, setAvailableLanguages] = useState<Array<{ id: number, name: string }>>([]);
+  
+  // New state for branches
+  const [availableBranches, setAvailableBranches] = useState<Array<{ id: number, name: string }>>([]);
+  const [selectedBranches, setSelectedBranches] = useState<Array<{ branchId: number, branchName: string, consultationFee: number }>>([]);
 
   const {
     register,
@@ -65,30 +79,91 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
   const watchedGender = watch("gender");
   const watchedOnline = watch("online");
 
-  // Fetch specializations from API
+  // Handle profile image upload
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Remove profile image
+  const removeImage = () => {
+    setProfileImage(null);
+    setProfileImagePreview("");
+  };
+
+  // Handle branch selection
+  const handleBranchToggle = (branchId: number, branchName: string) => {
+    setSelectedBranches(prev => {
+      const exists = prev.find(b => b.branchId === branchId);
+      if (exists) {
+        return prev.filter(b => b.branchId !== branchId);
+      } else {
+        return [...prev, { branchId, branchName, consultationFee: 0 }];
+      }
+    });
+  };
+
+  // Update consultation fee for a branch
+  const updateConsultationFee = (branchId: number, fee: number) => {
+    setSelectedBranches(prev => 
+      prev.map(b => b.branchId === branchId ? { ...b, consultationFee: fee } : b)
+    );
+  };
+
+  // Fetch data on dialog open
   useEffect(() => {
-    const fetchSpecializations = async () => {
+    const fetchData = async () => {
+      if (!isOpen) return;
+
       setLoadingSpecializations(true);
       try {
-        const response = await SpecialityService.list();
-        if (response && Array.isArray(response)) {
-          const specializations = response.map((spec: any) => ({
+        // Fetch specializations
+        const specializationResponse = await SpecialityService.list();
+        if (specializationResponse && Array.isArray(specializationResponse)) {
+          const specializations = specializationResponse.map((spec: any) => ({
             id: spec.id,
             name: spec.name
           }));
           setAvailableSpecializations(specializations);
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to load specializations",
-            variant: "destructive",
-          });
         }
+
+        // Mock languages data (replace with actual API call)
+        const mockLanguages = [
+          { id: 1, name: "English" },
+          { id: 2, name: "Hindi" },
+          { id: 3, name: "Tamil" },
+          { id: 4, name: "Telugu" },
+          { id: 5, name: "Kannada" },
+          { id: 6, name: "Malayalam" },
+          { id: 7, name: "Bengali" },
+          { id: 8, name: "Marathi" },
+          { id: 9, name: "Gujarati" },
+          { id: 10, name: "Punjabi" }
+        ];
+        setAvailableLanguages(mockLanguages);
+
+        // Mock branches data (replace with actual API call)
+        const mockBranches = [
+          { id: 1, name: "Main Branch - Downtown" },
+          { id: 2, name: "North Branch - Uptown" },
+          { id: 3, name: "South Branch - Suburbs" },
+          { id: 4, name: "East Branch - Mall" },
+          { id: 5, name: "West Branch - Hospital" }
+        ];
+        setAvailableBranches(mockBranches);
+
       } catch (error) {
-        console.error("Error fetching specializations:", error);
+        console.error("Error fetching data:", error);
         toast({
           title: "Error",
-          description: "Failed to load specializations",
+          description: "Failed to load form data",
           variant: "destructive",
         });
       } finally {
@@ -96,11 +171,10 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
       }
     };
 
-    if (isOpen) {
-      fetchSpecializations();
-    }
+    fetchData();
   }, [isOpen, toast]);
 
+  // Reset form when doctor changes
   useEffect(() => {
     if (doctor) {
       reset({
@@ -123,6 +197,30 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         }));
         setSelectedSpecializations(doctorSpecs);
       }
+
+      // Set profile image
+      if (doctor.imageUrl) {
+        setProfileImagePreview(doctor.imageUrl);
+      }
+
+      // Set selected languages
+      if (doctor.languageList) {
+        const doctorLanguages = doctor.languageList.map(lang => ({
+          id: lang.id,
+          name: lang.name
+        }));
+        setSelectedLanguages(doctorLanguages);
+      }
+
+      // Set selected branches
+      if (doctor.branchList) {
+        const doctorBranches = doctor.branchList.map(branch => ({
+          branchId: branch.branch.id,
+          branchName: branch.branch.name,
+          consultationFee: branch.consultationFee || 0
+        }));
+        setSelectedBranches(doctorBranches);
+      }
     } else {
       reset({
         firstname: "",
@@ -136,6 +234,10 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         online: false,
       });
       setSelectedSpecializations([]);
+      setSelectedLanguages([]);
+      setSelectedBranches([]);
+      setProfileImage(null);
+      setProfileImagePreview("");
     }
   }, [doctor, reset]);
 
@@ -146,7 +248,12 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         ...data,
         id: doctor?.id,
         specializationList: selectedSpecializations,
-
+        languageList: selectedLanguages,
+        branchList: selectedBranches.map(branch => ({
+          branchId: branch.branchId,
+          consultationFee: branch.consultationFee
+        })),
+        profileImage: profileImage,
         user: doctor?.user || {
           id: doctor?.user?.id || null,
           branch: null,
@@ -168,14 +275,13 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
 
       const response = await DoctorService.saveOrUpdate(doctorData);
 
-      // Check response status
       if (response && response.status === false) {
         toast({
           title: "Error",
           description: response.message || `Failed to ${doctor ? "update" : "create"} doctor.`,
           variant: "destructive",
         });
-        return; // Don't close the form on error
+        return;
       }
 
       toast({
@@ -189,7 +295,6 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
     } catch (error: any) {
       console.error("Error saving doctor:", error);
 
-      // Handle different error formats
       let errorMessage = `Failed to ${doctor ? "update" : "create"} doctor. Please try again.`;
 
       if (error?.response?.data?.message) {
@@ -211,7 +316,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
   const handleClose = () => {
     if (!isSubmitting) {
       onClose();
-            reset({
+      reset({
         firstname: "",
         lastname: "",
         email: "",
@@ -223,12 +328,16 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         online: false,
       });
       setSelectedSpecializations([]);
+      setSelectedLanguages([]);
+      setSelectedBranches([]);
+      setProfileImage(null);
+      setProfileImagePreview("");
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]" mobileDrawer={true}>
+      <DialogContent className="max-w-5xl max-h-[90vh]" mobileDrawer={true}>
         <DialogHeader className="border-b pb-4">
           <DialogTitle>
             {doctor ? "Edit Doctor" : "Add New Doctor"}
@@ -236,7 +345,52 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         </DialogHeader>
 
         <DialogBody className="flex-1 overflow-y-auto px-6 py-4">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {/* Profile Image Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">Profile Image</h3>
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={profileImagePreview} alt="Profile" />
+                  <AvatarFallback className="text-lg">
+                    {watch("firstname")?.[0]}{watch("lastname")?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="profileImage" className="cursor-pointer">
+                      <div className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                        <Upload className="h-4 w-4" />
+                        <span>Upload Image</span>
+                      </div>
+                    </Label>
+                    <Input
+                      id="profileImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={isSubmitting}
+                    />
+                    {profileImagePreview && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={removeImage}
+                        disabled={isSubmitting}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload a professional photo (JPG, PNG, max 5MB)
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Personal Information</h3>
@@ -349,12 +503,13 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
             {/* Professional Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Professional Information</h3>
+              
               <div className="space-y-2">
                 <Label htmlFor="biography">Biography</Label>
                 <Input
                   id="biography"
                   {...register("biography")}
-                  placeholder="Enter last name"
+                  placeholder="Enter biography"
                   disabled={isSubmitting}
                 />
                 {errors.biography && (
@@ -362,50 +517,112 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
                 )}
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="qualification">Qualification</Label>
-                  <Input
-                    id="qualification"
-                    {...register("qualification")}
-                    placeholder="Enter qualification"
-                    disabled={isSubmitting}
-                  />
-                  {errors.qualification && (
-                    <p className="text-sm text-destructive">{errors.qualification.message}</p>
-                  )}
-                </div>
-
-                {/* Specializations Chip Selector */}
-                {loadingSpecializations ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Loading specializations...</span>
-                  </div>
-                ) : (
-                  <ChipSelector
-                    label="Specializations"
-                    availableItems={availableSpecializations}
-                    selectedItems={selectedSpecializations}
-                    onSelectionChange={setSelectedSpecializations}
-                    placeholder="No specializations selected"
-                    searchPlaceholder="Search specializations..."
-                    disabled={isSubmitting}
-                  />
+              <div className="space-y-2">
+                <Label htmlFor="qualification">Qualification</Label>
+                <Input
+                  id="qualification"
+                  {...register("qualification")}
+                  placeholder="Enter qualification"
+                  disabled={isSubmitting}
+                />
+                {errors.qualification && (
+                  <p className="text-sm text-destructive">{errors.qualification.message}</p>
                 )}
+              </div>
 
-                <div className="space-y-2 flex items-center">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="online"
-                      checked={watchedOnline}
-                      onCheckedChange={(checked) => setValue("online", checked as boolean)}
-                      disabled={isSubmitting}
-                    />
-                    <Label htmlFor="online">Available for online consultations</Label>
-                  </div>
+              {/* Specializations */}
+              {loadingSpecializations ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Loading specializations...</span>
+                </div>
+              ) : (
+                <ChipSelector
+                  label="Specializations"
+                  availableItems={availableSpecializations}
+                  selectedItems={selectedSpecializations}
+                  onSelectionChange={setSelectedSpecializations}
+                  placeholder="No specializations selected"
+                  searchPlaceholder="Search specializations..."
+                  disabled={isSubmitting}
+                />
+              )}
+
+              {/* Languages */}
+              <ChipSelector
+                label="Languages"
+                availableItems={availableLanguages}
+                selectedItems={selectedLanguages}
+                onSelectionChange={setSelectedLanguages}
+                placeholder="No languages selected"
+                searchPlaceholder="Search languages..."
+                disabled={isSubmitting}
+              />
+
+              <div className="space-y-2 flex items-center">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="online"
+                    checked={watchedOnline}
+                    onCheckedChange={(checked) => setValue("online", checked as boolean)}
+                    disabled={isSubmitting}
+                  />
+                  <Label htmlFor="online">Available for online consultations</Label>
                 </div>
               </div>
+            </div>
+
+            {/* Branch Assignment */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">Branch Assignment</h3>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Available Branches</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {availableBranches.map((branch) => {
+                    const isSelected = selectedBranches.some(b => b.branchId === branch.id);
+                    const selectedBranch = selectedBranches.find(b => b.branchId === branch.id);
+                    
+                    return (
+                      <div key={branch.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            id={`branch-${branch.id}`}
+                            checked={isSelected}
+                            onCheckedChange={() => handleBranchToggle(branch.id, branch.name)}
+                            disabled={isSubmitting}
+                          />
+                          <Label htmlFor={`branch-${branch.id}`} className="font-medium">
+                            {branch.name}
+                          </Label>
+                        </div>
+                        {isSelected && (
+                          <div className="flex items-center space-x-2">
+                            <Label htmlFor={`fee-${branch.id}`} className="text-sm">
+                              Consultation Fee:
+                            </Label>
+                            <Input
+                              id={`fee-${branch.id}`}
+                              type="number"
+                              placeholder="0"
+                              value={selectedBranch?.consultationFee || ""}
+                              onChange={(e) => updateConsultationFee(branch.id, Number(e.target.value))}
+                              className="w-24"
+                              disabled={isSubmitting}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {selectedBranches.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Select branches where this doctor will be available
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </form>
         </DialogBody>
