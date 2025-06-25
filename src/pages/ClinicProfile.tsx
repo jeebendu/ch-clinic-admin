@@ -86,7 +86,7 @@ const ClinicProfile = () => {
   const fetchStates = async () => {
     try {
       const stateList = await StateService.list();
-      setStates(stateList);
+      setStates(stateList.data);
     } catch (error) {
       console.error('Error fetching states:', error);
     }
