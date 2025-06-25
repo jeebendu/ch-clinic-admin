@@ -11,6 +11,7 @@ import { useTenant } from "./hooks/use-tenant";
 import ResetPassword from "./pages/ResetPassword";
 import PublicPatientRegistration from "./pages/PublicPatientRegistration";
 import ClinicProfile from "./pages/ClinicProfile";
+import ClinicProfileEdit from "./pages/ClinicProfileEdit";
 import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
@@ -39,8 +40,9 @@ const App = () => (
             {/* Public patient registration route */}
             <Route path="/register-patient" element={<PublicPatientRegistration />} />
 
-            {/* Clinic profile route */}
+            {/* Clinic profile routes */}
             <Route path="/clinic-profile" element={<ClinicProfile />} />
+            <Route path="/clinic-profile/edit" element={<ClinicProfileEdit />} />
 
             {/* User profile route */}
             <Route path="/me" element={<UserProfile />} />
