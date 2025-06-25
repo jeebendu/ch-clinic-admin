@@ -156,7 +156,7 @@ const Header = ({
                 <p className="text-xs text-gray-500 truncate">{userData.email}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/admin/profile')}>
+              <DropdownMenuItem onClick={() => navigate('/me')}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 My Profile
               </DropdownMenuItem>

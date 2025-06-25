@@ -6,10 +6,10 @@ import {
   Building2, Phone, Mail, Globe, MapPin, Clock, 
   Calendar, Award, Shield, Users, CreditCard 
 } from 'lucide-react';
-import { ClinicProfile } from '../types/ClinicProfile';
+import { Clinic } from '@/admin/modules/clinics/types/Clinic';
 
 interface ClinicProfileViewProps {
-  profile: ClinicProfile;
+  profile: Clinic;
 }
 
 const ClinicProfileView: React.FC<ClinicProfileViewProps> = ({ profile }) => {
@@ -77,7 +77,7 @@ const ClinicProfileView: React.FC<ClinicProfileViewProps> = ({ profile }) => {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-gray-400" />
-                <span>{profile.phone}</span>
+                <span>{profile.contact}</span>
               </div>
               {profile.alternatePhone && (
                 <div className="flex items-center gap-2">
@@ -207,12 +207,12 @@ const ClinicProfileView: React.FC<ClinicProfileViewProps> = ({ profile }) => {
               <div>
                 <h4 className="font-medium mb-2">Accreditations</h4>
                 <div className="space-y-2">
-                  {profile.accreditations.map((acc) => (
+                  {/* {profile.accreditations.map((acc) => (
                     <div key={acc.id} className="flex items-center gap-2">
                       <Award className="w-4 h-4 text-yellow-500" />
-                      <span>{acc.name} - {acc.issuingAuthority}</span>
+                      { <span>{acc.name} - {acc.issuingAuthority}</span> }
                     </div>
-                  ))}
+                  ))} */}
                 </div>
               </div>
             )}

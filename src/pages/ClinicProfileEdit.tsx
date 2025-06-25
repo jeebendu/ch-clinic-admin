@@ -6,14 +6,13 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AdminLayout from '@/admin/components/AdminLayout';
 import ClinicProfileForm from './clinic-profile/ClinicProfileForm';
-import { ClinicProfile } from './types/ClinicProfile';
 import ClinicService from '@/admin/modules/clinics/services/clinic/clinicService';
 import { Clinic } from '@/admin/modules/clinics/types/Clinic';
 
 const ClinicProfileEdit = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [profile, setProfile] = useState<Partial<ClinicProfile>>({});
+  const [profile, setProfile] = useState<Partial<Clinic>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -25,19 +24,7 @@ const ClinicProfileEdit = () => {
     try {
       setIsLoading(true);
       const clinicData: Clinic = await ClinicService.getById(1);
-      
-      // Transform Clinic data to ClinicProfile format
-      const transformedProfile: Partial<ClinicProfile> = {
-        name: clinicData.name,
-        email: clinicData.email,
-        phone: clinicData.contact,
-        address: clinicData.address,
-        city: clinicData.city,
-        pincode: clinicData.pincode,
-        // Add other mappings as needed
-      };
-      
-      setProfile(transformedProfile);
+      setProfile(clinicData);
     } catch (error) {
       console.error('Error fetching clinic data:', error);
       toast({
@@ -63,7 +50,7 @@ const ClinicProfileEdit = () => {
         id: 1, // Assuming we're editing clinic with ID 1
         name: profile.name || '',
         email: profile.email || '',
-        contact: profile.phone || '',
+        contact: profile.contact || '',
         address: profile.address || '',
         city: profile.city || '',
         pincode: profile.pincode,

@@ -10,10 +10,10 @@ import {
   Building2, Upload, Clock, Shield, CreditCard, 
   Globe, Plus, X, Palette 
 } from 'lucide-react';
-import { ClinicProfile, DAYS_OF_WEEK, INSURANCE_PROVIDERS, PAYMENT_METHODS } from '../types/ClinicProfile';
+import { Clinic, INSURANCE_PROVIDERS, PAYMENT_METHODS } from '@/admin/modules/clinics/types/Clinic';
 
 interface ClinicProfileFormProps {
-  profile: Partial<ClinicProfile>;
+  profile: Partial<Clinic>;
   onChange: (field: string, value: any) => void;
   isLoading?: boolean;
 }
@@ -164,7 +164,7 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
               <Label htmlFor="phone">Phone *</Label>
               <Input
                 id="phone"
-                value={profile.phone || ''}
+                value={profile.contact || ''}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="+91 98765 43210"
               />

@@ -31,7 +31,6 @@ import ClinicService from "@/admin/modules/clinics/services/clinic/clinicService
 import { Clinic } from "@/admin/modules/clinics/types/Clinic";
 import { useNavigate } from "react-router-dom";
 import ClinicProfileView from "./clinic-profile/ClinicProfileView";
-import { ClinicProfile } from "./types/ClinicProfile";
 
 const ClinicProfilePage = () => {
   const navigate = useNavigate();
@@ -113,42 +112,6 @@ const ClinicProfilePage = () => {
     });
   };
 
-  // Transform Clinic data to ClinicProfile format for the view component
-  const transformToClinicProfile = (clinic: Clinic): ClinicProfile => {
-    return {
-      id: clinic.id,
-      name: clinic.name,
-      email: clinic.email,
-      phone: clinic.contact,
-      address: clinic.address,
-      city: clinic.city || '',
-      pincode: clinic.pincode,
-      // Add other transformations as needed
-      tagline: '',
-      description: '',
-      website: '',
-      alternatePhone: '',
-      emergencyContact: '',
-      landmark: '',
-      logo: '',
-      banner: '',
-      favicon: '',
-      establishedYear: undefined,
-      services: [],
-      specialties: [],
-      businessHours: [],
-      afterHoursAvailable: false,
-      licenseNumber: '',
-      licenseAuthority: '',
-      licenseExpiryDate: undefined,
-      accreditations: [],
-      paymentMethods: [],
-      insuranceAccepted: [],
-      metaTitle: '',
-      metaDescription: ''
-    };
-  };
-
   if (isLoading) {
     return (
       <AdminLayout>
@@ -174,7 +137,7 @@ const ClinicProfilePage = () => {
     );
   }
 
-  const clinicProfile = transformToClinicProfile(clinic);
+  const clinicProfile = clinic;
 
   return (
     <AdminLayout>
