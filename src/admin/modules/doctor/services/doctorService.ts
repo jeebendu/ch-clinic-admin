@@ -3,6 +3,8 @@ import { Doctor } from "../types/Doctor";
 import { isProduction } from "@/utils/envUtils";
 import { PaginatedResponse } from "@/types/common";
 import { DoctorsFilter } from "../hooks/useDoctors";
+import axios from "axios";
+import uploadHttp from "@/lib/uploadHttp";
 
 const DoctorService = {
   getAllDoctors: async (): Promise<Doctor[]> => {
@@ -30,9 +32,19 @@ const DoctorService = {
     }
   },
 
-  saveOrUpdate: async (doctor: any): Promise<any> => {
+  saveOrUpdate: async (doctor: FormData): Promise<any> => {
     try {
-      const response = await http.post<any>('/v1/doctor/saveOrUpdate', doctor);
+
+ for (const [key, value] of doctor.entries()) {
+  if (value instanceof Blob) {
+    console.log(`${key}: Blob - ${value.type}, size: ${value.size}`);
+  } else {
+    console.log(`${key}:`, value);
+  }
+}
+
+      const response = await uploadHttp.post('/v1/doctor/saveOrUpdate', doctor);
+      // console.log(response.status, response.data);
       return response.data;
     } catch (error) {
       console.error("Error saving doctor:", error);

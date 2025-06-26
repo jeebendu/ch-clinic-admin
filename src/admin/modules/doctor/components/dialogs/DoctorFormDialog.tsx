@@ -17,13 +17,14 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Doctor } from "../../types/Doctor";
+import { Doctor, Language } from "../../types/Doctor";
 import DoctorService from "../../services/doctorService";
 import SpecialityService from "../../doctor-speciality/services/SpecialityService";
 import { Loader2, Upload, X } from "lucide-react";
 import ChipSelector from "@/components/ui/ChipSelector";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import languageService from "@/admin/modules/core/services/language/languageService";
 
 const doctorFormSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
@@ -34,7 +35,7 @@ const doctorFormSchema = z.object({
   gender: z.number().min(0, "Select Gender"),
   qualification: z.string().min(1, "Qualification is required"),
   expYear: z.number().min(0, "Experience years is required"),
-  online: z.boolean().default(false),
+  // online: z.boolean().default(false),
 });
 
 type DoctorFormData = z.infer<typeof doctorFormSchema>;
@@ -58,8 +59,8 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
   const [profileImagePreview, setProfileImagePreview] = useState<string>("");
   
   // New state for languages
-  const [selectedLanguages, setSelectedLanguages] = useState<Array<{ id: number, name: string }>>([]);
-  const [availableLanguages, setAvailableLanguages] = useState<Array<{ id: number, name: string }>>([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
+  const [availableLanguages, setAvailableLanguages] = useState<Language[]>([]);
   
   // New state for branches
   const [availableBranches, setAvailableBranches] = useState<Array<{ id: number, name: string }>>([]);
@@ -77,7 +78,6 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
   });
 
   const watchedGender = watch("gender");
-  const watchedOnline = watch("online");
 
   // Handle profile image upload
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,20 +134,8 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
           setAvailableSpecializations(specializations);
         }
 
-        // Mock languages data (replace with actual API call)
-        const mockLanguages = [
-          { id: 1, name: "English" },
-          { id: 2, name: "Hindi" },
-          { id: 3, name: "Tamil" },
-          { id: 4, name: "Telugu" },
-          { id: 5, name: "Kannada" },
-          { id: 6, name: "Malayalam" },
-          { id: 7, name: "Bengali" },
-          { id: 8, name: "Marathi" },
-          { id: 9, name: "Gujarati" },
-          { id: 10, name: "Punjabi" }
-        ];
-        setAvailableLanguages(mockLanguages);
+        const languageList = await languageService.list();
+        setAvailableLanguages(languageList.data);
 
         // Mock branches data (replace with actual API call)
         const mockBranches = [
@@ -186,7 +174,6 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         biography: doctor.biography || "",
         qualification: doctor.qualification || "",
         expYear: doctor.expYear || 0,
-        online: doctor.online || false,
       });
 
       // Set selected specializations
@@ -199,8 +186,8 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
       }
 
       // Set profile image
-      if (doctor.imageUrl) {
-        setProfileImagePreview(doctor.imageUrl);
+      if (doctor.image) {
+        setProfileImagePreview(doctor.image);
       }
 
       // Set selected languages
@@ -231,7 +218,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         qualification: "",
         biography: "",
         expYear: 0,
-        online: false,
+       
       });
       setSelectedSpecializations([]);
       setSelectedLanguages([]);
@@ -245,14 +232,17 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
     setIsSubmitting(true);
     try {
       const doctorData = {
+        ...doctor,
         ...data,
         id: doctor?.id,
+        // publishedOnline:doctor?.publishedOnline || false,
         specializationList: selectedSpecializations,
         languageList: selectedLanguages,
-        branchList: selectedBranches.map(branch => ({
-          branchId: branch.branchId,
-          consultationFee: branch.consultationFee
-        })),
+        verified:doctor?.verified || false,
+        // branchList: selectedBranches.map(branch => ({
+        //   branchId: branch.branchId,
+        //   consultationFee: branch.consultationFee
+        // })),
         profileImage: profileImage,
         user: doctor?.user || {
           id: doctor?.user?.id || null,
@@ -269,11 +259,42 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
             name: "Doctor",
             permissions: [],
           },
-          image: "",
+          image: doctor?.user?.image || "",
         }
       };
 
-      const response = await DoctorService.saveOrUpdate(doctorData);
+     
+
+      let formData = new FormData();
+
+      if (profileImage && profileImage.name) {
+        const fileSizeInMB = profileImage.size / (1024 * 1024);
+        if (fileSizeInMB > 5) {
+          toast({
+            title:"Error",
+            description:"File size exceeds 5 MB. Please upload a smaller file.",
+            variant:"destructive"
+          });
+          return;
+        }
+        formData.append('file',profileImage, profileImage.name);
+      } else {
+        const emptyFile = new File([''], 'empty.txt', { type: 'text/plain' });
+        formData.append('file', emptyFile);
+      }
+
+      if (doctorData && typeof doctorData === 'object') {
+        const doctorBLOB = new Blob([JSON.stringify(doctorData)], { type: 'application/json' });
+        formData.append('doctor', doctorBLOB);
+      } else {
+        console.error("Invalid Doctor Data");
+      }
+
+
+
+
+
+      const response = await DoctorService.saveOrUpdate(formData);
 
       if (response && response.status === false) {
         toast({
@@ -325,7 +346,6 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         qualification: "",
         biography: "",
         expYear: 0,
-        online: false,
       });
       setSelectedSpecializations([]);
       setSelectedLanguages([]);
@@ -563,8 +583,8 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="online"
-                    checked={watchedOnline}
-                    onCheckedChange={(checked) => setValue("online", checked as boolean)}
+                    checked={doctor?.publishedOnline}
+                    // onCheckedChange={(checked) => setValue("online", checked as boolean)}
                     disabled={isSubmitting}
                   />
                   <Label htmlFor="online">Available for online consultations</Label>

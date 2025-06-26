@@ -28,46 +28,73 @@ export interface ClinicStatus {
 export interface Clinic {
   id: number;
   uid?: string;
+
+  // Basic Information
   name: string;
+  description?: string;
+  tagline?: string;
+  establishedYear?: number;
+
+  // Contact Information
   email: string;
-  contact: string;
+  contact: string; // maps to ClinicProfile.phone
+  alternatePhone?: string;
+  fax?: string;
+
+  // Address Information
   address: string;
-  plan: Plan;
-  tenant?: Tenant;
-  branches?: Branch[];
+  city?: string;
   state?: State;
   district?: District;
   country?: Country;
-  city?: string;
   pincode?: number;
-  active?: boolean;
-  createdTime?: Date;
-  modifiedTime?: Date;
-
-  
-  // New fields
-  tagline?: string;
-  description?: string;
-  website?: string;
-  alternatePhone?: string;
-  emergencyContact?: string;
   landmark?: string;
+
+  // Digital Assets
   logo?: string;
   banner?: string;
   favicon?: string;
-  establishedYear?: number;
-  services?: string[];
-  specialties?: string[];
-  businessHours?: any[]; // Replace 'any' with a proper type if available
-  afterHoursAvailable?: boolean;
+  website?: string;
+
+  // Business Hours
+  businessHours?: BusinessHours[];
+
+  // Licensing & Certifications
   licenseNumber?: string;
   licenseAuthority?: string;
   licenseExpiryDate?: Date;
-  accreditations?: string[];
-  paymentMethods?: string[];
-  insuranceAccepted?: string[];
+  accreditations?: Accreditation[];
+
+  // Social Media
+  socialMedia?: SocialMediaLinks;
+
+  // SEO & Branding
   metaTitle?: string;
   metaDescription?: string;
+  keywords?: string[];
+  brandColors?: BrandColors;
+
+  // Services & Specialties
+  services?: string[];
+  specialties?: string[];
+
+  // Insurance & Payment
+  insuranceAccepted?: string[];
+  paymentMethods?: string[];
+
+  // Emergency & After Hours
+  emergencyContact?: string;
+  afterHoursAvailable?: boolean;
+
+  // Plan and Multitenancy
+  plan: Plan;
+  tenant?: Tenant;
+  branchList?: Branch[];
+
+  // System Fields
+  active?: boolean;
+  createdTime?: Date;
+  modifiedTime?: Date;
 }
 
 export interface ClinicRequest {
@@ -94,6 +121,7 @@ export interface ClinicQueryParams {
   state?: number;
   district?: number;
 }
+
 
 
 

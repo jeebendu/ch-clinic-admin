@@ -30,6 +30,8 @@ import PaymentProcessDialog from '@/admin/components/dialogs/PaymentProcessDialo
 import CheckInDialog from '@/admin/components/dialogs/CheckInDialog';
 import AppointmentDetailDialog from '@/admin/components/dialogs/AppointmentDetailDialog';
 import { PaymentInfo, CheckInStatus, AppointmentWorkflow } from '../types/PaymentFlow';
+import { toast } from '@/hooks/use-toast';
+import { getAppointmentCheckIn } from '../services/appointmentService';
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -39,6 +41,7 @@ interface AppointmentCardProps {
   onPayment?: (appointment: Appointment) => void;
   onProcess?: (appointment: Appointment) => void;
   onPatientClick?: (appointment: Appointment) => void;
+  // onUpdate?:(appointment: Appointment) => void;
 }
 
 const AppointmentCard: React.FC<AppointmentCardProps> = ({
@@ -47,16 +50,21 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onView,
   onStart,
   onPayment,
+  // onUpdate,
   onProcess,
   onPatientClick
 }) => {
   const [showDoctorProfile, setShowDoctorProfile] = useState(false);
   const [showPatientProfile, setShowPatientProfile] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [showCheckInDialog, setShowCheckInDialog] = useState(false);
   const [showAppointmentDetail, setShowAppointmentDetail] = useState(false);
   
   // Mock workflow state - in real app this would come from the appointment data
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+
+  
+  // const [showCheckInDialog, setShowCheckInDialog] = useState(false);
+
+
   const [workflow, setWorkflow] = useState<AppointmentWorkflow>({
     appointmentId: appointment.id,
     checkInStatus: 'not_checked_in'
@@ -195,6 +203,34 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
       return '';
     }
   };
+
+  const statusUpdate = async (appointment :Appointment) => {
+    try {
+      const response = await  getAppointmentCheckIn(appointment.id); 
+  
+      if (response?.data?.status) {
+        toast({
+          title: "Checked In",
+          description: `Appointment with ${appointment.id} has been checked in.`,
+        });
+
+  
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Check-In Failed",
+          description: response.data.status || "Something went wrong.",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Server error during check-in.",
+      });
+    }
+  };
+  
 
   // Get gender icon
   const getGenderIcon = (gender: string) => {
@@ -380,7 +416,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
                   variant="outline" 
                   size="sm" 
                   className="h-8 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white text-xs"
-                  onClick={() => setShowCheckInDialog(true)}
+                  onClick={() => statusUpdate(appointment)}
                 >
                   <UserCheck className="h-3 w-3" />
                   <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Check-In</span>
@@ -452,12 +488,12 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
       />
 
       {/* Check-In Dialog */}
-      <CheckInDialog
+      {/* <CheckInDialog
         appointment={appointment}
         isOpen={showCheckInDialog}
         onClose={() => setShowCheckInDialog(false)}
         onCheckIn={handleCheckInUpdate}
-      />
+      /> */}
 
       {/* Appointment Detail Dialog */}
       <AppointmentDetailDialog

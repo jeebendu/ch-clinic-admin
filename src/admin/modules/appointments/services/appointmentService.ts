@@ -54,3 +54,8 @@ export const updateAppointmentStatus = async (appointmentId: number, status: str
 export const getAppointmentById = async (appointmentId: string | number) => {
   return await http.get(`/v1/appointments/id/${appointmentId}`);
 };
+
+
+export const getAppointmentCheckIn = async (appointmentId: string | number) => {
+  return await http.get(`/v1/checkedInAppointment/id/{id}${appointmentId}`);
+};

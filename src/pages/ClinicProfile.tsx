@@ -1,14 +1,19 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Building2, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Download, 
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Building2,
+  Phone,
+  Mail,
+  MapPin,
+  Download,
   QrCode,
   Globe,
   Calendar,
@@ -16,41 +21,76 @@ import {
   CheckCircle,
   XCircle,
   Edit,
+  Upload,
+  Save,
   Loader2,
   ArrowLeft,
   Clock,
   CreditCard,
   Shield,
   Star,
-  TrendingUp
+  TrendingUp,
+  FileText,
+  Settings
 } from "lucide-react";
-import QRCode from 'qrcode';
+import QRCode from 'qrcode'
+import { Clinic } from "@/admin/modules/clinics/types/Clinic";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/admin/components/AdminLayout";
 import ClinicService from "@/admin/modules/clinics/services/clinic/clinicService";
-import { Clinic } from "@/admin/modules/clinics/types/Clinic";
+import StateService from "@/admin/modules/core/services/state/stateService";
+import DistrictService from "@/admin/modules/core/services/district/districtService";
+import { State, District } from "@/admin/modules/core/types/Address";
 import { useNavigate } from "react-router-dom";
-import ClinicProfileView from "./clinic-profile/ClinicProfileView";
+import ClinicProfileForm from "./clinic-profile/ClinicProfileForm";
+import { Branch } from "@/admin/modules/branch/types/Branch";
 
-const ClinicProfilePage = () => {
+const ClinicProfile = () => {
   const navigate = useNavigate();
   const [clinic, setClinic] = useState<Clinic | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
-  
+  const [states, setStates] = useState<State[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+
+  // Form data
+  const [formData, setFormData] = useState<Partial<Clinic>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [primaryBranch, setPrimaryBranch] = useState<Branch | null>(null);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    // Automatically generate QR code on component mount
     generateQRCode();
+  }, []);
+
+  useEffect(() => {
     fetchClinicData();
+    fetchStates();
   }, []);
 
   const fetchClinicData = async () => {
     try {
       setIsLoading(true);
+      // Assuming clinic ID is 1 for now - in real app, this would come from context/params
       const clinicData = await ClinicService.getById(1);
       setClinic(clinicData);
+      const primaryBranch = clinicData.branchList.filter((branch) => branch.primary);
+
+      if (primaryBranch && primaryBranch.length > 0) {
+        setPrimaryBranch(primaryBranch[0]);
+      } else {
+        setPrimaryBranch(clinicData.branchList[0]);
+      }
+
+      setFormData(clinicData);
     } catch (error) {
       console.error('Error fetching clinic data:', error);
       toast({
@@ -63,12 +103,89 @@ const ClinicProfilePage = () => {
     }
   };
 
+  const fetchStates = async () => {
+    try {
+      const stateList = await StateService.list();
+      setStates(stateList.data);
+    } catch (error) {
+      console.error('Error fetching states:', error);
+    }
+  };
+
+  const fetchDistricts = async (stateId: number) => {
+    try {
+      const districtList = await DistrictService.listByState(stateId);
+      setDistricts(districtList);
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+    }
+  };
+
+  const handleStateChange = (stateId: string) => {
+    const selectedState = states.find(s => s.id === parseInt(stateId));
+    setFormData(prev => ({ ...prev, state: selectedState }));
+    if (selectedState) {
+      fetchDistricts(selectedState.id);
+    }
+  };
+
+  const handleDistrictChange = (districtId: string) => {
+    const selectedDistrict = districts.find(d => d.id === parseInt(districtId));
+    setFormData(prev => ({ ...prev, district: selectedDistrict }));
+  };
+
+  const handleFileChange = (file: File | null, type: 'logo' | 'favicon' | 'banner') => {
+    switch (type) {
+      case 'logo':
+        setLogoFile(file);
+        break;
+      case 'favicon':
+        setFaviconFile(file);
+        break;
+      case 'banner':
+        setBannerFile(file);
+        break;
+    }
+  };
+
+  const handleSaveClinic = async () => {
+    try {
+      setIsSaving(true);
+
+      // Create FormData for file uploads if needed
+      const clinicData = {
+        ...formData,
+        // Handle file uploads here - in real implementation, you'd upload files first
+        // and then update the clinic with the file URLs
+      };
+
+      await ClinicService.saveOrUpdate(clinicData);
+
+      toast({
+        title: "Success",
+        description: "Clinic details updated successfully."
+      });
+
+      setIsEditModalOpen(false);
+      fetchClinicData(); // Refresh data
+    } catch (error) {
+      console.error('Error saving clinic:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update clinic details.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const generateQRCode = async () => {
     try {
       setIsGeneratingQR(true);
       const baseUrl = window.location.origin;
       const registrationUrl = `${baseUrl}/register-patient`;
-      
+
       const qrDataUrl = await QRCode.toDataURL(registrationUrl, {
         width: 512,
         margin: 2,
@@ -77,9 +194,9 @@ const ClinicProfilePage = () => {
           light: '#FFFFFF'
         }
       });
-      
+
       setQrCodeUrl(qrDataUrl);
-      
+
       toast({
         title: "QR Code Generated",
         description: "QR code for patient registration has been generated successfully."
@@ -112,6 +229,13 @@ const ClinicProfilePage = () => {
     });
   };
 
+  const clinicFormChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+
+  }
+
+
+
   if (isLoading) {
     return (
       <AdminLayout>
@@ -136,8 +260,6 @@ const ClinicProfilePage = () => {
       </AdminLayout>
     );
   }
-
-  const clinicProfile = clinic;
 
   return (
     <AdminLayout>
@@ -173,21 +295,300 @@ const ClinicProfilePage = () => {
                 </>
               )}
             </Badge>
+
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Edit Clinic Profile</DialogTitle>
+                </DialogHeader>
+
+                <ClinicProfileForm handleSaveClinic={handleSaveClinic} profile={formData} onChange={clinicFormChange} />
+                {/* <div className="space-y-6 py-4">
             
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/clinic-profile/edit')}
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Clinic Name *</Label>
+                      <Input
+                        id="name"
+                        value={formData.name || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Enter clinic name"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Enter email"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="contact">Phone *</Label>
+                      <Input
+                        id="contact"
+                        value={formData.contact || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, contact: e.target.value }))}
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City *</Label>
+                      <Input
+                        id="city"
+                        value={formData.city || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                        placeholder="Enter city"
+                      />
+                    </div>
+                  </div>
+                  
+               
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address *</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      placeholder="Enter full address"
+                      rows={3}
+                    />
+                  </div>
+                  
+             
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State</Label>
+                      <Select value={formData.state?.id?.toString()} onValueChange={handleStateChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {states.map(state => (
+                            <SelectItem key={state.id} value={state.id.toString()}>
+                              {state.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="district">District</Label>
+                      <Select value={formData.district?.id?.toString()} onValueChange={handleDistrictChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select district" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {districts.map(district => (
+                            <SelectItem key={district.id} value={district.id.toString()}>
+                              {district.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="pincode">Pincode</Label>
+                    <Input
+                      id="pincode"
+                      type="number"
+                      value={formData.pincode || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pincode: parseInt(e.target.value) || 0 }))}
+                      placeholder="Enter pincode"
+                    />
+                  </div>
+                  
+                
+                  <Separator />
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Brand Assets</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Logo</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'logo')}
+                            className="hidden"
+                            id="logo-upload"
+                          />
+                          <Label
+                            htmlFor="logo-upload"
+                            className="cursor-pointer text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            {logoFile ? logoFile.name : "Upload Logo"}
+                          </Label>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Favicon</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'favicon')}
+                            className="hidden"
+                            id="favicon-upload"
+                          />
+                          <Label
+                            htmlFor="favicon-upload"
+                            className="cursor-pointer text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            {faviconFile ? faviconFile.name : "Upload Favicon"}
+                          </Label>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Banner</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'banner')}
+                            className="hidden"
+                            id="banner-upload"
+                          />
+                          <Label
+                            htmlFor="banner-upload"
+                            className="cursor-pointer text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            {bannerFile ? bannerFile.name : "Upload Banner"}
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+            
+                  <div className="flex justify-end pt-4">
+                    <Button onClick={handleSaveClinic} disabled={isSaving}>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                 */}
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Main Details */}
           <div className="lg:col-span-2 space-y-6">
-            <ClinicProfileView profile={clinicProfile} />
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Basic Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{clinic.contact}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-medium">{clinic.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Plan</p>
+                      <p className="font-medium">{clinic.plan?.name || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Users className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Branches</p>
+                      <p className="font-medium">{clinic.branchList?.length || 0} Active</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Address Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-green-600" />
+                  Address Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Full Address Of Primary Branch</p>
+                    <p className="font-medium">{clinic.address}</p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">City</p>
+                      <p className="font-medium">{primaryBranch?.city}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">District</p>
+                      <p className="font-medium">{primaryBranch?.district?.name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">State</p>
+                      <p className="font-medium">{primaryBranch?.district?.state?.name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Pincode</p>
+                      <p className="font-medium">{primaryBranch?.pincode || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Business Analytics */}
             <Card>
@@ -329,19 +730,19 @@ const ClinicProfilePage = () => {
                 <p className="text-sm text-gray-600">
                   Generate a QR code that patients can scan to register for walk-in appointments.
                 </p>
-                
+
                 <div className="flex flex-col gap-3">
                   {qrCodeUrl && (
                     <>
                       <div className="flex justify-center p-4 bg-white border rounded-lg">
-                        <img 
-                          src={qrCodeUrl} 
+                        <img
+                          src={qrCodeUrl}
                           alt="Patient Registration QR Code"
                           className="w-48 h-48"
                         />
                       </div>
-                      
-                      <Button 
+
+                      <Button
                         onClick={downloadQRCode}
                         variant="outline"
                         className="w-full"
@@ -349,7 +750,7 @@ const ClinicProfilePage = () => {
                         <Download className="w-4 h-4 mr-2" />
                         Download HD QR Code
                       </Button>
-                      
+
                       <div className="text-xs text-gray-500 text-center">
                         <p>QR Code links to:</p>
                         <p className="font-mono break-all">
@@ -374,12 +775,12 @@ const ClinicProfilePage = () => {
                     {clinic.active ? "Active" : "Inactive"}
                   </Badge>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Clinic ID</span>
                   <span className="font-mono text-sm">{clinic.id}</span>
                 </div>
-                
+
                 {clinic.uid && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">UID</span>
@@ -472,4 +873,4 @@ const ClinicProfilePage = () => {
   );
 };
 
-export default ClinicProfilePage;
+export default ClinicProfile;

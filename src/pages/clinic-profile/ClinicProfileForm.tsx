@@ -8,20 +8,24 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Building2, Upload, Clock, Shield, CreditCard, 
-  Globe, Plus, X, Palette 
+  Globe, Plus, X, Palette, 
+  Loader2,
+  Save
 } from 'lucide-react';
 import { Clinic, INSURANCE_PROVIDERS, PAYMENT_METHODS } from '@/admin/modules/clinics/types/Clinic';
 
 interface ClinicProfileFormProps {
   profile: Partial<Clinic>;
   onChange: (field: string, value: any) => void;
+  handleSaveClinic: () => void;
   isLoading?: boolean;
 }
 
 const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({ 
   profile, 
   onChange, 
-  isLoading 
+  isLoading ,
+  handleSaveClinic
 }) => {
   const [newService, setNewService] = useState('');
   const [newSpecialty, setNewSpecialty] = useState('');
@@ -447,6 +451,21 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
               rows={3}
             />
           </div>
+                   <div className="flex justify-end pt-4">
+                    <Button onClick={handleSaveClinic} disabled={isLoading}>
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
         </CardContent>
       </Card>
     </div>

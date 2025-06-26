@@ -44,7 +44,7 @@ const ClinicProfileEdit = () => {
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      
+
       // Transform ClinicProfile data back to Clinic format
       const clinicData: Partial<Clinic> = {
         id: 1, // Assuming we're editing clinic with ID 1
@@ -58,12 +58,12 @@ const ClinicProfileEdit = () => {
       };
 
       await ClinicService.saveOrUpdate(clinicData);
-      
+
       toast({
         title: "Success",
         description: "Clinic profile updated successfully."
       });
-      
+
       navigate('/clinic-profile');
     } catch (error) {
       console.error('Error saving clinic:', error);
@@ -126,11 +126,11 @@ const ClinicProfileEdit = () => {
         </div>
 
         {/* Form */}
-        <ClinicProfileForm
+        {/* <ClinicProfileForm
           profile={profile}
           onChange={handleFieldChange}
           isLoading={isSaving}
-        />
+        /> */}
       </div>
     </AdminLayout>
   );
