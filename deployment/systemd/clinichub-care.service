@@ -1,0 +1,37 @@
+
+[Unit]
+Description=Clinichub Care API Service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+Type=simple
+# Only minimal environment variables for Zoho Vault access
+Environment="ZOHO_VAULT_ENABLED=true"
+Environment="ZOHO_VAULT_AUTH_TOKEN=${ZOHO_VAULT_TOKEN}"
+Environment="ZOHO_VAULT_SECRETS_PATH=clinichub-prod"
+# Keep profile for environment detection
+Environment="SPRING_PROFILES_ACTIVE=production"
+
+ExecStart=/usr/bin/java -jar \
+  -Dspring.profiles.active=production \
+  -Dzoho.vault.enabled=true \
+  -Dzoho.vault.auth-token=${ZOHO_VAULT_TOKEN} \
+  -Dzoho.vault.secrets-path=clinichub-prod \
+  /var/www/projects/clinichub/api/clinichub-api.jar
+
+# Health check
+ExecStartPre=/usr/bin/curl -f http://localhost:8080/api/health/vault || exit 1
+
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=clinichub-care
+
+[Install]
+WantedBy=multi-user.target
