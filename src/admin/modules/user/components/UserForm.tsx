@@ -57,11 +57,11 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
         role: staff?.user?.role ? { id: staff?.user.role.id } : undefined,
         email: staff?.user?.email || "",
         phone: staff?.user?.phone || "",
-        gender: staff?.user?.gender || "",
-        dob: staff?.user?.dob ? new Date(staff?.user.dob) : undefined,
+        gender: staff?.gender || "",
+        dob: staff?.dob ? new Date(staff?.dob) : undefined,
         effectiveFrom: staff?.user?.effectiveFrom ? new Date(staff?.user.effectiveFrom) : undefined,
         effectiveTo: staff?.user?.effectiveTo ? new Date(staff?.user.effectiveTo) : undefined,
-        active: staff?.user?.status ?? true,
+        active: true,
     };
 
     const form = useForm<FormValues>({
@@ -80,6 +80,8 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
 
         return age;
     }
+
+
     const onSubmit = async (data: FormValues) => {
         console.log(data)
         console.log(data.role)
@@ -98,7 +100,7 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
             };
             const userData: User = {
                 id: staff?.user?.id || null,
-                uid: staff?.user?.uid || `new-user-${Date.now()}`,
+                uid: staff?.user?.uid || null,
                 username: data?.username,
                 name: `${data?.firstname} ${data?.lastname}`,
                 email: data?.email || "",
@@ -129,10 +131,23 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
                 gender: data?.gender,
                 dob: data?.dob,
                 user: userData
-
             };
 
-            const res = await UserService.saveOrUpdate(staffData);
+
+            let formData = new FormData();
+
+
+            const emptyFile = new File([''], 'empty.txt', { type: 'text/plain' });
+            formData.append('profile', emptyFile);
+
+            if (staffData && typeof staffData === 'object') {
+                const doctorBLOB = new Blob([JSON.stringify(staffData)], { type: 'application/json' });
+                formData.append('staff', doctorBLOB);
+            } else {
+                console.error("Invalid staff Data");
+            }
+
+            const res = await UserService.saveOrUpdate(formData);
             if (res.data.status) {
                 toast({
                     title: `User ${isEditing ? "updated" : "added"} successfully`,
@@ -252,12 +267,6 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
                             </div>
                         )}
                     />
-
-
-
-                    
-          
-
                     <Controller
                         control={form.control}
                         name="effectiveFrom"
@@ -297,9 +306,6 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
                         )}
                     />
                 </div>
-
-
-                
 
                 <div className="flex justify-end space-x-2">
                     <Button

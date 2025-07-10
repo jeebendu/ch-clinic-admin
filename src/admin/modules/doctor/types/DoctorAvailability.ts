@@ -10,6 +10,8 @@ export type DoctorAvailability = {
   branch: Branch;
   doctor: Doctor;
   id: number;
+  releaseType:string;
+  slotQuantity:number;
 };
   
 export type DoctorLeave = {

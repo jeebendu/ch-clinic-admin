@@ -46,7 +46,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, onSucces
     appointmentTime: appointment?.slot?.startTime || "",
     doctorId: appointment?.doctorBranch?.doctor?.id?.toString() || "",
     branchId: appointment?.doctorBranch?.branch?.id?.toString() || "",
-    notes: appointment?.notes || "",
+    // notes: appointment?.notes || "",
     status: appointment?.status?.toString() as any || "UPCOMING",
   };
 
@@ -192,31 +192,31 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, onSucces
             )}
           />
           
-          {isEditing && (
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="UPCOMING">Upcoming</SelectItem>
-                      <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                      <SelectItem value="COMPLETED">Completed</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          {/* {isEditing && (
+            // <FormField
+            //   control={form.control}
+            //   name="status"
+            //   render={({ field }) => (
+            //     <FormItem>
+            //       <FormLabel>Status</FormLabel>
+            //       <Select onValueChange={field.onChange} defaultValue={field.value}>
+            //         <FormControl>
+            //           <SelectTrigger>
+            //             <SelectValue placeholder="Select status" />
+            //           </SelectTrigger>
+            //         </FormControl>
+            //         <SelectContent>
+            //           <SelectItem value="UPCOMING">Upcoming</SelectItem>
+            //           <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+            //           <SelectItem value="COMPLETED">Completed</SelectItem>
+            //           <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            //         </SelectContent>
+            //       </Select>
+            //       <FormMessage />
+            //     </FormItem>
+            //   )}
+            // />
+          )} */}
           
           <div className="md:col-span-2">
             <FormField

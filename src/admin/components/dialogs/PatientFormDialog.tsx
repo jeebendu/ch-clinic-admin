@@ -16,9 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, User } from "lucide-react";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
 import { Form } from "@/components/ui/form";
+import { uid } from "node_modules/chart.js/dist/helpers/helpers.core";
 
 const patientFormSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
@@ -31,7 +32,7 @@ const patientFormSchema = z.object({
   district: z.any(),
   city: z.string(),
   dob: z.date().optional(),
-  uid:z.string().optional(),
+  uid: z.string().optional(),
 });
 
 type PatientFormData = z.infer<typeof patientFormSchema>;
@@ -42,6 +43,8 @@ interface PatientFormDialogProps {
   onSave: () => void;
   patient?: Patient | null;
 }
+
+
 
 const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDialogProps) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -73,9 +76,9 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
         gender: patient.gender || "",
         age: patient.age || 0,
         address: patient.address || "",
-        city: patient.city ||"",
-        district: patient.district ||"",
-         dob: undefined,  
+        city: patient.city || "",
+        district: patient.district || "",
+        dob: formatDate(patient.dob),
       });
     } else {
       reset({
@@ -86,9 +89,9 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
         gender: "",
         age: 0,
         address: "",
-        city:"",
-        district:"",
-        dob :  undefined, 
+        city: "",
+        district: "",
+        dob: "",
       });
     }
   }, [patient, reset]);
@@ -116,6 +119,14 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
     district.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const formatDate = (date: Date | string | undefined | null) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
 
   const onSubmit = async (data: PatientFormData) => {
@@ -125,12 +136,32 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
         user: {
           email: data.email,
           phone: data.phone,
+          name: data.firstname + " " + data.lastname
         },
-        district:selectedDistrict
+        district: selectedDistrict
       };
-console.log(patientData);
+
+      let editObj = {
+        ...patientData,
+      } as Patient;
+
       if (patient?.id) {
-        await PatientService.saveOrUpdate({ ...patientData, id: patient.id } as Patient);
+        editObj = {
+          ...patientData,
+          id: patient.id,
+          uid: patient.uid,
+          user: {
+            ...patient.user,
+            ...patientData.user
+          },
+
+        } as Patient;
+      }
+
+
+      console.log(patientData);
+      if (patient?.id) {
+        await PatientService.saveOrUpdate({ ...editObj, id: patient.id } as Patient);
         toast({
           title: "Patient updated",
           description: "Patient information has been successfully updated.",
@@ -259,7 +290,7 @@ console.log(patientData);
               id="dob"
               type="date"
               {...register("dob", { required: "Date of Birth is required", valueAsDate: true })}
-              placeholder="Enter date of birth"
+              defaultValue={formatDate(watch("dob"))}
             />
             {errors.dob && (
               <p className="text-sm text-destructive">{errors.dob.message}</p>
@@ -271,7 +302,7 @@ console.log(patientData);
             <Input
               id="district"
               placeholder="Search for a District"
-              value={searchTerm || {...register("district")}?.name}
+              value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 // setErrors((prev) => ({ ...prev, district: undefined }));
@@ -284,7 +315,7 @@ console.log(patientData);
               </p>
             )}
 
-            {searchTerm && filteredDistricts.length > 0 && (
+            {searchTerm && filteredDistricts.length > 0 && selectedDistrict?.name !== searchTerm &&(
               <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded shadow max-h-40 overflow-y-auto">
                 {filteredDistricts.map((district) => (
                   <li
@@ -302,7 +333,11 @@ console.log(patientData);
               </ul>
             )}
 
-  
+            {selectedDistrict && (
+              <p className="text-sm text-gray-600 mt-1">
+                Selected: <strong>{selectedDistrict.name}</strong>
+              </p>
+            )}
           </div>
 
 
@@ -318,7 +353,7 @@ console.log(patientData);
               <p className="text-sm text-destructive">{errors.city.message}</p>
             )}
           </div>
- 
+
 
           <div className="space-y-2">
             <Label htmlFor="address">Locality</Label>

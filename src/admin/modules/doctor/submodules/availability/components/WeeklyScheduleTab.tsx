@@ -10,6 +10,7 @@ import { Doctor } from "../../../types/Doctor";
 import { DoctorAvailability } from "../types/DoctorAvailability";
 import BranchService from "@/admin/modules/branch/services/branchService";
 import DoctorService from "../../../services/doctorService";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface WeeklyScheduleTabProps {
   doctor: Doctor;
@@ -18,21 +19,23 @@ interface WeeklyScheduleTabProps {
 
 const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj }) => {
   const [loading, setLoading] = useState(true);
+  const [slotMode, setSlotMode] = useState<string>("TIMEWISE");
   // const [doctor, setDoctor] = useState<Doctor>(null);
   // const [branch, setBranch] = useState<Branch>(null);
 
+  // "COUNTWISE"
 
 
 
 
   const [schedules, setSchedules] = useState<DoctorAvailability[]>([
-    { dayOfWeek: "Sunday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-    { dayOfWeek: "Monday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-    { dayOfWeek: "Tuesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-    { dayOfWeek: "Wednesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-    { dayOfWeek: "Thursday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-    { dayOfWeek: "Friday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null },
-    { dayOfWeek: "Saturday", active: false, startTime: "09:00", endTime: "14:00", slotDuration: 15, branch: null, doctor: null, id: null }
+    { dayOfWeek: "Sunday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null, releaseType: slotMode, slotQuantity: 1 },
+    { dayOfWeek: "Monday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null, releaseType: slotMode, slotQuantity: 1 },
+    { dayOfWeek: "Tuesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null, releaseType: slotMode, slotQuantity: 1 },
+    { dayOfWeek: "Wednesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null, releaseType: slotMode, slotQuantity: 1 },
+    { dayOfWeek: "Thursday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null, releaseType: slotMode, slotQuantity: 1 },
+    { dayOfWeek: "Friday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: null, doctor: null, id: null, releaseType: slotMode, slotQuantity: 1 },
+    { dayOfWeek: "Saturday", active: false, startTime: "09:00", endTime: "14:00", slotDuration: 15, branch: null, doctor: null, id: null, releaseType: slotMode, slotQuantity: 1 }
   ]);
 
   useEffect(() => {
@@ -43,7 +46,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
 
 
   useEffect(() => {
-   if (doctor && doctor?.id && branchObj && branchObj?.id) {console.log(branchObj)
+    if (doctor && doctor?.id && branchObj && branchObj?.id) {
+      console.log(branchObj)
       setSchedules((prev) =>
         prev.map((schedule) => ({
           ...schedule,
@@ -63,13 +67,13 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         setSchedules(availabilities.data);
       } else {
         setSchedules([
-          { dayOfWeek: "Sunday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
-          { dayOfWeek: "Monday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
-          { dayOfWeek: "Tuesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
-          { dayOfWeek: "Wednesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
-          { dayOfWeek: "Thursday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
-          { dayOfWeek: "Friday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null },
-          { dayOfWeek: "Saturday", active: false, startTime: "09:00", endTime: "14:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null }
+          { dayOfWeek: "Sunday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null, releaseType: slotMode, slotQuantity: 1 },
+          { dayOfWeek: "Monday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null, releaseType: slotMode, slotQuantity: 1 },
+          { dayOfWeek: "Tuesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null, releaseType: slotMode, slotQuantity: 1 },
+          { dayOfWeek: "Wednesday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null, releaseType: slotMode, slotQuantity: 1 },
+          { dayOfWeek: "Thursday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null, releaseType: slotMode, slotQuantity: 1 },
+          { dayOfWeek: "Friday", active: false, startTime: "09:00", endTime: "17:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null, releaseType: slotMode, slotQuantity: 1 },
+          { dayOfWeek: "Saturday", active: false, startTime: "09:00", endTime: "14:00", slotDuration: 15, branch: branchObj, doctor: doctor, id: null, releaseType: slotMode, slotQuantity: 1 }
         ]);
       }
     } catch (error) {
@@ -107,12 +111,49 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     }
   };
 
+  const handleSlotModeChange = (value: string) => {
+    console.log(value)
+    setSlotMode(value);
+
+    if(value=="COUNTWISE"){
+    setSchedules((prev) =>
+      prev.map((schedule) => ({
+        ...schedule,
+        doctor: doctor,
+        branch: branchObj,
+        releaseType:value,
+        slotQuantity:100
+      })));
+    }else{
+          setSchedules((prev) =>
+      prev.map((schedule) => ({
+        ...schedule,
+        doctor: doctor,
+        branch: branchObj,
+        releaseType:value,
+        slotQuantity:1
+      })));
+    }
+
+
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Weekly Schedule</CardTitle>
         <CardDescription>Set doctor's weekly working hours for this branch</CardDescription>
+        <Select value={slotMode} onValueChange={handleSlotModeChange}>
+          <SelectTrigger className="w-full md:w-[250px]">
+            <SelectValue placeholder="Select slot mode" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TIMEWISE" key="TIMEWISE">Timewise</SelectItem>
+            <SelectItem value="COUNTWISE" key="COUNTWISE">Countwise</SelectItem>
+          </SelectContent>
+        </Select>
       </CardHeader>
+
       <CardContent>
         {loading ? (
           <div className="flex justify-center py-8">
@@ -120,15 +161,16 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
           </div>
         ) : (
           <>
-            <div className="grid md:grid-cols-7 gap-2 mb-4 text-xs font-medium text-muted-foreground">
+            <div className="grid md:grid-cols-8 gap-2 mb-4 text-xs font-medium text-muted-foreground">
               <div>Day</div>
               <div>Available</div>
               <div className="col-span-2">Start Time</div>
               <div className="col-span-2">End Time</div>
               <div>Duration</div>
+              <div>Qty</div>
             </div>
             {schedules.map((day, index) => (
-              <div key={day.id} className="grid md:grid-cols-7 gap-2 items-center py-4 border-t">
+              <div key={day.id} className="grid md:grid-cols-8 gap-2 items-center py-4 border-t">
                 <div className="font-medium">{day.dayOfWeek}</div>
                 <div>
                   <Switch
@@ -166,6 +208,24 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
                     <option value={45}>45 min</option>
                     <option value={60}>60 min</option>
                   </select>
+                </div>
+
+                <div>
+
+                  <input
+                    type="number"
+                    className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-sm"
+                    value={day.slotQuantity}
+                    onChange={(e) => {
+                      const newSchedules = [...schedules];
+                      newSchedules[index].slotQuantity = parseInt(e.target.value) ;
+                      setSchedules(newSchedules);
+                    }}
+                    disabled={day.releaseType === "TIMEWISE"}
+                    placeholder="Enter number of slots"
+                    min={1}
+                    step={1}
+                  />
                 </div>
               </div>
             ))}

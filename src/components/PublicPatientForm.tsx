@@ -80,18 +80,27 @@ const PublicPatientForm = () => {
         user: {
           email: data.email || "",
           phone: data.phone,
+          name:data.firstname+" "+data.lastname
         },
         district: selectedDistrict,
         mobile: data.phone,
+        source:"WALKIN"
       };
 
-      await PatientService.saveOrUpdate(patientData as any);
-      
+    const res=  await PatientService.registerPatient(patientData as any);
+      if(res.status){
       setIsSuccess(true);
       toast({
         title: "Registration Successful!",
         description: "Your information has been registered. Please wait for assistance.",
       });
+      }else{
+      toast({
+        title: "Error!",
+        description: res.message
+      });
+      }
+
     } catch (error) {
       toast({
         title: "Registration Failed",

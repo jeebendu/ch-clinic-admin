@@ -1,5 +1,6 @@
 import { Branch } from "@/admin/modules/branch/types/Branch";
 import { Role } from "../submodules/roles/types/Role";
+import { State } from "../../core/types/State";
 
 export interface User {
   id: number;
@@ -47,5 +48,20 @@ export interface Staff {
   user: User;
   name: string;
   branchList: Branch[];
-  
+
+  profile: string;
+
+
+  preferences: {
+    notifications: true,
+    emailAlerts: true,
+    smsAlerts: false,
+    darkMode: false
+  },
+  address?: string;
+  city?: string;
+  state?: State;
+  pincode:string;
+  createdTime:Date;
+
 }

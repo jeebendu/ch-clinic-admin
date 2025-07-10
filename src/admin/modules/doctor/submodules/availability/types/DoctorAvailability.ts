@@ -11,7 +11,11 @@ export interface DoctorAvailability {
   branch: Branch;
   doctor: Doctor;
   id: number;
+  releaseType:string;
+  slotQuantity:number;
 }
+
+
 
 export interface DoctorLeave {
   id: number;

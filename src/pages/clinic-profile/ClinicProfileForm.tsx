@@ -1,34 +1,56 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Building2, Upload, Clock, Shield, CreditCard, 
-  Globe, Plus, X, Palette, 
+import {
+  Building2, Upload, Clock, Shield, CreditCard,
+  Globe, Plus, X, Palette,
   Loader2,
   Save
 } from 'lucide-react';
 import { Clinic, INSURANCE_PROVIDERS, PAYMENT_METHODS } from '@/admin/modules/clinics/types/Clinic';
+import UploadBlock from './UploadBlock';
 
 interface ClinicProfileFormProps {
   profile: Partial<Clinic>;
   onChange: (field: string, value: any) => void;
+  handleFileChanges?: (file: File, type: 'logo' | 'favicon' | 'banner') => void;
   handleSaveClinic: () => void;
   isLoading?: boolean;
 }
 
-const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({ 
-  profile, 
-  onChange, 
-  isLoading ,
+const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
+  profile,
+  onChange,
+  isLoading,
+  handleFileChanges,
   handleSaveClinic
 }) => {
   const [newService, setNewService] = useState('');
   const [newSpecialty, setNewSpecialty] = useState('');
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+
+
+
+  useEffect(() => {
+    if(profile){
+    setBannerPreview(profile?.banner || null);
+    setLogoPreview(profile?.logo || null);
+    setFaviconPreview(profile?.favicon || null);
+    }
+  }, [profile?.favicon, profile?.logo, profile?.banner])
+
 
   const handleInputChange = (field: string, value: any) => {
     onChange(field, value);
@@ -79,7 +101,21 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
       onChange('paymentMethods', [...current, method]);
     }
   };
+  // *************file upload for image*****************
 
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setFile: React.Dispatch<React.SetStateAction<File | null>>,
+    setPreview: React.Dispatch<React.SetStateAction<string | null>>,
+    type: 'logo' | 'favicon' | 'banner'
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFile(file);
+      setPreview(URL.createObjectURL(file));
+      handleFileChanges(file, type);
+    }
+  };
   return (
     <div className="space-y-6">
       {/* Basic Information */}
@@ -111,7 +147,7 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
               />
             </div>
           </div>
-          
+
           <div>
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -241,7 +277,7 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
       </Card>
 
       {/* Digital Assets */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5" />
@@ -284,6 +320,52 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
             </div>
           </div>
         </CardContent>
+      </Card> */}
+
+      <Card className="shadow-md border-gray-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <Upload className="w-5 h-5 text-gray-500" />
+            Digital Assets
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Upload brand-specific assets like logo, banner, and favicon to personalize your platform.
+          </p>
+        </CardHeader>
+
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Logo Upload */}
+            <UploadBlock
+              id="logo"
+              label="Company Logo"
+              description="Minimum size: 100×100px. PNG or SVG preferred."
+              file={logoFile}
+              preview={logoPreview}
+              onChange={(e) => handleFileChange(e, setLogoFile, setLogoPreview, "logo")}
+            />
+
+            {/* Banner Upload */}
+            <UploadBlock
+              id="banner"
+              label="Website Banner"
+              description="Recommended size: 1200×300px. JPG or PNG."
+              file={bannerFile}
+              preview={bannerPreview}
+              onChange={(e) => handleFileChange(e, setBannerFile, setBannerPreview, "banner")}
+            />
+
+            {/* Favicon Upload */}
+            <UploadBlock
+              id="favicon"
+              label="Favicon"
+              description="Square icon (32×32px). ICO, PNG supported."
+              file={faviconFile}
+              preview={faviconPreview}
+              onChange={(e) => handleFileChange(e, setFaviconFile, setFaviconPreview, "favicon")}
+            />
+          </div>
+        </CardContent>
       </Card>
 
       {/* Services & Specialties */}
@@ -309,8 +391,8 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
               {(profile.services || []).map((service, index) => (
                 <Badge key={index} variant="outline" className="flex items-center gap-1">
                   {service}
-                  <X 
-                    className="w-3 h-3 cursor-pointer" 
+                  <X
+                    className="w-3 h-3 cursor-pointer"
                     onClick={() => removeService(index)}
                   />
                 </Badge>
@@ -335,8 +417,8 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
               {(profile.specialties || []).map((specialty, index) => (
                 <Badge key={index} variant="secondary" className="flex items-center gap-1">
                   {specialty}
-                  <X 
-                    className="w-3 h-3 cursor-pointer" 
+                  <X
+                    className="w-3 h-3 cursor-pointer"
                     onClick={() => removeSpecialty(index)}
                   />
                 </Badge>
@@ -451,21 +533,21 @@ const ClinicProfileForm: React.FC<ClinicProfileFormProps> = ({
               rows={3}
             />
           </div>
-                   <div className="flex justify-end pt-4">
-                    <Button onClick={handleSaveClinic} disabled={isLoading}>
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          Save Changes
-                        </>
-                      )}
-                    </Button>
-                  </div>
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleSaveClinic} disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

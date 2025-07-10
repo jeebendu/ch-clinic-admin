@@ -4,9 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { format, parseISO } from 'date-fns';
-import { 
+import {
   Eye,
-  Phone, 
+  Phone,
   Calendar,
   Monitor,
   Building2,
@@ -57,11 +57,11 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const [showDoctorProfile, setShowDoctorProfile] = useState(false);
   const [showPatientProfile, setShowPatientProfile] = useState(false);
   const [showAppointmentDetail, setShowAppointmentDetail] = useState(false);
-  
+
   // Mock workflow state - in real app this would come from the appointment data
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
-  
+
   // const [showCheckInDialog, setShowCheckInDialog] = useState(false);
 
 
@@ -70,10 +70,10 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
     checkInStatus: 'not_checked_in'
   });
 
-    const canStart = appointment.status.toString().toLowerCase() === 'upcoming';
-  const canProcess = appointment.status.toString().toLowerCase() === 'upcoming';
+  const canStart = appointment.status.toString().toLowerCase() === 'checkedin';
+  const canProcess = appointment.status.toString().toLowerCase() === 'checkedin';
 
-  
+
   const getStatusBadgeStyle = (status: string) => {
     switch (status.toLowerCase()) {
       case 'upcoming':
@@ -89,26 +89,28 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
     }
   };
 
-  const getCheckInStatusBadge = (status: CheckInStatus) => {
+  const getCheckInStatusBadge = (status: any) => {
     switch (status) {
-      case 'not_checked_in':
-        return <Badge variant="outline" className="text-xs">Not Checked In</Badge>;
-      case 'checked_in':
+      case 'UPCOMING':
+        return <Badge variant="outline" className="text-xs font-medium">Upcoming</Badge>;
+      case 'CHECKEDIN':
         return <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs">Checked In</Badge>;
-      case 'in_consultation':
+      case 'IN_PROGRESS':
         return <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-xs">In Consultation</Badge>;
-      case 'completed':
+      case 'COMPLETED':
         return <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">Completed</Badge>;
+      case 'CANCELLED':
+        return <Badge className="bg-red-100 text-red-800 border-red-200 text-xs">Cancelled</Badge>;
       default:
         return null;
     }
-  };
+  }; 
 
   const getPaymentStatusBadge = (paymentInfo?: PaymentInfo) => {
     if (!paymentInfo) {
       return <Badge variant="outline" className="text-red-600 text-xs">Payment Pending</Badge>;
     }
-    
+
     return (
       <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
         Paid
@@ -161,7 +163,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
     setWorkflow(prev => ({
       ...prev,
       checkInStatus: status,
-      checkInTime: status === 'checked_in' ? new Date() : prev.checkInTime,
+      checkInTime: status === 'CHECKEDIN' ? new Date() : prev.checkInTime,
       consultationStartTime: status === 'in_consultation' ? new Date() : prev.consultationStartTime,
       consultationEndTime: status === 'completed' ? new Date() : prev.consultationEndTime,
       notes
@@ -204,17 +206,18 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
     }
   };
 
-  const statusUpdate = async (appointment :Appointment) => {
+  const statusUpdate = async (appointment: Appointment) => {
     try {
-      const response = await  getAppointmentCheckIn(appointment.id); 
-  
+
+      const response = await getAppointmentCheckIn(appointment.id);
+
       if (response?.data?.status) {
         toast({
           title: "Checked In",
           description: `Appointment with ${appointment.id} has been checked in.`,
         });
 
-  
+
       } else {
         toast({
           variant: "destructive",
@@ -230,7 +233,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
       });
     }
   };
-  
+
 
   // Get gender icon
   const getGenderIcon = (gender: string) => {
@@ -282,10 +285,10 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 {formatDate(appointment.slot?.date)} • {formatTime(appointment.slot?.startTime)}–{formatTime(appointment.slot?.endTime)}
               </div>
               <div className="flex items-center gap-2">
-                <Badge className={cn("text-xs font-medium", getStatusBadgeStyle(appointment.status.toString()))}>
+                {/* <Badge className={cn("text-xs font-medium", getStatusBadgeStyle(appointment.status.toString()))}>
                   {appointment.status.toString().charAt(0).toUpperCase() + appointment.status.toString().slice(1).toLowerCase()}
-                </Badge>
-                {getCheckInStatusBadge(workflow.checkInStatus)}
+                </Badge> */}
+                {getCheckInStatusBadge(appointment.status)}
               </div>
             </div>
           </div>
@@ -293,7 +296,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
           {/* Main Content Section */}
           <div className="flex-1 p-3 sm:p-4 flex flex-col sm:flex-row justify-between">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-3 mb-3 sm:mb-0 flex-1">
-              
+
               {/* Patient Info */}
               <div className="space-y-1">
                 <div className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Patient</div>
@@ -309,7 +312,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
                     {primaryPerson.name}
                   </button>
                 )}
-                
+
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   {getGenderIcon(primaryPerson.gender || '')}
                   <span>{primaryPerson.gender} • {primaryPerson.age} yrs</span>
@@ -356,7 +359,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
                     ₹{appointment.doctorBranch.consultationFee}
                   </div>
                 )}
-                
+
                 {getPaymentStatusBadge(workflow.paymentInfo)}
 
                 {/* Payment Details Display */}
@@ -376,15 +379,17 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
 
                 {/* Payment Flow for Pending */}
                 {!workflow.paymentInfo && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <div className="flex justify-end items-start mt-2 sm:mt-0 sm:w-[150px] flex-shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full border-green-500 text-green-500 hover:bg-green-500 hover:text-white text-xs h-7 mt-1"
                     onClick={() => setShowPaymentDialog(true)}
                   >
                     <DollarSign className="h-3 w-3 mr-1" />
                     Process Payment
                   </Button>
+                </div>
                 )}
               </div>
             </div>
@@ -398,75 +403,79 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 </Button>
               </div> */}
 
-               <div className="flex flex-col items-end gap-1">
-              <div className="flex flex-wrap justify-end gap-2 mb-1">
-                <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={handleViewClick}>
-                  <Eye className="h-3 w-3" />
-                  <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">View</span>
-                </Button>
-                <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={() => onEdit(appointment)}>
-                  <Edit className="h-3 w-3" />
-                  <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Edit</span>
-                </Button>
-              </div>
-              
-              <div className="flex flex-wrap justify-end gap-2">
-                {/* Check-In Button */}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white text-xs"
-                  onClick={() => statusUpdate(appointment)}
-                >
-                  <UserCheck className="h-3 w-3" />
-                  <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Check-In</span>
-                </Button>
-
-                {/* Payment Button */}
-                {!workflow.paymentInfo && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8 border-green-500 text-green-500 hover:bg-green-500 hover:text-white text-xs"
-                    onClick={() => setShowPaymentDialog(true)}
-                  >
-                    <DollarSign className="h-3 w-3" />
-                    <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Payment</span>
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex flex-wrap justify-end gap-2 mb-1">
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={handleViewClick}>
+                    <Eye className="h-3 w-3" />
+                    <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">View</span>
                   </Button>
-                )}
+                  {/* <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={() => onEdit(appointment)}>
+                    <Edit className="h-3 w-3" />
+                    <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Edit</span>
+                  </Button> */}
+                </div>
 
-                {canProcess && onProcess && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8 border-clinic-primary text-clinic-primary hover:bg-clinic-primary hover:text-white text-xs"
-                    onClick={() => onProcess(appointment)}
-                  >
-                    <Settings className="h-3 w-3" />
-                    <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Process</span>
-                  </Button>
-                )}
-                {canStart && onStart && (
-                  <Button 
-                    size="sm" 
-                    className="h-8 bg-clinic-primary hover:bg-clinic-secondary text-xs"
-                    onClick={() => onStart(appointment)}
-                  >
-                    <PlayCircle className="h-3 w-3" />
-                    <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Start</span>
-                  </Button>
-                )}
-              </div>
-              </div>
-              </div>
+                <div className="flex flex-wrap justify-end gap-2">
+                  {/* Check-In Button */}
+                  {
+                    appointment && appointment.status == "UPCOMING" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white text-xs"
+                        onClick={() => statusUpdate(appointment)}
+                      >
+                        <UserCheck className="h-3 w-3" />
+                        <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Check-In</span>
+                      </Button>
+                    )
+                  }
 
 
-           
+                  {/* Payment Button */}
+                  {/* {!workflow.paymentInfo && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-green-500 text-green-500 hover:bg-green-500 hover:text-white text-xs"
+                      onClick={() => setShowPaymentDialog(true)}
+                    >
+                      <DollarSign className="h-3 w-3" />
+                      <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Payment</span>
+                    </Button>
+                  )} */}
+
+                  {canProcess && onProcess && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-clinic-primary text-clinic-primary hover:bg-clinic-primary hover:text-white text-xs"
+                      onClick={() => onProcess(appointment)}
+                    >
+                      <Settings className="h-3 w-3" />
+                      <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Process</span>
+                    </Button>
+                  )}
+                  {canStart && onStart && (
+                    <Button
+                      size="sm"
+                      className="h-8 bg-clinic-primary hover:bg-clinic-secondary text-xs"
+                      onClick={() => onStart(appointment)}
+                    >
+                      <PlayCircle className="h-3 w-3" />
+                      <span className="sr-only md:not-sr-only md:inline-block md:ml-1 text-xs">Start</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+
+
           </div>
         </div>
       </Card>
 
-      {/* Profile Dialogs */}
       <DoctorProfileDialog
         doctor={appointment?.doctorBranch?.doctor || null}
         isOpen={showDoctorProfile}
@@ -479,7 +488,6 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         onClose={() => setShowPatientProfile(false)}
       />
 
-      {/* Payment Process Dialog */}
       <PaymentProcessDialog
         appointment={appointment}
         isOpen={showPaymentDialog}

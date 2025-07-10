@@ -110,7 +110,7 @@ const DoctorHorizontalCard: React.FC<DoctorHorizontalCardProps> = ({
           getBackgroundGradient()
         )}>
           <div className="relative">
-            <Avatar className="h-30 w-30 border-2 border-white shadow-sm">
+            <Avatar className="h-20 w-30 border-2 border-white shadow-sm">
               {hasImage ? (
                 <AvatarImage src={doctor.image} alt={fullName} />
               ) : null}

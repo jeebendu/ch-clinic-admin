@@ -34,15 +34,6 @@ const DoctorService = {
 
   saveOrUpdate: async (doctor: FormData): Promise<any> => {
     try {
-
- for (const [key, value] of doctor.entries()) {
-  if (value instanceof Blob) {
-    console.log(`${key}: Blob - ${value.type}, size: ${value.size}`);
-  } else {
-    console.log(`${key}:`, value);
-  }
-}
-
       const response = await uploadHttp.post('/v1/doctor/saveOrUpdate', doctor);
       // console.log(response.status, response.data);
       return response.data;
@@ -86,6 +77,16 @@ const DoctorService = {
       filterObj
     );
     return response.data;
+  },
+  doctorbranchFilter: async (specialIds: Number[]) => {
+    const response = await http.post(
+      `/v1/doctor/doctor-branch/filter`,
+      {
+        specializationList: specialIds
+      }
+    );
+    return response.data;
+
   }
 };
 

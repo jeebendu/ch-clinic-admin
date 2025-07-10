@@ -80,6 +80,7 @@ export interface Doctor {
   external?: boolean;
   user?: User;
   firstname: string;
+  specialization?: string;
   lastname: string;
   email?: string;
   phone?: string;

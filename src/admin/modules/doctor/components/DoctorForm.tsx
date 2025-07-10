@@ -142,7 +142,7 @@ const DoctorForm: React.FC<DoctorFormProps> = ({
       reviewCount: doctor?.reviewCount || 0,
       rating: doctor?.rating || 0,
     } as Doctor;
-
+console.log(doctorData)
     onSubmit(doctorData);
   };
 

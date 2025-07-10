@@ -16,6 +16,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { doctorFromAppointment } from "../services/appointmentService";
+import { Doctor } from "../types/Doctor";
+import { BookAppointmentModal } from "../components/BookAppointmentModal";
 
 const AppointmentsAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,33 +32,59 @@ const AppointmentsAdmin = () => {
   const { toast } = useToast();
 
   // Filter states
-  const [selectedFilters, setSelectedFilters] = useState<Record<string,any>>({
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, any>>({
     types: [],
     statuses: [],
     branches: [],
+    doctors: [],
     searchTerm: null,
-    date:null,
-    status:activeTab
+    date: null,
+    status: activeTab
   });
 
   // Define filter options
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([
+    // {
+    //   id: 'statuses',
+    //   label: 'Statussss',
+    //   options: [
+    //     { id: 'UPCOMING', label: 'Upcoming' },
+    //     { id: 'COMPLETED', label: 'Completed' },
+    //     { id: 'CANCELLED', label: 'Cancelled' },
+    //     { id: 'IN_PROGRESS', label: 'In Progress' }
+    //   ]
+    // },
     {
-      id: 'statuses',
-      label: 'Status',
-      options: [
-        { id: 'UPCOMING', label: 'Upcoming' },
-        { id: 'COMPLETED', label: 'Completed' },
-        { id: 'CANCELLED', label: 'Cancelled' },
-        { id: 'IN_PROGRESS', label: 'In Progress' }
-      ]
-    },
-    {
-      id: 'branches',
-      label: 'Branch',
+      id: 'doctors',
+      label: 'Doctor',
       options: []
     },
   ]);
+
+
+  useEffect(() => {
+    fetchDoctorsFromAppointment();
+  }, []);
+
+  const fetchDoctorsFromAppointment = async () => {
+    try {
+      const res = await doctorFromAppointment();
+      if (res.data) {
+
+        setFilterOptions(prevOptions => {
+          return prevOptions.map(option => {
+            if (option.id === 'doctors') {
+              return { ...option, options: res.data.map((doctor: Doctor) => ({ id: doctor.id, label: doctor.firstname })) };
+            }
+            return option;
+          });
+        });
+
+      }
+    } catch (error) {
+
+    }
+  }
 
   // Use the custom hook for appointments with lazy loading
   const {
@@ -72,7 +101,8 @@ const AppointmentsAdmin = () => {
     searchTerm: null,
     statuses: [],
     branches: [],
-    date:null
+    doctors: [],
+    date: null
   } as AppointmentQueryParams);
 
   const handleFilterChange = (filterId: string, optionId: string) => {
@@ -83,13 +113,13 @@ const AppointmentsAdmin = () => {
       } else {
         newFilters[filterId] = [...(newFilters[filterId] || []), optionId];
       }
-  
+
       // Update the filters using the updateFilters function
       updateFilters({
         ...newFilters,
-        branches: newFilters.branches?.map(Number) || [] // Convert branch IDs to numbers
+        doctors: newFilters.doctors?.map(Number) || [] // Convert branch IDs to numbers
       });
-  
+
       return newFilters;
     });
   };
@@ -101,19 +131,21 @@ const AppointmentsAdmin = () => {
       statuses: [],
       assignees: [],
       searchTerm: null,
-      status:activeTab,
+      status: activeTab,
       branches: [],
-      date:null,
+      doctors: [],
+      date: null,
     });
     updateFilters({
       pageno: 0,
       pagesize: 10,
       doctorId: 1,
-      status:activeTab,
+      status: activeTab,
       searchTerm: null,
+      doctors: [],
       statuses: [],
       branches: [], // Added to match the AppointmentQueryParams type
-      date:null,
+      date: null,
     } as AppointmentQueryParams);
   };
 
@@ -209,35 +241,42 @@ const AppointmentsAdmin = () => {
           onClearFilters={clearFilters}
         />
       )}
-      
-     <Tabs value={activeTab} onValueChange={onActiveTabChange} className="w-full">
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="UPCOMING">
-              UPCOMING
-              <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-muted">
-                {/* {clinicRequests.length} */}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="IN_PROGRESS">
-              IN PROGRESS
-              <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                {/* {pendingCount} */}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="COMPLETED">
-              COMPLETED
-              <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
-                {/* {approvedCount} */}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="CANCELLED">
-              CANCELLED
-              <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-red-100 text-red-800">
-                {/* {rejectedCount} */}
-              </span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+
+      <Tabs value={activeTab} onValueChange={onActiveTabChange} className="w-full">
+        <TabsList className="grid grid-cols-5 mb-4">
+          <TabsTrigger value="UPCOMING">
+            UPCOMING
+            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-muted">
+              {/* {clinicRequests.length} */}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="CHECKEDIN">
+            CHECKED IN
+            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-muted">
+              {/* {clinicRequests.length} */}
+            </span>
+          </TabsTrigger>
+
+          <TabsTrigger value="IN_PROGRESS">
+            IN PROGRESS
+            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">
+              {/* {pendingCount} */}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="COMPLETED">
+            COMPLETED
+            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
+              {/* {approvedCount} */}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="CANCELLED">
+            CANCELLED
+            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-red-100 text-red-800">
+              {/* {rejectedCount} */}
+            </span>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {viewMode === 'calendar' ? (
         <AppointmentCalendar
@@ -259,7 +298,11 @@ const AppointmentsAdmin = () => {
         />
       )}
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <BookAppointmentModal doctor={null} trigger={null} open={isFormOpen} onOpenChange={setIsFormOpen} />
+
+
+
+      {/* <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader className="border-b border-clinic-accent pb-4">
             <DialogTitle className="text-clinic-primary">
@@ -271,7 +314,7 @@ const AppointmentsAdmin = () => {
           </DialogHeader>
           <AppointmentForm appointment={appointmentToEdit} onSuccess={handleCloseForm} />
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </AdminLayout>
   );
 };

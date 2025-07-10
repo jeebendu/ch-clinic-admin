@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Doctor } from "../types/Doctor";
 import { Calendar, Clock, Mail, MapPin, Phone, Star, UserCheck, Briefcase, Award, Languages } from "lucide-react";
 import { format } from "date-fns";
+import { WeeklyScheduleService } from "../submodules/availability/services/WeeklyScheduleService";
+import { toast } from "@/hooks/use-toast";
+import { DoctorAvailability } from "../types/DoctorAvailability";
 
 interface DoctorViewProps {
   isOpen: boolean;
@@ -21,6 +24,8 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
   const getInitials = (firstname: string, lastname: string) => {
     return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
   };
+
+  const [weeklyScheduleList, setWeeklyScheduleList] = useState<DoctorAvailability[]>([]);
 
   const formatDate = (date?: string) => {
     if (!date) return "N/A";
@@ -39,6 +44,42 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
         return "Not specified";
     }
   };
+  const formatTime = (timeStr: string) => {
+    const [hour, minute] = timeStr.split(":").map(Number);
+    const date = new Date();
+    date.setHours(hour, minute);
+
+    return date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  useEffect(() => {
+    if (doctor?.id) {
+      fetchWeeklyScheduleByDrAndBranch();
+    }
+  }, [doctor])
+
+
+  const fetchWeeklyScheduleByDrAndBranch = async () => {
+
+    const savedBranch = localStorage.getItem("selectedBranch");
+    if (!savedBranch) {
+      toast({
+        title: "Error",
+        description: "Please select a branch",
+        variant: "destructive",
+      });
+      return;
+    }
+    const res = await WeeklyScheduleService.getByDoctorAndBranch(doctor.id, Number(savedBranch));
+    if (res.data && res.data.length > 0) {
+      const filterd = res.data.filter((info: DoctorAvailability) => info.active);
+      setWeeklyScheduleList(filterd);
+    }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -65,7 +106,7 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                   <CardDescription>{doctor.desgination}</CardDescription>
                   <div className="mt-2">
                     <Badge variant={doctor.verified ? "success" : "destructive"}>
-                      {doctor.verified? "Verified" : "Not Verified"}
+                      {doctor.verified ? "Verified" : "Not Verified"}
                     </Badge>
                     {doctor.external && (
                       <Badge variant="outline" className="ml-2">
@@ -77,11 +118,10 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`h-4 w-4 ${
-                          i < Math.floor(doctor.rating || 0)
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-gray-300"
-                        }`}
+                        className={`h-4 w-4 ${i < Math.floor(doctor.rating || 0)
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                          }`}
                       />
                     ))}
                     <span className="ml-1 text-sm font-medium">
@@ -106,7 +146,7 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                     <Phone className="h-5 w-5 text-muted-foreground mr-2" />
                     <div>
                       <div className="text-sm text-muted-foreground">Phone</div>
-                      <div>{doctor.phone?doctor.phone:doctor?.user?.phone || "Not provided"}</div>
+                      <div>{doctor.phone ? doctor.phone : doctor?.user?.phone || "Not provided"}</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -163,12 +203,12 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                       <h4 className="text-sm font-medium text-muted-foreground mb-1">Gender</h4>
                       <p>{getGenderText(doctor.gender)}</p>
                     </div>
-                    
+
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground mb-1">About</h4>
                       <p className="whitespace-pre-line">{doctor.about || "No information provided."}</p>
                     </div>
-                    
+
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground mb-1">Biography</h4>
                       <p className="whitespace-pre-line">{doctor.biography || "No biography provided."}</p>
@@ -276,12 +316,35 @@ const DoctorView: React.FC<DoctorViewProps> = ({ isOpen, onClose, doctor, onEdit
                     <CardDescription>Doctor's working hours and availability</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-10 text-muted-foreground">
-                      <Clock className="mx-auto h-10 w-10 mb-4 text-muted-foreground/50" />
-                      <p>Schedule information not available.</p>
-                      <p className="text-sm">Visit the Availability section to manage this doctor's schedule.</p>
-                    </div>
+                    {weeklyScheduleList && weeklyScheduleList.length > 0 ? (
+                      <div className="space-y-4 py-4">
+                        {weeklyScheduleList.map((schedule) => (
+                          <div
+                            key={schedule.id}
+                            className="flex items-center justify-between p-4 border rounded-lg bg-muted text-muted-foreground"
+                          >
+                            <div className="font-medium capitalize">{schedule.dayOfWeek}</div>
+                            <div className="text-sm">
+                              {schedule.active ? (
+                                <>
+                                  {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
+                                </>
+                              ) : (
+                                <span className="italic text-muted-foreground/70">Not available</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-10 text-muted-foreground">
+                        <Clock className="mx-auto h-10 w-10 mb-4 text-muted-foreground/50" />
+                        <p>Schedule information not available.</p>
+                        <p className="text-sm">Visit the Availability section to manage this doctor's schedule.</p>
+                      </div>
+                    )}
                   </CardContent>
+
                 </Card>
               </TabsContent>
             </Tabs>

@@ -10,11 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin, 
+import {
+  User,
+  Phone,
+  Mail,
+  MapPin,
   Calendar,
   Edit,
   Upload,
@@ -35,88 +35,107 @@ import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useNavigate } from "react-router-dom";
 import AuthService from "@/services/authService";
+import { Staff } from "@/admin/modules/user/types/User";
+import { State } from "@/admin/modules/core/types/State";
+import StateService from "@/admin/modules/core/services/state/stateService";
+import UserService from "@/admin/modules/user/services/userService";
 
-interface UserProfile {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  role: string;
-  avatar?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  department?: string;
-  designation?: string;
-  joinDate?: string;
-  lastLogin?: string;
-  isActive: boolean;
-  preferences: {
-    notifications: boolean;
-    emailAlerts: boolean;
-    smsAlerts: boolean;
-    darkMode: boolean;
-  };
-}
+// interface UserProfile {
+//   id: number;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   role: string;
+//   avatar?: string;
+// address?: string;
+// city?: string;
+// state?: string;
+//   pincode?: string;
+//   dateOfBirth?: string;
+//   gender?: string;
+//   department?: string;
+//   designation?: string;
+//   joinDate?: string;
+//   lastLogin?: string;
+//   isActive: boolean;
+//   preferences: {
+//     notifications: boolean;
+//     emailAlerts: boolean;
+//     smsAlerts: boolean;
+//     darkMode: boolean;
+//   };
+// }
 
 const UserProfile = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<Staff | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState<Partial<UserProfile>>({});
+  const [formData, setFormData] = useState<Partial<Staff>>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarView, setAvatarView] = useState<string>(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
-  
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [states, setStates] = useState<State[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (searchTerm.trim()) {
+        fetchStates();
+      }
+    }, 300); // debounce time
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm]);
+
+  const fetchStates = async () => {
+    try {
+      setLoading(true);
+      const response = await StateService.list();
+      setStates(response.data); // expects [{ id, name }]
+    } catch (error) {
+      console.error('Error fetching states:', error);
+      setStates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelect = (state) => {
+    setFormData((prev) => ({
+      ...prev,
+      state: state,
+    }));
+    setShowDropdown(false);
+    setSearchTerm(''); // optional: reset input
+  };
+
   const { toast } = useToast();
 
   useEffect(() => {
     fetchUserProfile();
   }, []);
 
+
   const fetchUserProfile = async () => {
     try {
       setIsLoading(true);
-      // Mock user data - in real app, this would come from API
-      const mockUser: UserProfile = {
-        id: 1,
-        firstName: "John",
-        lastName: "Doe",
-        email: "john.doe@clinic.com",
-        phone: "+1234567890",
-        role: "Admin",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        address: "123 Main Street, Apt 4B",
-        city: "New York",
-        state: "NY",
-        pincode: "10001",
-        dateOfBirth: "1990-05-15",
-        gender: "Male",
-        department: "Administration",
-        designation: "Clinic Administrator",
-        joinDate: "2023-01-15",
-        lastLogin: "2025-01-21T10:30:00",
-        isActive: true,
-        preferences: {
-          notifications: true,
-          emailAlerts: true,
-          smsAlerts: false,
-          darkMode: false
-        }
-      };
-      
-      setUser(mockUser);
-      setFormData(mockUser);
+      const res = await UserService.ggetStaffProfile();
+
+      console.log("res.data.profile",res.data.profile)
+      setUser(res.data);
+      setAvatarView(res.data.profile)
+      setFormData(res.data);
     } catch (error) {
       console.error('Error fetching user profile:', error);
       toast({
@@ -132,16 +151,50 @@ const UserProfile = () => {
   const handleSaveProfile = async () => {
     try {
       setIsSaving(true);
-      
-      // Mock save operation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Success",
-        description: "Profile updated successfully."
-      });
-      
-      setIsEditModalOpen(false);
+      console.log(formData)
+
+
+      let staffForm = new FormData();
+
+
+      if (avatarFile && avatarFile.name) {
+        const fileSizeInMB = avatarFile.size / (1024 * 1024);
+        if (fileSizeInMB > 5) {
+          toast({
+            title: "Error",
+            description: "File size exceeds 5 MB. Please upload a smaller file.",
+            variant: "destructive"
+          });
+          return;
+        }
+        staffForm.append('profile', avatarFile, avatarFile.name);
+      } else {
+        const emptyFile = new File([''], 'empty.txt', { type: 'text/plain' });
+        staffForm.append('profile', emptyFile);
+      }
+
+      if (formData && typeof formData === 'object') {
+        const doctorBLOB = new Blob([JSON.stringify(formData)], { type: 'application/json' });
+        staffForm.append('staff', doctorBLOB);
+      } else {
+        console.error("Invalid staff Data");
+      }
+
+      const res = await UserService.saveOrUpdate(staffForm);
+      if (res.data.status) {
+        toast({
+          title: "Success",
+          description: "Profile updated successfully."
+        });
+        setIsEditModalOpen(false);
+      } else {
+        toast({
+          title: "Error",
+          description: res.data.message,
+          variant: "destructive"
+        });
+      }
+
       fetchUserProfile();
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -167,15 +220,15 @@ const UserProfile = () => {
 
     try {
       setIsSaving(true);
-      
+
       // Mock password change operation
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       toast({
         title: "Success",
         description: "Password changed successfully."
       });
-      
+
       setIsPasswordModalOpen(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
@@ -190,7 +243,7 @@ const UserProfile = () => {
     }
   };
 
-  const updatePreference = (key: keyof UserProfile['preferences'], value: boolean) => {
+  const updatePreference = (key: keyof Staff['preferences'], value: boolean) => {
     if (user) {
       const updatedUser = {
         ...user,
@@ -200,7 +253,7 @@ const UserProfile = () => {
         }
       };
       setUser(updatedUser);
-      
+
       toast({
         title: "Preference Updated",
         description: `${key} has been ${value ? 'enabled' : 'disabled'}.`
@@ -233,6 +286,19 @@ const UserProfile = () => {
     );
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setAvatarFile(file);
+
+    console.log(file)
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setAvatarView(url);
+    } else {
+      setAvatarView(null);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="container mx-auto p-6 space-y-8">
@@ -246,7 +312,7 @@ const UserProfile = () => {
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back
+              Back 
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
@@ -254,8 +320,8 @@ const UserProfile = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Badge variant={user.isActive ? "default" : "secondary"} className="px-3 py-1">
-              {user.isActive ? (
+            <Badge variant={user.id ? "default" : "secondary"} className="px-3 py-1">
+              {user.id ? (
                 <>
                   <CheckCircle className="w-4 h-4 mr-1" />
                   Active
@@ -267,7 +333,7 @@ const UserProfile = () => {
                 </>
               )}
             </Badge>
-            
+
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline">
@@ -279,21 +345,21 @@ const UserProfile = () => {
                 <DialogHeader>
                   <DialogTitle>Edit Profile</DialogTitle>
                 </DialogHeader>
-                
+
                 <div className="space-y-6 py-4">
                   {/* Avatar Upload */}
                   <div className="flex items-center gap-4">
                     <Avatar className="w-16 h-16">
-                      <AvatarImage src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
+                      <AvatarImage src={avatarView} alt={`${user?.firstname} ${user?.lastname}`} />
                       <AvatarFallback>
-                        {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                        {user?.firstname.charAt(0)}{user?.lastname.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <Input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                        onChange={handleFileChange}
                         className="hidden"
                         id="avatar-upload"
                       />
@@ -313,38 +379,39 @@ const UserProfile = () => {
                       <Label htmlFor="firstName">First Name *</Label>
                       <Input
                         id="firstName"
-                        value={formData.firstName || ''}
+                        value={formData.firstname || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                         placeholder="Enter first name"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name *</Label>
                       <Input
                         id="lastName"
-                        value={formData.lastName || ''}
+                        value={formData.lastname || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                         placeholder="Enter last name"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="email">Email *</Label>
                       <Input
                         id="email"
                         type="email"
-                        value={formData.email || ''}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        disabled
+                        value={formData?.user?.email || ''}
+                        // onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                         placeholder="Enter email"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone *</Label>
                       <Input
                         id="phone"
-                        value={formData.phone || ''}
+                        value={formData?.user?.phone || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                         placeholder="Enter phone number"
                       />
@@ -355,9 +422,15 @@ const UserProfile = () => {
                       <Input
                         id="dateOfBirth"
                         type="date"
-                        value={formData.dateOfBirth || ''}
-                        onChange={(e) => setFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                        value={formData?.dob ? new Date(formData.dob).toISOString().split('T')[0] : ''}
+                        onChange={(e) =>
+                          setFormData(prev => ({
+                            ...prev,
+                            dob: new Date(e.target.value) // convert string to Date
+                          }))
+                        }
                       />
+
                     </div>
 
                     <div className="space-y-2">
@@ -374,7 +447,7 @@ const UserProfile = () => {
                       </Select>
                     </div>
                   </div>
-                  
+
                   {/* Address */}
                   <div className="space-y-2">
                     <Label htmlFor="address">Address</Label>
@@ -386,7 +459,7 @@ const UserProfile = () => {
                       rows={3}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="city">City</Label>
@@ -397,17 +470,44 @@ const UserProfile = () => {
                         placeholder="Enter city"
                       />
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="state">State</Label>
-                      <Input
+
+                    <div className="space-y-2 relative">
+                      <label htmlFor="state" className="block text-sm font-medium text-gray-700">
+                        State
+                      </label>
+                      <input
+                        type="text"
                         id="state"
-                        value={formData.state || ''}
-                        onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                        placeholder="Enter state"
+                        value={formData.state?.name || searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setFormData((prev) => ({ ...prev, state: null }));
+                        }}
+                        onFocus={() => setShowDropdown(true)}
+                        placeholder="Search and select a state"
+                        className="w-full border px-3 py-2 rounded-md"
                       />
+
+                      {showDropdown && (
+                        <div className="absolute z-10 w-full bg-white border rounded shadow mt-1 max-h-60 overflow-y-auto">
+                          {loading ? (
+                            <div className="px-3 py-2 text-gray-500">Loading...</div>
+                          ) : states.length > 0 ? (
+                            states.map((state) => (
+                              <div
+                                key={state.id}
+                                onClick={() => handleSelect(state)}
+                                className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                              >
+                                {state.name}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-gray-500">No states found</div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    
                     <div className="space-y-2">
                       <Label htmlFor="pincode">Pincode</Label>
                       <Input
@@ -422,29 +522,29 @@ const UserProfile = () => {
                   {/* Professional Information */}
                   <Separator />
                   <h3 className="text-lg font-semibold">Professional Information</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="department">Department</Label>
                       <Input
                         id="department"
-                        value={formData.department || ''}
+                        // value={formData.department || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
                         placeholder="Enter department"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="designation">Designation</Label>
                       <Input
                         id="designation"
-                        value={formData.designation || ''}
+                        // value={formData.designation || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
                         placeholder="Enter designation"
                       />
                     </div>
                   </div>
-                  
+
                   {/* Save Button */}
                   <div className="flex justify-end pt-4">
                     <Button onClick={handleSaveProfile} disabled={isSaving}>
@@ -481,28 +581,28 @@ const UserProfile = () => {
               <CardContent>
                 <div className="flex items-start gap-4">
                   <Avatar className="w-20 h-20">
-                    <AvatarImage src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
+                    <AvatarImage src={avatarView} alt={`${user.firstname} ${user.lastname}`} />
                     <AvatarFallback className="text-lg">
-                      {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                      {user?.firstname.charAt(0)}{user?.lastname.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold">{user.firstName} {user.lastName}</h2>
-                    <p className="text-gray-600">{user.designation}</p>
-                    <p className="text-sm text-gray-500">{user.department}</p>
+                    <h2 className="text-2xl font-bold">{user.firstname} {user.lastname}</h2>
+                    {/* <p className="text-gray-600">{user.designation}</p> */}
+                    {/* <p className="text-sm text-gray-500">{user.department}</p> */}
                     <div className="flex items-center gap-4 mt-3">
                       <div className="flex items-center gap-1">
                         <Mail className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">{user.email}</span>
+                        <span className="text-sm">{user?.user?.email}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Phone className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">{user.phone}</span>
+                        <span className="text-sm">{user?.user?.phone}</span>
                       </div>
                     </div>
                   </div>
-                  <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>
-                    {user.role}
+                  <Badge variant={user?.user?.role?.name === 'Admin' ? 'default' : 'secondary'}>
+                    {user?.user?.role?.name}
                   </Badge>
                 </div>
               </CardContent>
@@ -517,7 +617,7 @@ const UserProfile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Date of Birth</p>
-                    <p className="font-medium">{user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'Not specified'}</p>
+                    <p className="font-medium">{user.dob ? new Date(user.dob).toLocaleDateString() : 'Not specified'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Gender</p>
@@ -533,7 +633,7 @@ const UserProfile = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">State & Pincode</p>
-                    <p className="font-medium">{user.state || 'Not specified'} {user.pincode && `- ${user.pincode}`}</p>
+                    <p className="font-medium">{user?.state?.name || 'Not specified'} {user.pincode && `- ${user.pincode}`}</p>
                   </div>
                 </div>
               </CardContent>
@@ -548,12 +648,14 @@ const UserProfile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Join Date</p>
-                    <p className="font-medium">{user.joinDate ? new Date(user.joinDate).toLocaleDateString() : 'Not specified'}</p>
+                    <p className="font-medium">{user.createdTime ? new Date(user.createdTime).toLocaleDateString() : 'Not specified'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Last Login</p>
                     <p className="font-medium">
-                      {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}
+                      {user.createdTime ? new Date(user.createdTime
+
+                      ).toLocaleString() : 'Never'}
                     </p>
                   </div>
                   <div>
@@ -563,7 +665,7 @@ const UserProfile = () => {
                   <div>
                     <p className="text-sm text-gray-600">Work Experience</p>
                     <p className="font-medium">
-                      {user.joinDate ? Math.floor((new Date().getTime() - new Date(user.joinDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : 0} years
+                      {user.createdTime ? Math.floor((new Date().getTime() - new Date(user.createdTime).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : 0} years
                     </p>
                   </div>
                 </div>
@@ -639,9 +741,9 @@ const UserProfile = () => {
                     </DialogContent>
                   </Dialog>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Two-Factor Authentication</span>
@@ -674,33 +776,33 @@ const UserProfile = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Push Notifications</span>
                   <Button
-                    variant={user.preferences.notifications ? "default" : "outline"}
+                    variant={user?.preferences?.notifications ? "default" : "outline"}
                     size="sm"
-                    onClick={() => updatePreference('notifications', !user.preferences.notifications)}
+                    onClick={() => updatePreference('notifications', !user?.preferences?.notifications)}
                   >
-                    {user.preferences.notifications ? "On" : "Off"}
+                    {user?.preferences?.notifications ? "On" : "Off"}
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Email Alerts</span>
                   <Button
-                    variant={user.preferences.emailAlerts ? "default" : "outline"}
+                    variant={user?.preferences?.emailAlerts ? "default" : "outline"}
                     size="sm"
-                    onClick={() => updatePreference('emailAlerts', !user.preferences.emailAlerts)}
+                    onClick={() => updatePreference('emailAlerts', !user?.preferences?.emailAlerts)}
                   >
-                    {user.preferences.emailAlerts ? "On" : "Off"}
+                    {user?.preferences?.emailAlerts ? "On" : "Off"}
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">SMS Alerts</span>
                   <Button
-                    variant={user.preferences.smsAlerts ? "default" : "outline"}
+                    variant={user?.preferences?.smsAlerts ? "default" : "outline"}
                     size="sm"
-                    onClick={() => updatePreference('smsAlerts', !user.preferences.smsAlerts)}
+                    onClick={() => updatePreference('smsAlerts', !user?.preferences?.smsAlerts)}
                   >
-                    {user.preferences.smsAlerts ? "On" : "Off"}
+                    {user?.preferences?.smsAlerts ? "On" : "Off"}
                   </Button>
                 </div>
               </CardContent>
@@ -750,19 +852,19 @@ const UserProfile = () => {
                   <span className="text-sm text-gray-600">Total Logins</span>
                   <span className="font-medium">547</span>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Profile Views</span>
                   <span className="font-medium">23</span>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Account Created</span>
                   <span className="font-medium">
-                    {user.joinDate ? new Date(user.joinDate).toLocaleDateString() : 'N/A'}
+                    {user.createdTime ? new Date(user.createdTime).toLocaleDateString() : 'N/A'}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Profile Completion</span>
                   <span className="font-medium text-green-600">85%</span>
@@ -782,19 +884,19 @@ const UserProfile = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Dark Mode</span>
                   <Button
-                    variant={user.preferences.darkMode ? "default" : "outline"}
+                    variant={user?.preferences?.darkMode ? "default" : "outline"}
                     size="sm"
-                    onClick={() => updatePreference('darkMode', !user.preferences.darkMode)}
+                    onClick={() => updatePreference('darkMode', !user?.preferences?.darkMode)}
                   >
-                    {user.preferences.darkMode ? "On" : "Off"}
+                    {user?.preferences?.darkMode ? "On" : "Off"}
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Language</span>
                   <span className="text-sm text-gray-600">English</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Timezone</span>
                   <span className="text-sm text-gray-600">UTC-5</span>

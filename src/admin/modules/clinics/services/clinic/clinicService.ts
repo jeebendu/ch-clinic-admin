@@ -4,6 +4,7 @@ import { Clinic } from "../../types/Clinic";
 // import { isDemoMode } from "@/utils/envUtils";
 import ClinicMockService from "./clinicMockService";
 import { ClinicStatus } from "../../types/ClinicStatus";
+import uploadHttp from "@/lib/uploadHttp";
 
 const apiUrl = import.meta.env.VITE_BASE_URL;
 
@@ -28,12 +29,8 @@ const ClinicService = {
     return http.get(`${apiUrl}/v1/clinic/id/${id}`).then(response => response.data);
   },
 
-  saveOrUpdate:async (clinic: Partial<Clinic>) => {
-    // if (isDemoMode()) {
-    //   return ClinicMockService.saveOrUpdate(clinic);
-    // }
-    
-    return http.post(`${apiUrl}/v1/clinic/saveOrUpdate`, clinic).then(response => response.data);
+  saveOrUpdate:async (clinic: FormData) => {
+    return uploadHttp.post(`${apiUrl}/v1/clinic/saveOrUpdate`, clinic).then(response => response.data);
   },
 
   deleteById: (id: number): Promise<void> => {

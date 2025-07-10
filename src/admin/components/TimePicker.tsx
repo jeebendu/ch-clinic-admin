@@ -12,7 +12,7 @@ export interface TimePickerProps {
   minutesStep?: number;
 }
 
-export function TimePicker({ value = "09:00 AM", onChange, className, minutesStep = 15 }: TimePickerProps) {
+export function TimePicker({ value = "09:00", onChange, className, minutesStep = 15 }: TimePickerProps) {
   // Parse the initial value
   const initialTime = parseTimeString(value);
   
@@ -24,7 +24,7 @@ export function TimePicker({ value = "09:00 AM", onChange, className, minutesSte
   const minutes = ["00", "15", "30", "45"];
 
   const handleSelect = () => {
-    const formattedTime = `${hour}:${minute} ${period}`;
+    const formattedTime = `${hour}:${minute}`;
     onChange(formattedTime);
   };
 

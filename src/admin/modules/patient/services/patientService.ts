@@ -92,6 +92,29 @@ const PatientService = {
       console.error("Error saving/updating patient:", error);
       throw error;
     }
+  },
+
+  registerPatient: async (patient: any) => {
+    try {
+      const response = await http.post(`${apiUrl}/v1/public/patient/register`, patient);
+      return response.data;
+    } catch (error) {
+      console.error("Error saving/updating patient:", error);
+      throw error;
+    }
+  },
+
+  fetchPatientsByPhoneOrEmail: async (phone: String) => {
+    if (!phone) {
+      return;
+    }
+    try {
+      const response = await http.get(`${apiUrl}/v1/patient/phone-email/${phone}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error saving/updating patient:", error);
+      return [];
+    }
   }
 };
 

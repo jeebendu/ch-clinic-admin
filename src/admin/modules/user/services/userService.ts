@@ -1,6 +1,7 @@
 import http from "@/lib/JwtInterceptor";
 import { Staff, User } from "../types/User";
 import { getEnvVariable } from "@/utils/envUtils";
+import uploadHttp from "@/lib/uploadHttp";
 
 const apiUrl = getEnvVariable('API_URL');
 
@@ -21,6 +22,10 @@ const UserService = {
     return http.get(`${apiUrl}/v1/staff/list`);
   },
 
+    ggetStaffProfile: () => {
+    return http.get(`${apiUrl}/v1/staff/myprofile`);
+  },
+
   deleteById: (id: number) => {
     return http.get(`${apiUrl}/v1/staff/delete/id/${id}`);
   },
@@ -29,8 +34,8 @@ const UserService = {
     return http.get(`${apiUrl}/v1/staff/id/${id}`);
   },
 
-  saveOrUpdate: (userData: Staff) => {
-    return http.post(`${apiUrl}/v1/staff/saveOrUpdate`, userData);
+  saveOrUpdate: (userData: any) => {
+    return uploadHttp.post(`${apiUrl}/v1/staff/saveOrUpdate`, userData);
   },
 
   filter: (pageNumber: any, pageSize: any, search: any) => {

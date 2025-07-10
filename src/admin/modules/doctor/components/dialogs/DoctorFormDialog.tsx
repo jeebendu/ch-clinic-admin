@@ -25,6 +25,9 @@ import ChipSelector from "@/components/ui/ChipSelector";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import languageService from "@/admin/modules/core/services/language/languageService";
+import BranchService from "@/admin/modules/branch/services/branchService";
+import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
+import { Branch } from "@/admin/modules/branch/types/Branch";
 
 const doctorFormSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
@@ -53,18 +56,19 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
   const [selectedSpecializations, setSelectedSpecializations] = useState<Array<{ id: number, name: string }>>([]);
   const [availableSpecializations, setAvailableSpecializations] = useState<Array<{ id: number, name: string }>>([]);
   const [loadingSpecializations, setLoadingSpecializations] = useState(false);
-  
+
+  const [doctorObj, setDoctorObj] = useState<Doctor>(null);
   // New state for profile image
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>("");
-  
+
   // New state for languages
   const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
   const [availableLanguages, setAvailableLanguages] = useState<Language[]>([]);
-  
+
   // New state for branches
-  const [availableBranches, setAvailableBranches] = useState<Array<{ id: number, name: string }>>([]);
-  const [selectedBranches, setSelectedBranches] = useState<Array<{ branchId: number, branchName: string, consultationFee: number }>>([]);
+  const [availableBranches, setAvailableBranches] = useState<Branch[]>([]);
+  const [selectedBranches, setSelectedBranches] = useState<DoctorBranch[]>([]);
 
   const {
     register,
@@ -99,21 +103,28 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
   };
 
   // Handle branch selection
-  const handleBranchToggle = (branchId: number, branchName: string) => {
+  const handleBranchToggle = (branch: Branch) => {
     setSelectedBranches(prev => {
-      const exists = prev.find(b => b.branchId === branchId);
+      const exists = prev.find(b => b?.branch?.id === branch.id);
       if (exists) {
-        return prev.filter(b => b.branchId !== branchId);
+        return prev.filter(b => b?.branch?.id !== branch.id);
       } else {
-        return [...prev, { branchId, branchName, consultationFee: 0 }];
+        const newDoctorBranch: DoctorBranch = {
+          id: null,
+          branch,
+          doctor,
+          consultationFee: 0,
+          globalDoctorBranchId: ""
+        };
+        return [...prev, newDoctorBranch];
       }
     });
   };
 
   // Update consultation fee for a branch
   const updateConsultationFee = (branchId: number, fee: number) => {
-    setSelectedBranches(prev => 
-      prev.map(b => b.branchId === branchId ? { ...b, consultationFee: fee } : b)
+    setSelectedBranches(prev =>
+      prev.map(b => b?.branch?.id === branchId ? { ...b, consultationFee: fee } : b)
     );
   };
 
@@ -137,15 +148,8 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         const languageList = await languageService.list();
         setAvailableLanguages(languageList.data);
 
-        // Mock branches data (replace with actual API call)
-        const mockBranches = [
-          { id: 1, name: "Main Branch - Downtown" },
-          { id: 2, name: "North Branch - Uptown" },
-          { id: 3, name: "South Branch - Suburbs" },
-          { id: 4, name: "East Branch - Mall" },
-          { id: 5, name: "West Branch - Hospital" }
-        ];
-        setAvailableBranches(mockBranches);
+        const branchList = await BranchService.list();
+        setAvailableBranches(branchList);
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -162,23 +166,42 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
     fetchData();
   }, [isOpen, toast]);
 
+  useEffect(() => {
+    if (doctor && doctor?.id) {
+      fetchDoctorById();
+    } else {
+      setDoctorObj((prev) => ({ ...prev, branchList: [] }));
+    }
+  }, [doctor]);
+
+  useEffect(() => {
+    if (!doctor && !doctor?.id) {
+      setDoctorObj((prev) => ({ ...prev, branchList: [] }));
+    }
+  },[isOpen]);
+
+  const fetchDoctorById = async () => {
+    const data = await DoctorService.getById(doctor.id);
+    setDoctorObj(data);
+  }
+
   // Reset form when doctor changes
   useEffect(() => {
-    if (doctor) {
+    if (doctorObj) {
       reset({
-        firstname: doctor.firstname || "",
-        lastname: doctor.lastname || "",
-        email: doctor.email || "",
-        phone: doctor.phone || "",
-        gender: doctor.gender || 1,
-        biography: doctor.biography || "",
-        qualification: doctor.qualification || "",
-        expYear: doctor.expYear || 0,
+        firstname: doctorObj.firstname || "",
+        lastname: doctorObj.lastname || "",
+        email: doctorObj.email || "",
+        phone: doctorObj.phone || "",
+        gender: doctorObj.gender || 1,
+        biography: doctorObj.biography || "",
+        qualification: doctorObj.qualification || "",
+        expYear: doctorObj.expYear || 0,
       });
 
       // Set selected specializations
-      if (doctor.specializationList) {
-        const doctorSpecs = doctor.specializationList.map(spec => ({
+      if (doctorObj.specializationList) {
+        const doctorSpecs = doctorObj.specializationList.map(spec => ({
           id: spec.id,
           name: spec.name
         }));
@@ -186,13 +209,13 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
       }
 
       // Set profile image
-      if (doctor.image) {
-        setProfileImagePreview(doctor.image);
+      if (doctorObj.image) {
+        setProfileImagePreview(doctorObj.image);
       }
 
       // Set selected languages
-      if (doctor.languageList) {
-        const doctorLanguages = doctor.languageList.map(lang => ({
+      if (doctorObj.languageList) {
+        const doctorLanguages = doctorObj.languageList.map(lang => ({
           id: lang.id,
           name: lang.name
         }));
@@ -200,11 +223,13 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
       }
 
       // Set selected branches
-      if (doctor.branchList) {
-        const doctorBranches = doctor.branchList.map(branch => ({
-          branchId: branch.branch.id,
-          branchName: branch.branch.name,
-          consultationFee: branch.consultationFee || 0
+      if (doctorObj.branchList) {
+        const doctorBranches = doctorObj.branchList.map(branch => ({
+          id: branch?.id || null,
+          branch: branch?.branch,
+          doctor: doctorObj,
+          consultationFee: branch?.consultationFee || 0,
+          globalDoctorBranchId: branch.globalDoctorBranchId
         }));
         setSelectedBranches(doctorBranches);
       }
@@ -218,7 +243,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         qualification: "",
         biography: "",
         expYear: 0,
-       
+
       });
       setSelectedSpecializations([]);
       setSelectedLanguages([]);
@@ -226,26 +251,42 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
       setProfileImage(null);
       setProfileImagePreview("");
     }
-  }, [doctor, reset]);
+  }, [doctorObj, reset]);
 
   const onSubmit = async (data: DoctorFormData) => {
     setIsSubmitting(true);
     try {
+      console.log(selectedBranches)
+      console.log(doctorObj)
+
+      const branchList = selectedBranches.map(selected => {
+        const existing = doctorObj.branchList?.find(
+          db => db.branch.id === selected.branch.id
+        );
+
+        return {
+          id: existing?.id ?? null, // preserve existing ID if present
+          branch: selected.branch,
+          doctor: doctorObj,
+          consultationFee: selected.consultationFee,
+          globalDoctorBranchId: selected.globalDoctorBranchId ?? null
+        };
+      });
+
+
       const doctorData = {
-        ...doctor,
+        ...doctorObj,
         ...data,
-        id: doctor?.id,
+        id: doctorObj?.id,
         // publishedOnline:doctor?.publishedOnline || false,
         specializationList: selectedSpecializations,
         languageList: selectedLanguages,
-        verified:doctor?.verified || false,
-        // branchList: selectedBranches.map(branch => ({
-        //   branchId: branch.branchId,
-        //   consultationFee: branch.consultationFee
-        // })),
+        verified: doctorObj?.verified || false,
+        branchList: branchList,
+
         profileImage: profileImage,
-        user: doctor?.user || {
-          id: doctor?.user?.id || null,
+        user: doctorObj?.user || {
+          id: doctorObj?.user?.id || null,
           branch: null,
           name: `${data.firstname} ${data.lastname}`,
           username: data.email,
@@ -259,11 +300,11 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
             name: "Doctor",
             permissions: [],
           },
-          image: doctor?.user?.image || "",
+          image: doctorObj?.user?.image || "",
         }
       };
 
-     
+
 
       let formData = new FormData();
 
@@ -271,13 +312,13 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
         const fileSizeInMB = profileImage.size / (1024 * 1024);
         if (fileSizeInMB > 5) {
           toast({
-            title:"Error",
-            description:"File size exceeds 5 MB. Please upload a smaller file.",
-            variant:"destructive"
+            title: "Error",
+            description: "File size exceeds 5 MB. Please upload a smaller file.",
+            variant: "destructive"
           });
           return;
         }
-        formData.append('file',profileImage, profileImage.name);
+        formData.append('file', profileImage, profileImage.name);
       } else {
         const emptyFile = new File([''], 'empty.txt', { type: 'text/plain' });
         formData.append('file', emptyFile);
@@ -299,15 +340,15 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
       if (response && response.status === false) {
         toast({
           title: "Error",
-          description: response.message || `Failed to ${doctor ? "update" : "create"} doctor.`,
+          description: response.message || `Failed to ${doctorObj ? "update" : "create"} doctor.`,
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: `Doctor ${doctor ? "updated" : "created"} successfully`,
-        description: response?.message || `Doctor has been ${doctor ? "updated" : "created"} successfully.`,
+        title: `Doctor ${doctorObj ? "updated" : "created"} successfully`,
+        description: response?.message || `Doctor has been ${doctorObj ? "updated" : "created"} successfully.`,
       });
 
       onSave();
@@ -316,7 +357,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
     } catch (error: any) {
       console.error("Error saving doctor:", error);
 
-      let errorMessage = `Failed to ${doctor ? "update" : "create"} doctor. Please try again.`;
+      let errorMessage = `Failed to ${doctorObj ? "update" : "create"} doctor. Please try again.`;
 
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -337,6 +378,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
   const handleClose = () => {
     if (!isSubmitting) {
       onClose();
+      setDoctorObj(null);
       reset({
         firstname: "",
         lastname: "",
@@ -352,6 +394,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
       setSelectedBranches([]);
       setProfileImage(null);
       setProfileImagePreview("");
+
     }
   };
 
@@ -360,7 +403,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
       <DialogContent className="max-w-5xl max-h-[90vh]" mobileDrawer={true}>
         <DialogHeader className="border-b pb-4">
           <DialogTitle>
-            {doctor ? "Edit Doctor" : "Add New Doctor"}
+            {doctorObj ? "Edit Doctor" : "Add New Doctor"}
           </DialogTitle>
         </DialogHeader>
 
@@ -523,7 +566,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
             {/* Professional Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Professional Information</h3>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="biography">Biography</Label>
                 <Input
@@ -583,7 +626,7 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="online"
-                    checked={doctor?.publishedOnline}
+                    checked={doctorObj?.publishedOnline}
                     // onCheckedChange={(checked) => setValue("online", checked as boolean)}
                     disabled={isSubmitting}
                   />
@@ -601,16 +644,16 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {availableBranches.map((branch) => {
-                    const isSelected = selectedBranches.some(b => b.branchId === branch.id);
-                    const selectedBranch = selectedBranches.find(b => b.branchId === branch.id);
-                    
+                    const isSelected = selectedBranches.some(b => b?.branch?.id === branch.id);
+                    const selectedBranch = selectedBranches.find(b => b?.branch?.id === branch.id);
+
                     return (
                       <div key={branch.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center space-x-3">
                           <Checkbox
                             id={`branch-${branch.id}`}
                             checked={isSelected}
-                            onCheckedChange={() => handleBranchToggle(branch.id, branch.name)}
+                            onCheckedChange={() => handleBranchToggle(branch)}
                             disabled={isSubmitting}
                           />
                           <Label htmlFor={`branch-${branch.id}`} className="font-medium">
@@ -664,10 +707,10 @@ const DoctorFormDialog = ({ isOpen, onClose, onSave, doctor }: DoctorFormDialogP
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {doctor ? "Updating..." : "Creating..."}
+                {doctorObj ? "Updating..." : "Creating..."}
               </>
             ) : (
-              doctor ? "Update Doctor" : "Create Doctor"
+              doctorObj ? "Update Doctor" : "Create Doctor"
             )}
           </Button>
         </DialogFooter>

@@ -61,7 +61,9 @@ const DoctorScheduleView = () => {
 
 
   useEffect(() => {
-    fetchingBranchById();
+    if(selectedBranch){
+      fetchingBranchById();
+    }
   }, [selectedBranch]);
 
     const fetchingBranchById = async () => {
