@@ -1,10 +1,10 @@
 
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
 import { usePatients } from "../hooks/usePatients";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import PatientSidebar from "../components/PatientSidebar";
 import PageHeader from "@/admin/components/PageHeader";
 import PatientGrid from "../components/PatientGrid";
 import PatientHorizontalCard from "../components/PatientHorizontalCard";
@@ -24,10 +24,9 @@ import PatientService from "../services/patientService";
 import PatientCardSkeleton from "@/admin/components/skeletons/PatientCardSkeleton";
 
 const PatientsAdmin = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showFilters, setShowFilters] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -142,8 +141,7 @@ const PatientsAdmin = () => {
   };
 
   const handlePatientClick = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setShowSidebar(true);
+    navigate(`/admin/patients/view/${patient.id}`);
   };
 
   const handleAddPatient = () => {
@@ -226,8 +224,6 @@ const PatientsAdmin = () => {
   return (
     <>
       <AdminLayout 
-        rightSidebar={showSidebar ? <PatientSidebar patient={selectedPatient} onClose={() => setShowSidebar(false)} /> : undefined}
-        onUserClick={() => setShowSidebar(!showSidebar)}
         showAddButton={true}
         onAddButtonClick={handleAddPatient}
       >
