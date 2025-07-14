@@ -44,7 +44,7 @@ const FilterCard = ({
   };
 
   const getSelectedCount = (filterId: string) => {
-    return selectedFilters[filterId]?.length || 0;
+    return selectedFilters[filterId]?.[0] || "Patient";
   };
 
   return (
@@ -68,7 +68,7 @@ const FilterCard = ({
           <DropdownMenuTrigger asChild>
             <div className="filter-select">
               <span className="filter-select-label">
-                {filter.label} {getSelectedCount(filter.id) > 0 && `(${getSelectedCount(filter.id)})`}
+                {filter.label} {`(${getSelectedCount(filter.id)})`}
                 <ChevronDown className="h-3 w-3" />
               </span>
             </div>
@@ -83,7 +83,7 @@ const FilterCard = ({
                 {option.label}
               </DropdownMenuCheckboxItem>
             ))}
-            {getSelectedCount(filter.id) > 0 && (
+            {getSelectedCount(filter.id) && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 

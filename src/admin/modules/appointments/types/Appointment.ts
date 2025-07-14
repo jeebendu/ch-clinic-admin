@@ -22,6 +22,8 @@ export interface AppointmentQueryParams {
   doctorId?: number;
   searchTerm?: string | null;
   statuses?: string[];
+  types?: string[];
+  value?: string;
   branches?: number[];
   doctors?: number[];
   date?: string | null;

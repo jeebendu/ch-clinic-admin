@@ -33,13 +33,14 @@ const AppointmentsAdmin = () => {
 
   // Filter states
   const [selectedFilters, setSelectedFilters] = useState<Record<string, any>>({
-    types: [],
+    types: ["Patient"],
     statuses: [],
     branches: [],
     doctors: [],
     searchTerm: null,
     date: null,
-    status: activeTab
+    status: activeTab,
+    value: null
   });
 
   // Define filter options
@@ -55,36 +56,50 @@ const AppointmentsAdmin = () => {
     //   ]
     // },
     {
-      id: 'doctors',
-      label: 'Doctor',
-      options: []
+      id: 'types',
+      label: 'Type',
+      options: [
+        {
+          id: "Patient",
+          label: "Patient"
+        },
+        {
+          id: "Doctor",
+          label: "Doctor"
+        },
+        {
+          id: "BookingId",
+          label: "Booking Id"
+        },
+      ]
     },
   ]);
 
 
   useEffect(() => {
-    fetchDoctorsFromAppointment();
+    // fetchDoctorsFromAppointment();
+handleFilterChange("Patient","Patient")
   }, []);
 
-  const fetchDoctorsFromAppointment = async () => {
-    try {
-      const res = await doctorFromAppointment();
-      if (res.data) {
+  // const fetchDoctorsFromAppointment = async () => {
+  //   try {
+  //     const res = await doctorFromAppointment();
+  //     if (res.data) {
 
-        setFilterOptions(prevOptions => {
-          return prevOptions.map(option => {
-            if (option.id === 'doctors') {
-              return { ...option, options: res.data.map((doctor: Doctor) => ({ id: doctor.id, label: doctor.firstname })) };
-            }
-            return option;
-          });
-        });
+  //       setFilterOptions(prevOptions => {
+  //         return prevOptions.map(option => {
+  //           if (option.id === 'doctors') {
+  //             return { ...option, options: res.data.map((doctor: Doctor) => ({ id: doctor.id, label: doctor.firstname })) };
+  //           }
+  //           return option;
+  //         });
+  //       });
 
-      }
-    } catch (error) {
+  //     }
+  //   } catch (error) {
 
-    }
-  }
+  //   }
+  // }
 
   // Use the custom hook for appointments with lazy loading
   const {
@@ -102,27 +117,27 @@ const AppointmentsAdmin = () => {
     statuses: [],
     branches: [],
     doctors: [],
-    date: null
+    date: null,
+    types: ["Patient"],
+    value: null
   } as AppointmentQueryParams);
 
-  const handleFilterChange = (filterId: string, optionId: string) => {
-    setSelectedFilters(prev => {
-      const newFilters = { ...prev };
-      if (newFilters[filterId]?.includes(optionId)) {
-        newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
-      } else {
-        newFilters[filterId] = [...(newFilters[filterId] || []), optionId];
-      }
+const handleFilterChange = (filterId: string, optionId: string) => {
+  setSelectedFilters(prev => {
+    const newFilters = {
+      ...prev,
+      [filterId]: [optionId] // Replace previous with the new option
+    };
 
-      // Update the filters using the updateFilters function
-      updateFilters({
-        ...newFilters,
-        doctors: newFilters.doctors?.map(Number) || [] // Convert branch IDs to numbers
-      });
-
-      return newFilters;
+    updateFilters({
+      ...newFilters,
+      types: newFilters.types?.map(String) || ["Patient"]
     });
-  };
+
+    return newFilters;
+  });
+};
+
 
   const clearFilters = () => {
     setSearchTerm("");

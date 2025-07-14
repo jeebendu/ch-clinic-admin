@@ -22,7 +22,7 @@ export interface ToastHelpers {
  * Fetches appointments by doctor ID with pagination support
  */
 export const fetchAppointmentsByDoctorId = async (params: AppointmentQueryParams) => {
-  const { doctorId, pageno, pagesize, status="UPCOMING", fromDate, toDate, branches,doctors, statuses, searchTerm,date } = params;
+  const { doctorId, pageno,types, pagesize, status="UPCOMING", fromDate, toDate, branches,doctors, statuses, searchTerm,date } = params;
 
   let url = `v1/appointments/filter/${pageno}/${pagesize}`;
 
@@ -36,6 +36,8 @@ export const fetchAppointmentsByDoctorId = async (params: AppointmentQueryParams
     doctors,
     status:status,
     searchTerm,
+    value:searchTerm,
+    type:types[0],
     date,
     
   };

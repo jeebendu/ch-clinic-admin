@@ -13,6 +13,7 @@ export interface DoctorAvailability {
   id: number;
   releaseType:string;
   slotQuantity:number;
+  releaseBefore:number;
 }
 
 
