@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import FormDialog from "@/components/ui/form-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   AlertDialog, 
@@ -238,31 +239,14 @@ const ClinicRequestsList = () => {
   const rejectedCount = clinicRequests.filter(req => req.status === 'Rejected').length;
 
   const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Clinic Request</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <ClinicRequestForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
     return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Clinic Request</DialogTitle>
-            <DialogDescription>Add a new clinic request to the system.</DialogDescription>
-          </DialogHeader>
-          <ClinicRequestForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Clinic Request"
+      >
+        <ClinicRequestForm onSuccess={handleCloseForm} />
+      </FormDialog>
     );
   };
 

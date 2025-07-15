@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import UserService from "../services/userService";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import FormDialog from "@/components/ui/form-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Staff, User } from "../types/User";
 import UserTable from "../components/UserTable";
@@ -201,31 +202,14 @@ const UsersList = () => {
   };
 
   const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New User</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <UserForm staff={null} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    }
-
     return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New User</DialogTitle>
-            <DialogDescription>Add a new User to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <UserForm staff={null} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New User"
+      >
+        <UserForm staff={null} onSuccess={handleCloseForm} />
+      </FormDialog>
     );
   };
 

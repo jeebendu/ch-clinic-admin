@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import FormDialog from "@/components/ui/form-dialog";
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -180,31 +181,14 @@ const ClinicsList = () => {
   };
 
   const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Clinic</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <ClinicForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
     return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Clinic</DialogTitle>
-            <DialogDescription>Add a new clinic to your network.</DialogDescription>
-          </DialogHeader>
-          <ClinicForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Clinic"
+      >
+        <ClinicForm onSuccess={handleCloseForm} />
+      </FormDialog>
     );
   };
 
