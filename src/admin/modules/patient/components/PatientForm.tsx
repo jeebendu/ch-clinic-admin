@@ -376,7 +376,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
                   control={control}
                   name="age"
                   label="Age"
-                  type="text"
+                  type="number"
                   placeholder="Age will be calculated from DOB"
                   required
                   className={errors.age ? "border-red-500" : ""}

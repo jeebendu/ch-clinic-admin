@@ -195,36 +195,6 @@ const SpecialityList = () => {
     );
   };
 
-  const renderEditForm = () => {
-    if (!specialityToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Speciality</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-            <SpecialityForm speciality={specialityToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Speciality</DialogTitle>
-            <DialogDescription>Update Speciality information.</DialogDescription>
-          </DialogHeader>
-          <SpecialityForm speciality={specialityToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
 
   const totalElements = filteredSpeciality.length || 0;
   const loadedElements = filteredSpeciality.length || 0;
@@ -279,7 +249,6 @@ const SpecialityList = () => {
       </div>
       
       {renderForm()}
-      {renderEditForm()}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
