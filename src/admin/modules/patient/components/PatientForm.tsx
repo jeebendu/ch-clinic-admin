@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -29,16 +29,32 @@ const patientFormSchema = z.object({
 
 type PatientFormData = z.infer<typeof patientFormSchema>;
 
-interface PatientFormProps {
-  patient?: Patient | null;
-  onSubmit: (data: PatientFormData) => Promise<void>;
-  isSubmitting: boolean;
+export interface PatientFormRef {
+  submitForm: () => void;
 }
 
-const PatientForm = ({ patient, onSubmit, isSubmitting }: PatientFormProps) => {
+interface PatientFormProps {
+  patient?: Patient | null;
+  onSubmit?: (data: PatientFormData) => Promise<void>;
+  onSave?: () => void;
+  showSubmitButton?: boolean;
+  isSubmitting?: boolean;
+}
+
+const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({ 
+  patient, 
+  onSubmit, 
+  onSave,
+  showSubmitButton = true,
+  isSubmitting: externalIsSubmitting = false
+}, ref) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [districtList, setDistrictList] = useState<{ name: string, id: number }[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState<{ name: string, id: number } | null>(null);
+  const [internalIsSubmitting, setInternalIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const isSubmitting = externalIsSubmitting || internalIsSubmitting;
 
   const {
     register,
@@ -52,6 +68,13 @@ const PatientForm = ({ patient, onSubmit, isSubmitting }: PatientFormProps) => {
   });
 
   const watchedGender = watch("gender");
+
+  // Expose submitForm method to parent via ref
+  useImperativeHandle(ref, () => ({
+    submitForm: () => {
+      handleSubmit(handleFormSubmit)();
+    }
+  }));
 
   useEffect(() => {
     if (patient) {
@@ -118,7 +141,65 @@ const PatientForm = ({ patient, onSubmit, isSubmitting }: PatientFormProps) => {
       ...data,
       district: selectedDistrict
     };
-    await onSubmit(formData);
+
+    if (onSubmit) {
+      // External handler provided (like from dialog)
+      await onSubmit(formData);
+    } else {
+      // Handle submission internally
+      setInternalIsSubmitting(true);
+      try {
+        const patientData = {
+          ...formData,
+          user: {
+            email: formData.email,
+            phone: formData.phone,
+            name: formData.firstname + " " + formData.lastname
+          }
+        };
+
+        let editObj = {
+          ...patientData,
+        } as Patient;
+
+        if (patient?.id) {
+          editObj = {
+            ...patientData,
+            id: patient.id,
+            uid: patient.uid,
+            user: {
+              ...patient.user,
+              ...patientData.user
+            },
+          } as Patient;
+        }
+
+        console.log(patientData);
+        if (patient?.id) {
+          await PatientService.saveOrUpdate({ ...editObj, id: patient.id } as Patient);
+          toast({
+            title: "Patient updated",
+            description: "Patient information has been successfully updated.",
+          });
+        } else {
+          await PatientService.saveOrUpdate(patientData as Omit<Patient, 'id'>);
+          toast({
+            title: "Patient created",
+            description: "New patient has been successfully created.",
+          });
+        }
+
+        onSave?.();
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: patient ? "Failed to update patient." : "Failed to create patient.",
+          variant: "destructive",
+        });
+      } finally {
+        setInternalIsSubmitting(false);
+      }
+    }
   };
 
   return (
@@ -288,23 +369,27 @@ const PatientForm = ({ patient, onSubmit, isSubmitting }: PatientFormProps) => {
         )}
       </div>
 
-      <div className="flex justify-end space-x-4 pt-4">
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {patient ? "Updating..." : "Creating..."}
-            </>
-          ) : (
-            patient ? "Update Patient" : "Create Patient"
-          )}
-        </Button>
-      </div>
+      {showSubmitButton && (
+        <div className="flex justify-end space-x-4 pt-4">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {patient ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              patient ? "Update Patient" : "Create Patient"
+            )}
+          </Button>
+        </div>
+      )}
     </form>
   );
-};
+});
+
+PatientForm.displayName = "PatientForm";
 
 export default PatientForm;

@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
-import PatientForm from "@/admin/modules/patient/components/PatientForm";
+import PatientForm, { PatientFormRef } from "@/admin/modules/patient/components/PatientForm";
 import FormDialog from "@/components/ui/form-dialog";
+import { Loader2 } from "lucide-react";
 
 interface PatientFormDialogProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface PatientFormDialogProps {
 const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const formRef = useRef<PatientFormRef>(null);
 
   const handleFormSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -74,15 +76,35 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
     }
   };
 
+  const handleSaveClick = () => {
+    formRef.current?.submitForm();
+  };
+
   const footerButtons = (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={onClose}
-      disabled={isSubmitting}
-    >
-      Cancel
-    </Button>
+    <div className="flex gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onClose}
+        disabled={isSubmitting}
+      >
+        Cancel
+      </Button>
+      <Button
+        type="button"
+        onClick={handleSaveClick}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {patient ? "Updating..." : "Creating..."}
+          </>
+        ) : (
+          patient ? "Update Patient" : "Create Patient"
+        )}
+      </Button>
+    </div>
   );
 
   return (
@@ -93,9 +115,11 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
       footer={footerButtons}
     >
       <PatientForm 
+        ref={formRef}
         patient={patient}
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
+        showSubmitButton={false}
       />
     </FormDialog>
   );
