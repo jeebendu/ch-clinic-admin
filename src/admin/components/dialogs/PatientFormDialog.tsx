@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -18,10 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
-import { AlertCircle, Loader2, User } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
-import { Form } from "@/components/ui/form";
-import { uid } from "node_modules/chart.js/dist/helpers/helpers.core";
 
 const patientFormSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
