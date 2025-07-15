@@ -357,7 +357,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
                 <p className="text-sm text-destructive">{errors.gender.message}</p>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 w-[70%]">
               <Label htmlFor="dob">Date of Birth</Label>
               <DatePicker
                 value={watchedDob}
@@ -370,16 +370,18 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
                 <p className="text-sm text-destructive">{errors.dob.message}</p>
               )}
             </div>
-            <InputField
-              control={control}
-              name="age"
-              label="Age"
-              type="number"
-              placeholder="Age will be calculated from DOB"
-              required
-              disabled={true}
-              className={errors.age ? "border-red-500" : ""}
-            />
+            <div className="w-[30%]">
+              <InputField
+                control={control}
+                name="age"
+                label="Age"
+                type="number"
+                placeholder="Age will be calculated from DOB"
+                required
+                disabled={true}
+                className={errors.age ? "border-red-500" : ""}
+              />
+            </div>
           </FormRow>
 
         </FormSection>
