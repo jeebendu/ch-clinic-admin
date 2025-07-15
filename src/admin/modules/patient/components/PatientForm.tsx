@@ -34,6 +34,7 @@ export interface PatientFormRef {
 }
 
 interface PatientFormProps {
+  patientId?: number;
   patient?: Patient | null;
   onSubmit?: (data: PatientFormData) => Promise<void>;
   onSave?: () => void;
@@ -42,7 +43,8 @@ interface PatientFormProps {
 }
 
 const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({ 
-  patient, 
+  patientId,
+  patient: initialPatient, 
   onSubmit, 
   onSave,
   showSubmitButton = true,
@@ -52,6 +54,8 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
   const [districtList, setDistrictList] = useState<{ name: string, id: number }[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState<{ name: string, id: number } | null>(null);
   const [internalIsSubmitting, setInternalIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [patient, setPatient] = useState<Patient | null>(initialPatient || null);
   const { toast } = useToast();
 
   const isSubmitting = externalIsSubmitting || internalIsSubmitting;
@@ -76,6 +80,33 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
     }
   }));
 
+  // Fetch patient data if patientId is provided
+  useEffect(() => {
+    const fetchPatient = async () => {
+      if (patientId && !initialPatient) {
+        setIsLoading(true);
+        try {
+          const response = await PatientService.getById(patientId);
+          if (response?.data) {
+            setPatient(response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching patient:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load patient data.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchPatient();
+  }, [patientId, initialPatient, toast]);
+
+  // Reset form when patient data changes
   useEffect(() => {
     if (patient) {
       reset({
@@ -90,6 +121,12 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         district: patient.district || "",
         dob: formatDate(patient.dob),
       });
+
+      // Set selected district if available
+      if (patient.district) {
+        setSelectedDistrict(patient.district);
+        setSearchTerm(patient.district.name || "");
+      }
     } else {
       reset({
         firstname: "",
@@ -103,6 +140,8 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         district: "",
         dob: "",
       });
+      setSelectedDistrict(null);
+      setSearchTerm("");
     }
   }, [patient, reset]);
 
@@ -146,61 +185,85 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
       // External handler provided (like from dialog)
       await onSubmit(formData);
     } else {
-      // Handle submission internally
-      setInternalIsSubmitting(true);
-      try {
-        const patientData = {
-          ...formData,
-          user: {
-            email: formData.email,
-            phone: formData.phone,
-            name: formData.firstname + " " + formData.lastname
-          }
-        };
-
-        let editObj = {
-          ...patientData,
-        } as Patient;
-
-        if (patient?.id) {
-          editObj = {
-            ...patientData,
-            id: patient.id,
-            uid: patient.uid,
-            user: {
-              ...patient.user,
-              ...patientData.user
-            },
-          } as Patient;
-        }
-
-        console.log(patientData);
-        if (patient?.id) {
-          await PatientService.saveOrUpdate({ ...editObj, id: patient.id } as Patient);
-          toast({
-            title: "Patient updated",
-            description: "Patient information has been successfully updated.",
-          });
-        } else {
-          await PatientService.saveOrUpdate(patientData as Omit<Patient, 'id'>);
-          toast({
-            title: "Patient created",
-            description: "New patient has been successfully created.",
-          });
-        }
-
-        onSave?.();
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: patient ? "Failed to update patient." : "Failed to create patient.",
-          variant: "destructive",
-        });
-      } finally {
-        setInternalIsSubmitting(false);
-      }
+      // Handle submission internally - clean save/update logic
+      await handleSaveOrUpdate(formData);
     }
   };
+
+  const handleSaveOrUpdate = async (formData: PatientFormData) => {
+    setInternalIsSubmitting(true);
+    try {
+      // Prepare patient data
+      const patientData = {
+        firstname: formData.firstname,
+        lastname: formData.lastname,
+        email: formData.email,
+        gender: formData.gender,
+        age: formData.age,
+        address: formData.address || "",
+        city: formData.city,
+        district: selectedDistrict,
+        dob: formData.dob,
+        user: {
+          email: formData.email,
+          phone: formData.phone,
+          name: `${formData.firstname} ${formData.lastname}`
+        }
+      };
+
+      let result;
+      if (patient?.id) {
+        // Update existing patient
+        const updateData = {
+          ...patientData,
+          id: patient.id,
+          uid: patient.uid,
+          user: {
+            ...patient.user,
+            ...patientData.user
+          },
+        } as Patient;
+
+        result = await PatientService.saveOrUpdate(updateData);
+        toast({
+          title: "Patient updated",
+          description: "Patient information has been successfully updated.",
+        });
+      } else {
+        // Create new patient
+        result = await PatientService.saveOrUpdate(patientData as Omit<Patient, 'id'>);
+        toast({
+          title: "Patient created",
+          description: "New patient has been successfully created.",
+        });
+      }
+
+      // Update local patient state with the response
+      if (result?.data) {
+        setPatient(result.data);
+      }
+
+      onSave?.();
+    } catch (error) {
+      console.error("Error saving patient:", error);
+      toast({
+        title: "Error",
+        description: patient?.id ? "Failed to update patient." : "Failed to create patient.",
+        variant: "destructive",
+      });
+    } finally {
+      setInternalIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading patient data...</span>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -378,10 +441,10 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {patient ? "Updating..." : "Creating..."}
+                {patient?.id ? "Updating..." : "Creating..."}
               </>
             ) : (
-              patient ? "Update Patient" : "Create Patient"
+              patient?.id ? "Update Patient" : "Create Patient"
             )}
           </Button>
         </div>

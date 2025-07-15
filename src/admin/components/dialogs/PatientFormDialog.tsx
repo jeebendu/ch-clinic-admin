@@ -2,8 +2,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Patient } from "@/admin/modules/patient/types/Patient";
-import PatientService from "@/admin/modules/patient/services/patientService";
 import PatientForm, { PatientFormRef } from "@/admin/modules/patient/components/PatientForm";
 import FormDialog from "@/components/ui/form-dialog";
 import { Loader2 } from "lucide-react";
@@ -12,10 +10,10 @@ interface PatientFormDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
-  patient?: Patient | null;
+  patientId?: number;
 }
 
-const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDialogProps) => {
+const PatientFormDialog = ({ isOpen, onClose, onSave, patientId }: PatientFormDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const formRef = useRef<PatientFormRef>(null);
@@ -23,52 +21,18 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
   const handleFormSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      const patientData = {
-        ...data,
-        user: {
-          email: data.email,
-          phone: data.phone,
-          name: data.firstname + " " + data.lastname
-        }
-      };
-
-      let editObj = {
-        ...patientData,
-      } as Patient;
-
-      if (patient?.id) {
-        editObj = {
-          ...patientData,
-          id: patient.id,
-          uid: patient.uid,
-          user: {
-            ...patient.user,
-            ...patientData.user
-          },
-        } as Patient;
-      }
-
-      console.log(patientData);
-      if (patient?.id) {
-        await PatientService.saveOrUpdate({ ...editObj, id: patient.id } as Patient);
-        toast({
-          title: "Patient updated",
-          description: "Patient information has been successfully updated.",
-        });
-      } else {
-        await PatientService.saveOrUpdate(patientData as Omit<Patient, 'id'>);
-        toast({
-          title: "Patient created",
-          description: "New patient has been successfully created.",
-        });
-      }
-
+      // The PatientForm will handle the save/update logic internally
+      // We just need to handle the dialog-specific actions
       onSave();
       onClose();
+      toast({
+        title: "Success",
+        description: patientId ? "Patient updated successfully." : "Patient created successfully.",
+      });
     } catch (error) {
       toast({
         title: "Error",
-        description: patient ? "Failed to update patient." : "Failed to create patient.",
+        description: patientId ? "Failed to update patient." : "Failed to create patient.",
         variant: "destructive",
       });
     } finally {
@@ -98,10 +62,10 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {patient ? "Updating..." : "Creating..."}
+            {patientId ? "Updating..." : "Creating..."}
           </>
         ) : (
-          patient ? "Update Patient" : "Create Patient"
+          patientId ? "Update Patient" : "Create Patient"
         )}
       </Button>
     </div>
@@ -111,12 +75,12 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
     <FormDialog
       isOpen={isOpen}
       onClose={onClose}
-      title={patient ? "Edit Patient" : "Add New Patient"}
+      title={patientId ? "Edit Patient" : "Add New Patient"}
       footer={footerButtons}
     >
       <PatientForm 
         ref={formRef}
-        patient={patient}
+        patientId={patientId}
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
         showSubmitButton={false}
