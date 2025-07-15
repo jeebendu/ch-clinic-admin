@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { TextField, RadioField, DateField, SearchField } from "@/components/ui/form-field";
+import { TextField, RadioField, DateField, SearchField } from "@/components/ui/form-fields";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
