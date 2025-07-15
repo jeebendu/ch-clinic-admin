@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
@@ -72,6 +74,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
   });
 
   const watchedGender = watch("gender");
+  const watchedDob = watch("dob");
 
   // Expose submitForm method to parent via ref
   useImperativeHandle(ref, () => ({
@@ -119,7 +122,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         address: patient.address || "",
         city: patient.city || "",
         district: patient.district || "",
-        dob: formatDate(patient.dob),
+        dob: patient.dob ? new Date(patient.dob) : undefined,
       });
 
       // Set selected district if available
@@ -138,7 +141,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         address: "",
         city: "",
         district: "",
-        dob: "",
+        dob: undefined,
       });
       setSelectedDistrict(null);
       setSearchTerm("");
@@ -165,15 +168,6 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
   const filteredDistricts = districtList.filter((district) =>
     district.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const formatDate = (date: Date | string | undefined | null) => {
-    if (!date) return "";
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
 
   const handleFormSubmit = async (data: PatientFormData) => {
     const formData = {
@@ -320,20 +314,25 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="gender">Gender</Label>
-          <Select
+          <Label>Gender</Label>
+          <RadioGroup
             value={watchedGender}
             onValueChange={(value) => setValue("gender", value)}
+            className="flex flex-col space-y-2"
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select gender" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Male">Male</SelectItem>
-              <SelectItem value="Female">Female</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Male" id="male" />
+              <Label htmlFor="male">Male</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Female" id="female" />
+              <Label htmlFor="female">Female</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Other" id="other" />
+              <Label htmlFor="other">Other</Label>
+            </div>
+          </RadioGroup>
           {errors.gender && (
             <p className="text-sm text-destructive">{errors.gender.message}</p>
           )}
@@ -355,11 +354,11 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
 
       <div className="space-y-2">
         <Label htmlFor="dob">Date of Birth</Label>
-        <Input
-          id="dob"
-          type="date"
-          {...register("dob", { required: "Date of Birth is required", valueAsDate: true })}
-          defaultValue={formatDate(watch("dob"))}
+        <DatePicker
+          value={watchedDob}
+          onChange={(date) => setValue("dob", date)}
+          placeholder="Select date of birth"
+          disabled={isSubmitting}
         />
         {errors.dob && (
           <p className="text-sm text-destructive">{errors.dob.message}</p>
