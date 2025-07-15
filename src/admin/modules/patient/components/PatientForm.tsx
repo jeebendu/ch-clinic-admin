@@ -333,7 +333,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
           </FormRow>
 
           <FormRow>
-            <div className="space-y-2">
+            <div className="space-y-2 w-1/2">
               <Label>Gender <span className="text-destructive">*</span></Label>
               <RadioGroup
                 value={watchedGender}
@@ -357,30 +357,32 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
                 <p className="text-sm text-destructive">{errors.gender.message}</p>
               )}
             </div>
-            <div className="space-y-2 w-[70%]">
-              <Label htmlFor="dob">Date of Birth</Label>
-              <DatePicker
-                value={watchedDob}
-                onChange={(date) => setValue("dob", date)}
-                placeholder="Select date of birth"
-                disabled={isSubmitting}
-                className={errors.dob ? "border-red-500" : ""}
-              />
-              {errors.dob && (
-                <p className="text-sm text-destructive">{errors.dob.message}</p>
-              )}
-            </div>
-            <div className="w-[30%]">
-              <InputField
-                control={control}
-                name="age"
-                label="Age"
-                type="number"
-                placeholder="Age will be calculated from DOB"
-                required
-                disabled={true}
-                className={errors.age ? "border-red-500" : ""}
-              />
+            <div className="w-1/2 flex gap-4">
+              <div className="space-y-2 w-[70%]">
+                <Label htmlFor="dob">Date of Birth</Label>
+                <DatePicker
+                  value={watchedDob}
+                  onChange={(date) => setValue("dob", date)}
+                  placeholder="Select date of birth"
+                  disabled={isSubmitting}
+                  className={errors.dob ? "border-red-500" : ""}
+                />
+                {errors.dob && (
+                  <p className="text-sm text-destructive">{errors.dob.message}</p>
+                )}
+              </div>
+              <div className="w-[30%]">
+                <InputField
+                  control={control}
+                  name="age"
+                  label="Age"
+                  type="number"
+                  placeholder="Age will be calculated from DOB"
+                  required
+                  disabled={true}
+                  className={errors.age ? "border-red-500" : ""}
+                />
+              </div>
             </div>
           </FormRow>
 
