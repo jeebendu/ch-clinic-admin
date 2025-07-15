@@ -1,18 +1,11 @@
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
 import PatientForm from "@/admin/modules/patient/components/PatientForm";
+import FormDialog from "@/components/ui/form-dialog";
 
 interface PatientFormDialogProps {
   isOpen: boolean;
@@ -81,33 +74,30 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
     }
   };
 
+  const footerButtons = (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={onClose}
+      disabled={isSubmitting}
+    >
+      Cancel
+    </Button>
+  );
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh]" mobileDrawer={true}>
-        <DialogHeader className="border-b pb-4">
-          <DialogTitle>
-            {patient ? "Edit Patient" : "Add New Patient"}
-          </DialogTitle>
-        </DialogHeader>
-        <DialogBody className="flex-1 overflow-y-auto px-6 py-4">
-          <PatientForm 
-            patient={patient}
-            onSubmit={handleFormSubmit}
-            isSubmitting={isSubmitting}
-          />
-        </DialogBody>
-        <DialogFooter className="border-t pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <FormDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={patient ? "Edit Patient" : "Add New Patient"}
+      footer={footerButtons}
+    >
+      <PatientForm 
+        patient={patient}
+        onSubmit={handleFormSubmit}
+        isSubmitting={isSubmitting}
+      />
+    </FormDialog>
   );
 };
 
