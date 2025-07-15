@@ -4,21 +4,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { DatePicker } from "@/components/ui/date-picker";
+import { TextField, RadioField, DateField, SearchField } from "@/components/ui/form-field";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
 import { Loader2 } from "lucide-react";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
+import { differenceInYears } from "date-fns";
 
 const patientFormSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
   lastname: z.string().min(1, "Last name is required"),
-  email: z.string().email("Valid email is required"),
+  email: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
+    message: "Valid email is required"
+  }),
   phone: z.string().min(10, "Valid phone number is required"),
   gender: z.string().min(1, "Gender is required"),
   age: z.number().min(1, "Age must be greater than 0"),
@@ -75,6 +74,14 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
 
   const watchedGender = watch("gender");
   const watchedDob = watch("dob");
+
+  // Calculate age from DOB
+  useEffect(() => {
+    if (watchedDob) {
+      const calculatedAge = differenceInYears(new Date(), watchedDob);
+      setValue("age", calculatedAge);
+    }
+  }, [watchedDob, setValue]);
 
   // Expose submitForm method to parent via ref
   useImperativeHandle(ref, () => ({
@@ -259,181 +266,127 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
     );
   }
 
+  const genderOptions = [
+    { value: "Male", label: "Male", id: "male" },
+    { value: "Female", label: "Female", id: "female" },
+    { value: "Other", label: "Other", id: "other" },
+  ];
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      {/* Name Row */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="firstname">First Name</Label>
-          <Input
-            id="firstname"
-            {...register("firstname")}
-            placeholder="Enter first name"
-          />
-          {errors.firstname && (
-            <p className="text-sm text-destructive">{errors.firstname.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="lastname">Last Name</Label>
-          <Input
-            id="lastname"
-            {...register("lastname")}
-            placeholder="Enter last name"
-          />
-          {errors.lastname && (
-            <p className="text-sm text-destructive">{errors.lastname.message}</p>
-          )}
-        </div>
+        <TextField
+          id="firstname"
+          label="First Name"
+          placeholder="Enter first name"
+          required
+          register={register("firstname")}
+          error={errors.firstname?.message}
+        />
+        <TextField
+          id="lastname"
+          label="Last Name"
+          placeholder="Enter last name"
+          required
+          register={register("lastname")}
+          error={errors.lastname?.message}
+        />
       </div>
 
+      {/* Contact Row */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            {...register("email")}
-            placeholder="Enter email address"
-          />
-          {errors.email && (
-            <p className="text-sm text-destructive">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone</Label>
-          <Input
-            id="phone"
-            {...register("phone")}
-            placeholder="Enter phone number"
-          />
-          {errors.phone && (
-            <p className="text-sm text-destructive">{errors.phone.message}</p>
-          )}
-        </div>
+        <TextField
+          id="email"
+          label="Email"
+          type="email"
+          placeholder="Enter email address (optional)"
+          register={register("email")}
+          error={errors.email?.message}
+        />
+        <TextField
+          id="phone"
+          label="Phone"
+          type="tel"
+          placeholder="Enter phone number"
+          required
+          register={register("phone")}
+          error={errors.phone?.message}
+        />
       </div>
 
+      {/* Gender Row */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Gender</Label>
-          <RadioGroup
-            value={watchedGender}
-            onValueChange={(value) => setValue("gender", value)}
-            className="flex flex-row space-x-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Male" id="male" />
-              <Label htmlFor="male">Male</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Female" id="female" />
-              <Label htmlFor="female">Female</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Other" id="other" />
-              <Label htmlFor="other">Other</Label>
-            </div>
-          </RadioGroup>
-          {errors.gender && (
-            <p className="text-sm text-destructive">{errors.gender.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="age">Age</Label>
-          <Input
-            id="age"
-            type="number"
-            {...register("age", { valueAsNumber: true })}
-            placeholder="Enter age"
-          />
-          {errors.age && (
-            <p className="text-sm text-destructive">{errors.age.message}</p>
-          )}
-        </div>
+        <RadioField
+          label="Gender"
+          options={genderOptions}
+          value={watchedGender}
+          onChange={(value) => setValue("gender", value)}
+          required
+          error={errors.gender?.message}
+        />
+        <div></div>
       </div>
 
+      {/* DOB and Age Row */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="dob">Date of Birth</Label>
-          <DatePicker
-            value={watchedDob}
-            onChange={(date) => setValue("dob", date)}
-            placeholder="Select date of birth"
-            disabled={isSubmitting}
-          />
-          {errors.dob && (
-            <p className="text-sm text-destructive">{errors.dob.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2 relative">
-          <Label htmlFor="district">District</Label>
-          <Input
-            id="district"
-            placeholder="Search for a District"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-            }}
-            className={errors.district ? "border-red-500" : ""}
-          />
-          {errors.district && (
-            <p className="text-xs text-red-500 flex items-center mt-1">
-            </p>
-          )}
-
-          {searchTerm && filteredDistricts.length > 0 && selectedDistrict?.name !== searchTerm &&(
-            <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded shadow max-h-40 overflow-y-auto">
-              {filteredDistricts.map((district) => (
-                <li
-                  key={district.id}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setSelectedDistrict(district);
-                    setDistrictList([]);
-                    setSearchTerm(district.name);
-                  }}
-                >
-                  {district.name}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {selectedDistrict && (
-            <p className="text-sm text-gray-600 mt-1">
-              Selected: <strong>{selectedDistrict.name}</strong>
-            </p>
-          )}
-        </div>
+        <DateField
+          label="Date of Birth"
+          value={watchedDob}
+          onChange={(date) => setValue("dob", date)}
+          placeholder="Select date of birth"
+          disabled={isSubmitting}
+          error={errors.dob?.message}
+        />
+        <TextField
+          id="age"
+          label="Age"
+          type="number"
+          placeholder="Age will be calculated from DOB"
+          required
+          register={register("age", { valueAsNumber: true })}
+          error={errors.age?.message}
+          disabled={!!watchedDob}
+        />
       </div>
 
+      {/* Location Row */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="city">City</Label>
-          <Input
-            id="city"
-            {...register("city")}
-            placeholder="Enter city"
-          />
-          {errors.city && (
-            <p className="text-sm text-destructive">{errors.city.message}</p>
-          )}
-        </div>
+        <SearchField
+          id="district"
+          label="District"
+          placeholder="Search for a District"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          suggestions={filteredDistricts}
+          onSuggestionClick={(district) => {
+            setSelectedDistrict(district);
+            setDistrictList([]);
+            setSearchTerm(district.name);
+          }}
+          selectedValue={selectedDistrict}
+          showSuggestions={searchTerm && filteredDistricts.length > 0 && selectedDistrict?.name !== searchTerm}
+          error={errors.district?.message}
+        />
+        <TextField
+          id="city"
+          label="City"
+          placeholder="Enter city"
+          register={register("city")}
+          error={errors.city?.message}
+        />
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="address">Locality</Label>
-          <Input
-            id="address"
-            {...register("address")}
-            placeholder="Enter address (optional)"
-          />
-          {errors.address && (
-            <p className="text-sm text-destructive">{errors.address.message}</p>
-          )}
-        </div>
+      {/* Address Row */}
+      <div className="grid grid-cols-2 gap-4">
+        <TextField
+          id="address"
+          label="Locality"
+          placeholder="Enter address (optional)"
+          register={register("address")}
+          error={errors.address?.message}
+        />
+        <div></div>
       </div>
 
       {showSubmitButton && (
