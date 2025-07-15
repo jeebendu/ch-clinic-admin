@@ -4,21 +4,28 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { DatePicker } from "@/components/ui/date-picker";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
 import { Loader2 } from "lucide-react";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
+import { Form } from "@/components/ui/form";
+import { 
+  InputField, 
+  EmailField, 
+  PhoneField, 
+  FormRow,
+  FormSection 
+} from "@/components/form";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Input } from "@/components/ui/input";
 
 const patientFormSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
   lastname: z.string().min(1, "Last name is required"),
-  email: z.string().email("Valid email is required"),
+  email: z.string().email("Valid email is required").optional().or(z.literal("")),
   phone: z.string().min(10, "Valid phone number is required"),
   gender: z.string().min(1, "Gender is required"),
   age: z.number().min(1, "Age must be greater than 0"),
@@ -62,19 +69,44 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
 
   const isSubmitting = externalIsSubmitting || internalIsSubmitting;
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<PatientFormData>({
+  const form = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
+    defaultValues: {
+      firstname: "",
+      lastname: "",
+      email: "",
+      phone: "",
+      gender: "",
+      age: 0,
+      address: "",
+      city: "",
+      district: "",
+      dob: undefined,
+    }
   });
+
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = form;
 
   const watchedGender = watch("gender");
   const watchedDob = watch("dob");
+
+  // Calculate age when DOB changes
+  useEffect(() => {
+    if (watchedDob) {
+      const today = new Date();
+      const birthDate = new Date(watchedDob);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      if (age >= 0) {
+        setValue("age", age);
+      }
+    }
+  }, [watchedDob, setValue]);
 
   // Expose submitForm method to parent via ref
   useImperativeHandle(ref, () => ({
@@ -191,7 +223,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
       const patientData = {
         firstname: formData.firstname,
         lastname: formData.lastname,
-        email: formData.email,
+        email: formData.email || "",
         gender: formData.gender,
         age: formData.age,
         address: formData.address || "",
@@ -199,7 +231,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         district: selectedDistrict,
         dob: formData.dob,
         user: {
-          email: formData.email,
+          email: formData.email || "",
           phone: formData.phone,
           name: `${formData.firstname} ${formData.lastname}`
         }
@@ -260,200 +292,187 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="firstname">First Name</Label>
-          <Input
-            id="firstname"
-            {...register("firstname")}
-            placeholder="Enter first name"
-          />
-          {errors.firstname && (
-            <p className="text-sm text-destructive">{errors.firstname.message}</p>
-          )}
-        </div>
+    <Form {...form}>
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+        <FormSection title="Personal Information">
+          <FormRow>
+            <InputField
+              control={control}
+              name="firstname"
+              label="First Name"
+              placeholder="Enter first name"
+              required
+              className={errors.firstname ? "border-red-500" : ""}
+            />
+            <InputField
+              control={control}
+              name="lastname"
+              label="Last Name"
+              placeholder="Enter last name"
+              required
+              className={errors.lastname ? "border-red-500" : ""}
+            />
+          </FormRow>
 
-        <div className="space-y-2">
-          <Label htmlFor="lastname">Last Name</Label>
-          <Input
-            id="lastname"
-            {...register("lastname")}
-            placeholder="Enter last name"
-          />
-          {errors.lastname && (
-            <p className="text-sm text-destructive">{errors.lastname.message}</p>
-          )}
-        </div>
-      </div>
+          <FormRow>
+            <EmailField
+              control={control}
+              name="email"
+              label="Email"
+              placeholder="Enter email address"
+              className={errors.email ? "border-red-500" : ""}
+            />
+            <PhoneField
+              control={control}
+              name="phone"
+              label="Phone"
+              placeholder="Enter phone number"
+              required
+              className={errors.phone ? "border-red-500" : ""}
+            />
+          </FormRow>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            {...register("email")}
-            placeholder="Enter email address"
-          />
-          {errors.email && (
-            <p className="text-sm text-destructive">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone</Label>
-          <Input
-            id="phone"
-            {...register("phone")}
-            placeholder="Enter phone number"
-          />
-          {errors.phone && (
-            <p className="text-sm text-destructive">{errors.phone.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Gender</Label>
-          <RadioGroup
-            value={watchedGender}
-            onValueChange={(value) => setValue("gender", value)}
-            className="flex flex-row space-x-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Male" id="male" />
-              <Label htmlFor="male">Male</Label>
+          <FormRow>
+            <div className="space-y-2">
+              <Label>Gender <span className="text-destructive">*</span></Label>
+              <RadioGroup
+                value={watchedGender}
+                onValueChange={(value) => setValue("gender", value)}
+                className="flex flex-row space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Male" id="male" />
+                  <Label htmlFor="male">Male</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Female" id="female" />
+                  <Label htmlFor="female">Female</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Other" id="other" />
+                  <Label htmlFor="other">Other</Label>
+                </div>
+              </RadioGroup>
+              {errors.gender && (
+                <p className="text-sm text-destructive">{errors.gender.message}</p>
+              )}
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Female" id="female" />
-              <Label htmlFor="female">Female</Label>
+            <div className="space-y-2">
+              {/* Empty div for layout */}
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Other" id="other" />
-              <Label htmlFor="other">Other</Label>
+          </FormRow>
+
+          <FormRow>
+            <div className="space-y-2">
+              <Label htmlFor="dob">Date of Birth</Label>
+              <DatePicker
+                value={watchedDob}
+                onChange={(date) => setValue("dob", date)}
+                placeholder="Select date of birth"
+                disabled={isSubmitting}
+                className={errors.dob ? "border-red-500" : ""}
+              />
+              {errors.dob && (
+                <p className="text-sm text-destructive">{errors.dob.message}</p>
+              )}
             </div>
-          </RadioGroup>
-          {errors.gender && (
-            <p className="text-sm text-destructive">{errors.gender.message}</p>
-          )}
-        </div>
+            <InputField
+              control={control}
+              name="age"
+              label="Age"
+              type="number"
+              placeholder="Age will be calculated from DOB"
+              required
+              disabled={true}
+              className={errors.age ? "border-red-500" : ""}
+            />
+          </FormRow>
+        </FormSection>
 
-        <div className="space-y-2">
-          <Label htmlFor="age">Age</Label>
-          <Input
-            id="age"
-            type="number"
-            {...register("age", { valueAsNumber: true })}
-            placeholder="Enter age"
-          />
-          {errors.age && (
-            <p className="text-sm text-destructive">{errors.age.message}</p>
-          )}
-        </div>
-      </div>
+        <FormSection title="Address Information">
+          <FormRow>
+            <div className="space-y-2">
+              <Label htmlFor="district">District</Label>
+              <Input
+                id="district"
+                placeholder="Search for a District"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                }}
+                className={errors.district ? "border-red-500" : ""}
+              />
+              {errors.district && (
+                <p className="text-xs text-red-500 flex items-center mt-1">
+                </p>
+              )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="dob">Date of Birth</Label>
-          <DatePicker
-            value={watchedDob}
-            onChange={(date) => setValue("dob", date)}
-            placeholder="Select date of birth"
-            disabled={isSubmitting}
-          />
-          {errors.dob && (
-            <p className="text-sm text-destructive">{errors.dob.message}</p>
-          )}
-        </div>
+              {searchTerm && filteredDistricts.length > 0 && selectedDistrict?.name !== searchTerm &&(
+                <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded shadow max-h-40 overflow-y-auto">
+                  {filteredDistricts.map((district) => (
+                    <li
+                      key={district.id}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSelectedDistrict(district);
+                        setDistrictList([]);
+                        setSearchTerm(district.name);
+                      }}
+                    >
+                      {district.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-        <div className="space-y-2 relative">
-          <Label htmlFor="district">District</Label>
-          <Input
-            id="district"
-            placeholder="Search for a District"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-            }}
-            className={errors.district ? "border-red-500" : ""}
-          />
-          {errors.district && (
-            <p className="text-xs text-red-500 flex items-center mt-1">
-            </p>
-          )}
+              {selectedDistrict && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Selected: <strong>{selectedDistrict.name}</strong>
+                </p>
+              )}
+            </div>
+            <InputField
+              control={control}
+              name="city"
+              label="City"
+              placeholder="Enter city"
+              className={errors.city ? "border-red-500" : ""}
+            />
+          </FormRow>
 
-          {searchTerm && filteredDistricts.length > 0 && selectedDistrict?.name !== searchTerm &&(
-            <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded shadow max-h-40 overflow-y-auto">
-              {filteredDistricts.map((district) => (
-                <li
-                  key={district.id}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setSelectedDistrict(district);
-                    setDistrictList([]);
-                    setSearchTerm(district.name);
-                  }}
-                >
-                  {district.name}
-                </li>
-              ))}
-            </ul>
-          )}
+          <FormRow>
+            <InputField
+              control={control}
+              name="address"
+              label="Locality"
+              placeholder="Enter address (optional)"
+              className={errors.address ? "border-red-500" : ""}
+            />
+            <div className="space-y-2">
+              {/* Empty div for layout */}
+            </div>
+          </FormRow>
+        </FormSection>
 
-          {selectedDistrict && (
-            <p className="text-sm text-gray-600 mt-1">
-              Selected: <strong>{selectedDistrict.name}</strong>
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="city">City</Label>
-          <Input
-            id="city"
-            {...register("city")}
-            placeholder="Enter city"
-          />
-          {errors.city && (
-            <p className="text-sm text-destructive">{errors.city.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="address">Locality</Label>
-          <Input
-            id="address"
-            {...register("address")}
-            placeholder="Enter address (optional)"
-          />
-          {errors.address && (
-            <p className="text-sm text-destructive">{errors.address.message}</p>
-          )}
-        </div>
-      </div>
-
-      {showSubmitButton && (
-        <div className="flex justify-end space-x-4 pt-4">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {patient?.id ? "Updating..." : "Creating..."}
-              </>
-            ) : (
-              patient?.id ? "Update Patient" : "Create Patient"
-            )}
-          </Button>
-        </div>
-      )}
-    </form>
+        {showSubmitButton && (
+          <div className="flex justify-end space-x-4 pt-4">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {patient?.id ? "Updating..." : "Creating..."}
+                </>
+              ) : (
+                patient?.id ? "Update Patient" : "Create Patient"
+              )}
+            </Button>
+          </div>
+        )}
+      </form>
+    </Form>
   );
 });
 
