@@ -5,7 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -16,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import PatientService from "@/admin/modules/patient/services/patientService";
-import { AlertCircle, User } from "lucide-react";
+import { AlertCircle, Loader2, User } from "lucide-react";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
 import { Form } from "@/components/ui/form";
 import { uid } from "node_modules/chart.js/dist/helpers/helpers.core";
@@ -187,13 +189,13 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-5xl max-h-[90vh]" mobileDrawer={true}>
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle>
             {patient ? "Edit Patient" : "Add New Patient"}
           </DialogTitle>
         </DialogHeader>
-
+        <DialogBody className="flex-1 overflow-y-auto px-6 py-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -367,20 +369,33 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patient }: PatientFormDial
             )}
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : patient ? "Update Patient" : "Create Patient"}
-            </Button>
-          </div>
+         
         </form>
+        </DialogBody>
+        <DialogFooter className="border-t pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            onClick={handleSubmit(onSubmit)}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {patient ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              patient ? "Update Patient" : "Create Patient"
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
