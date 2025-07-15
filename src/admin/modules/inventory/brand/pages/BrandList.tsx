@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +23,7 @@ import { Brand } from "../types/Brand";
 import BrandService from "../service/BrandService";
 import BrandTable from "../components/BrandTable";
 import BrandForm from "../components/BrandForm";
-
+import FormDialog from "@/admin/components/dialogs/FormDialog";
 
 const BrandList = () => {
   const navigate = useNavigate();
@@ -184,66 +183,6 @@ const BrandList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Brand</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <BrandForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Brand</DialogTitle>
-            <DialogDescription>Add a new brand to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <BrandForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!brandToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Brand</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <BrandForm brand={brandToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Brand</DialogTitle>
-            <DialogDescription>Update brand information.</DialogDescription>
-          </DialogHeader>
-          <BrandForm brand={brandToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredBrands.length || 0;
   const loadedElements = filteredBrands.length || 0;
 
@@ -285,19 +224,32 @@ const BrandList = () => {
           </div>
         ) : (
           <div>
-            
-              <BrandTable 
-                brands={filteredBrands} 
-                onDelete={handleDeleteBrand}
-                onEdit={handleEditBrand}
-              />
-           
+            <BrandTable 
+              brands={filteredBrands} 
+              onDelete={handleDeleteBrand}
+              onEdit={handleEditBrand}
+            />
           </div>
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Brand"
+        description="Add a new brand to your clinic network."
+      >
+        <BrandForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Brand"
+        description="Update brand information."
+      >
+        <BrandForm brand={brandToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

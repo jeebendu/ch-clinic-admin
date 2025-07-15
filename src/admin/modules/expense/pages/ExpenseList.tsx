@@ -1,26 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
-import { useToast } from "@/components/ui/use-toast";
+import AdminLayout from "@/admin/components/AdminLayout";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog";
-import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import ExpenseService from "../service/ExpenseService";
-import ExpenseTable from "../components/ExpenseTable";
 import { Expense } from "../types/Expense";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
+import { ExpenseService } from "../service/ExpenseService";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useQuery } from "@tanstack/react-query";
+import ExpenseTable from "../components/ExpenseTable";
+import ExpenseForm from "../components/ExpenseForm";
+import FormDialog from "@/components/ui/form-dialog";
 
 const ExpenseList = () => {
   const navigate = useNavigate();
@@ -38,8 +31,8 @@ const ExpenseList = () => {
   
   const [expenseToEdit, setExpenseToEdit] = useState<Expense | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-  const [expenseList,setExpenseList] = useState<Expense[]>([]);
-  
+
+  // Define filter options
   const [filters, setFilters] = useState<FilterOption[]>([
     {
       id: 'status',
@@ -71,18 +64,38 @@ const ExpenseList = () => {
     queryKey: ['expense', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
       const response = await ExpenseService.list();
-      console.log("Expense API response (direct):", response.data);
-      setExpenseList(response.data);
+      console.log("Expense API response (direct):", response);
       return response;
     },
   });
 
  
   const expense = Array.isArray(data) ? data : [];
-  console.log("Extracted Expenses:", expense);
-  console.log("Expense List:", expenseList);
-
+  
  
+  const filteredExpense = expense.filter(expense => {
+    // Filter by search term
+    if (searchTerm && !expense.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !expense.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !expense.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // Filter by status
+    if (selectedFilters.status.length > 0) {
+      const statusMatch = selectedFilters.status.includes(expense.active ? 'active' : 'inactive');
+      if (!statusMatch) return false;
+    }
+
+    // Filter by location
+    if (selectedFilters.location.length > 0) {
+      const locationMatch = selectedFilters.location.includes(expense.location.toLowerCase());
+      if (!locationMatch) return false;
+    }
+
+    return true;
+  });
+
   useEffect(() => {
     setViewMode(isMobile ? 'list' : 'grid');
   }, [isMobile]);
@@ -140,8 +153,10 @@ const ExpenseList = () => {
       const newFilters = {...prev};
       
       if (newFilters[filterId].includes(optionId)) {
+        // Remove filter if already selected
         newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
       } else {
+        // Add filter if not already selected
         newFilters[filterId] = [...newFilters[filterId], optionId];
       }
       
@@ -157,68 +172,8 @@ const ExpenseList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Expense</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              {/* <ExpenseForm onSuccess={handleCloseForm} /> */}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Expense</DialogTitle>
-            <DialogDescription>Add a new Expense to your network.</DialogDescription>
-          </DialogHeader>
-          {/* <ExpenseForm onSuccess={handleCloseForm} /> */}
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!expenseToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Expence</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              {/* <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} /> */}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Expense</DialogTitle>
-            <DialogDescription>Update expense information.</DialogDescription>
-          </DialogHeader>
-          {/* <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} /> */}
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const totalElements = expense.length || 0;
-  const loadedElements = expense.length || 0;
+  const totalElements = filteredExpense.length || 0;
+  const loadedElements = filteredExpense.length || 0;
 
   return (
     <AdminLayout>
@@ -254,13 +209,13 @@ const ExpenseList = () => {
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading Expences. Please try again.</p>
+            <p className="text-destructive">Error loading Expenses. Please try again.</p>
           </div>
         ) : (
           <div>
             {viewMode === 'grid' && (
               <ExpenseTable 
-                expense={expenseList} 
+                expense={filteredExpense} 
                 onDelete={handleDeleteExpense}
                 onEdit={handleEditExpense}
               />
@@ -269,8 +224,23 @@ const ExpenseList = () => {
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Expense"
+        description="Add a new Expense to your network."
+      >
+        <ExpenseForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Expense"
+        description="Update expense information."
+      >
+        <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +24,7 @@ import CouncilForm from "../components/DegreeForm";
 import { MedicalDegree } from "../types/MedicalDegree";
 import DegreeForm from "../components/DegreeForm";
 import DegreeTable from "../components/DegreeTable";
+import FormDialog from "@/admin/components/dialogs/FormDialog";
 
 const MedicalDegreeList = () => {
   const navigate = useNavigate();
@@ -162,66 +162,6 @@ const MedicalDegreeList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Degree</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-            <DegreeForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Degree</DialogTitle>
-            <DialogDescription>Add a new Degree to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <DegreeForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!degreeToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Degree</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-            <DegreeForm council={degreeToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Degree</DialogTitle>
-            <DialogDescription>Update degree information.</DialogDescription>
-          </DialogHeader>
-          <DegreeForm council={degreeToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredBranches.length || 0;
   const loadedElements = filteredBranches.length || 0;
 
@@ -274,8 +214,23 @@ const MedicalDegreeList = () => {
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Degree"
+        description="Add a new Degree to your clinic network."
+      >
+        <DegreeForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Degree"
+        description="Update degree information."
+      >
+        <DegreeForm council={degreeToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

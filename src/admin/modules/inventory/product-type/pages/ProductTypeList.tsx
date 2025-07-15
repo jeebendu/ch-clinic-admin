@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +23,7 @@ import ProductTypeForm from "../components/ProductTypeForm";
 import { ProductType } from "../types/ProductType";
 import ProductTypeTable from "../components/ProductTypeTable";
 import ProductTypeService from "../service/ProductTypeService";
-
+import FormDialog from "@/admin/components/dialogs/FormDialog";
 
 const ProductTypeList = () => {
   const navigate = useNavigate();
@@ -184,66 +183,6 @@ const ProductTypeList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Product-Type</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <ProductTypeForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Product-Type</DialogTitle>
-            <DialogDescription>Add a new Product-Type to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <ProductTypeForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!typeToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Product-Type</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <ProductTypeForm type={typeToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Product-Type</DialogTitle>
-            <DialogDescription>Update Product-Type information.</DialogDescription>
-          </DialogHeader>
-          <ProductTypeForm type={typeToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredTypes.length || 0;
   const loadedElements = filteredTypes.length || 0;
 
@@ -285,19 +224,32 @@ const ProductTypeList = () => {
           </div>
         ) : (
           <div>
-            
-              <ProductTypeTable 
-                types={filteredTypes} 
-                onDelete={handleDeleteType}
-                onEdit={handleEditType}
-              />
-           
+            <ProductTypeTable 
+              types={filteredTypes} 
+              onDelete={handleDeleteType}
+              onEdit={handleEditType}
+            />
           </div>
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Product-Type"
+        description="Add a new Product-Type to your clinic network."
+      >
+        <ProductTypeForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Product-Type"
+        description="Update Product-Type information."
+      >
+        <ProductTypeForm type={typeToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

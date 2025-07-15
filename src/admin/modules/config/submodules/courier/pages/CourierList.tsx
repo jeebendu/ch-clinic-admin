@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -184,49 +183,6 @@ const CourierList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    return (
-      <FormDialog
-        isOpen={isAddFormOpen}
-        onClose={() => setIsAddFormOpen(false)}
-        title="Add New Courier"
-      >
-        <CourierForm onSuccess={handleCloseForm} />
-      </FormDialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!courierToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Courier</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <CourierForm courier={courierToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Courier</DialogTitle>
-            <DialogDescription>Update courier information.</DialogDescription>
-          </DialogHeader>
-          <CourierForm courier={courierToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredCouriers.length || 0;
   const loadedElements = filteredCouriers.length || 0;
 
@@ -279,8 +235,23 @@ const CourierList = () => {
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Courier"
+        description="Add a new courier to your clinic network."
+      >
+        <CourierForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Courier"
+        description="Update courier information."
+      >
+        <CourierForm courier={courierToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

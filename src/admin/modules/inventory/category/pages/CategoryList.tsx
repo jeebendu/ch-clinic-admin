@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +23,7 @@ import CategoryService from "../service/categoryServices";
 import { Category } from "../types/Category";
 import CategoryForm from "../components/CategoryForm";
 import CategoryTable from "../components/CategoryTable";
+import FormDialog from "@/components/ui/form-dialog";
 
 
 const CategoryList = () => {
@@ -184,66 +184,6 @@ const CategoryList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Category</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <CategoryForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Category</DialogTitle>
-            <DialogDescription>Add a new category to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <CategoryForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!categoryToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Category</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <CategoryForm category={categoryToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Category</DialogTitle>
-            <DialogDescription>Update category information.</DialogDescription>
-          </DialogHeader>
-          <CategoryForm category={categoryToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredCategories.length || 0;
   const loadedElements = filteredCategories.length || 0;
 
@@ -277,27 +217,40 @@ const CategoryList = () => {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading Categories...</p>
+            <p className="text-muted-foreground">Loading categories...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading Categories. Please try again.</p>
+            <p className="text-destructive">Error loading categories. Please try again.</p>
           </div>
         ) : (
           <div>
-            
-              <CategoryTable 
-                categories={filteredCategories} 
-                onDelete={handleDeleteCategory}
-                onEdit={handleEditCategory}
-              />
-           
+            <CategoryTable 
+              categories={filteredCategories} 
+              onDelete={handleDeleteCategory}
+              onEdit={handleEditCategory}
+            />
           </div>
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Category"
+        description="Add a new category to your clinic network."
+      >
+        <CategoryForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Category"
+        description="Update category information."
+      >
+        <CategoryForm category={categoryToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
-import ClinicService from '../services/clinic/clinicService';
-import { Clinic } from "../types/Clinic";
-import ClinicTable from "../components/clinic/ClinicTable";
-import ClinicCardList from "../components/clinic/ClinicCardList";
-import ClinicForm from "../components/clinic/ClinicForm";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import FormDialog from "@/components/ui/form-dialog";
+import FormDialog from "@/admin/components/dialogs/FormDialog";
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -23,12 +17,20 @@ import {
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import { Building2 } from "lucide-react";
+import { Tenant } from "../types/Tenant";
+import TenantService from "../service/TenantService";
+import TenantForm from "../components/tenant/TenantForm";
+import ClinicCardList from "../components/clinic/ClinicCardList";
+
+interface DataTableSearch {
+  q?: string;
+}
 
 const ClinicsList = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(isMobile ? 'list' : 'grid');
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
@@ -36,11 +38,12 @@ const ClinicsList = () => {
   const [showFilter, setShowFilter] = useState(false);
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [clinicToDelete, setClinicToDelete] = useState<number | null>(null);
+  const [tenantToDelete, setTenantToDelete] = useState<number | null>(null);
   
-  const [clinicToEdit, setClinicToEdit] = useState<Clinic | null>(null);
+  const [tenantToEdit, setTenantToEdit] = useState<Tenant | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
+  // Define filter options
   const [filters, setFilters] = useState<FilterOption[]>([
     {
       id: 'status',
@@ -49,38 +52,54 @@ const ClinicsList = () => {
         { id: 'active', label: 'Active' },
         { id: 'inactive', label: 'Inactive' }
       ]
+    },
+    {
+      id: 'location',
+      label: 'Location',
+      options: [
+        { id: 'central', label: 'Central' },
+        { id: 'east', label: 'East' },
+        { id: 'west', label: 'West' },
+        { id: 'north', label: 'North' },
+        { id: 'south', label: 'South' }
+      ]
     }
   ]);
   
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
-    status: []
+    status: [],
+    location: []
   });
 
-  // For development, using mock service
-  const clinicService = ClinicService;
-
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['clinics', page, size, searchTerm, selectedFilters],
+    queryKey: ['tenants', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
-      const response = await clinicService.list();
-      console.log("Clinic API response:", response);
+      const params: DataTableSearch = {};
+      if (searchTerm) {
+        params.q = searchTerm;
+      }
+      const response = await TenantService.list(params);
+      console.log("Tenant API response (direct):", response);
       return response;
     },
   });
 
-  const clinics = Array.isArray(data) ? data : [];
+  // Extract tenants from the response
+  const tenants = Array.isArray(data) ? data : [];
+  console.log("Extracted tenants:", tenants);
 
-  const filteredClinics = clinics.filter(clinic => {
-    // Apply search filter
-    if (searchTerm && !clinic.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !clinic.tenant?.title?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !clinic.tenant?.clientUrl?.toLowerCase().includes(searchTerm.toLowerCase())) {
+  // Filter tenants based on search term and filters
+  const filteredTenants = tenants.filter(tenant => {
+    // Filter by search term
+    if (searchTerm && !tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !tenant.email.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !tenant.mobile.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
-    // Apply status filter if any selected
+    // Filter by status
     if (selectedFilters.status.length > 0) {
-      const statusMatch = selectedFilters.status.includes(clinic.tenant?.status === 'active' ? 'active' : 'inactive');
+      const statusMatch = selectedFilters.status.includes(tenant.active ? 'active' : 'inactive');
       if (!statusMatch) return false;
     }
 
@@ -88,72 +107,52 @@ const ClinicsList = () => {
   });
 
   useEffect(() => {
-    setViewMode('list'); // Always default to list
+    setViewMode(isMobile ? 'list' : 'grid');
   }, [isMobile]);
 
   const toggleViewMode = () => {
-    setViewMode(viewMode === 'list' ? 'table' : 'list');
+    setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
-  const handleAddClinic = () => {
-    setClinicToEdit(null);
+  const handleAddTenant = () => {
+    setTenantToEdit(null);
     setIsAddFormOpen(true);
   };
 
   const handleCloseForm = () => {
     setIsAddFormOpen(false);
     setIsEditFormOpen(false);
-    setClinicToEdit(null);
+    setTenantToEdit(null);
     refetch();
   };
 
-  const handleEditClinic = (clinic: Clinic) => {
-    setClinicToEdit(clinic);
+  const handleEditTenant = (tenant: Tenant) => {
+    setTenantToEdit(tenant);
     setIsEditFormOpen(true);
   };
 
-  const handleDeleteClinic = (id: number) => {
-    setClinicToDelete(id);
+  const handleDeleteTenant = (id: number) => {
+    setTenantToDelete(id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (clinicToDelete === null) return;
+    if (tenantToDelete === null) return;
     
     try {
-      await clinicService.deleteById(clinicToDelete);
+      await TenantService.deleteById(tenantToDelete);
       toast({
-        title: "Clinic deleted",
-        description: "Clinic has been successfully deleted.",
+        title: "Tenant deleted",
+        description: "Tenant has been successfully deleted.",
         className: "bg-clinic-primary text-white"
       });
       refetch();
       setDeleteDialogOpen(false);
-      setClinicToDelete(null);
+      setTenantToDelete(null);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete clinic.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleToggleClinicStatus = async (clinic: Clinic) => {
-    const currentStatus = clinic.tenant?.status === 'active';
-    const newStatus = !currentStatus;
-    try {
-      await clinicService.updateStatus(clinic.id as number, newStatus);
-      toast({
-        title: `Clinic ${newStatus ? 'activated' : 'deactivated'}`,
-        description: `${clinic.name} is now ${newStatus ? 'active' : 'inactive'}.`,
-        className: `${newStatus ? 'bg-green-600' : 'bg-red-600'} text-white`
-      });
-      refetch();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update clinic status.",
+        description: "Failed to delete tenant.",
         variant: "destructive",
       });
     }
@@ -164,8 +163,10 @@ const ClinicsList = () => {
       const newFilters = {...prev};
       
       if (newFilters[filterId].includes(optionId)) {
+        // Remove filter if already selected
         newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
       } else {
+        // Add filter if not already selected
         newFilters[filterId] = [...newFilters[filterId], optionId];
       }
       
@@ -175,78 +176,30 @@ const ClinicsList = () => {
 
   const handleClearFilters = () => {
     setSelectedFilters({
-      status: []
+      status: [],
+      location: []
     });
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    return (
-      <FormDialog
-        isOpen={isAddFormOpen}
-        onClose={() => setIsAddFormOpen(false)}
-        title="Add New Clinic"
-      >
-        <ClinicForm onSuccess={handleCloseForm} />
-      </FormDialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!clinicToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Clinic</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <ClinicForm clinic={clinicToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Clinic</DialogTitle>
-            <DialogDescription>Update clinic information.</DialogDescription>
-          </DialogHeader>
-          <ClinicForm clinic={clinicToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const totalElements = filteredClinics.length || 0;
-  const loadedElements = filteredClinics.length || 0;
-
-  // Count active vs. inactive
-  const activeClinics = clinics.filter(c => c.tenant?.status === 'active').length;
-  const inactiveClinics = clinics.filter(c => c.tenant?.status !== 'active').length;
+  const totalElements = filteredTenants.length || 0;
+  const loadedElements = filteredTenants.length || 0;
 
   return (
     <AdminLayout>
       <div className="space-y-4">
         <PageHeader 
           title="Clinics" 
-          description={`Manage all active (${activeClinics}) and inactive (${inactiveClinics}) clinics in the system`}
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
           showAddButton={true}
           addButtonLabel="Add Clinic"
-          onAddButtonClick={handleAddClinic}
+          onAddButtonClick={handleAddTenant}
           onRefreshClick={() => refetch()}
           loadedElements={loadedElements}
           totalElements={totalElements}
           onFilterToggle={() => setShowFilter(!showFilter)}
           showFilter={showFilter}
-          icon={<Building2 className="mr-2 h-5 w-5" />}
         />
 
         {showFilter && (
@@ -262,47 +215,54 @@ const ClinicsList = () => {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading clinics...</p>
+            <p className="text-muted-foreground">Loading tenants...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading clinics. Please try again.</p>
+            <p className="text-destructive">Error loading tenants. Please try again.</p>
           </div>
         ) : (
           <div>
-            {viewMode === 'table' ? (
-              <ClinicTable 
-                clinics={filteredClinics} 
-                onDelete={handleDeleteClinic}
-                onEdit={handleEditClinic}
-                onToggleStatus={handleToggleClinicStatus}
-              />
-            ) : (
+            {viewMode === 'grid' && (
               <ClinicCardList 
-                clinics={filteredClinics} 
-                onDelete={handleDeleteClinic}
-                onEdit={handleEditClinic}
-                onToggleStatus={handleToggleClinicStatus}
+                tenants={filteredTenants} 
+                onDelete={handleDeleteTenant}
+                onEdit={handleEditTenant}
               />
             )}
           </div>
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Tenant"
+        description="Add a new tenant to your clinic network."
+      >
+        <TenantForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Tenant"
+        description="Update tenant information."
+      >
+        <TenantForm tenant={tenantToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the clinic
+              This action cannot be undone. This will permanently delete the tenant
               and remove all associated data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setClinicToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setTenantToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>

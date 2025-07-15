@@ -1,18 +1,27 @@
-import React, { useEffect, useState } from "react";
-import PageHeader from "@/admin/components/PageHeader";
-import AdminLayout from "@/admin/components/AdminLayout";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { useNavigate } from "react-router-dom";
+import { AdminLayout } from "@/admin/components/AdminLayout";
+import PageHeader from "@/admin/components/PageHeader";
+
+import { useToast } from "@/components/ui/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Order } from "../types/PurchaseOrder";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
+import { PurchaseOrder } from "../types/PurchaseOrder";
 import PurchaseOrderService from "../service/PurchaseOrderService";
 import PurchaseOrderTable from "../components/PurchaseOrderTable";
-
 
 const PurchaseOrderList = () => {
   const navigate = useNavigate();
@@ -28,7 +37,7 @@ const PurchaseOrderList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
   
-  const [orderToEdit, setOrderToEdit] = useState<Order | null>(null);
+  const [orderToEdit, setOrderToEdit] = useState<PurchaseOrder | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   // Define filter options
@@ -60,35 +69,36 @@ const PurchaseOrderList = () => {
   });
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['order', page, size, searchTerm, selectedFilters],
+    queryKey: ['orders', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
       const response = await PurchaseOrderService.list();
-      return response.data;
+      // console.log("PurchaseOrder API response (direct):", response);
+      return response;
     },
   });
 
-  // Extract branches from the response
+  // Extract orders from the response
   const orders = Array.isArray(data) ? data : [];
-  
+  // console.log("Extracted orders:", orders);
 
-  // Filter branches based on search term and filters
-  const filteredOrders = orders.filter(user => {
+  // Filter orders based on search term and filters
+  const filteredOrders = orders.filter(order => {
     // Filter by search term
-    if (searchTerm && !user.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !user.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !user.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+    if (searchTerm && !order.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !order.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !order.location.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
     // Filter by status
     if (selectedFilters.status.length > 0) {
-      const statusMatch = selectedFilters.status.includes(user.active ? 'active' : 'inactive');
+      const statusMatch = selectedFilters.status.includes(order.active ? 'active' : 'inactive');
       if (!statusMatch) return false;
     }
 
     // Filter by location
     if (selectedFilters.location.length > 0) {
-      const locationMatch = selectedFilters.location.includes(user.location.toLowerCase());
+      const locationMatch = selectedFilters.location.includes(order.location.toLowerCase());
       if (!locationMatch) return false;
     }
 
@@ -115,8 +125,8 @@ const PurchaseOrderList = () => {
     refetch();
   };
 
-  const handleEditOrder = (user: Order) => {
-    setOrderToEdit(user);
+  const handleEditOrder = (order: PurchaseOrder) => {
+    setOrderToEdit(order);
     setIsEditFormOpen(true);
   };
 
@@ -131,8 +141,8 @@ const PurchaseOrderList = () => {
     try {
       await PurchaseOrderService.deleteById(orderToDelete);
       toast({
-        title: "Order deleted",
-        description: "Order has been successfully deleted.",
+        title: "Purchase Order deleted",
+        description: "Purchase Order has been successfully deleted.",
         className: "bg-clinic-primary text-white"
       });
       refetch();
@@ -141,7 +151,7 @@ const PurchaseOrderList = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete user.",
+        description: "Failed to delete purchase order.",
         variant: "destructive",
       });
     }
@@ -171,66 +181,6 @@ const PurchaseOrderList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Order</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              {/* <UserForm onSuccess={handleCloseForm} /> */}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Order</DialogTitle>
-            <DialogDescription>Add a new Order to your network.</DialogDescription>
-          </DialogHeader>
-          {/* <UserForm onSuccess={handleCloseForm} /> */}
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!orderToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Order</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              {/* <UserForm user={userToEdit} onSuccess={handleCloseForm} /> */}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Order</DialogTitle>
-            <DialogDescription>Update Order information.</DialogDescription>
-          </DialogHeader>
-          {/* <UserForm user={userToEdit} onSuccess={handleCloseForm} /> */}
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredOrders.length || 0;
   const loadedElements = filteredOrders.length || 0;
 
@@ -238,11 +188,11 @@ const PurchaseOrderList = () => {
     <AdminLayout>
       <div className="space-y-4">
         <PageHeader 
-          title="Orders" 
+          title="Purchase Orders" 
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
           showAddButton={true}
-          addButtonLabel="Add Order"
+          addButtonLabel="Add Purchase Order"
           onAddButtonClick={handleAddOrder}
           onRefreshClick={() => refetch()}
           loadedElements={loadedElements}
@@ -264,11 +214,11 @@ const PurchaseOrderList = () => {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading orders...</p>
+            <p className="text-muted-foreground">Loading purchase orders...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading orders. Please try again.</p>
+            <p className="text-destructive">Error loading purchase orders. Please try again.</p>
           </div>
         ) : (
           <div>
@@ -283,15 +233,30 @@ const PurchaseOrderList = () => {
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Purchase Order"
+        description="Add a new purchase order to your network."
+      >
+        {/* <PurchaseOrderForm onSuccess={handleCloseForm} /> */}
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Purchase Order"
+        description="Update purchase order information."
+      >
+        {/* <PurchaseOrderForm order={orderToEdit} onSuccess={handleCloseForm} /> */}
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the order
+              This action cannot be undone. This will permanently delete the purchase order
               and remove all associated data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>

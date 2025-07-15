@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +23,7 @@ import { Distributor } from "../types/Distributor";
 import DistributorService from "../services/distributorService";
 import DistributorForm from "../components/DistributorForm";
 import DistributorTable from "../components/DistributorTable";
-
+import FormDialog from "@/admin/components/dialogs/FormDialog";
 
 const DistributorList = () => {
   const navigate = useNavigate();
@@ -184,66 +183,6 @@ const DistributorList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Distributor</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <DistributorForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Distributor</DialogTitle>
-            <DialogDescription>Add a new distributor to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <DistributorForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!distributorToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Distributor</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <DistributorForm distributor={distributorToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Distributor</DialogTitle>
-            <DialogDescription>Update distributor information.</DialogDescription>
-          </DialogHeader>
-          <DistributorForm distributor={distributorToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredDistributors.length || 0;
   const loadedElements = filteredDistributors.length || 0;
 
@@ -277,27 +216,42 @@ const DistributorList = () => {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading Distributors...</p>
+            <p className="text-muted-foreground">Loading distributors...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading Distributors. Please try again.</p>
+            <p className="text-destructive">Error loading distributors. Please try again.</p>
           </div>
         ) : (
           <div>
-            
+            {viewMode === 'grid' && (
               <DistributorTable 
                 distributors={filteredDistributors} 
                 onDelete={handleDeleteDistributor}
                 onEdit={handleEditDistributor}
               />
-           
+            )}
           </div>
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Distributor"
+        description="Add a new distributor to your clinic network."
+      >
+        <DistributorForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Distributor"
+        description="Update distributor information."
+      >
+        <DistributorForm distributor={distributorToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

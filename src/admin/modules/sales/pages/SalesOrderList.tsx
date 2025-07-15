@@ -180,7 +180,7 @@ const SalesOrderList = () => {
               <DrawerTitle className="text-clinic-primary">Add New Order</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-4">
-              {/* <UserForm onSuccess={handleCloseForm} /> */}
+              {/* <OrderForm onSuccess={handleCloseForm} /> */}
             </div>
           </DrawerContent>
         </Drawer>
@@ -194,38 +194,7 @@ const SalesOrderList = () => {
             <DialogTitle className="text-clinic-primary">Add New Order</DialogTitle>
             <DialogDescription>Add a new Order to your network.</DialogDescription>
           </DialogHeader>
-          {/* <UserForm onSuccess={handleCloseForm} /> */}
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!orderToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Order</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              {/* <UserForm user={userToEdit} onSuccess={handleCloseForm} /> */}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Order</DialogTitle>
-            <DialogDescription>Update Order information.</DialogDescription>
-          </DialogHeader>
-          {/* <UserForm user={userToEdit} onSuccess={handleCloseForm} /> */}
+          {/* <OrderForm onSuccess={handleCloseForm} /> */}
         </DialogContent>
       </Dialog>
     );
@@ -283,8 +252,23 @@ const SalesOrderList = () => {
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Order"
+        description="Add a new Order to your network."
+      >
+        {/* <OrderForm onSuccess={handleCloseForm} /> */}
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Order"
+        description="Update Order information."
+      >
+        {/* <OrderForm order={orderToEdit} onSuccess={handleCloseForm} /> */}
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

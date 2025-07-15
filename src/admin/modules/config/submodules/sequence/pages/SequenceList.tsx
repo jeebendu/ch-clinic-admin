@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +23,7 @@ import { Sequence } from "../types/sequence";
 import SequenceService from "../services/sequenceService";
 import SequenceForm from "../components/SequenceForm";
 import SequenceTable from "../components/SequenceTable";
+import FormDialog from "@/admin/components/dialogs/FormDialog";
 
 const SequenceList = () => {
   const navigate = useNavigate();
@@ -183,66 +183,6 @@ const SequenceList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Sequence</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <SequenceForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Sequence</DialogTitle>
-            <DialogDescription>Add a new sequence to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <SequenceForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!sequenceToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Sequence</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <SequenceForm sequence={sequenceToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Sequence</DialogTitle>
-            <DialogDescription>Update sequence information.</DialogDescription>
-          </DialogHeader>
-          <SequenceForm sequence={sequenceToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredSequences.length || 0;
   const loadedElements = filteredSequences.length || 0;
 
@@ -295,8 +235,23 @@ const SequenceList = () => {
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Sequence"
+        description="Add a new sequence to your clinic network."
+      >
+        <SequenceForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Sequence"
+        description="Update sequence information."
+      >
+        <SequenceForm sequence={sequenceToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

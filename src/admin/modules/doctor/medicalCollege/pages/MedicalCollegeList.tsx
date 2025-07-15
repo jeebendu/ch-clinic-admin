@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +22,7 @@ import { MedicalCollege } from "../types/MedicalCollege";
 import MedicalCollegeService from "../services/MedicalCollegeService";
 import MedicalCollegeForm from "../components/MedicalCollegeForm";
 import MedicalCollegeTable from "../components/MedicalCollegeTable";
+import FormDialog from "@/admin/components/dialogs/FormDialog";
 
 const MedicalCollegeList = () => {
   const navigate = useNavigate();
@@ -165,66 +165,6 @@ const MedicalCollegeList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New College</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <MedicalCollegeForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    }
-
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New College</DialogTitle>
-            <DialogDescription>Add a new College to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <MedicalCollegeForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!collegeToEdit) return null;
-
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit College</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <MedicalCollegeForm college={collegeToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    }
-
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit College</DialogTitle>
-            <DialogDescription>Update College information.</DialogDescription>
-          </DialogHeader>
-          <MedicalCollegeForm college={collegeToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredBranches.length || 0;
   const loadedElements = filteredBranches.length || 0;
 
@@ -277,8 +217,23 @@ const MedicalCollegeList = () => {
         )}
       </div>
 
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New College"
+        description="Add a new College to your clinic network."
+      >
+        <MedicalCollegeForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit College"
+        description="Update College information."
+      >
+        <MedicalCollegeForm college={collegeToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

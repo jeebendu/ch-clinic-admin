@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +23,7 @@ import { Product } from "../types/Product";
 import ProductService from "../service/productService";
 import ProductForm from "../components/ProductForm";
 import ProductTable from "../components/ProductTable";
+import FormDialog from "@/admin/components/dialogs/FormDialog";
 
 const ProductList = () => {
   const navigate = useNavigate();
@@ -183,66 +183,6 @@ const ProductList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Product</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <ProductForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Product</DialogTitle>
-            <DialogDescription>Add a new product to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <ProductForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!productToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Product</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <ProductForm product={productToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Product</DialogTitle>
-            <DialogDescription>Update product information.</DialogDescription>
-          </DialogHeader>
-          <ProductForm product={productToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = filteredProducts.length || 0;
   const loadedElements = filteredProducts.length || 0;
 
@@ -284,19 +224,32 @@ const ProductList = () => {
           </div>
         ) : (
           <div>
-            
-              <ProductTable 
-                products={filteredProducts} 
-                onDelete={handleDeleteProduct}
-                onEdit={handleEditProduct}
-              />
-           
+            <ProductTable 
+              products={filteredProducts} 
+              onDelete={handleDeleteProduct}
+              onEdit={handleEditProduct}
+            />
           </div>
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Product"
+        description="Add a new product to your clinic network."
+      >
+        <ProductForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Product"
+        description="Update product information."
+      >
+        <ProductForm product={productToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

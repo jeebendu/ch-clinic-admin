@@ -1,5 +1,3 @@
-
-
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -24,6 +22,7 @@ import AdminLayout from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
 import SpecialityTable from "../components/SpcialityTable";
 import SpecialityForm from "../components/SpecialityForm";
+import FormDialog from "@/components/ui/form-dialog";
 
 const SpecialityList = () => {
   const navigate = useNavigate();
@@ -166,36 +165,6 @@ const SpecialityList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Speciality</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-            <SpecialityForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Speciality</DialogTitle>
-            <DialogDescription>Add a new speciality to your doctor network.</DialogDescription>
-          </DialogHeader>
-          <SpecialityForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-
   const totalElements = filteredSpeciality.length || 0;
   const loadedElements = filteredSpeciality.length || 0;
 
@@ -248,7 +217,23 @@ const SpecialityList = () => {
         )}
       </div>
       
-      {renderForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Speciality"
+        description="Add a new speciality to your doctor network."
+      >
+        <SpecialityForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Speciality"
+        description="Update speciality information."
+      >
+        <SpecialityForm speciality={specialityToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

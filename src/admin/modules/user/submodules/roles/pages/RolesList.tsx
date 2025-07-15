@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
@@ -13,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
 import RoleTable from "../components/RoleTable";
+import FormDialog from "@/components/ui/form-dialog";
 
 const RolesList = () => {
   const navigate = useNavigate();
@@ -172,66 +172,6 @@ const [roleList,setRoleList] = useState<Role[]>([]);
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            {/* <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New Role</DrawerTitle>
-            </DrawerHeader> */}
-            <div className="px-4 pb-4">
-              {/* <ExpenseForm onSuccess={handleCloseForm} /> */}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          {/* <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New Role</DialogTitle>
-            <DialogDescription>Add a new Role to your network.</DialogDescription>
-          </DialogHeader> */}
-          {/* <ExpenseForm onSuccess={handleCloseForm} /> */}
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!roleToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            {/* <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Role</DrawerTitle>
-            </DrawerHeader> */}
-            <div className="px-4 pb-4">
-              {/* <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} /> */}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          {/* <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Role</DialogTitle>
-            <DialogDescription>Update role information.</DialogDescription>
-          </DialogHeader> */}
-          {/* <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} /> */}
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
   const totalElements = role.length || 0;
   const loadedElements = role.length || 0;
 
@@ -284,8 +224,23 @@ const [roleList,setRoleList] = useState<Role[]>([]);
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Role"
+        description="Add a new Role to your network."
+      >
+        {/* <RoleForm onSuccess={handleCloseForm} /> */}
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Role"
+        description="Update role information."
+      >
+        {/* <RoleForm role={roleToEdit} onSuccess={handleCloseForm} /> */}
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -307,6 +262,5 @@ const [roleList,setRoleList] = useState<Role[]>([]);
     </AdminLayout>
   );
 };
-
 
 export default RolesList;

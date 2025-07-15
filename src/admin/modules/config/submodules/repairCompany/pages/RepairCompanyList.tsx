@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +23,7 @@ import { RepairCompany } from "../types/repairCompany";
 import RepairCompanyService from "../services/repairCompanyService";
 import RepairCompanyTable from "../components/RepairCompanyTable";
 import RepairCompanyForm from "../components/RepairCompanyForm";
+import FormDialog from "@/components/ui/form-dialog";
 
 const RepairCompanyList = () => {
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ const RepairCompanyList = () => {
   // console.log("Extracted repairs:", repairs);
 
   // Filter repairs based on search term and filters
-  const filteredRepairCompanyes = repairs.filter(repairCompany => {
+  const filteredRepairCompanies = repairs.filter(repairCompany => {
     // Filter by search term
     if (searchTerm && !repairCompany.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
         !repairCompany.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -183,68 +183,8 @@ const RepairCompanyList = () => {
     setSearchTerm("");
   };
 
-  const renderForm = () => {
-    if (isMobile) {
-      return (
-        <Drawer open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Add New RepairCompany</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <RepairCompanyForm onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Add New RepairCompany</DialogTitle>
-            <DialogDescription>Add a new repairCompany to your clinic network.</DialogDescription>
-          </DialogHeader>
-          <RepairCompanyForm onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditForm = () => {
-    if (!repairToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit RepairCompany</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <RepairCompanyForm repairCompany={repairToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit RepairCompany</DialogTitle>
-            <DialogDescription>Update repairCompany information.</DialogDescription>
-          </DialogHeader>
-          <RepairCompanyForm repairCompany={repairToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const totalElements = filteredRepairCompanyes.length || 0;
-  const loadedElements = filteredRepairCompanyes.length || 0;
+  const totalElements = filteredRepairCompanies.length || 0;
+  const loadedElements = filteredRepairCompanies.length || 0;
 
   return (
     <AdminLayout>
@@ -276,34 +216,49 @@ const RepairCompanyList = () => {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading Repair Companyes...</p>
+            <p className="text-muted-foreground">Loading repair companies...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading Repair Companyes. Please try again.</p>
+            <p className="text-destructive">Error loading repair companies. Please try again.</p>
           </div>
         ) : (
           <div>
-            
+            {viewMode === 'grid' && (
               <RepairCompanyTable 
-                repairs={filteredRepairCompanyes} 
+                repairs={filteredRepairCompanies} 
                 onDelete={handleDeleteRepairCompany}
                 onEdit={handleEditRepairCompany}
               />
-           
+            )}
           </div>
         )}
       </div>
       
-      {renderForm()}
-      {renderEditForm()}
+      <FormDialog
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        title="Add New Repair Company"
+        description="Add a new repair company to your clinic network."
+      >
+        <RepairCompanyForm onSuccess={handleCloseForm} />
+      </FormDialog>
+
+      <FormDialog
+        isOpen={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        title="Edit Repair Company"
+        description="Update repair company information."
+      >
+        <RepairCompanyForm repairCompany={repairToEdit} onSuccess={handleCloseForm} />
+      </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the repairCompany
+              This action cannot be undone. This will permanently delete the repair company
               and remove all associated data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
