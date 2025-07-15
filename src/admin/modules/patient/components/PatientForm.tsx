@@ -358,12 +358,6 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
               )}
             </div>
             <div className="space-y-2">
-              {/* Empty div for layout */}
-            </div>
-          </FormRow>
-
-          <FormRow>
-            <div className="space-y-2">
               <Label htmlFor="dob">Date of Birth</Label>
               <DatePicker
                 value={watchedDob}
@@ -387,6 +381,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
               className={errors.age ? "border-red-500" : ""}
             />
           </FormRow>
+
         </FormSection>
 
         <FormSection title="Address Information">
@@ -425,11 +420,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
                 </ul>
               )}
 
-              {selectedDistrict && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Selected: <strong>{selectedDistrict.name}</strong>
-                </p>
-              )}
+             
             </div>
             <InputField
               control={control}

@@ -13,7 +13,7 @@ export interface BaseFieldProps<T extends FieldValues = FieldValues> {
 }
 
 export interface InputFieldProps<T extends FieldValues = FieldValues> extends BaseFieldProps<T> {
-  type?: "text" | "password";
+  type?: "text" | "password" | "number";
 }
 
 export interface NumberFieldProps<T extends FieldValues = FieldValues> extends BaseFieldProps<T> {
