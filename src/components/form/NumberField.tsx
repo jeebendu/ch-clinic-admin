@@ -43,7 +43,10 @@ function NumberField<T extends FieldValues = FieldValues>({
               min={min}
               max={max}
               step={step}
-              onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+              onChange={(e) => {
+                const value = e.target.value;
+                field.onChange(value === '' ? undefined : Number(value));
+              }}
               className="border-brand-primary/20 focus-visible:ring-brand-primary"
             />
           </FormControl>
