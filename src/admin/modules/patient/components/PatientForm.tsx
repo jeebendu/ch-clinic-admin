@@ -260,7 +260,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstname">First Name</Label>
@@ -287,29 +287,31 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          {...register("email")}
-          placeholder="Enter email address"
-        />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        )}
-      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            {...register("email")}
+            placeholder="Enter email address"
+          />
+          {errors.email && (
+            <p className="text-sm text-destructive">{errors.email.message}</p>
+          )}
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="phone">Phone</Label>
-        <Input
-          id="phone"
-          {...register("phone")}
-          placeholder="Enter phone number"
-        />
-        {errors.phone && (
-          <p className="text-sm text-destructive">{errors.phone.message}</p>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone</Label>
+          <Input
+            id="phone"
+            {...register("phone")}
+            placeholder="Enter phone number"
+          />
+          {errors.phone && (
+            <p className="text-sm text-destructive">{errors.phone.message}</p>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -318,7 +320,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
           <RadioGroup
             value={watchedGender}
             onValueChange={(value) => setValue("gender", value)}
-            className="flex flex-col space-y-2"
+            className="flex flex-row space-x-4"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="Male" id="male" />
@@ -352,83 +354,86 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="dob">Date of Birth</Label>
-        <DatePicker
-          value={watchedDob}
-          onChange={(date) => setValue("dob", date)}
-          placeholder="Select date of birth"
-          disabled={isSubmitting}
-        />
-        {errors.dob && (
-          <p className="text-sm text-destructive">{errors.dob.message}</p>
-        )}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="dob">Date of Birth</Label>
+          <DatePicker
+            value={watchedDob}
+            onChange={(date) => setValue("dob", date)}
+            placeholder="Select date of birth"
+            disabled={isSubmitting}
+          />
+          {errors.dob && (
+            <p className="text-sm text-destructive">{errors.dob.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2 relative">
+          <Label htmlFor="district">District</Label>
+          <Input
+            id="district"
+            placeholder="Search for a District"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+            }}
+            className={errors.district ? "border-red-500" : ""}
+          />
+          {errors.district && (
+            <p className="text-xs text-red-500 flex items-center mt-1">
+            </p>
+          )}
+
+          {searchTerm && filteredDistricts.length > 0 && selectedDistrict?.name !== searchTerm &&(
+            <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded shadow max-h-40 overflow-y-auto">
+              {filteredDistricts.map((district) => (
+                <li
+                  key={district.id}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setSelectedDistrict(district);
+                    setDistrictList([]);
+                    setSearchTerm(district.name);
+                  }}
+                >
+                  {district.name}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {selectedDistrict && (
+            <p className="text-sm text-gray-600 mt-1">
+              Selected: <strong>{selectedDistrict.name}</strong>
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-2 relative">
-        <Label htmlFor="district">District</Label>
-        <Input
-          id="district"
-          placeholder="Search for a District"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-          }}
-          className={errors.district ? "border-red-500" : ""}
-        />
-        {errors.district && (
-          <p className="text-xs text-red-500 flex items-center mt-1">
-          </p>
-        )}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="city">City</Label>
+          <Input
+            id="city"
+            {...register("city")}
+            placeholder="Enter city"
+          />
+          {errors.city && (
+            <p className="text-sm text-destructive">{errors.city.message}</p>
+          )}
+        </div>
 
-        {searchTerm && filteredDistricts.length > 0 && selectedDistrict?.name !== searchTerm &&(
-          <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded shadow max-h-40 overflow-y-auto">
-            {filteredDistricts.map((district) => (
-              <li
-                key={district.id}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => {
-                  setSelectedDistrict(district);
-                  setDistrictList([]);
-                  setSearchTerm(district.name);
-                }}
-              >
-                {district.name}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {selectedDistrict && (
-          <p className="text-sm text-gray-600 mt-1">
-            Selected: <strong>{selectedDistrict.name}</strong>
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="city">City</Label>
-        <Input
-          id="city"
-          type="city"
-          {...register("city")}
-          placeholder="Enter city address"
-        />
-        {errors.city && (
-          <p className="text-sm text-destructive">{errors.city.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="address">Locality</Label>
-        <Input
-          id="address"
-          {...register("address")}
-          placeholder="Enter address (optional)"
-        />
-        {errors.address && (
-          <p className="text-sm text-destructive">{errors.address.message}</p>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="address">Locality</Label>
+          <Input
+            id="address"
+            {...register("address")}
+            placeholder="Enter address (optional)"
+          />
+          {errors.address && (
+            <p className="text-sm text-destructive">{errors.address.message}</p>
+          )}
+        </div>
       </div>
 
       {showSubmitButton && (
