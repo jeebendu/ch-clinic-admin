@@ -46,7 +46,6 @@ interface PatientFormProps {
   patientId?: number;
   patient?: Patient | null;
   onSubmit?: (data: PatientFormData) => Promise<void>;
-  onSave?: (patient: Patient) => void;
   showSubmitButton?: boolean;
   isSubmitting?: boolean;
 }
@@ -55,19 +54,15 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
   patientId,
   patient: initialPatient, 
   onSubmit, 
-  onSave,
   showSubmitButton = true,
-  isSubmitting: externalIsSubmitting = false
+  isSubmitting = false
 }, ref) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [districtList, setDistrictList] = useState<{ name: string, id: number }[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState<{ name: string, id: number } | null>(null);
-  const [internalIsSubmitting, setInternalIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [patient, setPatient] = useState<Patient | null>(initialPatient || null);
   const { toast } = useToast();
-
-  const isSubmitting = externalIsSubmitting || internalIsSubmitting;
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
@@ -208,77 +203,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
     };
 
     if (onSubmit) {
-      // External handler provided (like from dialog)
       await onSubmit(formData);
-    } else {
-      // Handle submission internally - clean save/update logic
-      await handleSaveOrUpdate(formData);
-    }
-  };
-
-  const handleSaveOrUpdate = async (formData: PatientFormData) => {
-    setInternalIsSubmitting(true);
-    try {
-      // Prepare patient data
-      const patientData = {
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        email: formData.email || "",
-        gender: formData.gender,
-        age: formData.age,
-        address: formData.address || "",
-        city: formData.city,
-        district: selectedDistrict,
-        dob: formData.dob,
-        user: {
-          email: formData.email || "",
-          phone: formData.phone,
-          name: `${formData.firstname} ${formData.lastname}`
-        }
-      };
-
-      let result;
-      if (patient?.id) {
-        // Update existing patient
-        const updateData = {
-          ...patientData,
-          id: patient.id,
-          uid: patient.uid,
-          user: {
-            ...patient.user,
-            ...patientData.user
-          },
-        } as Patient;
-
-        result = await PatientService.saveOrUpdate(updateData);
-        toast({
-          title: "Patient updated",
-          description: "Patient information has been successfully updated.",
-        });
-      } else {
-        // Create new patient
-        result = await PatientService.saveOrUpdate(patientData as Omit<Patient, 'id'>);
-        toast({
-          title: "Patient created",
-          description: "New patient has been successfully created.",
-        });
-      }
-
-      // Update local patient state with the response
-      if (result?.data) {
-        setPatient(result.data);
-        // Call onSave with the updated/created patient data
-        onSave?.(result.data);
-      }
-    } catch (error) {
-      console.error("Error saving patient:", error);
-      toast({
-        title: "Error",
-        description: patient?.id ? "Failed to update patient." : "Failed to create patient.",
-        variant: "destructive",
-      });
-    } finally {
-      setInternalIsSubmitting(false);
     }
   };
 
