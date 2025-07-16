@@ -1,3 +1,4 @@
+
 import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,7 +60,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
   const [selectedDistrict, setSelectedDistrict] = useState<{ name: string, id: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [patient, setPatient] = useState<Patient | null>(initialPatient || null);
+  const [patient, setPatient] = useState<Patient | null>(null);
   const { toast } = useToast();
 
   const form = useForm<PatientFormData>({
@@ -106,12 +107,14 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
     }
   }));
 
+  // Fetch patient data from API when editing
   useEffect(() => {
     const fetchPatient = async () => {
-      if (patientId && !initialPatient) {
+      if (patientId) {
         setIsLoading(true);
         try {
           const response = await PatientService.getById(patientId);
+          console.log("Fetched patient data:", response);
           if (response?.data) {
             setPatient(response.data);
           }
@@ -125,19 +128,24 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         } finally {
           setIsLoading(false);
         }
+      } else if (initialPatient) {
+        // If no patientId but we have initial patient data, use it
+        setPatient(initialPatient);
       }
     };
 
     fetchPatient();
   }, [patientId, initialPatient, toast]);
 
+  // Populate form with patient data
   useEffect(() => {
     if (patient) {
+      console.log("Populating form with patient data:", patient);
       reset({
         firstname: patient.firstname || "",
         lastname: patient.lastname || "",
         email: patient.email || patient.user?.email || "",
-        phone: patient.user?.phone || "",
+        phone: patient.user?.phone || patient.mobile || "",
         gender: patient.gender || "",
         age: patient.age || 0,
         address: patient.address || "",
@@ -151,6 +159,7 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         setSearchTerm(patient.district.name || "");
       }
     } else {
+      // Reset form for new patient
       reset({
         firstname: "",
         lastname: "",
@@ -211,21 +220,24 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
       };
 
       let result;
-      if (patientId) {
-        const currentPatient = await PatientService.getById(patientId);
+      if (patientId && patient) {
+        // Update existing patient
         const updateData = {
           ...patientData,
           id: patientId,
-          uid: currentPatient.data?.uid,
+          uid: patient.uid,
           user: {
-            ...currentPatient.data?.user,
+            ...patient.user,
             ...patientData.user
           },
         } as Patient;
         result = await PatientService.saveOrUpdate(updateData);
       } else {
+        // Create new patient
         result = await PatientService.saveOrUpdate(patientData as Omit<Patient, 'id'>);
       }
+
+      console.log("API response:", result);
 
       // Check API response status
       if (result?.status === true) {
