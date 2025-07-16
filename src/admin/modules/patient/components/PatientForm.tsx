@@ -1,4 +1,3 @@
-
 import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,7 +44,7 @@ export interface PatientFormRef {
 interface PatientFormProps {
   patientId?: number;
   patient?: Patient | null;
-  onSuccess?: (patient: Patient) => void;
+  onSuccess?: (response: any) => void;
   showSubmitButton?: boolean;
 }
 
@@ -84,7 +83,6 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
   const watchedGender = watch("gender");
   const watchedDob = watch("dob");
 
-  // Calculate age when DOB changes
   useEffect(() => {
     if (watchedDob) {
       const today = new Date();
@@ -102,14 +100,12 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
     }
   }, [watchedDob, setValue]);
 
-  // Expose submitForm method to parent via ref
   useImperativeHandle(ref, () => ({
     submitForm: () => {
       handleSubmit(handleFormSubmit)();
     }
   }));
 
-  // Fetch patient data if patientId is provided
   useEffect(() => {
     const fetchPatient = async () => {
       if (patientId && !initialPatient) {
@@ -135,7 +131,6 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
     fetchPatient();
   }, [patientId, initialPatient, toast]);
 
-  // Reset form when patient data changes
   useEffect(() => {
     if (patient) {
       reset({
@@ -151,7 +146,6 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         dob: patient.dob ? new Date(patient.dob) : undefined,
       });
 
-      // Set selected district if available
       if (patient.district) {
         setSelectedDistrict(patient.district);
         setSearchTerm(patient.district.name || "");
@@ -218,7 +212,6 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
 
       let result;
       if (patientId) {
-        // Update existing patient - need to get current patient data first
         const currentPatient = await PatientService.getById(patientId);
         const updateData = {
           ...patientData,
@@ -231,27 +224,52 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
         } as Patient;
         result = await PatientService.saveOrUpdate(updateData);
       } else {
-        // Create new patient
         result = await PatientService.saveOrUpdate(patientData as Omit<Patient, 'id'>);
       }
 
-      toast({
-        title: "Success",
-        description: patientId ? "Patient updated successfully." : "Patient created successfully.",
-      });
-
-      // Notify parent component of success
-      if (onSuccess && result?.data) {
-        onSuccess(result.data);
+      // Check API response status
+      if (result?.status === true) {
+        toast({
+          title: "Success",
+          description: result.message || (patientId ? "Patient updated successfully." : "Patient created successfully."),
+          className: "bg-clinic-primary text-white"
+        });
+        
+        // Notify parent component of success with the API response
+        if (onSuccess) {
+          onSuccess(result);
+        }
+      } else {
+        // Handle API error response
+        toast({
+          title: "Error",
+          description: result?.message || (patientId ? "Failed to update patient." : "Failed to create patient."),
+          variant: "destructive",
+        });
+        
+        // Still notify parent but with error status
+        if (onSuccess) {
+          onSuccess(result);
+        }
       }
 
     } catch (error) {
       console.error("Error saving patient:", error);
+      const errorResponse = {
+        status: false,
+        message: patientId ? "Failed to update patient." : "Failed to create patient."
+      };
+      
       toast({
         title: "Error",
-        description: patientId ? "Failed to update patient." : "Failed to create patient.",
+        description: errorResponse.message,
         variant: "destructive",
       });
+      
+      // Notify parent with error response
+      if (onSuccess) {
+        onSuccess(errorResponse);
+      }
     } finally {
       setIsSubmitting(false);
     }

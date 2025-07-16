@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import PatientForm, { PatientFormRef } from "@/admin/modules/patient/components/PatientForm";
@@ -10,14 +9,20 @@ interface PatientFormDialogProps {
   onClose: () => void;
   onSave: (patient?: Patient) => void;
   patientId?: number;
+  patient?: Patient | null;
 }
 
-const PatientFormDialog = ({ isOpen, onClose, onSave, patientId }: PatientFormDialogProps) => {
+const PatientFormDialog = ({ isOpen, onClose, onSave, patientId, patient }: PatientFormDialogProps) => {
   const formRef = useRef<PatientFormRef>(null);
 
-  const handleSuccess = (patient: Patient) => {
-    onSave(patient);
-    onClose();
+  const handleSuccess = (response: any) => {
+    // Check if the API response indicates success
+    if (response?.status === true) {
+      // Close dialog and reload patient list on success
+      onSave(response.data || response);
+      onClose();
+    }
+    // If status is false, keep dialog open (error message already shown by form)
   };
 
   const handleSaveClick = () => {
@@ -52,6 +57,7 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patientId }: PatientFormDi
       <PatientForm 
         ref={formRef}
         patientId={patientId}
+        patient={patient}
         onSuccess={handleSuccess}
         showSubmitButton={false}
       />
