@@ -5,11 +5,12 @@ import { useToast } from "@/hooks/use-toast";
 import PatientForm, { PatientFormRef } from "@/admin/modules/patient/components/PatientForm";
 import FormDialog from "@/components/ui/form-dialog";
 import { Loader2 } from "lucide-react";
+import { Patient } from "@/admin/modules/patient/types/Patient";
 
 interface PatientFormDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (patient?: Patient) => void;
   patientId?: number;
 }
 
@@ -23,7 +24,6 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patientId }: PatientFormDi
     try {
       // The PatientForm will handle the save/update logic internally
       // We just need to handle the dialog-specific actions
-      onSave();
       onClose();
       toast({
         title: "Success",
@@ -38,6 +38,12 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patientId }: PatientFormDi
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePatientSave = (patient: Patient) => {
+    // Call the onSave callback with the patient data
+    onSave(patient);
+    onClose();
   };
 
   const handleSaveClick = () => {
@@ -82,6 +88,7 @@ const PatientFormDialog = ({ isOpen, onClose, onSave, patientId }: PatientFormDi
         ref={formRef}
         patientId={patientId}
         onSubmit={handleFormSubmit}
+        onSave={handlePatientSave}
         isSubmitting={isSubmitting}
         showSubmitButton={false}
       />

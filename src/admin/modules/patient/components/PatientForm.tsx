@@ -46,7 +46,7 @@ interface PatientFormProps {
   patientId?: number;
   patient?: Patient | null;
   onSubmit?: (data: PatientFormData) => Promise<void>;
-  onSave?: () => void;
+  onSave?: (patient: Patient) => void;
   showSubmitButton?: boolean;
   isSubmitting?: boolean;
 }
@@ -267,9 +267,9 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
       // Update local patient state with the response
       if (result?.data) {
         setPatient(result.data);
+        // Call onSave with the updated/created patient data
+        onSave?.(result.data);
       }
-
-      onSave?.();
     } catch (error) {
       console.error("Error saving patient:", error);
       toast({
