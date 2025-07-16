@@ -31,6 +31,9 @@ const UserTable = ({ user, onDelete, onEdit }: UserTableProps) => {
         }
     };
 
+    // Ensure user is always an array
+    const userList = user || [];
+
     return (
         <>
             <div className="bg-white rounded-lg border overflow-hidden">
@@ -48,14 +51,14 @@ const UserTable = ({ user, onDelete, onEdit }: UserTableProps) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {user.length === 0 ? (
+                        {userList.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                                <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
                                     No user found
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            user.map((user) => (
+                            userList.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell className="font-medium">{user.uid}</TableCell>
                                     <TableCell className="font-medium">{user.firstname} {user.lastname}</TableCell>
@@ -65,8 +68,6 @@ const UserTable = ({ user, onDelete, onEdit }: UserTableProps) => {
                                     <TableCell>
                                         {user?.user.effectiveFrom? format(user?.user.effectiveFrom, 'yyyy-MM-dd') :format(new Date(), 'yyyy-MM-dd')}
                                     </TableCell>
-
-
                                     <TableCell>
                                         <span className={`px-2 py-1 text-xs rounded-full ${user?.user?.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                             {user?.user?.status ? 'Active' : 'Inactive'}
