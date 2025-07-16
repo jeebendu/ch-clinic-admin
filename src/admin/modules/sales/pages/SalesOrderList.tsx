@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useNavigate } from "react-router-dom";
@@ -252,23 +252,7 @@ const SalesOrderList = () => {
         )}
       </div>
       
-      <FormDialog
-        isOpen={isAddFormOpen}
-        onClose={() => setIsAddFormOpen(false)}
-        title="Add New Order"
-        description="Add a new Order to your network."
-      >
-        {/* <OrderForm onSuccess={handleCloseForm} /> */}
-      </FormDialog>
-
-      <FormDialog
-        isOpen={isEditFormOpen}
-        onClose={() => setIsEditFormOpen(false)}
-        title="Edit Order"
-        description="Update Order information."
-      >
-        {/* <OrderForm order={orderToEdit} onSuccess={handleCloseForm} /> */}
-      </FormDialog>
+    
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

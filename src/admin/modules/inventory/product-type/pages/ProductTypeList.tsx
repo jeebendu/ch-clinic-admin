@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
@@ -6,24 +6,22 @@ import PageHeader from "@/admin/components/PageHeader";
 
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import ProductTypeForm from "../components/ProductTypeForm";
 import { ProductType } from "../types/ProductType";
 import ProductTypeTable from "../components/ProductTypeTable";
 import ProductTypeService from "../service/ProductTypeService";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
+import FormDialog from "@/components/ui/form-dialog";
 
 const ProductTypeList = () => {
   const navigate = useNavigate();
@@ -237,7 +235,6 @@ const ProductTypeList = () => {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         title="Add New Product-Type"
-        description="Add a new Product-Type to your clinic network."
       >
         <ProductTypeForm onSuccess={handleCloseForm} />
       </FormDialog>
@@ -246,7 +243,6 @@ const ProductTypeList = () => {
         isOpen={isEditFormOpen}
         onClose={() => setIsEditFormOpen(false)}
         title="Edit Product-Type"
-        description="Update Product-Type information."
       >
         <ProductTypeForm type={typeToEdit} onSuccess={handleCloseForm} />
       </FormDialog>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useNavigate } from "react-router-dom";
@@ -6,14 +6,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { User } from "../types/User";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import { UserService } from "../service/UserService";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
 import UserTable from "../components/UserTable";
-import UserForm from "../components/UserForm";
 import FormDialog from "@/components/ui/form-dialog";
+import UserService from "../services/userService";
 
 const UsersList = () => {
   const navigate = useNavigate();
@@ -227,18 +224,22 @@ const UsersList = () => {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         title="Add New User"
-        description="Add a new user to your network."
       >
-        <UserForm onSuccess={handleCloseForm} />
+        <>
+        
+        </>
+       
       </FormDialog>
 
       <FormDialog
         isOpen={isEditFormOpen}
         onClose={() => setIsEditFormOpen(false)}
         title="Edit User"
-        description="Update user information."
       >
-        <UserForm user={userToEdit} onSuccess={handleCloseForm} />
+        <>
+        
+        </>
+       
       </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

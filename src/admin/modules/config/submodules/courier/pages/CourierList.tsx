@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
@@ -6,18 +6,16 @@ import PageHeader from "@/admin/components/PageHeader";
 
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import FormDialog from "@/components/ui/form-dialog";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import { Courier } from "../types/courier";
@@ -239,7 +237,6 @@ const CourierList = () => {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         title="Add New Courier"
-        description="Add a new courier to your clinic network."
       >
         <CourierForm onSuccess={handleCloseForm} />
       </FormDialog>
@@ -248,7 +245,6 @@ const CourierList = () => {
         isOpen={isEditFormOpen}
         onClose={() => setIsEditFormOpen(false)}
         title="Edit Courier"
-        description="Update courier information."
       >
         <CourierForm courier={courierToEdit} onSuccess={handleCloseForm} />
       </FormDialog>

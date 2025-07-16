@@ -28,7 +28,7 @@ const patientFormSchema = z.object({
   email: z.string().email("Valid email is required").optional().or(z.literal("")),
   phone: z.string().min(10, "Valid phone number is required"),
   gender: z.string().min(1, "Gender is required"),
-  age: z.number().min(1, "Age must be greater than 0"),
+  age: z.number().min(0, "Age is required"),
   address: z.string().optional(),
   district: z.any(),
   city: z.string(),

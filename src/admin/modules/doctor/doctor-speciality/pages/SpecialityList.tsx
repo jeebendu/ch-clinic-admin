@@ -1,12 +1,12 @@
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import { useNavigate } from "react-router-dom";
@@ -16,8 +16,6 @@ import { useEffect, useState } from "react";
 import { Speciality } from "../types/Speciality";
 import { useQuery } from "@tanstack/react-query";
 import SpecialityService from "../services/SpecialityService";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AdminLayout from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
 import SpecialityTable from "../components/SpcialityTable";
@@ -221,7 +219,6 @@ const SpecialityList = () => {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         title="Add New Speciality"
-        description="Add a new speciality to your doctor network."
       >
         <SpecialityForm onSuccess={handleCloseForm} />
       </FormDialog>
@@ -230,7 +227,6 @@ const SpecialityList = () => {
         isOpen={isEditFormOpen}
         onClose={() => setIsEditFormOpen(false)}
         title="Edit Speciality"
-        description="Update speciality information."
       >
         <SpecialityForm speciality={specialityToEdit} onSuccess={handleCloseForm} />
       </FormDialog>

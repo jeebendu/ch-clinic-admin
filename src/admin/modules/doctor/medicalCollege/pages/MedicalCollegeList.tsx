@@ -22,7 +22,7 @@ import { MedicalCollege } from "../types/MedicalCollege";
 import MedicalCollegeService from "../services/MedicalCollegeService";
 import MedicalCollegeForm from "../components/MedicalCollegeForm";
 import MedicalCollegeTable from "../components/MedicalCollegeTable";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
+import FormDialog from "@/components/ui/form-dialog";
 
 const MedicalCollegeList = () => {
   const navigate = useNavigate();

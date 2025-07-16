@@ -23,7 +23,7 @@ import { Brand } from "../types/Brand";
 import BrandService from "../service/BrandService";
 import BrandTable from "../components/BrandTable";
 import BrandForm from "../components/BrandForm";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
+import FormDialog from "@/components/ui/form-dialog";
 
 const BrandList = () => {
   const navigate = useNavigate();

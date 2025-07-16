@@ -24,7 +24,7 @@ import CouncilForm from "../components/DegreeForm";
 import { MedicalDegree } from "../types/MedicalDegree";
 import DegreeForm from "../components/DegreeForm";
 import DegreeTable from "../components/DegreeTable";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
+import FormDialog from "@/components/ui/form-dialog";
 
 const MedicalDegreeList = () => {
   const navigate = useNavigate();

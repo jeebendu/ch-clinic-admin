@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { useNavigate } from "react-router-dom";
@@ -6,14 +6,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Expense } from "../types/Expense";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import { ExpenseService } from "../service/ExpenseService";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
 import ExpenseTable from "../components/ExpenseTable";
 import ExpenseForm from "../components/ExpenseForm";
 import FormDialog from "@/components/ui/form-dialog";
+import ExpenseService from "../service/ExpenseService";
 
 const ExpenseList = () => {
   const navigate = useNavigate();
@@ -228,7 +226,6 @@ const ExpenseList = () => {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         title="Add New Expense"
-        description="Add a new Expense to your network."
       >
         <ExpenseForm onSuccess={handleCloseForm} />
       </FormDialog>
@@ -237,7 +234,6 @@ const ExpenseList = () => {
         isOpen={isEditFormOpen}
         onClose={() => setIsEditFormOpen(false)}
         title="Edit Expense"
-        description="Update expense information."
       >
         <ExpenseForm expense={expenseToEdit} onSuccess={handleCloseForm} />
       </FormDialog>

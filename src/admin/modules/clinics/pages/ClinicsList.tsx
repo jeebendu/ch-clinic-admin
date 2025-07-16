@@ -5,7 +5,7 @@ import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
+import FormDialog from "@/components/ui/form-dialog";
 import { 
   AlertDialog, 
   AlertDialogAction, 

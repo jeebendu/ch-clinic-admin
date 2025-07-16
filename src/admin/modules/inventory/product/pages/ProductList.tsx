@@ -23,7 +23,7 @@ import { Product } from "../types/Product";
 import ProductService from "../service/productService";
 import ProductForm from "../components/ProductForm";
 import ProductTable from "../components/ProductTable";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
+import FormDialog from "@/components/ui/form-dialog";
 
 const ProductList = () => {
   const navigate = useNavigate();

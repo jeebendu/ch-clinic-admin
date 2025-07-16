@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
@@ -6,24 +6,22 @@ import PageHeader from "@/admin/components/PageHeader";
 
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import { Sequence } from "../types/sequence";
 import SequenceService from "../services/sequenceService";
 import SequenceForm from "../components/SequenceForm";
 import SequenceTable from "../components/SequenceTable";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
+import FormDialog from "@/components/ui/form-dialog";
 
 const SequenceList = () => {
   const navigate = useNavigate();
@@ -239,7 +237,6 @@ const SequenceList = () => {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         title="Add New Sequence"
-        description="Add a new sequence to your clinic network."
       >
         <SequenceForm onSuccess={handleCloseForm} />
       </FormDialog>
@@ -248,7 +245,6 @@ const SequenceList = () => {
         isOpen={isEditFormOpen}
         onClose={() => setIsEditFormOpen(false)}
         title="Edit Sequence"
-        description="Update sequence information."
       >
         <SequenceForm sequence={sequenceToEdit} onSuccess={handleCloseForm} />
       </FormDialog>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/admin/components/AdminLayout";
@@ -6,24 +6,22 @@ import PageHeader from "@/admin/components/PageHeader";
 
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import { Distributor } from "../types/Distributor";
 import DistributorService from "../services/distributorService";
 import DistributorForm from "../components/DistributorForm";
 import DistributorTable from "../components/DistributorTable";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
+import FormDialog from "@/components/ui/form-dialog";
 
 const DistributorList = () => {
   const navigate = useNavigate();
@@ -239,7 +237,6 @@ const DistributorList = () => {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         title="Add New Distributor"
-        description="Add a new distributor to your clinic network."
       >
         <DistributorForm onSuccess={handleCloseForm} />
       </FormDialog>
@@ -248,7 +245,6 @@ const DistributorList = () => {
         isOpen={isEditFormOpen}
         onClose={() => setIsEditFormOpen(false)}
         title="Edit Distributor"
-        description="Update distributor information."
       >
         <DistributorForm distributor={distributorToEdit} onSuccess={handleCloseForm} />
       </FormDialog>
