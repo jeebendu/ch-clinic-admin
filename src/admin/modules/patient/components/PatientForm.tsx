@@ -45,22 +45,21 @@ export interface PatientFormRef {
 interface PatientFormProps {
   patientId?: number;
   patient?: Patient | null;
-  onSubmit?: (data: PatientFormData) => Promise<void>;
+  onSuccess?: (patient: Patient) => void;
   showSubmitButton?: boolean;
-  isSubmitting?: boolean;
 }
 
 const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({ 
   patientId,
   patient: initialPatient, 
-  onSubmit, 
-  showSubmitButton = true,
-  isSubmitting = false
+  onSuccess,
+  showSubmitButton = true
 }, ref) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [districtList, setDistrictList] = useState<{ name: string, id: number }[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState<{ name: string, id: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [patient, setPatient] = useState<Patient | null>(initialPatient || null);
   const { toast } = useToast();
 
@@ -196,14 +195,65 @@ const PatientForm = forwardRef<PatientFormRef, PatientFormProps>(({
     district.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleFormSubmit = async (data: PatientFormData) => {
-    const formData = {
-      ...data,
-      district: selectedDistrict
-    };
+  const handleFormSubmit = async (formData: PatientFormData) => {
+    setIsSubmitting(true);
+    try {
+      // Prepare patient data for API
+      const patientData = {
+        firstname: formData.firstname,
+        lastname: formData.lastname,
+        email: formData.email || "",
+        gender: formData.gender,
+        age: formData.age,
+        address: formData.address || "",
+        city: formData.city,
+        district: selectedDistrict,
+        dob: formData.dob,
+        user: {
+          email: formData.email || "",
+          phone: formData.phone,
+          name: `${formData.firstname} ${formData.lastname}`
+        }
+      };
 
-    if (onSubmit) {
-      await onSubmit(formData);
+      let result;
+      if (patientId) {
+        // Update existing patient - need to get current patient data first
+        const currentPatient = await PatientService.getById(patientId);
+        const updateData = {
+          ...patientData,
+          id: patientId,
+          uid: currentPatient.data?.uid,
+          user: {
+            ...currentPatient.data?.user,
+            ...patientData.user
+          },
+        } as Patient;
+        result = await PatientService.saveOrUpdate(updateData);
+      } else {
+        // Create new patient
+        result = await PatientService.saveOrUpdate(patientData as Omit<Patient, 'id'>);
+      }
+
+      toast({
+        title: "Success",
+        description: patientId ? "Patient updated successfully." : "Patient created successfully.",
+      });
+
+      // Notify parent component of success
+      if (onSuccess && result?.data) {
+        onSuccess(result.data);
+      }
+
+    } catch (error) {
+      console.error("Error saving patient:", error);
+      toast({
+        title: "Error",
+        description: patientId ? "Failed to update patient." : "Failed to create patient.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
