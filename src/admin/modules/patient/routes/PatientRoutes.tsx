@@ -24,7 +24,7 @@ const PatientRoutes = () => {
     <Routes>
       <Route path="/" element={<Patients />} />
       <Route path="/list" element={<PatientList />} />
-      {/* <Route path="/view/:id" element={<PatientView />} />
+      <Route path="/view/:id" element={<PatientView />} />
       <Route path="/prescription/:id" element={<PatientPrescription />} />
       <Route path="/visit/:id" element={<VisitDetails />} />
       
@@ -36,7 +36,7 @@ const PatientRoutes = () => {
       <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm />} />
       <Route path="/report/new/bera/:patientId" element={<BeraForm standalone={true} />} />
       <Route path="/report/new/abr/:patientId" element={<ABRForm standalone={true} />} />
-      <Route path="/report/new/speech/:patientId" element={<SpeechForm standalone={true} />} /> */}
+      <Route path="/report/new/speech/:patientId" element={<SpeechForm standalone={true} />} />
     </Routes>
   );
 };
