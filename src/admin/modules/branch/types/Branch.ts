@@ -1,7 +1,7 @@
 
-import { State } from "../../core/types/State";
-import { District } from "../../core/types/District";
-import { Country } from "../../core/types/Country";
+import { Country } from "../../country/types/Country";
+import { State } from "../../state/types/State";
+import { District } from "../../district/types/District";
 import { Clinic } from "../../clinic/types/Clinic";
 
 export interface Branch {

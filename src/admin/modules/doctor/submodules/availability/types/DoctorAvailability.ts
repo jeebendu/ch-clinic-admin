@@ -2,21 +2,24 @@
 import { Doctor } from "../../../types/Doctor";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 
-export interface DoctorAvailability {
-  dayOfWeek: String;
-  active: boolean;
+export interface TimeRange {
+  id: string;
   startTime: string;
   endTime: string;
   slotDuration: number;
+  slotQuantity: number;
+}
+
+export interface DoctorAvailability {
+  dayOfWeek: string;
+  active: boolean;
+  timeRanges: TimeRange[];
   branch: Branch;
   doctor: Doctor;
   id: number;
-  releaseType:string;
-  slotQuantity:number;
-  releaseBefore:number;
+  releaseType: string;
+  releaseBefore: number;
 }
-
-
 
 export interface DoctorLeave {
   id: number;
@@ -25,7 +28,7 @@ export interface DoctorLeave {
   leaveStart: Date;
   leaveEnd: Date;
   reason: string;
-  approved:boolean;
+  approved: boolean;
 }
 
 export interface DoctorBreak {
