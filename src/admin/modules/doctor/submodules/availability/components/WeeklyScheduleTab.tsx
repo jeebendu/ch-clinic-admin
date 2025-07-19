@@ -193,6 +193,9 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         setReleaseBefore(transformedData[0]?.releaseBefore || 1);
         setSlotMode(transformedData[0]?.releaseType || "TIMEWISE");
         setReleaseTime(transformedData[0]?.releaseTime || "09:00");
+        
+        // Clear validation errors when data is loaded
+        setValidationErrors({});
       }
     } catch (error) {
       console.error('Error fetching doctor availability:', error);
@@ -233,7 +236,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     return `${hours}h ${mins}min`;
   };
 
-  // Validate time ranges
+  // Enhanced validation with better error messages
   const validateTimeRanges = (): Record<string, string[]> => {
     const errors: Record<string, string[]> = {};
 
@@ -248,33 +251,33 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         
         // Check if end time is after start time
         if (endTime <= startTime) {
-          dayErrors.push(`Time range ${rangeIndex + 1}: End time must be after start time`);
+          dayErrors.push(`Range ${rangeIndex + 1}: End time must be after start time`);
         }
 
         // Check minimum duration
         const duration = calculateDuration(timeRange.startTime, timeRange.endTime);
         if (duration < 15) {
-          dayErrors.push(`Time range ${rangeIndex + 1}: Minimum duration is 15 minutes`);
+          dayErrors.push(`Range ${rangeIndex + 1}: Minimum duration is 15 minutes`);
         }
 
         // Check slot duration validity for TIMEWISE
         if (slotMode === "TIMEWISE" && timeRange.slotDuration < 5) {
-          dayErrors.push(`Time range ${rangeIndex + 1}: Minimum slot duration is 5 minutes`);
+          dayErrors.push(`Range ${rangeIndex + 1}: Minimum slot duration is 5 minutes`);
         }
 
         // Check slot quantity validity for COUNTWISE
         if (slotMode === "COUNTWISE" && timeRange.slotQuantity < 1) {
-          dayErrors.push(`Time range ${rangeIndex + 1}: Minimum 1 patient per hour`);
+          dayErrors.push(`Range ${rangeIndex + 1}: Minimum 1 patient per hour`);
         }
 
-        // Check for overlapping time ranges
+        // Check for overlapping time ranges with better error messages
         day.timeRanges.forEach((otherRange, otherIndex) => {
           if (rangeIndex !== otherIndex) {
             const otherStart = new Date(`2000-01-01T${otherRange.startTime}:00`);
             const otherEnd = new Date(`2000-01-01T${otherRange.endTime}:00`);
             
             if ((startTime < otherEnd && endTime > otherStart)) {
-              dayErrors.push(`Time range ${rangeIndex + 1} overlaps with time range ${otherIndex + 1}`);
+              dayErrors.push(`Range ${rangeIndex + 1} (${timeRange.startTime}-${timeRange.endTime}) overlaps with Range ${otherIndex + 1} (${otherRange.startTime}-${otherRange.endTime})`);
             }
           }
         });
@@ -319,12 +322,9 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       };
       setSchedules(newSchedules);
       
-      // Clear validation errors for this day when updating
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[newSchedules[dayIndex].dayOfWeek];
-        return newErrors;
-      });
+      // Real-time validation - validate immediately after update
+      const errors = validateTimeRanges();
+      setValidationErrors(errors);
     }
   };
 
@@ -340,7 +340,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     setValidationErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      toast.error('Please fix validation errors before saving');
+      toast.error('Please fix all validation errors before saving');
       return;
     }
 
@@ -522,6 +522,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
                               releaseType={slotMode}
                               duration={formatDuration(duration)}
                               totalSlots={totalSlots}
+                              allTimeRanges={day.timeRanges}
+                              hasValidationError={!!validationErrors[day.dayOfWeek]}
                             />
                           </div>
                         );
