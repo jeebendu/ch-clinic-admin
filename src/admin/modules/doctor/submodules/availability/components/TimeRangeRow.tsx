@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2 } from "lucide-react";
+import { Trash2, AlertCircle } from "lucide-react";
 import { TimeRange } from "../types/DoctorAvailability";
 import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
 
@@ -16,6 +16,8 @@ interface TimeRangeRowProps {
   releaseType: string;
   duration?: string;
   totalSlots?: number;
+  allTimeRanges: TimeRange[];
+  hasValidationError?: boolean;
 }
 
 const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
@@ -26,7 +28,9 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
   isDisabled = false,
   releaseType,
   duration,
-  totalSlots
+  totalSlots,
+  allTimeRanges,
+  hasValidationError
 }) => {
   const handleSlotDurationChange = (value: string) => {
     const numValue = Number(value);
@@ -42,17 +46,41 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
     }
   };
 
+  const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
+    const updates = { [field]: value };
+    
+    // Check for overlaps with other time ranges
+    const wouldOverlap = allTimeRanges.some(range => {
+      if (range.id === timeRange.id) return false;
+      
+      const newRange = { ...timeRange, ...updates };
+      const newStart = new Date(`2000-01-01T${newRange.startTime}:00`);
+      const newEnd = new Date(`2000-01-01T${newRange.endTime}:00`);
+      const existingStart = new Date(`2000-01-01T${range.startTime}:00`);
+      const existingEnd = new Date(`2000-01-01T${range.endTime}:00`);
+      
+      return (newStart < existingEnd && newEnd > existingStart);
+    });
+    
+    if (wouldOverlap) {
+      // Don't update if it would create an overlap
+      return;
+    }
+    
+    onUpdate(timeRange.id, updates);
+  };
+
   // Calculate grid columns based on release type
   const gridCols = releaseType === "TIMEWISE" ? "grid-cols-7" : "grid-cols-6";
 
   return (
-    <div className={`grid ${gridCols} gap-3 items-end p-3 border rounded-lg bg-gray-50`}>
+    <div className={`grid ${gridCols} gap-3 items-end p-3 border rounded-lg ${hasValidationError ? 'bg-red-50 border-red-200' : 'bg-gray-50'}`}>
       {/* Start Time */}
       <div>
         <Label className="text-sm font-medium mb-1 block">Start Time</Label>
         <ClockTimePicker
           value={timeRange.startTime}
-          onChange={(value) => onUpdate(timeRange.id, { startTime: value })}
+          onChange={(value) => handleTimeChange('startTime', value)}
           disabled={isDisabled}
         />
       </div>
@@ -62,7 +90,7 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
         <Label className="text-sm font-medium mb-1 block">End Time</Label>
         <ClockTimePicker
           value={timeRange.endTime}
-          onChange={(value) => onUpdate(timeRange.id, { endTime: value })}
+          onChange={(value) => handleTimeChange('endTime', value)}
           disabled={isDisabled}
         />
       </div>
@@ -70,7 +98,9 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
       {/* Duration Display */}
       <div>
         <Label className="text-sm font-medium mb-1 block">Duration</Label>
-        <div className="h-10 px-3 py-2 bg-blue-100 text-blue-700 rounded-md border flex items-center text-sm font-medium">
+        <div className={`h-10 px-3 py-2 rounded-md border flex items-center text-sm font-medium ${
+          hasValidationError ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+        }`}>
           {duration || "0min"}
         </div>
       </div>
@@ -98,7 +128,9 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
       {/* Total Slots Display */}
       <div>
         <Label className="text-sm font-medium mb-1 block">Total Slots</Label>
-        <div className="h-10 px-3 py-2 bg-green-100 text-green-700 rounded-md border flex items-center text-sm font-medium">
+        <div className={`h-10 px-3 py-2 rounded-md border flex items-center text-sm font-medium ${
+          hasValidationError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+        }`}>
           {totalSlots || 0}
         </div>
       </div>
