@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,20 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
   isDisabled = false,
   releaseType
 }) => {
+  const handleSlotDurationChange = (value: string) => {
+    const numValue = Number(value);
+    if (numValue >= 5) {
+      onUpdate(timeRange.id, { slotDuration: numValue });
+    }
+  };
+
+  const handleSlotQuantityChange = (value: string) => {
+    const numValue = Number(value);
+    if (numValue >= 1) {
+      onUpdate(timeRange.id, { slotQuantity: numValue });
+    }
+  };
+
   return (
     <div className="grid grid-cols-6 gap-3 items-end p-3 border rounded-lg bg-gray-50">
       {/* Start Time */}
@@ -45,34 +60,43 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
         />
       </div>
 
-      {/* Slot Duration */}
+      {/* Slot Duration or Max Patients */}
       <div>
-        <Label className="text-sm font-medium mb-1 block">Duration (min)</Label>
+        <Label className="text-sm font-medium mb-1 block">
+          {releaseType === "COUNTWISE" ? "Max Patients/Hr" : "Slot Duration (min)"}
+        </Label>
         <Input
           type="number"
-          min={5}
-          step={5}
-          value={timeRange.slotDuration}
-          onChange={(e) => onUpdate(timeRange.id, { slotDuration: Number(e.target.value) })}
+          min={releaseType === "COUNTWISE" ? 1 : 5}
+          step={releaseType === "COUNTWISE" ? 1 : 5}
+          value={releaseType === "COUNTWISE" ? timeRange.slotQuantity : timeRange.slotDuration}
+          onChange={(e) => 
+            releaseType === "COUNTWISE" 
+              ? handleSlotQuantityChange(e.target.value)
+              : handleSlotDurationChange(e.target.value)
+          }
           disabled={isDisabled}
           className="h-10"
         />
       </div>
 
-      {/* Slot Quantity */}
-      <div>
-        <Label className="text-sm font-medium mb-1 block">
-          {releaseType === "COUNTWISE" ? "Max Patients" : "Slots"}
-        </Label>
-        <Input
-          type="number"
-          min={1}
-          value={timeRange.slotQuantity}
-          onChange={(e) => onUpdate(timeRange.id, { slotQuantity: Number(e.target.value) })}
-          disabled={isDisabled}
-          className="h-10"
-        />
-      </div>
+      {/* Slot Quantity - Only show for TIMEWISE */}
+      {releaseType === "TIMEWISE" && (
+        <div>
+          <Label className="text-sm font-medium mb-1 block">Slots</Label>
+          <Input
+            type="number"
+            min={1}
+            value={timeRange.slotQuantity}
+            onChange={(e) => handleSlotQuantityChange(e.target.value)}
+            disabled={isDisabled}
+            className="h-10"
+          />
+        </div>
+      )}
+
+      {/* Empty column for COUNTWISE to maintain grid */}
+      {releaseType === "COUNTWISE" && <div></div>}
 
       {/* Actions */}
       <div className="flex justify-end">
