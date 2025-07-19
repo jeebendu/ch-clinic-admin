@@ -205,11 +205,24 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     }
   };
 
-  // Calculate total slots for a time range
+  // Calculate total slots for a time range with validation
   const calculateTotalSlots = (timeRange: TimeRange) => {
+    if (!timeRange || !timeRange.startTime || !timeRange.endTime || !timeRange.slotDuration || !timeRange.slotQuantity) {
+      return 0;
+    }
+
     const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
     const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
+    
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      return 0;
+    }
+
     const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+    
+    if (durationMinutes <= 0) {
+      return 0;
+    }
     
     if (slotMode === "TIMEWISE") {
       return Math.floor(durationMinutes / timeRange.slotDuration);
@@ -220,15 +233,29 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     }
   };
 
-  // Calculate total duration in minutes
+  // Calculate total duration in minutes with validation
   const calculateDuration = (startTime: string, endTime: string): number => {
+    if (!startTime || !endTime) {
+      return 0;
+    }
+
     const start = new Date(`2000-01-01T${startTime}:00`);
     const end = new Date(`2000-01-01T${endTime}:00`);
-    return (end.getTime() - start.getTime()) / (1000 * 60);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return 0;
+    }
+
+    const duration = (end.getTime() - start.getTime()) / (1000 * 60);
+    return duration > 0 ? duration : 0;
   };
 
-  // Format duration display
+  // Format duration display with validation
   const formatDuration = (minutes: number): string => {
+    if (!minutes || isNaN(minutes) || minutes <= 0) {
+      return "0min";
+    }
+
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     if (hours === 0) return `${mins}min`;
@@ -246,8 +273,18 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       const dayErrors: string[] = [];
       
       day.timeRanges.forEach((timeRange, rangeIndex) => {
+        if (!timeRange.startTime || !timeRange.endTime) {
+          dayErrors.push(`Range ${rangeIndex + 1}: Start and end times are required`);
+          return;
+        }
+
         const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
         const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
+        
+        if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+          dayErrors.push(`Range ${rangeIndex + 1}: Invalid time format`);
+          return;
+        }
         
         // Check if end time is after start time
         if (endTime <= startTime) {
@@ -272,11 +309,12 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
 
         // Check for overlapping time ranges with better error messages
         day.timeRanges.forEach((otherRange, otherIndex) => {
-          if (rangeIndex !== otherIndex) {
+          if (rangeIndex !== otherIndex && otherRange.startTime && otherRange.endTime) {
             const otherStart = new Date(`2000-01-01T${otherRange.startTime}:00`);
             const otherEnd = new Date(`2000-01-01T${otherRange.endTime}:00`);
             
-            if ((startTime < otherEnd && endTime > otherStart)) {
+            if (!isNaN(otherStart.getTime()) && !isNaN(otherEnd.getTime()) && 
+                (startTime < otherEnd && endTime > otherStart)) {
               dayErrors.push(`Range ${rangeIndex + 1} (${timeRange.startTime}-${timeRange.endTime}) overlaps with Range ${otherIndex + 1} (${otherRange.startTime}-${otherRange.endTime})`);
             }
           }
