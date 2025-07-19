@@ -103,20 +103,7 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
         </div>
       </div>
 
-      {/* Slots - Only show for TIMEWISE */}
-      {releaseType === "TIMEWISE" && (
-        <div>
-          <Label className="text-sm font-medium mb-1 block">Slots</Label>
-          <Input
-            type="number"
-            min={1}
-            value={timeRange.slotQuantity}
-            onChange={(e) => handleSlotQuantityChange(e.target.value)}
-            disabled={isDisabled}
-            className="h-10"
-          />
-        </div>
-      )}
+      
 
       {/* Actions */}
       <div className="flex justify-end">
