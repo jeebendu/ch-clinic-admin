@@ -22,14 +22,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Clock } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Slot } from "../types/Slot";
 import { Branch } from "../../branch/types/Branch";
-import { TimePicker } from "@/admin/components/TimePicker";
+import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
 import { Doctor } from "../types/Doctor";
 
 const slotFormSchema = z.object({
@@ -62,8 +61,8 @@ export function SlotCreationDialog({
   const form = useForm<SlotFormValues>({
     resolver: zodResolver(slotFormSchema),
     defaultValues: {
-      startTime: "09:00 AM",
-      endTime: "09:30 AM",
+      startTime: "09:00",
+      endTime: "09:30",
       availableSlots: 2,
       duration: 30,
       slotType: "Regular",
@@ -74,7 +73,7 @@ export function SlotCreationDialog({
   function onSubmit(data: SlotFormValues) {
     const slot: Partial<Slot> = {
       ...data,
-      id:null, // Temporary ID for new slots
+      id: null,
     };
     onSave(slot);
     form.reset();
@@ -164,7 +163,7 @@ export function SlotCreationDialog({
                   <FormItem>
                     <FormLabel>Start Time</FormLabel>
                     <FormControl>
-                      <TimePicker
+                      <ClockTimePicker
                         value={field.value}
                         onChange={field.onChange}
                       />
@@ -181,7 +180,7 @@ export function SlotCreationDialog({
                   <FormItem>
                     <FormLabel>End Time</FormLabel>
                     <FormControl>
-                      <TimePicker
+                      <ClockTimePicker
                         value={field.value}
                         onChange={field.onChange}
                       />

@@ -12,7 +12,7 @@ import { Branch } from "@/admin/modules/branch/types/Branch";
 import { Doctor } from "../../../types/Doctor";
 import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
 import TimeRangeRow from "./TimeRangeRow";
-import { TimePicker } from "@/admin/components/TimePicker";
+import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
 
 interface WeeklyScheduleTabProps {
   doctor: Doctor;
@@ -23,7 +23,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
   const [loading, setLoading] = useState(true);
   const [slotMode, setSlotMode] = useState<string>("TIMEWISE");
   const [releaseBefore, setReleaseBefore] = useState<number>(1);
-  const [releaseTime, setReleaseTime] = useState<string>("09:00"); // New state for release time
+  const [releaseTime, setReleaseTime] = useState<string>("09:00");
 
   const [schedules, setSchedules] = useState<DoctorAvailability[]>([
     {
@@ -170,7 +170,6 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     try {
       const availabilities = await availabilityService.getByDoctorAndBranch(doctor.id, branchObj.id);
       if (availabilities.data && availabilities.data.length > 0) {
-        // Transform old format to new format if needed
         const transformedData = availabilities.data.map((item: any, index: number) => ({
           ...item,
           timeRanges: item.timeRanges || [{
@@ -236,10 +235,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
 
   const handleSaveSchedule = async () => {
     try {
-      // Transform data back to API format
       const apiData = schedules.map(schedule => ({
         ...schedule,
-        // For backward compatibility, use first time range for old API format
         startTime: schedule.timeRanges[0]?.startTime || "09:00",
         endTime: schedule.timeRanges[0]?.endTime || "17:00",
         slotDuration: schedule.timeRanges[0]?.slotDuration || 15,
@@ -340,10 +337,10 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
               </Select>
             </div>
 
-            {/* Release Time */}
+            {/* Release Time with new ClockTimePicker */}
             <div>
               <Label className="text-base font-medium mb-2 block">Release Time</Label>
-              <TimePicker
+              <ClockTimePicker
                 value={releaseTime}
                 onChange={handleReleaseTimeChange}
               />
