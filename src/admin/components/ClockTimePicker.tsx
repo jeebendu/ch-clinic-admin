@@ -25,13 +25,16 @@ export const ClockTimePicker: React.FC<ClockTimePickerProps> = ({
   const [mode, setMode] = useState<"hours" | "minutes">("hours");
   const [hours, setHours] = useState(9);
   const [minutes, setMinutes] = useState(0);
+  const [isPM, setIsPM] = useState(false);
   const clockRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (value) {
       const [h, m] = value.split(":").map(Number);
-      setHours(h);
+      const hour12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+      setHours(hour12);
       setMinutes(m);
+      setIsPM(h >= 12);
     }
   }, [value]);
 
@@ -59,9 +62,17 @@ export const ClockTimePicker: React.FC<ClockTimePickerProps> = ({
   };
 
   const handleConfirm = () => {
-    const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+    let hour24 = hours;
+    if (isPM && hours !== 12) {
+      hour24 = hours + 12;
+    } else if (!isPM && hours === 12) {
+      hour24 = 0;
+    }
+    
+    const formattedTime = `${hour24.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
     onChange(formattedTime);
     setOpen(false);
+    setMode("hours");
   };
 
   const renderClockNumbers = () => {
@@ -192,21 +203,17 @@ export const ClockTimePicker: React.FC<ClockTimePickerProps> = ({
             <div className="flex rounded-md border">
               <button
                 className={`px-3 py-1 text-xs font-medium rounded-l-md ${
-                  hours < 12 ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  !isPM ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                 }`}
-                onClick={() => {
-                  setHours(prev => prev > 12 ? prev - 12 : prev);
-                }}
+                onClick={() => setIsPM(false)}
               >
                 AM
               </button>
               <button
                 className={`px-3 py-1 text-xs font-medium rounded-r-md ${
-                  hours >= 12 ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  isPM ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                 }`}
-                onClick={() => {
-                  setHours(prev => prev < 12 ? prev + 12 : prev);
-                }}
+                onClick={() => setIsPM(true)}
               >
                 PM
               </button>

@@ -1,6 +1,8 @@
 
 export enum CheckInStatus {
-  CHECKED_IN = "CHECKED_IN",
-  PENDING = "PENDING",
-  CANCELLED = "CANCELLED"
+  PENDING = "pending",
+  CHECKED_IN = "checked_in",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
+  NO_SHOW = "no_show"
 }

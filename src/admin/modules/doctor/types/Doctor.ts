@@ -1,7 +1,7 @@
+import { Branch } from "@/admin/modules/branch/types/Branch";
 
 export interface Doctor {
   id: number;
-  uid: string;
   firstname: string;
   lastname: string;
   qualification: string;
@@ -9,6 +9,7 @@ export interface Doctor {
   specialization: string;
   online: boolean;
   gender: string;
+  uid?: string;
   specializationList?: { id: number; name: string; }[];
-  branchList?: any[];
+  branchList?: { branch: Branch }[];
 }

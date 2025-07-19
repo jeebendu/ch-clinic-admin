@@ -2,8 +2,11 @@
 export interface Tenant {
   id: number;
   name: string;
-  title: string;
-  logo: string;
-  domain: string;
-  status: boolean;
+  email: string;
+  phone: string;
+  address: string;
+  active: boolean;
+  clinicStatus: string;
+  clientUrl?: string;
+  clientId?: string;
 }
