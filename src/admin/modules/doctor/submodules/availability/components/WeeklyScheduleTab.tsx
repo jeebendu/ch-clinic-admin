@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { availabilityService } from "../services/availabilityService";
 import { Branch } from "@/admin/modules/branch/types/Branch";
@@ -13,6 +13,7 @@ import { Doctor } from "../../../types/Doctor";
 import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
 import TimeRangeRow from "./TimeRangeRow";
 import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface WeeklyScheduleTabProps {
   doctor: Doctor;
@@ -24,6 +25,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
   const [slotMode, setSlotMode] = useState<string>("TIMEWISE");
   const [releaseBefore, setReleaseBefore] = useState<number>(1);
   const [releaseTime, setReleaseTime] = useState<string>("09:00");
+  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
 
   const [schedules, setSchedules] = useState<DoctorAvailability[]>([
     {
@@ -194,6 +196,92 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     }
   };
 
+  // Calculate total slots for a time range
+  const calculateTotalSlots = (timeRange: TimeRange) => {
+    const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
+    const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
+    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+    
+    if (slotMode === "TIMEWISE") {
+      return Math.floor(durationMinutes / timeRange.slotDuration);
+    } else {
+      // COUNTWISE - patients per hour * total hours
+      const totalHours = durationMinutes / 60;
+      return Math.floor(timeRange.slotQuantity * totalHours);
+    }
+  };
+
+  // Calculate total duration in minutes
+  const calculateDuration = (startTime: string, endTime: string): number => {
+    const start = new Date(`2000-01-01T${startTime}:00`);
+    const end = new Date(`2000-01-01T${endTime}:00`);
+    return (end.getTime() - start.getTime()) / (1000 * 60);
+  };
+
+  // Format duration display
+  const formatDuration = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins}min`;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}min`;
+  };
+
+  // Validate time ranges
+  const validateTimeRanges = (): Record<string, string[]> => {
+    const errors: Record<string, string[]> = {};
+
+    schedules.forEach((day, dayIndex) => {
+      if (!day.active) return;
+
+      const dayErrors: string[] = [];
+      
+      day.timeRanges.forEach((timeRange, rangeIndex) => {
+        const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
+        const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
+        
+        // Check if end time is after start time
+        if (endTime <= startTime) {
+          dayErrors.push(`Time range ${rangeIndex + 1}: End time must be after start time`);
+        }
+
+        // Check minimum duration
+        const duration = calculateDuration(timeRange.startTime, timeRange.endTime);
+        if (duration < 15) {
+          dayErrors.push(`Time range ${rangeIndex + 1}: Minimum duration is 15 minutes`);
+        }
+
+        // Check slot duration validity for TIMEWISE
+        if (slotMode === "TIMEWISE" && timeRange.slotDuration < 5) {
+          dayErrors.push(`Time range ${rangeIndex + 1}: Minimum slot duration is 5 minutes`);
+        }
+
+        // Check slot quantity validity for COUNTWISE
+        if (slotMode === "COUNTWISE" && timeRange.slotQuantity < 1) {
+          dayErrors.push(`Time range ${rangeIndex + 1}: Minimum 1 patient per hour`);
+        }
+
+        // Check for overlapping time ranges
+        day.timeRanges.forEach((otherRange, otherIndex) => {
+          if (rangeIndex !== otherIndex) {
+            const otherStart = new Date(`2000-01-01T${otherRange.startTime}:00`);
+            const otherEnd = new Date(`2000-01-01T${otherRange.endTime}:00`);
+            
+            if ((startTime < otherEnd && endTime > otherStart)) {
+              dayErrors.push(`Time range ${rangeIndex + 1} overlaps with time range ${otherIndex + 1}`);
+            }
+          }
+        });
+      });
+
+      if (dayErrors.length > 0) {
+        errors[day.dayOfWeek] = dayErrors;
+      }
+    });
+
+    return errors;
+  };
+
   const handleToggleDay = (dayIndex: number) => {
     const newSchedules = [...schedules];
     newSchedules[dayIndex].active = !newSchedules[dayIndex].active;
@@ -224,6 +312,13 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         ...updates
       };
       setSchedules(newSchedules);
+      
+      // Clear validation errors for this day when updating
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[newSchedules[dayIndex].dayOfWeek];
+        return newErrors;
+      });
     }
   };
 
@@ -234,6 +329,15 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
   };
 
   const handleSaveSchedule = async () => {
+    // Validate before saving
+    const errors = validateTimeRanges();
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error('Please fix validation errors before saving');
+      return;
+    }
+
     try {
       const apiData = schedules.map(schedule => ({
         ...schedule,
@@ -249,6 +353,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       const res = await availabilityService.saveSchedule(apiData);
       if (res.data.status) {
         toast.success('Weekly schedule saved successfully!');
+        setValidationErrors({}); // Clear all errors on successful save
       } else {
         toast.error('Failed to save weekly schedule');
       }
@@ -337,7 +442,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
               </Select>
             </div>
 
-            {/* Release Time with new ClockTimePicker */}
+            {/* Release Time with ClockTimePicker */}
             <div>
               <Label className="text-base font-medium mb-2 block">Release Time</Label>
               <ClockTimePicker
@@ -380,19 +485,55 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
                     )}
                   </div>
 
+                  {/* Validation Errors */}
+                  {validationErrors[day.dayOfWeek] && (
+                    <Alert className="mb-4 border-red-200 bg-red-50">
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      <AlertDescription className="text-red-700">
+                        <ul className="list-disc list-inside space-y-1">
+                          {validationErrors[day.dayOfWeek].map((error, index) => (
+                            <li key={index}>{error}</li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
                   {day.active && (
                     <div className="space-y-3">
-                      {day.timeRanges.map((timeRange) => (
-                        <TimeRangeRow
-                          key={timeRange.id}
-                          timeRange={timeRange}
-                          onUpdate={(id, updates) => handleUpdateTimeRange(dayIndex, id, updates)}
-                          onDelete={(id) => handleDeleteTimeRange(dayIndex, id)}
-                          canDelete={day.timeRanges.length > 1}
-                          isDisabled={!day.active}
-                          releaseType={slotMode}
-                        />
-                      ))}
+                      {day.timeRanges.map((timeRange) => {
+                        const duration = calculateDuration(timeRange.startTime, timeRange.endTime);
+                        const totalSlots = calculateTotalSlots(timeRange);
+                        
+                        return (
+                          <div key={timeRange.id} className="space-y-2">
+                            <TimeRangeRow
+                              timeRange={timeRange}
+                              onUpdate={(id, updates) => handleUpdateTimeRange(dayIndex, id, updates)}
+                              onDelete={(id) => handleDeleteTimeRange(dayIndex, id)}
+                              canDelete={day.timeRanges.length > 1}
+                              isDisabled={!day.active}
+                              releaseType={slotMode}
+                            />
+                            
+                            {/* Duration and Total Slots Display */}
+                            <div className="ml-3 flex items-center gap-6 text-sm text-gray-600">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">Duration:</span>
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                  {formatDuration(duration)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">Total Slots:</span>
+                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                                  {totalSlots}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 
