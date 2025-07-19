@@ -160,6 +160,12 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     }
   }, [doctor, branchObj]);
 
+  // Recalculate values when slotMode changes
+  useEffect(() => {
+    // Trigger recalculation when slot mode changes
+    setSchedules(prev => [...prev]);
+  }, [slotMode]);
+
   const fetchAvailability = async () => {
     setLoading(true);
     try {
@@ -506,23 +512,9 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
                               canDelete={day.timeRanges.length > 1}
                               isDisabled={!day.active}
                               releaseType={slotMode}
+                              duration={formatDuration(duration)}
+                              totalSlots={totalSlots}
                             />
-                            
-                            {/* Duration and Total Slots Display */}
-                            <div className="ml-3 flex items-center gap-6 text-sm text-gray-600">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">Duration:</span>
-                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                                  {formatDuration(duration)}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">Total Slots:</span>
-                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                                  {totalSlots}
-                                </span>
-                              </div>
-                            </div>
                           </div>
                         );
                       })}

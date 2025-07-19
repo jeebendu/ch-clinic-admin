@@ -14,6 +14,8 @@ interface TimeRangeRowProps {
   canDelete: boolean;
   isDisabled?: boolean;
   releaseType: string;
+  duration?: string;
+  totalSlots?: number;
 }
 
 const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
@@ -22,7 +24,9 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
   onDelete,
   canDelete,
   isDisabled = false,
-  releaseType
+  releaseType,
+  duration,
+  totalSlots
 }) => {
   const handleSlotDurationChange = (value: string) => {
     const numValue = Number(value);
@@ -38,8 +42,11 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
     }
   };
 
+  // Calculate grid columns based on release type
+  const gridCols = releaseType === "TIMEWISE" ? "grid-cols-7" : "grid-cols-6";
+
   return (
-    <div className="grid grid-cols-6 gap-3 items-end p-3 border rounded-lg bg-gray-50">
+    <div className={`grid ${gridCols} gap-3 items-end p-3 border rounded-lg bg-gray-50`}>
       {/* Start Time */}
       <div>
         <Label className="text-sm font-medium mb-1 block">Start Time</Label>
@@ -58,6 +65,14 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
           onChange={(value) => onUpdate(timeRange.id, { endTime: value })}
           disabled={isDisabled}
         />
+      </div>
+
+      {/* Duration Display */}
+      <div>
+        <Label className="text-sm font-medium mb-1 block">Duration</Label>
+        <div className="h-10 px-3 py-2 bg-blue-100 text-blue-700 rounded-md border flex items-center text-sm font-medium">
+          {duration || "0min"}
+        </div>
       </div>
 
       {/* Slot Duration or Max Patients */}
@@ -80,7 +95,15 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
         />
       </div>
 
-      {/* Slot Quantity - Only show for TIMEWISE */}
+      {/* Total Slots Display */}
+      <div>
+        <Label className="text-sm font-medium mb-1 block">Total Slots</Label>
+        <div className="h-10 px-3 py-2 bg-green-100 text-green-700 rounded-md border flex items-center text-sm font-medium">
+          {totalSlots || 0}
+        </div>
+      </div>
+
+      {/* Slots - Only show for TIMEWISE */}
       {releaseType === "TIMEWISE" && (
         <div>
           <Label className="text-sm font-medium mb-1 block">Slots</Label>
@@ -94,9 +117,6 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
           />
         </div>
       )}
-
-      {/* Empty column for COUNTWISE to maintain grid */}
-      {releaseType === "COUNTWISE" && <div></div>}
 
       {/* Actions */}
       <div className="flex justify-end">
