@@ -30,11 +30,10 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       dayOfWeek: "Sunday",
       active: false,
       timeRanges: [{
-        id: "sunday-1",
         startTime: "09:00",
         endTime: "17:00",
         slotDuration: 15,
-        slotQuantity: 1
+        slotQuantity: 1,
       }],
       branch: null,
       doctor: null,
@@ -47,7 +46,6 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       dayOfWeek: "Monday",
       active: false,
       timeRanges: [{
-        id: "monday-1",
         startTime: "09:00",
         endTime: "17:00",
         slotDuration: 15,
@@ -64,7 +62,6 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       dayOfWeek: "Tuesday",
       active: false,
       timeRanges: [{
-        id: "tuesday-1",
         startTime: "09:00",
         endTime: "17:00",
         slotDuration: 15,
@@ -81,7 +78,6 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       dayOfWeek: "Wednesday",
       active: false,
       timeRanges: [{
-        id: "wednesday-1",
         startTime: "09:00",
         endTime: "17:00",
         slotDuration: 15,
@@ -98,7 +94,6 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       dayOfWeek: "Thursday",
       active: false,
       timeRanges: [{
-        id: "thursday-1",
         startTime: "09:00",
         endTime: "17:00",
         slotDuration: 15,
@@ -115,7 +110,6 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       dayOfWeek: "Friday",
       active: false,
       timeRanges: [{
-        id: "friday-1",
         startTime: "09:00",
         endTime: "17:00",
         slotDuration: 15,
@@ -132,7 +126,6 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       dayOfWeek: "Saturday",
       active: false,
       timeRanges: [{
-        id: "saturday-1",
         startTime: "09:00",
         endTime: "14:00",
         slotDuration: 15,
@@ -173,7 +166,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         const transformedData = availabilities.data.map((item: any, index: number) => ({
           ...item,
           timeRanges: item.timeRanges || [{
-            id: `${item.dayOfWeek.toLowerCase()}-1`,
+            id: item.id,
             startTime: item.startTime || "09:00",
             endTime: item.endTime || "17:00",
             slotDuration: item.slotDuration || 15,
@@ -204,18 +197,17 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     const newSchedules = [...schedules];
     const dayName = newSchedules[dayIndex].dayOfWeek.toLowerCase();
     const newTimeRange: TimeRange = {
-      id: `${dayName}-${Date.now()}`,
       startTime: "09:00",
       endTime: "17:00",
       slotDuration: 15,
-      slotQuantity: slotMode === "COUNTWISE" ? 100 : 1
+      slotQuantity: slotMode === "COUNTWISE" ? 15 : 1
     };
     
     newSchedules[dayIndex].timeRanges.push(newTimeRange);
     setSchedules(newSchedules);
   };
 
-  const handleUpdateTimeRange = (dayIndex: number, timeRangeId: string, updates: Partial<TimeRange>) => {
+  const handleUpdateTimeRange = (dayIndex: number, timeRangeId: number, updates: Partial<TimeRange>) => {
     const newSchedules = [...schedules];
     const timeRangeIndex = newSchedules[dayIndex].timeRanges.findIndex(tr => tr.id === timeRangeId);
     if (timeRangeIndex !== -1) {
@@ -227,7 +219,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     }
   };
 
-  const handleDeleteTimeRange = (dayIndex: number, timeRangeId: string) => {
+  const handleDeleteTimeRange = (dayIndex: number, timeRangeId: number) => {
     const newSchedules = [...schedules];
     newSchedules[dayIndex].timeRanges = newSchedules[dayIndex].timeRanges.filter(tr => tr.id !== timeRangeId);
     setSchedules(newSchedules);
@@ -287,7 +279,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         releaseType: value,
         timeRanges: schedule.timeRanges.map(tr => ({
           ...tr,
-          slotQuantity: value === "COUNTWISE" ? 100 : 1
+          slotQuantity: value === "COUNTWISE" ? 15 : 1
         }))
       }))
     );

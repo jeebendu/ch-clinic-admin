@@ -8,8 +8,8 @@ import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
 
 interface TimeRangeRowProps {
   timeRange: TimeRange;
-  onUpdate: (id: string, updates: Partial<TimeRange>) => void;
-  onDelete: (id: string) => void;
+  onUpdate: (id: number, updates: Partial<TimeRange>) => void;
+  onDelete: (id: number) => void;
   canDelete: boolean;
   isDisabled?: boolean;
   releaseType: string;

@@ -3,7 +3,7 @@ import { Doctor } from "../../../types/Doctor";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 
 export interface TimeRange {
-  id: string;
+  id?: number;
   startTime: string;
   endTime: string;
   slotDuration: number;
