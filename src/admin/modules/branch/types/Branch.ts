@@ -1,8 +1,8 @@
 
+import { Clinic } from "@/admin/modules/clinic/types/Clinic";
 import { Country } from "../../country/types/Country";
 import { State } from "../../state/types/State";
 import { District } from "../../district/types/District";
-import { Clinic } from "../../clinic/types/Clinic";
 
 export interface Branch {
   id: number;

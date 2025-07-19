@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { Branch } from "@/admin/modules/branch/types/Branch";
 import { Doctor } from "../../../types/Doctor";
 import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
 import TimeRangeRow from "./TimeRangeRow";
+import { TimePicker } from "@/admin/components/TimePicker";
 
 interface WeeklyScheduleTabProps {
   doctor: Doctor;
@@ -23,6 +23,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
   const [loading, setLoading] = useState(true);
   const [slotMode, setSlotMode] = useState<string>("TIMEWISE");
   const [releaseBefore, setReleaseBefore] = useState<number>(1);
+  const [releaseTime, setReleaseTime] = useState<string>("09:00"); // New state for release time
 
   const [schedules, setSchedules] = useState<DoctorAvailability[]>([
     {
@@ -39,7 +40,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       doctor: null,
       id: null,
       releaseType: "TIMEWISE",
-      releaseBefore: 1
+      releaseBefore: 1,
+      releaseTime: "09:00"
     },
     {
       dayOfWeek: "Monday",
@@ -55,7 +57,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       doctor: null,
       id: null,
       releaseType: "TIMEWISE",
-      releaseBefore: 1
+      releaseBefore: 1,
+      releaseTime: "09:00"
     },
     {
       dayOfWeek: "Tuesday",
@@ -71,7 +74,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       doctor: null,
       id: null,
       releaseType: "TIMEWISE",
-      releaseBefore: 1
+      releaseBefore: 1,
+      releaseTime: "09:00"
     },
     {
       dayOfWeek: "Wednesday",
@@ -87,7 +91,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       doctor: null,
       id: null,
       releaseType: "TIMEWISE",
-      releaseBefore: 1
+      releaseBefore: 1,
+      releaseTime: "09:00"
     },
     {
       dayOfWeek: "Thursday",
@@ -103,7 +108,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       doctor: null,
       id: null,
       releaseType: "TIMEWISE",
-      releaseBefore: 1
+      releaseBefore: 1,
+      releaseTime: "09:00"
     },
     {
       dayOfWeek: "Friday",
@@ -119,7 +125,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       doctor: null,
       id: null,
       releaseType: "TIMEWISE",
-      releaseBefore: 1
+      releaseBefore: 1,
+      releaseTime: "09:00"
     },
     {
       dayOfWeek: "Saturday",
@@ -135,7 +142,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       doctor: null,
       id: null,
       releaseType: "TIMEWISE",
-      releaseBefore: 1
+      releaseBefore: 1,
+      releaseTime: "09:00"
     }
   ]);
 
@@ -171,11 +179,13 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
             endTime: item.endTime || "17:00",
             slotDuration: item.slotDuration || 15,
             slotQuantity: item.slotQuantity || 1
-          }]
+          }],
+          releaseTime: item.releaseTime || "09:00"
         }));
         setSchedules(transformedData);
         setReleaseBefore(transformedData[0]?.releaseBefore || 1);
         setSlotMode(transformedData[0]?.releaseType || "TIMEWISE");
+        setReleaseTime(transformedData[0]?.releaseTime || "09:00");
       }
     } catch (error) {
       console.error('Error fetching doctor availability:', error);
@@ -235,7 +245,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         slotDuration: schedule.timeRanges[0]?.slotDuration || 15,
         slotQuantity: schedule.timeRanges[0]?.slotQuantity || 1,
         releaseType: slotMode,
-        releaseBefore: releaseBefore
+        releaseBefore: releaseBefore,
+        releaseTime: releaseTime
       }));
 
       const res = await availabilityService.saveSchedule(apiData);
@@ -261,6 +272,16 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     );
   };
 
+  const handleReleaseTimeChange = (value: string) => {
+    setReleaseTime(value);
+    setSchedules((prev) =>
+      prev.map((schedule) => ({
+        ...schedule,
+        releaseTime: value
+      }))
+    );
+  };
+
   const handleSlotModeChange = (value: string) => {
     setSlotMode(value);
     setSchedules((prev) =>
@@ -282,39 +303,51 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         <CardDescription>Set doctor's weekly working hours for this branch</CardDescription>
         
         <div className="space-y-6">
-          {/* Release Type Radio Buttons */}
-          <div>
-            <Label className="text-base font-medium mb-3 block">Release Type</Label>
-            <RadioGroup value={slotMode} onValueChange={handleSlotModeChange} className="flex space-x-6">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="TIMEWISE" id="timewise" />
-                <Label htmlFor="timewise" className="cursor-pointer">Timewise</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="COUNTWISE" id="countwise" />
-                <Label htmlFor="countwise" className="cursor-pointer">Countwise</Label>
-              </div>
-            </RadioGroup>
-          </div>
+          {/* Release Configuration - All in one row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+            {/* Release Type Radio Buttons */}
+            <div>
+              <Label className="text-base font-medium mb-3 block">Release Type</Label>
+              <RadioGroup value={slotMode} onValueChange={handleSlotModeChange} className="flex flex-col space-y-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="TIMEWISE" id="timewise" />
+                  <Label htmlFor="timewise" className="cursor-pointer">Timewise</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="COUNTWISE" id="countwise" />
+                  <Label htmlFor="countwise" className="cursor-pointer">Countwise</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-          {/* Release Before */}
-          <div className="max-w-xs">
-            <Label className="text-base font-medium mb-2 block">Release Before</Label>
-            <Select value={String(releaseBefore)} onValueChange={handleReleaseBeforeChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select release day" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Same Day</SelectItem>
-                <SelectItem value="1">Before 1 Day</SelectItem>
-                <SelectItem value="2">Before 2 Days</SelectItem>
-                <SelectItem value="3">Before 3 Days</SelectItem>
-                <SelectItem value="4">Before 4 Days</SelectItem>
-                <SelectItem value="5">Before 5 Days</SelectItem>
-                <SelectItem value="6">Before 6 Days</SelectItem>
-                <SelectItem value="7">Before 7 Days</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Release Before */}
+            <div>
+              <Label className="text-base font-medium mb-2 block">Release Before</Label>
+              <Select value={String(releaseBefore)} onValueChange={handleReleaseBeforeChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select release day" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Same Day</SelectItem>
+                  <SelectItem value="1">Before 1 Day</SelectItem>
+                  <SelectItem value="2">Before 2 Days</SelectItem>
+                  <SelectItem value="3">Before 3 Days</SelectItem>
+                  <SelectItem value="4">Before 4 Days</SelectItem>
+                  <SelectItem value="5">Before 5 Days</SelectItem>
+                  <SelectItem value="6">Before 6 Days</SelectItem>
+                  <SelectItem value="7">Before 7 Days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Release Time */}
+            <div>
+              <Label className="text-base font-medium mb-2 block">Release Time</Label>
+              <TimePicker
+                value={releaseTime}
+                onChange={handleReleaseTimeChange}
+              />
+            </div>
           </div>
         </div>
       </CardHeader>

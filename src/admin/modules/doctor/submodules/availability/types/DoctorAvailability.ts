@@ -19,6 +19,7 @@ export interface DoctorAvailability {
   id: number;
   releaseType: string;
   releaseBefore: number;
+  releaseTime: string; // New field for release time
 }
 
 export interface DoctorLeave {

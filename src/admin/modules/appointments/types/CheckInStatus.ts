@@ -1,9 +1,14 @@
 
 export enum CheckInStatus {
-  PENDING = "pending",
-  CHECKED_IN = "checked_in",
-  CANCELLED = "cancelled",
-  COMPLETED = "completed"
+  PENDING = "PENDING",
+  CHECKED_IN = "CHECKED_IN",
+  NO_SHOW = "NO_SHOW",
+  CANCELLED = "CANCELLED"
 }
 
-export default CheckInStatus;
+export const CheckInStatusLabels = {
+  [CheckInStatus.PENDING]: "Pending",
+  [CheckInStatus.CHECKED_IN]: "Checked In",
+  [CheckInStatus.NO_SHOW]: "No Show",
+  [CheckInStatus.CANCELLED]: "Cancelled"
+};

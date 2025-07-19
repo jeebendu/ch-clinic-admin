@@ -7,7 +7,6 @@ export interface Doctor {
   qualification: string;
   expYear: number;
   online: boolean;
-  imageUrl?: string;
   gender: string;
   specializationList: {
     id: number;
