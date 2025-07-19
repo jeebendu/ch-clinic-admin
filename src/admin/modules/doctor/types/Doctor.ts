@@ -6,10 +6,9 @@ export interface Doctor {
   lastname: string;
   qualification: string;
   expYear: number;
+  specialization: string;
   online: boolean;
   gender: string;
-  specializationList: {
-    id: number;
-    name: string;
-  }[];
+  specializationList?: { id: number; name: string; }[];
+  branchList?: any[];
 }

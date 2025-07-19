@@ -15,8 +15,6 @@ import WeeklyScheduleTab from "../components/WeeklyScheduleTab";
 import BreaksTab from "../components/BreaksTab";
 import LeavesTab from "../components/LeavesTab";
 import HolidaysTab from "../components/HolidaysTab";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 import BranchService from "@/admin/modules/branch/services/branchService";
 
 const DoctorScheduleView = () => {
@@ -24,7 +22,7 @@ const DoctorScheduleView = () => {
   const navigate = useNavigate();
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
-  const [branchObj, setBranchObj] = useState<Branch>(null);
+  const [branchObj, setBranchObj] = useState<Branch | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("weekly-schedule");
 
@@ -53,20 +51,13 @@ const DoctorScheduleView = () => {
     fetchDoctor();
   }, [id]);
 
-  const handleBranchChange = (branchId: string) => {
-    if (branchId) {
-      setSelectedBranch(parseInt(branchId));
-    }
-  };
-
-
   useEffect(() => {
     if(selectedBranch){
       fetchingBranchById();
     }
   }, [selectedBranch]);
 
-    const fetchingBranchById = async () => {
+  const fetchingBranchById = async () => {
     try {
       const res = await BranchService.getById(selectedBranch);
       setBranchObj(res.data);
@@ -74,7 +65,6 @@ const DoctorScheduleView = () => {
       console.log("Fail to fetching branch data");
     }
   }
-
 
   const handleBackClick = () => {
     navigate(`/admin/doctor/view/${id}`);
@@ -95,7 +85,6 @@ const DoctorScheduleView = () => {
           </div>
         </div>
 
-
         {loading ? (
           <Card>
             <CardContent className="flex justify-center items-center py-8">
@@ -107,39 +96,6 @@ const DoctorScheduleView = () => {
           </Card>
         ) : doctor ? (
           <>
-            <Card className="mb-6">
-              <CardContent className="py-6">
-                <div className="grid md:grid-cols-4 gap-6">
-                  <div className="col-span-3">
-                    <h2 className="text-lg font-medium mb-1">Select Branch</h2>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Configure availability for a specific branch
-                    </p>
-                    <Select
-                      value={selectedBranch?.toString()}
-                      onValueChange={handleBranchChange}
-                    >
-                      <SelectTrigger className="w-full md:w-[250px]">
-                        <SelectValue placeholder="Select branch" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {doctor.branchList && doctor.branchList.map((drBranch: DoctorBranch) => (
-                          <SelectItem key={drBranch?.branch?.id} value={drBranch?.branch?.id.toString()}>
-                            {drBranch?.branch?.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="col-span-1 flex justify-end items-center">
-                    <Button variant="default">
-                      Save Configuration
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-4">
                 <TabsTrigger value="weekly-schedule">Weekly Schedule</TabsTrigger>
@@ -167,7 +123,7 @@ const DoctorScheduleView = () => {
                 <Card>
                   <CardContent className="py-8 text-center">
                     <p className="text-muted-foreground">
-                      Please select a branch to configure doctor's schedule
+                      Loading doctor's schedule configuration...
                     </p>
                   </CardContent>
                 </Card>

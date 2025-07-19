@@ -1,122 +1,133 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import React, { useState, useRef, useEffect } from "react";
 import { Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
-export interface TimePickerProps {
-  value?: string;
-  onChange: (value: string) => void;
-  className?: string;
-  minutesStep?: number;
+interface TimePickerProps {
+  value: string;
+  onChange: (time: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
-export function TimePicker({ value = "09:00", onChange, className, minutesStep = 15 }: TimePickerProps) {
-  // Parse the initial value
-  const initialTime = parseTimeString(value);
-  
-  const [hour, setHour] = useState(initialTime.hour);
-  const [minute, setMinute] = useState(initialTime.minute);
-  const [period, setPeriod] = useState<"AM" | "PM">(initialTime.period);
+export const TimePicker: React.FC<TimePickerProps> = ({
+  value,
+  onChange,
+  placeholder = "Select time",
+  disabled = false
+}) => {
+  const [open, setOpen] = useState(false);
+  const [hours, setHours] = useState("09");
+  const [minutes, setMinutes] = useState("00");
 
-  const hours = Array.from({ length: 12 }, (_, i) => (i === 0 ? "12" : String(i).padStart(2, "0")));
-  const minutes = ["00", "15", "30", "45"];
+  useEffect(() => {
+    if (value) {
+      const [h, m] = value.split(":");
+      setHours(h.padStart(2, "0"));
+      setMinutes(m.padStart(2, "0"));
+    }
+  }, [value]);
 
-  const handleSelect = () => {
-    const formattedTime = `${hour}:${minute}`;
+  const handleTimeChange = (newHours: string, newMinutes: string) => {
+    const formattedTime = `${newHours.padStart(2, "0")}:${newMinutes.padStart(2, "0")}`;
     onChange(formattedTime);
+    setOpen(false); // Close the popover after time selection
   };
 
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        times.push({
+          hour: h.toString().padStart(2, "0"),
+          minute: m.toString().padStart(2, "0"),
+          display: `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
+        });
+      }
+    }
+    return times;
+  };
+
+  const timeOptions = generateTimeOptions();
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn("w-[180px] justify-start text-left font-normal", className)}
+          className="w-full justify-start text-left font-normal"
+          disabled={disabled}
         >
           <Clock className="mr-2 h-4 w-4" />
-          {value}
+          {value || placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-3 gap-2">
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground">Hour</span>
-              <div className="grid grid-cols-3 gap-1">
-                {hours.map((h) => (
-                  <Button
-                    key={h}
-                    variant={h === hour ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setHour(h)}
-                    className="h-8 text-xs"
-                  >
-                    {h}
-                  </Button>
-                ))}
-              </div>
+      <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
+        <div className="p-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="text-sm font-medium">Hours</label>
+              <Input
+                type="number"
+                min="0"
+                max="23"
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+                className="mt-1"
+              />
             </div>
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground">Minute</span>
-              <div className="grid grid-cols-2 gap-1">
-                {minutes.map((m) => (
-                  <Button
-                    key={m}
-                    variant={m === minute ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setMinute(m)}
-                    className="h-8 text-xs"
-                  >
-                    {m}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground">AM/PM</span>
-              <div className="grid grid-cols-1 gap-1">
-                <Button
-                  variant={period === "AM" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setPeriod("AM")}
-                  className="h-8"
-                >
-                  AM
-                </Button>
-                <Button
-                  variant={period === "PM" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setPeriod("PM")}
-                  className="h-8"
-                >
-                  PM
-                </Button>
-              </div>
+            <div>
+              <label className="text-sm font-medium">Minutes</label>
+              <Input
+                type="number"
+                min="0"
+                max="59"
+                step="15"
+                value={minutes}
+                onChange={(e) => setMinutes(e.target.value)}
+                className="mt-1"
+              />
             </div>
           </div>
-          <Button className="w-full" onClick={handleSelect}>
-            Select Time
-          </Button>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleTimeChange(hours, minutes)}
+            >
+              Set Time
+            </Button>
+          </div>
+          <div className="mt-4 max-h-48 overflow-y-auto">
+            <div className="text-xs font-medium text-gray-500 mb-2">Quick Select:</div>
+            <div className="grid grid-cols-4 gap-1">
+              {timeOptions.filter((_, index) => index % 4 === 0).map((time) => (
+                <Button
+                  key={time.display}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs p-1 h-8"
+                  onClick={() => handleTimeChange(time.hour, time.minute)}
+                >
+                  {time.display}
+                </Button>
+              ))}
+            </div>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
   );
-}
-
-// Helper function to parse a time string like "09:00 AM"
-function parseTimeString(timeString: string): { hour: string; minute: string; period: "AM" | "PM" } {
-  if (!timeString) {
-    return { hour: "09", minute: "00", period: "AM" };
-  }
-  
-  const [timePart, periodPart] = timeString.split(" ");
-  const [hourPart, minutePart] = timePart.split(":");
-  
-  return {
-    hour: hourPart,
-    minute: minutePart,
-    period: (periodPart || "AM") as "AM" | "PM"
-  };
-}
+};
