@@ -13,10 +13,19 @@ export const breakService = {
       throw error;
     }
   },
-
-  saveBreaks: async (breaks: Partial<DoctorBreak>[]) => {
+    getByDoctorBranchId: async (drBranchId: number) => {
     try {
-      return http.post("/v1/doctor/schedule-break/saveOrUpdate", breaks)
+      return http.get(`/v1/doctor/schedule-break/doctor-branch/${drBranchId}`);
+    } catch (error) {
+      console.error("Error fetching doctor breaks:", error);
+      throw error;
+    }
+  },
+
+  
+  saveBreaks: async (breaks: Partial<DoctorBreak>[],drBranchId:number) => {
+    try {
+      return http.post(`/v1/doctor/schedule-break/saveOrUpdate/doctor-branch/${drBranchId}`, breaks)
     } catch (error) {
       console.error("Error saving doctor breaks:", error);
       throw error;

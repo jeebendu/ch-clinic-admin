@@ -13,6 +13,16 @@ export const leaveService = {
     }
   },
 
+    getAllByDoctorBranchId: async (drBranchId: number)=> {
+    try {
+      return http.get(`/v1/doctor-leave/doctor-branch/${drBranchId}`);
+    } catch (error) {
+      console.error("Error fetching doctor leaves:", error);
+      throw error;
+    }
+  },
+
+  
   saveLeave: async (leave: DoctorLeave) => {
     try {
       return http.post("/v1/doctor-leave/saveOrUpdate", leave)

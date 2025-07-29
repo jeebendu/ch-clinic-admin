@@ -17,6 +17,14 @@ const DoctorService = {
     }
   },
 
+
+  
+
+    getDoctorBranchByDoctorAndBranchId: async (drId: number,branchId: number) => {
+    const response = await http.get(`/v1/doctor/doctor-branch/${drId}/${branchId}`);
+    return response.data;
+  },
+
   getById: async (id: number): Promise<Doctor> => {
     const response = await http.get<Doctor>(`/v1/doctor/id/${id}`);
     return response.data;

@@ -16,9 +16,19 @@ export const availabilityService = {
     }
   },
 
-  saveSchedule: async (availabilities: DoctorAvailability[]) => {
+    findAllByDoctorBranchId: async (drBranchId: number) => {
     try {
-      return http.post(`/v1/doctor/weekly-schedule/saveOrUpdate`, availabilities);
+      return http.get(`/v1/doctor/weekly-schedule/doctor-branch/${drBranchId}`);
+    } catch (error) {
+      console.error("Error fetching doctor availability:", error);
+      throw error;
+    }
+  },
+
+  
+  saveSchedule: async (availabilities: DoctorAvailability[],drBranchId:number) => {
+    try {
+      return http.post(`/v1/doctor/weekly-schedule/saveOrUpdate/doctor-branch/${drBranchId}`, availabilities);
 
     } catch (error) {
       console.error("Error saving doctor availability:", error);

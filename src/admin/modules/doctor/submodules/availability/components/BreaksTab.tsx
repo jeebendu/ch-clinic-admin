@@ -13,10 +13,10 @@ import { Doctor } from "../../../types/Doctor";
 import BranchService from "@/admin/modules/branch/services/branchService";
 import DoctorService from "../../../services/doctorService";
 import { DoctorBreak } from "../types/DoctorAvailability";
+import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 
 interface BreaksTabProps {
-  doctor: Doctor;
-  branchObj: Branch;
+  doctorBranch: DoctorBranch;
 }
 
 
@@ -31,21 +31,21 @@ const weekDays = [
   { value: "Saturday", label: "Saturday" }
 ];
 
-const BreaksTab: React.FC<BreaksTabProps> = ({ doctor, branchObj }) => {
+const BreaksTab: React.FC<BreaksTabProps> = ({ doctorBranch }) => {
   const [loading, setLoading] = useState(true);
   const [breaks, setBreaks] = useState<DoctorBreak[]>([]);
 
 
   useEffect(() => {
-    if (doctor && doctor?.id && branchObj && branchObj?.id) {
+    if (doctorBranch && doctorBranch?.id ) {
       fetchBreaks();
     }
-  }, [doctor, branchObj]);
+  }, [doctorBranch]);
 
   const fetchBreaks = async () => {
     setLoading(true);
     try {
-      const doctorBreaks = await breakService.getByDoctorAndBranch(doctor.id, branchObj.id);
+      const doctorBreaks = await breakService.getByDoctorBranchId(doctorBranch.id);
       setBreaks(doctorBreaks.data);
     } catch (error) {
       toast.error('Failed to load break schedule');
@@ -59,7 +59,7 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctor, branchObj }) => {
   const handleAddBreak = () => {
     setBreaks([
       ...breaks,
-      { dayOfWeek: "Sunday", breakStart: "12:00", breakEnd: "13:00", description: "Lunch Break", branch: branchObj, doctor: doctor }
+      { dayOfWeek: "Sunday", breakStart: "12:00", breakEnd: "13:00", description: "Lunch Break", doctorBranch: null }
     ]);
   };
 
@@ -90,7 +90,7 @@ const BreaksTab: React.FC<BreaksTabProps> = ({ doctor, branchObj }) => {
 
   const handleSaveBreaks = async () => {
     try {
-      const res = await breakService.saveBreaks(breaks);
+      const res = await breakService.saveBreaks(breaks, doctorBranch.id);
       if (res.data.status) {
         toast.success('Break schedule saved successfully');
       } else {

@@ -14,13 +14,13 @@ import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
 import TimeRangeRow from "./TimeRangeRow";
 import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 
 interface WeeklyScheduleTabProps {
-  doctor: Doctor;
-  branchObj: Branch;
+  doctorBranch: DoctorBranch;
 }
 
-const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj }) => {
+const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) => {
   const [loading, setLoading] = useState(true);
   const [slotMode, setSlotMode] = useState<string>("TIMEWISE");
   const [releaseBefore, setReleaseBefore] = useState<number>(1);
@@ -37,8 +37,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         slotDuration: 15,
         slotQuantity: 1,
       }],
-      branch: null,
-      doctor: null,
+      doctorBranch: null,
       id: null,
       releaseType: "TIMEWISE",
       releaseBefore: 1,
@@ -53,8 +52,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         slotDuration: 15,
         slotQuantity: 1
       }],
-      branch: null,
-      doctor: null,
+      doctorBranch: null,
       id: null,
       releaseType: "TIMEWISE",
       releaseBefore: 1,
@@ -69,8 +67,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         slotDuration: 15,
         slotQuantity: 1
       }],
-      branch: null,
-      doctor: null,
+      doctorBranch: null,
       id: null,
       releaseType: "TIMEWISE",
       releaseBefore: 1,
@@ -85,8 +82,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         slotDuration: 15,
         slotQuantity: 1
       }],
-      branch: null,
-      doctor: null,
+      doctorBranch: null,
       id: null,
       releaseType: "TIMEWISE",
       releaseBefore: 1,
@@ -101,8 +97,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         slotDuration: 15,
         slotQuantity: 1
       }],
-      branch: null,
-      doctor: null,
+      doctorBranch: null,
       id: null,
       releaseType: "TIMEWISE",
       releaseBefore: 1,
@@ -117,8 +112,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         slotDuration: 15,
         slotQuantity: 1
       }],
-      branch: null,
-      doctor: null,
+      doctorBranch: null,
       id: null,
       releaseType: "TIMEWISE",
       releaseBefore: 1,
@@ -133,8 +127,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         slotDuration: 15,
         slotQuantity: 1
       }],
-      branch: null,
-      doctor: null,
+      doctorBranch: null,
       id: null,
       releaseType: "TIMEWISE",
       releaseBefore: 1,
@@ -143,22 +136,21 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
   ]);
 
   useEffect(() => {
-    if (doctor && doctor?.id && branchObj && branchObj?.id) {
+    if (doctorBranch && doctorBranch?.id ) {
       fetchAvailability();
     }
-  }, [doctor, branchObj]);
+  }, [doctorBranch]);
 
-  useEffect(() => {
-    if (doctor && doctor?.id && branchObj && branchObj?.id) {
-      setSchedules((prev) =>
-        prev.map((schedule) => ({
-          ...schedule,
-          doctor: doctor,
-          branch: branchObj
-        }))
-      );
-    }
-  }, [doctor, branchObj]);
+  // useEffect(() => {
+  //   if (doctorBranch && doctorBranch?.id ) {
+  //     setSchedules((prev) =>
+  //       prev.map((schedule) => ({
+  //         ...schedule,
+  //         doctorBranch: null
+  //       }))
+  //     );
+  //   }
+  // }, [doctorBranch]);
 
   // Recalculate values when slotMode changes
   useEffect(() => {
@@ -169,7 +161,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
   const fetchAvailability = async () => {
     setLoading(true);
     try {
-      const availabilities = await availabilityService.getByDoctorAndBranch(doctor.id, branchObj.id);
+      const availabilities = await availabilityService.findAllByDoctorBranchId(doctorBranch.id);
       if (availabilities.data && availabilities.data.length > 0) {
         const transformedData = availabilities.data.map((item: any, index: number) => ({
           ...item,
@@ -184,9 +176,10 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         }));
         setSchedules(transformedData);
         setReleaseBefore(transformedData[0]?.releaseBefore || 1);
+        console.log(transformedData[0]?.releaseBefore);
         setSlotMode(transformedData[0]?.releaseType || "TIMEWISE");
         setReleaseTime(transformedData[0]?.releaseTime || "09:00");
-        
+
         // Clear validation errors when data is loaded
         setValidationErrors({});
       }
@@ -206,17 +199,17 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
 
     const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
     const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
-    
+
     if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
       return 0;
     }
 
     const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-    
+
     if (durationMinutes <= 0) {
       return 0;
     }
-    
+
     if (slotMode === "TIMEWISE") {
       return Math.floor(durationMinutes / timeRange.slotDuration);
     } else {
@@ -234,7 +227,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
 
     const start = new Date(`2000-01-01T${startTime}:00`);
     const end = new Date(`2000-01-01T${endTime}:00`);
-    
+
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return 0;
     }
@@ -264,7 +257,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       if (!day.active) return;
 
       const dayErrors: string[] = [];
-      
+
       day.timeRanges.forEach((timeRange, rangeIndex) => {
         if (!timeRange.startTime || !timeRange.endTime) {
           dayErrors.push(`Range ${rangeIndex + 1}: Start and end times are required`);
@@ -273,12 +266,12 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
 
         const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
         const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
-        
+
         if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
           dayErrors.push(`Range ${rangeIndex + 1}: Invalid time format`);
           return;
         }
-        
+
         // Check if end time is after start time
         if (endTime <= startTime) {
           dayErrors.push(`Range ${rangeIndex + 1}: End time must be after start time`);
@@ -305,9 +298,9 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
           if (rangeIndex !== otherIndex && otherRange.startTime && otherRange.endTime) {
             const otherStart = new Date(`2000-01-01T${otherRange.startTime}:00`);
             const otherEnd = new Date(`2000-01-01T${otherRange.endTime}:00`);
-            
-            if (!isNaN(otherStart.getTime()) && !isNaN(otherEnd.getTime()) && 
-                (startTime < otherEnd && endTime > otherStart)) {
+
+            if (!isNaN(otherStart.getTime()) && !isNaN(otherEnd.getTime()) &&
+              (startTime < otherEnd && endTime > otherStart)) {
               dayErrors.push(`Range ${rangeIndex + 1} (${timeRange.startTime}-${timeRange.endTime}) overlaps with Range ${otherIndex + 1} (${otherRange.startTime}-${otherRange.endTime})`);
             }
           }
@@ -334,10 +327,10 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
     const newTimeRange: TimeRange = {
       startTime: "09:00",
       endTime: "17:00",
-      slotDuration: 15,
+      slotDuration: slotMode === "COUNTWISE" ? 60 : 15,
       slotQuantity: slotMode === "COUNTWISE" ? 15 : 1
     };
-    
+
     newSchedules[dayIndex].timeRanges.push(newTimeRange);
     setSchedules(newSchedules);
   };
@@ -351,7 +344,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         ...updates
       };
       setSchedules(newSchedules);
-      
+
       // Real-time validation - validate immediately after update
       const errors = validateTimeRanges();
       setValidationErrors(errors);
@@ -386,7 +379,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
         releaseTime: releaseTime
       }));
 
-      const res = await availabilityService.saveSchedule(apiData);
+      const res = await availabilityService.saveSchedule(apiData,doctorBranch.id);
       if (res.data.status) {
         toast.success('Weekly schedule saved successfully!');
         setValidationErrors({}); // Clear all errors on successful save
@@ -422,12 +415,14 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
 
   const handleSlotModeChange = (value: string) => {
     setSlotMode(value);
+    console.log(value)
     setSchedules((prev) =>
       prev.map((schedule) => ({
         ...schedule,
         releaseType: value,
         timeRanges: schedule.timeRanges.map(tr => ({
           ...tr,
+          slotDuration: value === "COUNTWISE" ? 60 : 15,
           slotQuantity: value === "COUNTWISE" ? 15 : 1
         }))
       }))
@@ -439,7 +434,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
       <CardHeader>
         <CardTitle>Weekly Schedule</CardTitle>
         <CardDescription>Set doctor's weekly working hours for this branch</CardDescription>
-        
+
         <div className="space-y-6">
           {/* Release Configuration - All in one row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
@@ -540,7 +535,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, branchObj
                       {day.timeRanges.map((timeRange) => {
                         const duration = calculateDuration(timeRange.startTime, timeRange.endTime);
                         const totalSlots = calculateTotalSlots(timeRange);
-                        
+
                         return (
                           <div key={timeRange.id} className="space-y-2">
                             <TimeRangeRow

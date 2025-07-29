@@ -15,13 +15,13 @@ import { Doctor } from "../../../types/Doctor";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 import BranchService from "@/admin/modules/branch/services/branchService";
 import DoctorService from "../../../services/doctorService";
+import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 
 interface LeavesTabProps {
-    doctor: Doctor;
-  branchObj: Branch;
+  doctorBranch: DoctorBranch;
 }
 
-const LeavesTab: React.FC<LeavesTabProps> = ({ doctor, branchObj }) => {
+const LeavesTab: React.FC<LeavesTabProps> = ({ doctorBranch }) => {
   const [loading, setLoading] = useState(true);
   const [leaves, setLeaves] = useState<DoctorLeave[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -30,27 +30,26 @@ const LeavesTab: React.FC<LeavesTabProps> = ({ doctor, branchObj }) => {
 
   const [newLeave, setNewLeave] = useState<DoctorLeave>({
     id: null,
-    doctor: doctor,
-    branch: branchObj,
+    doctorBranch: doctorBranch,
     leaveEnd: new Date(),
     leaveStart: new Date(),
     reason: "",
-    approved:false
+    approved: false
   });
   leaveStart: Date;
 
   useEffect(() => {
-    if (doctor && doctor?.id && branchObj && branchObj?.id) {
-      setNewLeave((prev)=>({...prev,doctor:doctor,branch:branchObj}))
+    if (doctorBranch && doctorBranch?.id) {
+      setNewLeave((prev) => ({ ...prev, doctorBranch: doctorBranch }))
       fetchLeaves();
     }
-  }, [doctor, branchObj]);
+  }, [doctorBranch]);
 
 
   const fetchLeaves = async () => {
     setLoading(true);
     try {
-      const doctorLeaves = await leaveService.getByDoctorAndBranch(doctor.id, branchObj.id);
+      const doctorLeaves = await leaveService.getAllByDoctorBranchId(doctorBranch.id);
       setLeaves(doctorLeaves.data);
     } catch (error) {
       console.error('Error fetching doctor leaves:', error);

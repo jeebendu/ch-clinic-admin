@@ -15,11 +15,10 @@ import BranchService from "@/admin/modules/branch/services/branchService";
 import { Doctor } from "../../../types/Doctor";
 
 interface HolidaysTabProps {
-  doctor: Doctor;
   branchObj: Branch;
 }
 
-const HolidaysTab: React.FC<HolidaysTabProps> = ({ doctor, branchObj }) => {
+const HolidaysTab: React.FC<HolidaysTabProps> = ({ branchObj }) => {
   const [loading, setLoading] = useState(true);
   // const [branch, setBranch] = useState<Branch>(null);
   const [holidays, setHolidays] = useState<ClinicHoliday[]>([]);

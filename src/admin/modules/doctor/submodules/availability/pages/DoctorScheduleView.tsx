@@ -16,13 +16,16 @@ import BreaksTab from "../components/BreaksTab";
 import LeavesTab from "../components/LeavesTab";
 import HolidaysTab from "../components/HolidaysTab";
 import BranchService from "@/admin/modules/branch/services/branchService";
+import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
+import DoctorService from "../../../services/doctorService";
 
 const DoctorScheduleView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
-  const [branchObj, setBranchObj] = useState<Branch | null>(null);
+  // const [branchObj, setBranchObj] = useState<Branch | null>(null);
+  const [doctorBranchObj, setDoctorBranchObj] = useState<DoctorBranch | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("weekly-schedule");
 
@@ -38,7 +41,7 @@ const DoctorScheduleView = () => {
         // Set the first branch as default if doctor has branches
         if (fetchedDoctor.branchList && fetchedDoctor.branchList.length > 0) {
           setSelectedBranch(fetchedDoctor.branchList[0]?.branch?.id);
-          setBranchObj(fetchedDoctor.branchList[0]?.branch);
+          setDoctorBranchObj(fetchedDoctor.branchList[0]);
         }
       } catch (error) {
         console.error('Error fetching doctor details:', error);
@@ -59,8 +62,8 @@ const DoctorScheduleView = () => {
 
   const fetchingBranchById = async () => {
     try {
-      const res = await BranchService.getById(selectedBranch);
-      setBranchObj(res.data);
+      const data = await DoctorService.getDoctorBranchByDoctorAndBranchId(Number(id),selectedBranch);
+      setDoctorBranchObj(data);
     } catch (error) {
       console.log("Fail to fetching branch data");
     }
@@ -72,7 +75,7 @@ const DoctorScheduleView = () => {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
             <Button variant="ghost" onClick={handleBackClick} className="mr-4">
@@ -104,19 +107,19 @@ const DoctorScheduleView = () => {
                 <TabsTrigger value="holidays">Holidays</TabsTrigger>
               </TabsList>
 
-              {selectedBranch && branchObj ? (
+              {selectedBranch && doctorBranchObj ? (
                 <>
                   <TabsContent value="weekly-schedule">
-                    <WeeklyScheduleTab doctor={doctor} branchObj={branchObj} />
+                    <WeeklyScheduleTab doctorBranch={doctorBranchObj} />
                   </TabsContent>
                   <TabsContent value="breaks">
-                    <BreaksTab doctor={doctor} branchObj={branchObj} />
+                    <BreaksTab doctorBranch={doctorBranchObj} />
                   </TabsContent>
                   <TabsContent value="leaves">
-                    <LeavesTab doctor={doctor} branchObj={branchObj} />
+                    <LeavesTab doctorBranch={doctorBranchObj} />
                   </TabsContent>
                   <TabsContent value="holidays">
-                    <HolidaysTab doctor={doctor} branchObj={branchObj} />
+                    <HolidaysTab  branchObj={doctorBranchObj?.branch} />
                   </TabsContent>
                 </>
               ) : (

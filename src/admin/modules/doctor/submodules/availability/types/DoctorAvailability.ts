@@ -1,4 +1,5 @@
 
+import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 import { Doctor } from "../../../types/Doctor";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 
@@ -14,8 +15,7 @@ export interface DoctorAvailability {
   dayOfWeek: string;
   active: boolean;
   timeRanges: TimeRange[];
-  branch: Branch;
-  doctor: Doctor;
+  doctorBranch: DoctorBranch;
   id: number;
   releaseType: string;
   releaseBefore: number;
@@ -24,8 +24,7 @@ export interface DoctorAvailability {
 
 export interface DoctorLeave {
   id: number;
-  doctor: Doctor;
-  branch: Branch;
+  doctorBranch: DoctorBranch;
   leaveStart: Date;
   leaveEnd: Date;
   reason: string;
@@ -34,8 +33,7 @@ export interface DoctorLeave {
 
 export interface DoctorBreak {
   id?: number;
-  doctor: Doctor;
-  branch: Branch;
+  doctorBranch: DoctorBranch;
   dayOfWeek: string;
   breakStart: string;
   breakEnd: string;
