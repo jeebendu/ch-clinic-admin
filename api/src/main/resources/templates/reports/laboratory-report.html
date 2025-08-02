@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${clinicForm}">Lab Report</title>
+
+  <style>
+    @page {
+      margin: 250px 20px 250px 20px;
+
+      @top-center {
+        content: element(page-header);
+      }
+
+      @bottom-center {
+        content: element(page-footer);
+      }
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    header {
+      position: running(page-header);
+      border-bottom: 1px solid #a8a8a8;
+      padding-bottom: 5px;
+    }
+
+    footer {
+      position: running(page-footer);
+      text-align: center;
+      border-top: 0px solid #a8a8a8;
+      padding-top: 5px;
+      font-size: 10px;
+    }
+
+    .main-content {
+      padding: 0px;
+    }
+
+    .header {
+      display: flex;
+    }
+
+    .logo {
+      max-width: 120px;
+      max-height: 80px;
+      object-fit: contain; /* Important: maintains aspect ratio */
+    }
+
+    .clinic-details {
+      text-align: center;
+      margin: 0 20px;
+      /* Top & Bottom = 0, Left & Right = 20px */
+      flex-grow: 1;
+    }
+
+    .clinic-details h1 {
+      color: #151618;
+      margin: 0;
+      font-size: 30px;
+    }
+
+    .contact-info {
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .section {
+      margin-top: 12px;
+    }
+
+    .patient-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .patient-info .left,
+    .patient-info .center {
+      width: 33%;
+      font-size: 14px;
+    }
+
+    .patient-info .right {
+      width: 33%;
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .patient-info strong.name {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .barcode img {
+      width: 70px;
+    }
+
+    .test-title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      margin: 10px 0;
+      text-decoration: underline;
+    }
+
+    .test-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .test-table th,
+    .test-table td {
+      padding: 6px 4px;
+      font-size: 14px;
+      text-align: left;
+      border: none;
+    }
+
+    .test-table th {
+      background-color: #ffffff;
+      font-weight: bold;
+    }
+
+    .low {
+      color: blue;
+    }
+
+    .high {
+      color: red;
+    }
+
+    .borderline {
+      color: orange;
+    }
+
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 10px;
+    }
+
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+    }
+
+    .signatures div {
+      width: 30%;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    .bottom-bar {
+      background-color: #0052cc;
+      color: white;
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      font-size: 12px;
+    }
+
+    .line {
+      color: #00b8ab;
+      border-top: 1px solid #a8a8a8;
+      padding-top: 8px;
+      margin-top: 10px;
+    }
+
+    .vertical-line {
+      width: 1px;
+      background-color: #a8a8a8;
+      margin: 0 15px;
+      height: 60px;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #444;
+      border-top: 1px solid #ccc;
+      padding: 10px 0;
+      margin-top: 30px;
+    }
+
+    .footer-left,
+    .footer-center,
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-left img {
+      height: 40px;
+    }
+
+    .footer-center {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .footer-center .powered {
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    .footer-center .link {
+      color: #0052cc;
+      text-decoration: none;
+    }
+
+    .footer-right {
+      text-align: right;
+      flex-direction: column;
+    }
+
+    .footer-right .qr-label {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .footer-right img {
+      height: 60px;
+    }
+
+    .page-break {
+    page-break-before: always;
+  }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- Fixed Header -->
+  <header>
+
+    <div class="header">
+      <img th:src="${clinicLogo}" class="logo" alt="Logo"
+        src="https://www.aarohclinic.com/assets/images/page-title/logo.png" />
+      <div class="clinic-details">
+        <h1 th:text="${clinicName}">Clinichub Care Pvt Ltd</h1>
+        <div th:text="${clinicLocation}">STPI Balasore, Odisha - 756001</div>
+      </div>
+      <div class="contact-info">
+        <div>📞 9337890629 </br> 7873225341</div>
+      </div>
+    </div>
+
+    <div class="line"></div>
+
+    <table style="width: 100%; font-size: 12px; border-collapse: collapse; margin-top: 5px;">
+      <!-- 🔹 Row 1: Patient Info + Patient QR -->
+      <tr>
+        <td style="width: 30%; vertical-align: top; padding: 4px;text-align: left;">
+          <div>
+            <strong style="font-size: 13px;" th:text="${patient.firstname + ' ' + patient.lastname}">Yash M.
+              Patel</strong> 
+              <span th:text="${patient.age}">21</span> Years / <span th:text="${patient.gender}">Male</span><br />
+          </div>
+          
+          <b>Mobile</b> : 9178122700 <br/>
+          <b>PID:</b>
+          <span th:text="${patient.uid}">P0000001</span><br />
+          <span style="font-weight: bold;">Ref. By:</span> <span >Dr. Aliv Kumar</span>
+        </td>
+
+        <td style="width: 30%; text-align: right; vertical-align: top; padding: 4px;">
+          <img width="70px"  alt="patient_qr" th:src="'data:image/png;base64,' + ${patientQrImage}"  src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807129/assets/aarohqr.png" />
+        </td>
+
+        <td colspan="2" style="padding: 4px;">
+          <div class="vertical-line" style="height: 90px;"></div>
+        </td>
+
+        <td style="width: 70%; vertical-align: top; padding: 4px;text-align: left;">
+          <strong>Sample Collected At:<br></strong>
+          <span >Dungura,Balasore</span><br />
+          Registered on:
+          <span >02:31 PM 02 Dec,
+            2X</span><br />
+          Collected on:
+          <span >03:11 PM 02 Dec,
+            2X</span><br />
+          Reported on:
+          <span>04:35 PM 02 Dec, 2X</span>
+        </td>
+
+        <td style="width: 30%; text-align: right; vertical-align: top; padding: 4px;">
+          <img width="70px" th:src="'data:image/png;base64,' + ${reportQrImage}"  src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807129/assets/aarohqr.png" alt="report_qr" />
+        </td>
+      </tr>
+    </table>
+
+  </header>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <div class="test-title" th:text="${report.testType.name}">Complete Blood Count (CBC)</div>
+
+    <table class="test-table">
+      <thead>
+        <tr>
+          <th>Investigation</th>
+          <th>Result</th>
+          <th>Reference Value</th>
+          <th>Unit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Primary Sample Type :</strong></td>
+          <td colspan="3">Blood</td>
+        </tr>
+        <tr th:each="result : ${report.results}">
+          <td th:text="${result.testParameter.name}">Hemoglobin (Hb)</td>
+          <td>
+            <span>
+              <span
+                th:text="${result.resultValue != null ? #numbers.formatDecimal(result.resultValue, 0, 2) : result.resultText}">
+                12.5
+              </span>
+            </span>
+          </td>
+          <td
+            th:text="${#numbers.formatDecimal(result.testParameter.referenceMin, 0, 2) + ' - ' + #numbers.formatDecimal(result.testParameter.referenceMax, 0, 2)}">
+            13 - 17
+          </td>
+          <td th:text="${result.unitOverride != null ? result.unitOverride : result.testParameter.unit}">
+            g/dL
+          </td>
+        </tr>
+
+        <!-- <tr th:each="i : ${#numbers.sequence(1,200)}">
+          <td>Parameter [[${i}]]</td>
+          <td>[[${i}]]</td>
+          <td>g/dL</td>
+          <td>12-16</td>
+        </tr> -->
+        
+        <tr>
+          <td colspan="5" style="padding-top: 10px; font-size: 11px;">
+            <strong>Instruments:</strong> Fully automated cell counter - Mindray 300<br/>
+            <strong>Interpretation:</strong> Further confirm for Anemia
+          </td>
+        </tr>
+        <tr>
+          <td colspan="5" style="padding-top: 10px; text-align: center; font-size: 11px;">
+            Thanks for Reference<br/>
+            ****End of Report****
+          </td>
+        </tr>
+
+
+      </tbody>
+    </table>
+  </div>
+
+  
+  <!-- Fixed Footer -->
+  <footer>
+
+    <div class="signatures">
+    <div>
+      <br/><br/><strong>Medical Lab Technician</strong><br/>(DMLT, BMLT)
+    </div>
+   
+    <div>
+      <br/><br/><strong></strong><br/>(MD, Pathologist)
+    </div>
+  </div>
+
+<div class="line"></div>
+
+    <!-- Footer Section -->
+    <table style="width: 100%; font-family: Arial, sans-serif; font-size: 11px; ">
+      <tr>
+        <!-- Column 1: Logo and Powered by -->
+        <td style="width: 60%; vertical-align: top;">
+          <div style="display: flex; align-items: flex-start; flex-direction: column;">
+            <img src="https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png" alt="Clinichub Logo"
+              style="height: 32px;">
+            <div style="margin-top: 4px;">
+              <div style="font-weight: bold;">Powered by Clinichub</div>
+              <a href="https://www.clinichub.care" style="text-decoration: none; color: #000;">www.clinichub.care</a>
+            </div>
+          </div>
+        </td>
+
+        <!-- Vertical Divider -->
+        <td>
+          <div class="vertical-line"></div>
+        </td>
+
+        <!-- Column 2: Home Collection and Call -->
+        <td style="width: 20%; vertical-align: top; padding-left: 8px;">
+          <div style="font-weight: bold;">Home Collection</div>
+          <div style="margin-top: 4px;">📞 Call us:<br>+91-9876543210</div>
+        </td>
+
+        <!-- Vertical Divider -->
+        <td>
+          <div class="vertical-line"></div>
+        </td>
+
+        <!-- Column 3: QR Code for Android & iOS -->
+        <td style="width: 20%; vertical-align: top; padding-left: 8px; text-align: center;">
+          <div style="font-weight: bold; margin-bottom: 4px;">Download Our App</div>
+          <table style="margin: 0 auto;">
+            <tr>
+              <td style="text-align: center; padding: 0 6px;">
+                <img th:src="'data:image/png;base64,' + ${androidQrImage}"  src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807129/assets/aarohqr.png"
+                  alt="Android QR" style="height: 45px;">
+              </td>
+              <td style="text-align: center; padding: 0 6px;">
+                <img th:src="'data:image/png;base64,' + ${iosQrImage}"  src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807129/assets/aarohqr.png" alt="iOS QR"
+                  style="height: 45px;">
+
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Terms and Conditions Row -->
+      <tr>
+        <td colspan="5" style="padding-top: 8px;">
+          <div style="font-size: 9px; color: #666; text-align: center; line-height: 1.4;">
+            <strong>Disclaimer:</strong> Clinichub acts as a technology platform and does not perform any diagnostic
+            tests. All lab testing, reporting, and interpretation of results are solely the responsibility of the
+            respective diagnostic laboratory. Please consult a certified medical professional before making any
+            healthcare decisions.
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="page-break"></div>
+
+  </footer>
+
+
+</body>
+
+</html>

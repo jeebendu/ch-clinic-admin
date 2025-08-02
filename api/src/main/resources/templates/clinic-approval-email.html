@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Approved - Welcome to ClinicHub</title>
+    <style>
+        .email-body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .welcome-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .welcome-message h2 {
+            color: #155724;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .welcome-message p {
+            color: #155724;
+            margin: 0;
+            font-size: 16px;
+        }
+        .credentials-box {
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .credentials-box h3 {
+            color: #495057;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .credential-item {
+            margin: 12px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            border-left: 4px solid #667eea;
+        }
+        .credential-label {
+            font-weight: 600;
+            color: #495057;
+            display: inline-block;
+            width: 120px;
+        }
+        .credential-value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .set-password-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .info-section {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .info-section h4 {
+            color: #856404;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        .info-section p {
+            color: #856404;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .next-steps {
+            margin: 30px 0;
+        }
+        .next-steps h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .steps-list {
+            list-style: none;
+            padding: 0;
+        }
+        .steps-list li {
+            background-color: #f8f9fa;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            position: relative;
+            padding-left: 50px;
+        }
+        .step-number {
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            background-color: #28a745;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .support-info {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+        }
+        .support-info h4 {
+            color: #1565c0;
+            margin: 0 0 10px 0;
+        }
+        .support-info p {
+            color: #1565c0;
+            margin: 5px 0;
+        }
+        @media (max-width: 600px) {
+            .email-body {
+                padding: 10px;
+            }
+            .content {
+                padding: 20px 15px;
+            }
+            .header {
+                padding: 20px 15px;
+            }
+            .credential-label {
+                width: 100px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-body">
+        <div class="email-container">
+            <div class="header">
+                <h1>&#127881; Congratulations!</h1>
+                <p>Your clinic has been approved</p>
+            </div>
+            
+            <div class="content">
+                <div class="welcome-message">
+                    <h2>Welcome to ClinicHub</h2>
+                    <p>Your clinic "<span th:text="${clinicName}">Clinic Name</span>" has been successfully approved and is now active on our platform.</p>
+                </div>
+
+                <p>Hello <strong th:text="${contactName}">Contact Name</strong>,</p>
+                
+                <p>We're excited to inform you that your clinic registration request has been approved! You can now access your clinic management dashboard and start using all the features of ClinicHub.</p>
+
+                <div class="credentials-box">
+                    <h3>&#128272; Your Login Credentials</h3>
+                    <div class="credential-item">
+                        <span class="credential-label">Username:</span>
+                        <span class="credential-value" th:text="${username}">username@email.com</span>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Clinic URL:</span>
+                        <span class="credential-value" th:text="${clinicUrl}">https://yourclinic.clinichub.com</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h4>&#9888; Important: Set Your Password</h4>
+                    <p>For security reasons, you need to set your password before you can access your account.</p>
+                    <p>Please click the button below to create your secure password.</p>
+                </div>
+
+                <div class="button-container">
+                    <a href="#" th:href="${resetLink}" class="set-password-button">
+                        &#128273; Set Your Password
+                    </a>
+                </div>
+
+                <div class="next-steps">
+                    <h3>&#128640; Next Steps</h3>
+                    <ul class="steps-list">
+                        <li>
+                            <span class="step-number">1</span>
+                            <strong>Set your password</strong> using the button above
+                        </li>
+                        <li>
+                            <span class="step-number">2</span>
+                            <strong>Login to your dashboard</strong> at <span th:text="${clinicUrl}">your clinic URL</span>
+                        </li>
+                        <li>
+                            <span class="step-number">3</span>
+                            <strong>Complete your clinic profile</strong> with detailed information
+                        </li>
+                        <li>
+                            <span class="step-number">4</span>
+                            <strong>Add your staff and doctors</strong> to start managing appointments
+                        </li>
+                        <li>
+                            <span class="step-number">5</span>
+                            <strong>Configure your services</strong> and start accepting patients
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="support-info">
+                    <h4>&#128161; Need Help Getting Started?</h4>
+                    <p>Our support team is here to help you every step of the way.</p>
+                    <p>&#128231; Email: support@clinichub.com</p>
+                    <p>&#128222; Phone: +1 (555) 123-4567</p>
+                    <p>&#128337; Support Hours: Mon-Fri, 9 AM - 6 PM</p>
+                </div>
+
+                <p style="margin-top: 30px;">Thank you for choosing ClinicHub. We're committed to helping you streamline your clinic operations and provide the best care for your patients.</p>
+                
+                <p>Best regards,<br>
+                <strong>The ClinicHub Team</strong></p>
+            </div>
+
+            <div class="footer">
+                <p>&copy; 2024 ClinicHub. All rights reserved.</p>
+                <p>This email was sent to <span th:text="${email}">recipient@email.com</span></p>
+                <p>If you have any questions, please don't hesitate to contact our support team.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

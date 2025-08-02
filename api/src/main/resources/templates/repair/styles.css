@@ -1,0 +1,15 @@
+body {
+      font-family: calibri, 'DejaVu Sans', Arial, Helvetica, sans-serif;
+    }
+ a.link {
+   border: solid 1px #000;
+   background-color: #000;
+   text-decoration: none;
+   color: #fff;
+   font-weight: bold;
+   display: block;
+   width: 360px;
+   text-align: center;
+   padding: 10px 0;
+ }
+ 

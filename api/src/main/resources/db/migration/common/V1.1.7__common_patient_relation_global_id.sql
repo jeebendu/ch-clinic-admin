@@ -1,0 +1,1 @@
+ALTER TABLE patient_relation ADD COLUMN IF NOT EXISTS global_id UUID;

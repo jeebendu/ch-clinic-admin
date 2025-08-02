@@ -1,0 +1,448 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Confirmation - ClinicHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f7f9fc;
+            padding: 20px 0;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .logo-section {
+            text-align: center;
+            padding: 30px 20px 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo-section img {
+            max-width: 180px;
+            height: auto;
+            filter: brightness(0) invert(1);
+        }
+        
+        .header-title {
+            color: white;
+            text-align: center;
+            padding: 0 20px 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header-title h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .header-title p {
+            font-size: 16px;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+        
+        /* Success Badge */
+        .success-badge {
+            background: rgba(34, 197, 94, 0.2);
+            color: #ffffff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        /* Content Section */
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .intro-text {
+            color: #6b7280;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        /* Appointment Details Card */
+        .appointment-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            border-left: 5px solid #667eea;
+            position: relative;
+        }
+        
+        .appointment-card::before {
+            content: '📅';
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            font-size: 24px;
+            background: white;
+            padding: 8px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .appointment-card h3 {
+            color: #1e293b;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 16px;
+            text-align: right;
+        }
+        
+        /* Barcode Section */
+        .barcode-section {
+            background: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .barcode-title {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .barcode-placeholder {
+            background: linear-gradient(90deg, #000 2px, transparent 2px),
+                        linear-gradient(90deg, #000 1px, transparent 1px);
+            background-size: 3px 100%, 6px 100%;
+            height: 60px;
+            margin: 15px auto;
+            max-width: 200px;
+            border-radius: 4px;
+        }
+        
+        .booking-id {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e293b;
+            background: #f1f5f9;
+            padding: 10px 20px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        /* Info Boxes */
+        .info-box {
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .info-box.warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .info-box.contact {
+            background: linear-gradient(135deg, #dbeafe 0%, #3b82f6 100%);
+            color: white;
+        }
+        
+        .info-box h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-box.warning h4 {
+            color: #92400e;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-box li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .info-box li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        
+        .info-box.warning li {
+            color: #92400e;
+        }
+        
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #e2e8f0;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .footer h4 {
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .footer p {
+            margin: 8px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .footer-divider {
+            height: 1px;
+            background: rgba(226, 232, 240, 0.2);
+            margin: 20px 0;
+        }
+        
+        .footer-legal {
+            font-size: 12px;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .appointment-card {
+                padding: 20px;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .detail-value {
+                text-align: left;
+                font-size: 15px;
+            }
+            
+            .header-title h1 {
+                font-size: 24px;
+            }
+            
+            .barcode-placeholder {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="logo-section">
+                <img src="https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png" alt="ClinicHub Logo">
+            </div>
+            <div class="header-title">
+                <h1>Appointment Confirmed!</h1>
+                <p>Hello <span th:text="${patientName}">Patient</span>, your appointment has been successfully scheduled</p>
+                <div class="success-badge">✓ Confirmed</div>
+            </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="content">
+            <div class="greeting">
+                Dear <span th:text="${patientName}">Patient</span>,
+            </div>
+            
+            <div class="intro-text">
+                Thank you for choosing <strong>ClinicHub</strong>. We're pleased to confirm your upcoming appointment. Please find all the details below and save this confirmation for your records.
+            </div>
+
+            <!-- Appointment Details Card -->
+            <div class="appointment-card">
+                <h3>📋 Appointment Details</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Booking ID</span>
+                    <span class="detail-value" th:text="${bookingId}">BK12345</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Clinic</span>
+                    <span class="detail-value" th:text="${clinic}">ABC Clinic</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Branch</span>
+                    <span class="detail-value" th:text="${branch}">Downtown Branch</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Address</span>
+                    <span class="detail-value" th:text="${branchAddress}">New York, Manhattan</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Doctor</span>
+                    <span class="detail-value" th:text="${doctor}">Dr. John Doe</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date</span>
+                    <span class="detail-value" th:text="${slotDate}">2024-06-02</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Expected Time</span>
+                    <span class="detail-value" th:text="${expectedTime}">10:00 AM</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Duration</span>
+                    <span class="detail-value" th:text="${duration}">30 minutes</span>
+                </div>
+            </div>
+
+            <!-- Barcode Section -->
+            <div class="barcode-section">
+                <div class="barcode-title">Scan for Quick Check-in</div>
+                <div class="barcode-placeholder"></div>
+                <div class="booking-id" th:text="${bookingId}">BK12345</div>
+                <p style="color: #64748b; font-size: 12px; margin-top: 10px;">
+                    Show this barcode at reception for faster check-in
+                </p>
+            </div>
+
+            <!-- Important Information -->
+            <div class="info-box warning">
+                <h4>⚠️ Important Reminders</h4>
+                <ul>
+                    <li>Please arrive 15 minutes before your scheduled appointment time</li>
+                    <li>Bring a valid photo ID and insurance card if applicable</li>
+                    <li>Bring any relevant medical records or test results</li>
+                    <li>For cancellation or rescheduling, contact us at least 24 hours in advance</li>
+                </ul>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="info-box contact">
+                <h4>📞 Need Assistance?</h4>
+                <p>Our support team is here to help with any questions or concerns.</p>
+                <p><strong>Phone:</strong> +1 (555) 123-4567</p>
+                <p><strong>Email:</strong> support@clinichub.com</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; color: #6b7280;">
+                <p>We look forward to providing you with excellent healthcare service.</p>
+                <p style="margin-top: 15px;"><strong>Best regards,<br>The ClinicHub Team</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-content">
+                <h4>ClinicHub</h4>
+                <p>📧 support@clinichub.com</p>
+                <p>📞 +1 (555) 123-4567</p>
+                <div class="footer-divider"></div>
+                <div class="footer-legal">
+                    <p>&copy; 2024 ClinicHub. All rights reserved.</p>
+                    <p>This is an automated message, please do not reply to this email.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

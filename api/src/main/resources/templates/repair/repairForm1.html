@@ -1,0 +1,549 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- <link type="text/css" th:href="${cssurl}" rel="stylesheet" /> -->
+    <!-- <link href="style.css" rel="stylesheet" type="text/css" /> -->
+
+    <style>
+        body {
+            font-family: Arial !important;
+        }
+
+        .full {
+            width: 100%
+        }
+
+        .d-none {
+            display: none;
+        }
+
+        table.parent {
+            border: none;
+            width: 100%
+        }
+
+        table.inner {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        table.inner td,
+        th {
+            border: 1px solid black;
+            padding: 4px;
+            font-size: 14px;
+        }
+
+        .align-top {
+            vertical-align: top;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .col-6 {
+            height: 50%;
+            outline-style: dashed;
+        }
+
+        .col-6 {
+            height: 50%;
+            outline-style: dashed;
+        }
+
+
+        .title {
+            font-family: Arial, Helvetica, sans-serif;
+            border: 0px solid black;
+            text-align: center;
+            font-weight: bold;
+            font-size: 30px;
+            padding-left: 10px;
+            padding-right: 10px;
+            ;
+        }
+
+        .float-center {
+            text-align: center !important;
+        }
+
+
+
+        .new {
+            width: 700px;
+            height: auto;
+            border: 1px solid black;
+        }
+
+        .id {
+            width: 50px;
+            padding: 5px;
+        }
+
+        .name {
+            width: 400px;
+            padding-left: 5px;
+        }
+
+        .no {
+            padding: 5px;
+        }
+
+        .no-border {
+            border: none;
+        }
+
+        .orderDiv {
+            margin-top: 20px;
+            margin-left: 10px;
+            border: 0px solid black;
+            font-size: 20px;
+            padding-left: 10px;
+        }
+
+
+
+        .clinicold {
+            font-family: Arial;
+            text-align: center;
+            font-weight: bold;
+            font-size: 20px;
+            margin-left: 10px;
+            border: 0px solid black;
+        }
+
+
+        address {
+            display: block;
+            font-style: italic;
+        }
+
+        address {
+            margin-bottom: 1rem;
+            font-style: normal;
+            line-height: inherit;
+        }
+
+        .text-muted {
+            text-opacity: 1;
+            color: rgb(28, 25, 25) !important;
+        }
+
+        .text-muted {
+            color: rgb(28, 25, 25) !important;
+            margin-bottom: 10px;
+        }
+
+        .m-l-5 {
+            margin-left: 5px;
+        }
+
+        .ml-10 {
+            margin-left: 10px;
+        }
+
+        .ml-15 {
+            margin-left: 15px;
+        }
+
+        .m-20 {
+            margin-left: 20px;
+        }
+
+        .ptb-10 {
+            padding: 10px, 0px, 10px, 0px;
+        }
+
+        .pt-3 {
+            padding-top: 3px;
+        }
+
+        .pt-10 {
+            padding-top: 10px;
+        }
+
+        .pl-4 {
+            padding-left: 4px;
+        }
+
+        .pr-4 {
+            padding-right: 4px;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        p {
+            margin-top: 0;
+            font-size: 14px;
+        }
+
+
+
+
+        .rowx {
+            --bs-gutter-x: 1.5rem;
+            --bs-gutter-y: 0;
+            display: flex;
+            margin-top: calc(-1 * var(--bs-gutter-y));
+            margin-right: calc(-.5 * var(--bs-gutter-x));
+            margin-left: calc(-.5 * var(--bs-gutter-x));
+            width: 100%;
+
+        }
+
+
+        .border {
+            border-bottom: 1px solid rgb(128, 128, 128);
+        }
+
+        .cb_text {
+            padding-left: 5px;
+            padding-bottom: 5px;
+        }
+
+        .body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10px;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
+
+        .text-end {
+            text-align: right !important;
+        }
+
+        .text-start {
+            text-align: left !important;
+        }
+
+        .total {
+            flex: 0 0 auto;
+            width: 100%;
+        }
+
+        .float-end {
+            float: right !important;
+            margin-left: 350px;
+        }
+
+        .float-center {
+            float: center !important;
+            margin-left: 80px;
+        }
+
+        .m-t-30 {
+            margin-top: 30px;
+        }
+
+        .m-t-15 {
+            margin-top: 30px;
+        }
+
+        .cb_text {
+            padding-left: 5px;
+            padding-bottom: 5px;
+        }
+
+
+        .myStyle {
+            font-family: Arial, sans-serif;
+            padding: 1em;
+            margin: 1em;
+            display: inline-block;
+            color: white;
+            background-color:
+            /*[[${backgroundColor}]]*/
+            pink;
+        }
+
+        footer {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 5px 0;
+
+        }
+
+        .grey {
+            background-color: #f1f1f1;
+        }
+
+        .signature {
+            text-align: right;
+            border-bottom: 1px solid black;
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid black;
+        }
+
+        .modality {
+            font-size: 8px;
+        }
+        .header {
+    text-align: center;
+  }
+  
+  .row {
+    display: flex;
+    justify-content: space-between; /* This will space out the .bill divs evenly */
+  }
+  
+  .bill {
+    flex: 1;
+    text-align: center; /* Center the text inside each .bill */
+  }
+  
+  /* Optional: Add some padding to each .bill for better spacing */
+  .bill:not(:last-child) {
+    padding-right: 10px;
+  }
+  
+  .bill:not(:first-child) {
+    padding-left: 10px;
+  }
+  .check{
+    margin-top: 5px;
+  }
+  .row.check {
+    display: flex;
+    justify-content: space-between; /* Adjusts spacing between items */
+    align-items: center; /* Aligns items vertically */
+    padding: 0; /* Removes padding */
+    margin: 0; /* Removes margin */
+}
+
+.bill {
+    margin: 0; /* Removes margin */
+    padding: 0; /* Removes padding */
+}
+  table.inner td,
+        th {
+            border: 1px solid black;
+            padding: 4px;
+            font-size: 14px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <table class="parent full">
+        <tr>
+            <td>
+                <img width="80px" th:src="${clinicLogo}">
+            </td>
+            <td class="float-center">
+                <div class="">
+                    <div class="title"><span th:text="${clinicName}"></span></div>
+                    <div class="clinicold"><span th:text="${clinicForm}"></span></div>
+                    <p class="pt-3">Mob:9040281993, 9556782642 Email:contact@aarohclinic.com
+                </div>
+            </td>
+            <td width="80px" class="text-end">
+                <table border="0" cellspacing="0" cellpadding="0" class="parent">
+                    <tr>
+                        <td>
+                            <img width="70px"
+                                src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807129/assets/aarohqr.png">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <p class="border-bottom"></p>
+
+
+    <div class="row">
+        <table class="parent" width="50%">
+            <tr>
+                <td width="1050px">
+                    <table border="0" cellspacing="0" cellpadding="0" class="no-border">
+                        <tr>
+                            <td width="50px"><b>Name</b></td>
+                            <td>:
+                                <span th:text="${data.patient.firstname}"> </span>
+                                <span th:text="${data.patient.lastname}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Phone</b></td>
+                            <td>:
+                                <span th:text="${data.patient.user.phone}"></span>
+                                
+                            </td>
+                        </tr>
+                         <tr>
+                            <td><b>Age/Gender</b></td>
+                            <td>:
+                                <span th:text="${data.patient.age}"></span>
+                                /<span th:text="${data.patient.gender}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Address</b></td>
+                            <td>:
+                                <span th:text="${data.patient.address}">  </span>
+                            </td>
+                        </tr>
+                       
+                        
+                    </table>
+                </td>
+
+
+
+                <td width="200px" class="text-end align-top" style="text-align: right !important;" align="right">
+                    <table border="0" cellspacing="0" cellpadding="0" class="parent">
+                      <tr>
+                        <td class="text-end"><b><span th:text="${data.branch.name}"> fff</span><b></td>
+                    </tr>
+                        <tr>
+                            <td class="text-end"><b><span th:text="${data.orderId}"> fff</span><b></td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span th:text= "${#dates.format(data.orderDate, 'dd-MM-yyyy')}">ffff </span></td>
+                          
+                        </tr>
+                    </table>
+                </td>
+
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3 class="header">Product and Speaker Info</h3>
+        <div class="row">
+            <table class="bill inner" width="100%">
+                <thead>
+                    <tr>
+                        <th colspan="2">Product Info</th>
+                        <th colspan="2">Speaker Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th><b>Name</b></th>
+                        <td><span th:text="${data.repairProductinfoDto.name}"></span></td>
+                        <td colspan="2">
+                            <div class="row ">
+                                <div class="bill">
+                                    <label>
+                                       Size:<span th:text="${data.repairSpeakerDto.size}"></span>
+                                    </label>
+                                </div>
+                                <div class="bill">
+                                    <label>
+                                        Left: 
+                                        <input type="checkbox" th:checked="${data.repairSpeakerDto.isLeft}" disabled>
+                                    </label>
+                                </div>
+                                <div class="bill">
+                                    <label>
+                                        Right: 
+                                        <input type="checkbox" th:checked="${data.repairSpeakerDto.isRight}" disabled>
+                                    </label>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><b>Model</b></th>
+                        <td><span th:text="${data.repairProductinfoDto.model}"></span></td>
+                        <th><b>Serial Left</b></th>
+                        <td><span th:text="${data.repairSpeakerDto.serialLeft}"></span></td>
+                        
+                    </tr>
+                    <tr>
+                        <th><b>S N Left</b></th>
+                        <td><span th:text="${data.repairProductinfoDto.snLeft}"></span></td>
+                        <th><b>Serial Right</b></th>
+                        <td><span th:text="${data.repairSpeakerDto.serialRight}"></span></td>
+                       
+                    </tr>
+                    <tr>
+                        <th><b>S N Right</b></th>
+                        <td><span th:text="${data.repairProductinfoDto.snRight}"></span></td>
+                        <th><b>Model Left</b></th>
+                        <td><span th:text="${data.repairSpeakerDto.modelLeft}"></span></td>
+                       
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <th><b>Model Right</b></th>
+                        <td><span th:text="${data.repairSpeakerDto.modelRight}"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3 class="header">Problems</h3>
+        <div class="row">
+            <table class="bill inner">
+                <thead>
+                    <tr>
+                        <th>FIT</th>
+                        <th>CONDITION</th>
+                        <th>CASE DEFFECT</th>
+                        <th>RESPONSE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div th:each="problem : ${data.repairProblem}" th:if="${problem.type == 'fit'}">
+                                <span th:text="${problem.name}"></span><br/>
+                            </div>
+                        </td>
+                        <td>
+                            <div th:each="problem : ${data.repairProblem}" th:if="${problem.type == 'condition'}">
+                                <span th:text="${problem.name}"></span><br/>
+                            </div>
+                        </td>
+                        <td>
+                            <div th:each="problem : ${data.repairProblem}" th:if="${problem.type == 'caseDeffect'}">
+                                <span th:text="${problem.name}"></span><br/>
+                            </div>
+                        </td>
+                        <td>
+                            <div th:each="problem : ${data.repairProblem}" th:if="${problem.type == 'response'}">
+                                <span th:text="${problem.name}"></span><br/>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+
+   
+
+
+    <hr>
+    <footer>
+
+        <table class="full">
+            <tr>
+                <td class="grey">Balasore <br> Azimabad, Khaparapada </td>
+                <td class="grey">Bhadrak <br> Near Bhadrak Hospital, Samaraipur</td>
+                <td class="grey">Baripada <br> Near MPC junior college, Badabazar</td>
+            </tr>
+        </table>
+    </footer>
+
+</body>
+
+</html>

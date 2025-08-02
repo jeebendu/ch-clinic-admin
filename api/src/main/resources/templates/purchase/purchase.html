@@ -1,0 +1,82 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="style.css" rel="stylesheet" type="text/css" />
+        
+    </head>
+     <body>
+    <div class="row">
+      <div><img  th:src="${clinicLogo}"> </div>
+   <div class="totaldiv">
+       <div class="clinic"><span  th:text="${clinicName}"></span></div>
+       <div class="clinicold"><span  th:text="${clinicForm}"></span></div>
+    </div>
+      <div  class="text-end">
+      <div class=m-t-30 th:text="${data.uid}"></div>
+      <p  ><b >Date :</b>
+    	 14th July 2017 </p>
+      </div>
+   
+    </div>
+ <div class="row">
+    <div class="float-start">
+    <address>
+     <div class="text-muted m-l-5 cb_text">
+   <!-- <div th:text="${data.branch.name}"></div> 
+     <div th:text="${data.branch.location}"></div>  -->
+   
+    </div>
+    <p class="text-muted m-l-5 cb_text"  > D 103, Cliniva Hospital, 
+    <br> Opp. Town Hall, 
+    <br> Sardar Patel Road, 
+    <br> Ahmedabad - 380015 </p>
+    </address>
+    </div>
+    
+    <div  class="float-end text-end">
+    	<address ><p  class="addr-font-h3 font-bold">BILL TO :</p>
+    	<p  class="font-bold addr-font-h4">Jayesh Patel</p>
+    	<p  class="text-muted m-l-30"> 207, Prem Sagar Appt.,
+    	 <br > Near Income Tax Office, <br > Ashram Road,
+    	  <br > Ahmedabad - 380057 </p>
+    	
+    	</address>
+    	</div>
+    </div>
+     <div class="row">
+ 
+    
+    <table >
+    			<thead>
+    				<tr class="row border">
+    				<th class="text-center no">id</th>
+    				<th class="text-center id" >Price</th>
+    				<th class="text-center no">Qty</th>
+    				<th class="text-center  id">Total</th>
+    				
+    				</tr>
+    			</thead>
+    		<tbody>
+    			<tr class="row border" th:each="item : ${data.items}" >
+    				<td class="text-center no" th:text="${item.id}"></td>
+    				<td class="text-center id" th:text="${item.price}"></td>
+    				<td class="text-center no" th:text="${item.qty}"></td>
+    				<td class="text-center  id" th:text="${item.total}"></td>
+    			</tr>
+    		</tbody>
+    	</table>
+     </div>
+    
+    <div class="total">
+    	<div class="float-end m-t-30 text-end">
+    		<p>Sub - Total amount:<span class="cb_text" th:text="${data.subtotal}"></span></p>
+    		<p >Discount : <span class="cb_text" th:text="${data.discount}"></span></p>
+    	
+    		<hr ><h3 ><b >Grand Total :<span class="cb_text" th:text="${data.grandTotal}"></span></b> </h3>
+    	</div>
+    </div>
+    
+    
+    </body>
+    </html>

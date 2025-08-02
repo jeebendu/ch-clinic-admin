@@ -1,0 +1,1 @@
+ALTER TABLE specialization ADD COLUMN IF NOT EXISTS  "path" VARCHAR(1000);

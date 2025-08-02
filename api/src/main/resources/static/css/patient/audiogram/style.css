@@ -1,0 +1,229 @@
+.full {
+	width:100%
+}
+
+.d-none{
+	display: none;
+}
+table.parent {
+    border: none;
+    width:100%
+}
+
+table.inner {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+table.inner td {
+    border: 1px solid black;
+}
+
+.col-6 {
+	height: 50%;
+	outline-style: dashed;
+}
+.col-6 {
+	height: 50%;
+	outline-style: dashed;
+}
+
+
+.title {
+	font-family: Arial, Helvetica, sans-serif;
+	border: 0px solid black;
+	text-align: center;
+	font-weight: bold;
+	font-size: 35px;
+	padding-left: 10px;
+	padding-right: 10px;;
+}
+
+.float-center{
+	text-align: center !important;
+}
+
+
+
+.new {
+	width: 700px;
+	height: auto;
+	border: 1px solid black;
+}
+
+.id {
+	width: 50px;
+	padding: 5px;
+}
+
+.name {
+	width: 400px;
+	padding-left: 5px;
+}
+
+.no {
+	padding: 5px;
+}
+
+.no-border{
+	border: none;
+}
+
+.orderDiv {
+	margin-top: 20px;
+	margin-left: 10px;
+	border: 0px solid black;
+	font-size: 20px;
+	padding-left: 10px;
+}
+
+
+
+.clinicold {
+	font-family: Arial;
+	text-align: center;
+	font-weight: bold;
+	font-size: 20px;
+	margin-left: 10px;
+	border: 0px solid black;
+}
+
+
+address {
+	display: block;
+	font-style: italic;
+}
+
+address {
+	margin-bottom: 1rem;
+	font-style: normal;
+	line-height: inherit;
+}
+
+.text-muted {
+	text-opacity: 1;
+	color: rgb(28, 25, 25) !important;
+}
+
+.text-muted {
+	color: rgb(28, 25, 25) !important;
+	margin-bottom: 10px;
+}
+
+.m-l-5 {
+	margin-left: 5px;
+}
+
+.ml-10 {
+	margin-left: 10px;
+}
+
+.ml-15 {
+	margin-left: 15px;
+}
+
+.m-20 {
+	margin-left: 20px;
+}
+
+.ptb-10 {
+	padding: 10px, 0px, 10px, 0px;
+}
+
+.pt-10{
+	padding-top: 10px;
+}
+
+.pl-4{
+	padding-left: 4px;
+}
+
+.pr-4{
+	padding-right: 4px;
+}
+
+.font-bold {
+	font-weight: bold;
+}
+
+p {
+	margin-top: 0;
+}
+
+.rowx {
+	--bs-gutter-x: 1.5rem;
+	--bs-gutter-y: 0;
+	display: flex;
+	margin-top: calc(-1 * var(--bs-gutter-y));
+	margin-right: calc(-.5 * var(--bs-gutter-x));
+	margin-left: calc(-.5 * var(--bs-gutter-x));
+	width: 100%;
+
+}
+
+
+.border {
+	border-bottom: 1px solid rgb(128, 128, 128);
+}
+
+.cb_text {
+	padding-left: 5px;
+	padding-bottom: 5px;
+}
+
+.body {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10px;
+}
+
+.text-center {
+	text-align: center !important;
+}
+
+.text-end {
+	text-align: right !important;
+}
+
+.text-start {
+	text-align: left !important;
+}
+
+.total {
+	flex: 0 0 auto;
+	width: 100%;
+}
+
+.float-end {
+	float: right !important;
+	margin-left: 350px;
+}
+
+.float-center {
+	float: center !important;
+	margin-left: 80px;
+}
+
+.m-t-30 {
+	margin-top: 30px;
+}
+
+.m-t-15 {
+	margin-top: 30px;
+}
+
+.cb_text {
+	padding-left: 5px;
+	padding-bottom: 5px;
+}
+
+
+.myStyle {
+	font-family: Arial, sans-serif;
+	padding: 1em;
+	margin: 1em;
+	display: inline-block;
+	color: white;
+	background-color:
+	/*[[${backgroundColor}]]*/
+	pink;
+}

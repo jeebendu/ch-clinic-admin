@@ -1,0 +1,109 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="payment/payment.css" rel="stylesheet" type="text/css" />
+        
+    </head>
+    <body>
+        <table class="parent full">
+            <tr>
+                <td>
+                    <img width="80px" th:src="${clinicLogo}">
+                </td>
+                <td class="float-center">
+                    <div class="">
+                        <div class="title"><span th:text="${clinicName}"></span></div>
+                        <div class="clinicold"><span th:text="${clinicForm}"></span></div>
+                        <p class="pt-3">Mob:9040281993, 9556782642 Email:contact@aarohclinic.com
+                    </div>
+                </td>
+                <td width="80px" class="text-end">
+                    <table border="0" cellspacing="0" cellpadding="0" class="parent">
+                        <tr>
+                            <td>
+                                <img width="70px"
+                                    src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807129/assets/aarohqr.png">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <p class="border-bottom"></p>
+    
+    <div class="card">
+   
+    
+    <div class="row">
+    <div class="other">
+    <h3 class="header">Patient Details</h3>
+    <div class="row">
+    <div class="bill" >Name:<span class="cb_text" th:text="${data.patient.firstname}"></span><span class="cb_text" th:text="${data.patient.lastname}"></span></div>
+    <div class="bill">Phone:<span class="cb_text" th:text="${data.patient.user.phone}"></span></div>
+   </div>
+    <div class="row">
+     <div class="bill">Email:<span class="cb_text" th:text="${data.patient.user.email}"></span></div>
+    <div class="bill">Address:<span class="cb_text" th:text="${data.patient.address}"></span></div>
+    </div>
+    </div>
+    
+    
+    
+   	 </div>
+   	 <div class="row">
+    
+    <div class="other">
+    <h3 class="header">Payment Details</h3>
+  			  <table >
+    			<thead>
+    				<tr class="row border">
+    				<th class="text-center no">id</th>
+    				<th class="text-center name" >Payment Type</th>
+    				<th class="text-center id">Date</th>
+    				<th class="text-center id" >Amount</th>
+    				
+    				</tr>
+    			</thead>
+    		<tbody>
+    			<tr class="row border" th:each="payment, stat  : ${data.repairPaymentList}" >
+    				<td class="text-center no" th:text="${stat.index + 1}"></td>
+    				
+    				<td class="text-center no" th:text="${payment.paymentType.name}"></td>
+    				<td class="text-center no" th:text="${#dates.format(payment.date, 'dd-MM-yyyy')}"></td>
+    				<td class="text-center no" th:text="${payment.amount}"></td>
+    				
+    			</tr>
+    		</tbody>
+    	</table>
+   	 </div>
+    </div>
+    </div>
+	<div th:if="${payid} == 0" >
+		
+		<div class="total">
+    	<div class="float-end m-t-30 text-end">
+    		<p>Sub - Total amount:<span class="cb_text" th:text="${data.subTotal}"></span></p>
+    		<p >Discount : <span class="cb_text" th:text="${data.discount}"></span></p>
+    	
+    		<hr ><h3 ><b >Grand Total :<span class="cb_text" th:text="${data.grandTotal}"></span></b> </h3>
+    		<p >Total Paid : <span class="cb_text" th:text="${data.totalPaid}"></span></p>
+    		<hr ><h3 ><b >Balance :<span class="cb_text" th:text="${data.pendingBalance}"></span></b> </h3>
+    	</div>
+     </div>
+    </div>
+
+    <hr>
+    <footer>
+
+        <table class="full">
+            <tr>
+                <td class="grey">Balasore <br> Azimabad, Khaparapada </td>
+                <td class="grey">Bhadrak <br> Near Bhadrak Hospital, Samaraipur</td>
+                <td class="grey">Baripada <br> Near MPC junior college, Badabazar</td>
+            </tr>
+        </table>
+    </footer>
+
+    </body>
+</html>

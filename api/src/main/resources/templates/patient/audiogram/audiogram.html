@@ -1,0 +1,644 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- <link type="text/css" th:href="${cssurl}" rel="stylesheet" /> -->
+    <!-- <link href="style.css" rel="stylesheet" type="text/css" /> -->
+
+    <style>
+        body {
+            font-family: Arial !important;
+        }
+
+        .full {
+            width: 100%
+        }
+
+        .d-none {
+            display: none;
+        }
+
+        table.parent {
+            border: none;
+            width: 100%
+        }
+
+        table.inner {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        table.inner td,
+        th {
+            border: 1px solid black;
+            padding: 4px;
+            font-size: 14px;
+        }
+
+        .align-top {
+            vertical-align: top;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .col-6 {
+            height: 50%;
+            outline-style: dashed;
+        }
+
+        .col-6 {
+            height: 50%;
+            outline-style: dashed;
+        }
+
+
+        .title {
+            font-family: Arial, Helvetica, sans-serif;
+            border: 0px solid black;
+            text-align: center;
+            font-weight: bold;
+            font-size: 30px;
+            padding-left: 10px;
+            padding-right: 10px;
+            ;
+        }
+
+        .float-center {
+            text-align: center !important;
+        }
+
+
+
+        .new {
+            width: 700px;
+            height: auto;
+            border: 1px solid black;
+        }
+
+        .id {
+            width: 50px;
+            padding: 5px;
+        }
+
+        .name {
+            width: 400px;
+            padding-left: 5px;
+        }
+
+        .no {
+            padding: 5px;
+        }
+
+        .no-border {
+            border: none;
+        }
+
+        .orderDiv {
+            margin-top: 20px;
+            margin-left: 10px;
+            border: 0px solid black;
+            font-size: 20px;
+            padding-left: 10px;
+        }
+
+
+
+        .clinicold {
+            font-family: Arial;
+            text-align: center;
+            font-weight: bold;
+            font-size: 20px;
+            margin-left: 10px;
+            border: 0px solid black;
+        }
+
+
+        address {
+            display: block;
+            font-style: italic;
+        }
+
+        address {
+            margin-bottom: 1rem;
+            font-style: normal;
+            line-height: inherit;
+        }
+
+        .text-muted {
+            text-opacity: 1;
+            color: rgb(28, 25, 25) !important;
+        }
+
+        .text-muted {
+            color: rgb(28, 25, 25) !important;
+            margin-bottom: 10px;
+        }
+
+        .m-l-5 {
+            margin-left: 5px;
+        }
+
+        .ml-10 {
+            margin-left: 10px;
+        }
+
+        .ml-15 {
+            margin-left: 15px;
+        }
+
+        .m-20 {
+            margin-left: 20px;
+        }
+
+        .ptb-10 {
+            padding: 10px, 0px, 10px, 0px;
+        }
+
+        .pt-3 {
+            padding-top: 3px;
+        }
+
+        .pt-10 {
+            padding-top: 10px;
+        }
+
+        .pl-4 {
+            padding-left: 4px;
+        }
+
+        .pr-4 {
+            padding-right: 4px;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        p {
+            margin-top: 0;
+            font-size: 14px;
+        }
+
+
+
+
+        .rowx {
+            --bs-gutter-x: 1.5rem;
+            --bs-gutter-y: 0;
+            display: flex;
+            margin-top: calc(-1 * var(--bs-gutter-y));
+            margin-right: calc(-.5 * var(--bs-gutter-x));
+            margin-left: calc(-.5 * var(--bs-gutter-x));
+            width: 100%;
+
+        }
+
+
+        .border {
+            border-bottom: 1px solid rgb(128, 128, 128);
+        }
+
+        .cb_text {
+            padding-left: 5px;
+            padding-bottom: 5px;
+        }
+
+        .body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10px;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
+
+        .text-end {
+            text-align: right !important;
+        }
+
+        .text-start {
+            text-align: left !important;
+        }
+
+        .total {
+            flex: 0 0 auto;
+            width: 100%;
+        }
+
+        .float-end {
+            float: right !important;
+            margin-left: 350px;
+        }
+
+        .float-center {
+            float: center !important;
+            margin-left: 80px;
+        }
+
+        .m-t-30 {
+            margin-top: 30px;
+        }
+
+        .m-t-15 {
+            margin-top: 30px;
+        }
+
+        .cb_text {
+            padding-left: 5px;
+            padding-bottom: 5px;
+        }
+
+
+        .myStyle {
+            font-family: Arial, sans-serif;
+            padding: 1em;
+            margin: 1em;
+            display: inline-block;
+            color: white;
+            background-color:
+            /*[[${backgroundColor}]]*/
+            pink;
+        }
+
+        footer {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 5px 0;
+
+        }
+
+        .grey {
+            background-color: #f1f1f1;
+        }
+
+        .signature {
+            text-align: right;
+            border-bottom: 1px solid black;
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid black;
+        }
+
+        .modality {
+            font-size: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <table class="parent full">
+        <tr>
+            <td>
+                <img width="80px" th:src="${clinicLogo}">
+            </td>
+            <td class="float-center">
+                <div class="">
+                    <div class="title"><span th:text="${clinicName}"></span></div>
+                    <div class="clinicold"><span th:text="${clinicForm}"></span></div>
+                    <p class="pt-3">Mob:9040281993, 9556782642 Email:contact@aarohclinic.com
+                </div>
+            </td>
+            <td width="80px" class="text-end">
+                <table border="0" cellspacing="0" cellpadding="0" class="parent">
+                    <tr>
+                        <td>
+                            <img width="70px" src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807129/assets/aarohqr.png">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <p class="border-bottom"></p>
+
+
+    <div class="row">
+        <table class="parent" width="50%">
+            <tr>
+                <td width="1050px">
+                    <table border="0" cellspacing="0" cellpadding="0" class="no-border">
+                        <tr>
+                            <td width="50px"><b>Name</b></td>
+                            <td>:
+                                <span th:text="${data.patient.firstname}"> </span>
+                                <span th:text="${data.patient.lastname}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Age/Gender</b></td>
+                            <td>:
+                                <span th:text="${data.patient.age}"></span>
+                                /<span th:text="${data.patient.gender}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Referred By</b></td>
+                            <td>:
+                                <span th:if="${data.patient.refDoctor!=null}" th:text="${data.patient.refDoctor.user.name}">  </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Complaint</b></td>
+                            <td>:
+                                <span th:text="${data.patient.complaints}">  </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>HO</b></td>
+                            <td>:
+                                <span th:text="${data.patient.historyOf}">  </span>
+                            </td>
+                        </tr>
+                        
+                    </table>
+                </td>
+
+
+
+                <td width="200px" class="text-end align-top" style="text-align: right !important;" align="right">
+                    <table border="0" cellspacing="0" cellpadding="0" class="parent">
+                        <tr>
+                            <td class="text-end"><b><span th:text="${data.uid}"> fff</span><b></td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span th:text="${data.createdTime}">ffff </span></td>
+                        </tr>
+                    </table>
+                </td>
+
+            </tr>
+        </table>
+    </div>
+
+    <div class="row pt-10 d-none">
+        <table>
+            <tr>
+                <td class="pr-4"><img width="100%"
+                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807834/assets/download_1_ekkia5.png">
+                </td>
+                <td class="pl-4"><img width="100%"
+                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807833/assets/download_2_as91yt.png">
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="row pt-10">
+        <table class="table-no-border">
+			<tr>
+				<td class="pr-4 align-center" >RIGHT</td>
+				<td class="pl-4 align-center">LEFT</td>
+			</tr>
+            <tr>
+                <td class="pr-4"><img width="100%" th:src="|data:image;base64,*{imageRight}|"></td>
+                <td class="pl-4"><img width="100%" th:src="|data:image;base64,*{imageLeft}|"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="row pt-10">
+
+
+        <table class="parent">
+            <tr>
+                <td>
+                    <table class="inner" width="100%">
+                        <thead>
+                            <tr>
+                                <th>EAR</th>
+                                <th>PTA</th>
+                                <th>SAT</th>
+                                <th>SRT</th>
+                                <th>SDS</th>
+                                <th>MCL</th>
+                                <th>UCL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RIGHT</td>
+
+                                <td>
+                                    <span th:text="${data.earRight[0].value}"> </span> <span
+                                        th:text="${data.earRight[0].value!=null &&  data.earRight[0].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earRight[1].value}"> </span> <span
+                                        th:text="${data.earRight[1].value!=null &&  data.earRight[1].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earRight[2].value}"> </span> <span
+                                        th:text="${data.earRight[2].value!=null &&  data.earRight[2].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earRight[3].value}"> </span> <span
+                                        th:text="${data.earRight[3].value!=null &&  data.earRight[3].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earRight[4].value}"> </span> <span
+                                        th:text="${data.earRight[4].value!=null &&  data.earRight[4].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earRight[5].value}"> </span> <span
+                                        th:text="${data.earRight[5].value!=null &&  data.earRight[5].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>LEFT</td>
+                                <td>
+                                    <span th:text="${data.earLeft[0].value}"> </span> <span
+                                        th:text="${data.earLeft[0].value!=null &&  data.earLeft[0].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earLeft[1].value}"> </span> <span
+                                        th:text="${data.earLeft[1].value!=null &&  data.earLeft[1].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earLeft[2].value}"> </span> <span
+                                        th:text="${data.earLeft[2].value!=null &&  data.earLeft[2].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earLeft[3].value}"> </span> <span
+                                        th:text="${data.earLeft[3].value!=null &&  data.earLeft[3].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earLeft[4].value}"> </span> <span
+                                        th:text="${data.earLeft[4].value!=null &&  data.earLeft[4].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.earLeft[5].value}"> </span> <span
+                                        th:text="${data.earLeft[5].value!=null &&  data.earLeft[5].value!='' } ? 'dbHL' : ''"></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+                <td>
+                    <table class="inner" width="100%">
+                        <thead>
+                            <tr>
+                                <th>TEST</th>
+                                <th>RIGHT</th>
+                                <th>LEFT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RINNE</td>
+                                <td>
+                                    <span th:text="${data.testRight[0].value}"> </span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.testRight[1].value}"> </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>WEBER</td>
+                                <td>
+                                    <span th:text="${data.testLeft[0].value}"> </span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.testLeft[1].value}"> </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div class="row pt-10" style="height:240px">
+        <table class="parent" width="100%">
+            <tr>
+                <td width="75%" class="align-top">
+                    <table border="0" cellspacing="0" cellpadding="0" class="no-border">
+                        <tr>
+                            <td class="align-top"><b>Impedance Audiometry</b></td>
+                            <td>:</td>
+                            <td>
+                                <span th:text="${data.impedanceAudiometry}"> </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-top"><b>Provisional Diagnosis</b></td>
+                            <td>:</td>
+                            <td>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="align-top"><b>Right Ear</b></td>
+                            <td>:</td>
+                            <td>
+                                <span th:text="${data.proDiagnosisRight}"> </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-top"><b>Left Ear</b></td>
+                            <td>:</td>
+                            <td>
+                                <span th:text="${data.proDiagnosisLeft}"> </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-top"><b>Recommendedation</b></td>
+                            <td class="align-top">:</td>
+                            <td class="align-top"> [(${data.recommendation})]
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+
+
+                <td width="25%" class="text-end align-top">
+                    <table class="inner modality">
+                        <thead>
+                            <tr>
+                                <th rowspan="3">Modality</th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: center" colspan="2">Ear</th>
+                            </tr>
+                            <tr>
+                                <th>Right</th>
+                                <th>Left</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AC unmasked</td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715426415/assets/symbol/audiogram/20x/acur.png">
+                                </td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715426415/assets/symbol/audiogram/20x/acul.png">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AC masked</td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715426415/assets/symbol/audiogram/20x/acmr.png">
+                                </td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715426415/assets/symbol/audiogram/20x/acml.png">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>BC unmasked</td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715426415/assets/symbol/audiogram/20x/bcur.png">
+                                </td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715426415/assets/symbol/audiogram/20x/bcul.png">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>BC masked</td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715426415/assets/symbol/audiogram/20x/bcmr.png">
+                                </td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715426415/assets/symbol/audiogram/20x/bcml.png">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>No response</td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715541840/assets/symbol/audiogram/20x/nrr.png">
+                                </td>
+                                <td class="align-center"><img width="13px"
+                                        src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1715541840/assets/symbol/audiogram/20x/nrl.png">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+
+            </tr>
+        </table>
+    </div>
+
+
+    <p class="signature">Consultant Audiologist</p>
+    <footer>
+
+        <table class="full">
+            <tr>
+                <td class="grey">Balasore <br> Azimabad, Khaparapada </td>
+                <td class="grey">Bhadrak <br> Near Bhadrak Hospital, Samaraipur</td>
+                <td class="grey">Baripada <br> Near MPC junior college, Badabazar</td>
+            </tr>
+        </table>
+    </footer>
+
+</body>
+
+</html>

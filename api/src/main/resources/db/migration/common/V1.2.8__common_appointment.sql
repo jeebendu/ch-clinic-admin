@@ -1,0 +1,2 @@
+ALTER TABLE appointment ADD COLUMN IF NOT EXISTS  "expected_time" TIME;
+ALTER TABLE doctor_slot ADD COLUMN IF NOT EXISTS  "total_slots" INT  NOT NULL DEFAULT 0;

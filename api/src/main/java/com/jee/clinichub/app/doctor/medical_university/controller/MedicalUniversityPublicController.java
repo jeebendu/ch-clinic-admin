@@ -1,0 +1,36 @@
+package com.jee.clinichub.app.doctor.medical_university.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.jee.clinichub.app.doctor.medical_Council.model.MedicalCouncilDto;
+import com.jee.clinichub.app.doctor.medical_Council.service.MedicalCouncilService;
+import com.jee.clinichub.app.doctor.medical_university.model.MedicalUniversityDto;
+import com.jee.clinichub.app.doctor.medical_university.service.MedicalUniversityService;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RestController
+@RequestMapping("v1/public/medical/university")
+public class MedicalUniversityPublicController {
+
+    @Autowired
+    private MedicalUniversityService medicalUniversityService;
+
+    @GetMapping(value = "/list/{name}")
+    public List<MedicalUniversityDto> getMedicalUniversityByName(@PathVariable String name) {
+        return medicalUniversityService.getMedicalUniversityByName(name);
+    }
+
+    @GetMapping(value = "/list")
+    public List<MedicalUniversityDto> getAllMedicalUniversity() {
+        return medicalUniversityService.getAllMedicalUniversity();
+    }
+
+}

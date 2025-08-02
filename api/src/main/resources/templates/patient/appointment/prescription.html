@@ -1,0 +1,515 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- <link type="text/css" th:href="${cssurl}" rel="stylesheet" /> -->
+    <!-- <link href="style.css" rel="stylesheet" type="text/css" /> -->
+
+    <style>
+        body {
+            font-family: Arial !important;
+        }
+
+        .full {
+            width: 100%
+        }
+
+        .d-none {
+            display: none;
+        }
+
+        table.parent {
+            border: none;
+            width: 100%
+        }
+
+        table.inner {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        table.inner td,
+        th {
+            border: 1px solid black;
+            padding: 4px;
+            font-size: 14px;
+        }
+
+        .align-top {
+            vertical-align: top;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .col-6 {
+            height: 50%;
+            outline-style: dashed;
+        }
+
+        .col-6 {
+            height: 50%;
+            outline-style: dashed;
+        }
+
+
+        .title {
+            font-family: Arial, Helvetica, sans-serif;
+            border: 0px solid black;
+            text-align: center;
+            font-weight: bold;
+            font-size: 30px;
+            padding-left: 10px;
+            padding-right: 10px;
+            ;
+        }
+
+        .float-center {
+            text-align: center !important;
+        }
+
+
+
+        .new {
+            width: 700px;
+            height: auto;
+            border: 1px solid black;
+        }
+
+        .id {
+            width: 50px;
+            padding: 5px;
+        }
+
+        .name {
+            width: 400px;
+            padding-left: 5px;
+        }
+
+        .no {
+            padding: 5px;
+        }
+
+        .no-border {
+            border: none;
+        }
+
+        .orderDiv {
+            margin-top: 20px;
+            margin-left: 10px;
+            border: 0px solid black;
+            font-size: 20px;
+            padding-left: 10px;
+        }
+
+
+
+        .clinicold {
+            font-family: Arial;
+            text-align: center;
+            font-weight: bold;
+            font-size: 20px;
+            margin-left: 10px;
+            border: 0px solid black;
+        }
+
+
+        address {
+            display: block;
+            font-style: italic;
+        }
+
+        address {
+            margin-bottom: 1rem;
+            font-style: normal;
+            line-height: inherit;
+        }
+
+        .text-muted {
+            text-opacity: 1;
+            color: rgb(28, 25, 25) !important;
+        }
+
+        .text-muted {
+            color: rgb(28, 25, 25) !important;
+            margin-bottom: 10px;
+        }
+
+        .m-l-5 {
+            margin-left: 5px;
+        }
+
+        .ml-10 {
+            margin-left: 10px;
+        }
+
+        .ml-15 {
+            margin-left: 15px;
+        }
+
+        .m-20 {
+            margin-left: 20px;
+        }
+
+        .ptb-10 {
+            padding: 10px, 0px, 10px, 0px;
+        }
+
+        .pt-3 {
+            padding-top: 3px;
+        }
+
+        .pt-10 {
+            padding-top: 10px;
+        }
+
+        .pl-4 {
+            padding-left: 4px;
+        }
+
+        .pr-4 {
+            padding-right: 4px;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        p {
+            margin-top: 0;
+            font-size: 14px;
+        }
+
+
+
+
+        .rowx {
+            --bs-gutter-x: 1.5rem;
+            --bs-gutter-y: 0;
+            display: flex;
+            margin-top: calc(-1 * var(--bs-gutter-y));
+            margin-right: calc(-.5 * var(--bs-gutter-x));
+            margin-left: calc(-.5 * var(--bs-gutter-x));
+            width: 100%;
+
+        }
+
+
+        .border {
+            border-bottom: 1px solid rgb(128, 128, 128);
+        }
+
+        .cb_text {
+            padding-left: 5px;
+            padding-bottom: 5px;
+        }
+
+        .body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10px;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
+
+        .text-end {
+            text-align: right !important;
+        }
+
+        .text-start {
+            text-align: left !important;
+        }
+
+        .total {
+            flex: 0 0 auto;
+            width: 100%;
+        }
+
+        .float-end {
+            float: right !important;
+            margin-left: 350px;
+        }
+
+        .float-center {
+            float: center !important;
+            margin-left: 80px;
+        }
+
+        .m-t-30 {
+            margin-top: 30px;
+        }
+
+        .m-t-15 {
+            margin-top: 30px;
+        }
+
+        .cb_text {
+            padding-left: 5px;
+            padding-bottom: 5px;
+        }
+
+
+        .myStyle {
+            font-family: Arial, sans-serif;
+            padding: 1em;
+            margin: 1em;
+            display: inline-block;
+            color: white;
+            background-color:
+            /*[[${backgroundColor}]]*/
+            pink;
+        }
+
+        footer {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 5px 0;
+
+        }
+
+        .grey {
+            background-color: #f1f1f1;
+        }
+
+        .signature {
+            text-align: right;
+            border-bottom: 1px solid black;
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid black;
+        }
+
+        .modality {
+            font-size: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <table class="parent full">
+        <tr>
+            <td>
+                <img width="80px" th:src="${clinicLogo}">
+            </td>
+            <td class="float-center">
+                <div class="">
+                    <div class="title"><span th:text="${clinicName}"></span></div>
+                    <div class="clinicold"><span th:text="${clinicForm}"></span></div>
+                    <p class="pt-3">Mob:9040281993, 9556782642 Email:contact@aarohclinic.com
+                </div>
+            </td>
+            <td width="80px" class="text-end">
+                <table border="0" cellspacing="0" cellpadding="0" class="parent">
+                    <tr>
+                        <td>
+                            <img width="70px"
+                                src="https://res.cloudinary.com/dzxuxfagt/image/upload/v1714807129/assets/aarohqr.png">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <p class="border-bottom"></p>
+
+    <div class="row">
+        <table class="parent" width="50%">
+            <tr>
+                <td width="1050px">
+                    <table border="0" cellspacing="0" cellpadding="0" class="no-border">
+                        <tr>
+                            <td width="50px"><b>Name</b></td>
+                            <td>:
+                                <span th:text="${data.patient.firstname}"> </span>
+                                <span th:text="${data.patient.lastname}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Age/Gender</b></td>
+                            <td>:
+                                <span th:text="${data.patient.age}"></span>
+                                /<span th:text="${data.patient.gender}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Consulted By</b></td>
+                            <td>:
+                                <span th:if="${data.doctor!=null}" th:text="${data.doctor.user.name}">  </span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+
+
+                <td width="200px" class="text-end align-top" style="text-align: right !important;" align="right">
+                    <table border="0" cellspacing="0" cellpadding="0" class="parent">
+                        <tr>
+                            <td class="text-end"><b><span th:text="${data.patient.uid}"> fff</span><b></td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span th:text="${data.createdTime}">ffff </span></td>
+                        </tr>
+                    </table>
+                </td>
+
+            </tr>
+        </table>
+    </div>
+
+ 
+    <p class="border-bottom"></p>
+    <div class="row">
+        <table class="parent" width="50%">
+            <tr>
+                <td width="1050px">
+                    <table border="0" cellspacing="0" cellpadding="10" class="no-border">
+        
+                        <tr>
+                            <td><b>Complaint</b></td>
+                            <td>:
+                                <span th:text="${data.complaints}">  </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Previous HO</b></td>
+                            <td>:
+                                <span th:text="${data.previousHistory}">  </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Follow Up Note</b></td>
+                            <td>:
+                                <span th:text="${data.followUpNote}">  </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td><b>Clinic Notes</b></td>
+                            <td>:
+                                <span th:text="${data.clinicNotes}">  </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Diagnosis</b></td>
+                            <td>:
+                                <span th:text="${data.diagnosis}">  </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><b>Advice</b></td>
+                            <td>:
+                                <span th:text="${data.advice}">  </span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+            </tr>
+        </table>
+    </div>
+    <div class="row pt-10 d-none"></div>
+
+    <div class="row pt-10">
+        <table class="parent" cellspacing="0" cellpadding="5" border="1">
+                        <thead>
+                            <tr>
+                                <th>Temperature</th>
+                                <th>Pulse</th>
+                                <th>Respiratory</th>
+                                <th>Spo2</th>
+                                <th>Height</th>
+                                <th>Weight</th>
+                                <th>Waist</th>
+                                <th>BSA</th>
+                                <th>BMI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span th:text="${data.temperature}"> </span> 
+                                </td>
+                                <td>
+                                    <span th:text="${data.pulse}"> </span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.respiratory}"> </span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.spo2}"> </span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.height}"> </span>
+                                </td>
+                                <td>
+                                    <span th:text="${data.weight}"> </span> 
+                                </td>
+                                <td>
+                                    <span th:text="${data.waist}"> </span> 
+                                </td>
+                                <td>
+                                    <span th:text="${data.bsa}"> </span> 
+                                </td>
+                                <td>
+                                    <span th:text="${data.bmi}"> </span> 
+                                </td>
+                            </tr>
+                         </tbody>
+        </table>
+    </div>
+
+    <p class="border-bottom"></p>
+    <h3>Prescribed Medicines</h3>
+    <div class="row pt-2">
+        <table class="parent" cellspacing="0" cellpadding="5" border="1">
+            <thead>
+              <tr>
+                <th>Sl No.</th>
+                <th>Name</th>
+                <th>Dosage</th>
+                <th>Frequency</th>
+                <th>Duration</th>
+                <th>Timing</th>
+                <th>Instruction</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="medicine, iterStat : ${data.medicines}">
+                <td th:text="${iterStat.index + 1}"> </td>
+                <td th:text="${medicine.name}"> </td>
+                <td th:text="${medicine.dosage}"> </td>
+                <td th:text="${medicine.frequency}"> </td>
+                <td th:text="${medicine.duration}"> </td>
+                <td th:text="${medicine.timings}"> </td>
+                <td th:text="${medicine.instruction}"> </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          
+    </div>
+
+
+
+
+    <p class="signature">Consultant Audiologist</p>
+    <footer>
+
+        <table class="full">
+            <tr>
+                <td class="grey">Balasore <br> Azimabad, Khaparapada </td>
+                <td class="grey">Bhadrak <br> Near Bhadrak Hospital, Samaraipur</td>
+                <td class="grey">Baripada <br> Near MPC junior college, Badabazar</td>
+            </tr>
+        </table>
+    </footer>
+
+</body>
+
+</html>

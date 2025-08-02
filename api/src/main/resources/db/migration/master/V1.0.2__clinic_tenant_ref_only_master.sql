@@ -1,0 +1,3 @@
+ALTER TABLE clinic 
+ADD COLUMN tenant_id INTEGER,
+ADD CONSTRAINT fk_clinic_tenant FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE;

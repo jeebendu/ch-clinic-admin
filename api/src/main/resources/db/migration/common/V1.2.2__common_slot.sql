@@ -1,0 +1,2 @@
+ALTER TABLE doctor_availability ADD COLUMN IF NOT EXISTS release_type VARCHAR(50),
+ADD COLUMN IF NOT EXISTS slot_quantity INTEGER;

@@ -1,0 +1,1 @@
+ALTER TABLE appointment ADD COLUMN booking_id VARCHAR(25);

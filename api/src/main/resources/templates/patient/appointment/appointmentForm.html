@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Appointment Slip</title>
+  <style type="text/css">
+    body {
+      font-family: 'Open Sans', 'Roboto', 'Segoe UI', Tahoma, sans-serif;
+      background: #fff;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      font-size: 10pt;
+    }
+    
+    p {
+    font-size: 9pt;
+	}
+
+    .container {
+      width: 100%;
+      max-width: 210mm;
+      margin: auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .main-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .header-table {
+      width: 100%;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: 20px;
+    }
+
+    .header-table td {
+      vertical-align: middle;
+      padding: 10px 0;
+    }
+
+    .logos {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      height: 60px;
+      object-fit: contain;
+    }
+
+    .location-info {
+      text-align: right;
+    }
+
+    .location-info p {
+      margin: 2px 0;
+      font-size: 9pt;
+    }
+
+    .section-title {
+      font-weight: bold;
+      font-size: 11pt;
+      color: #00A67E;
+      margin-bottom: 8px;
+    }
+
+    .info-block p {
+      font-size: 10pt;
+      margin: 4px 0;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #444;
+      font-size: 10pt;
+    }
+
+    .highlight {
+      color: #008060;
+      font-weight: bold;
+    }
+
+    .three-column-table,
+    .doctor-table,
+    .instructions-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #f9fafc;
+      border: 1px solid #ddd;
+      margin-bottom: 20px;
+      border-radius: 40px 10px 40px 10px;
+      overflow: hidden;
+    }
+
+    .three-column-table td,
+    .doctor-table td,
+    .instructions-table td {
+      padding: 10px 30px;
+      vertical-align: top;
+    }
+
+    .instructions-left {
+      width: 70%;
+      border-right: 1px solid #e0e0e0;
+    }
+
+    .instructions-right {
+      width: 30%;
+      text-align: center;
+    }
+
+    .qr-large {
+      height: 90px;
+      width: 90px;
+      border: 1px solid #ccc;
+      padding: 4px;
+      background: #fff;
+      border-radius: 6px;
+    }
+
+    .instructions {
+      list-style: disc;
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    .instructions li {
+      margin: 4px 0;
+      font-size: 9pt;
+    }
+
+    .instructions li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #00A67E;
+      font-weight: bold;
+    }
+
+    .footer-branding {
+      font-size: 9pt;
+      color: #888;
+      text-align: center;
+      margin-top: 30px;
+      border-top: 1px solid #e0e0e0;
+      padding-top: 10px;
+    }
+
+    .doctor-name {
+      color: #007BFF;
+      font-weight: bold;
+      font-size: 10pt;
+    }
+
+    .doctor-specialty {
+      color: #666;
+      font-size: 9pt;
+    }
+
+    .qr-small {
+      height: 130px;
+      width: 130px;
+      border: 1px solid #ccc;
+      padding: 2px;
+      background: #fff;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <table class="main-table">
+      <tr>
+        <td>
+          <table class="header-table">
+            <tr>
+              <td style="width: 40%;">
+                <div class="logos">
+                  <img th:src="@{${mainLogoUrl}}"
+                       alt="SaaS Logo"
+                       class="logo"
+                       src="https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png"
+                       onerror="this.onerror=null;this.src='https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';" />
+
+                  <div style="height: 50px; width: 1px; background-color: #ccc; margin: 0 20px;"></div>
+
+                  <img th:src="@{${tenantLogoUrl}}"
+                       alt="Tenant Logo"
+                       class="logo"
+                       src="https://www.aarohclinic.com/assets/images/page-title/logo.png"
+                       onerror="this.onerror=null;this.src='https://www.aarohclinic.com/assets/images/page-title/logo.png';" />
+                </div>
+              </td>
+              <td style="width: 60%;">
+                <div class="location-info">
+                  <p><strong th:text="${clinicName} ?: 'Clinic Name'">Clinic Name</strong></p>
+                  <p th:text="${branchAddress} ?: 'Branch Address'">Branch Address</p>
+                  <p th:text="'Phone: ' + (${clinicContact} ?: 'N/A')">Phone: N/A</p>
+                  <p th:text="'Email: ' + (${clinicEmail} ?: 'N/A')">Email: N/A</p>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <table class="three-column-table">
+            <tr>
+              <td>
+                <p class="section-title">Patient Information</p>
+                <p><span class="label">Name:</span> <span th:text="${patientName} ?: 'N/A'">N/A</span></p>
+                <p><span class="label">Age/Gender:</span> <span th:text="${patientAgeGender} ?: '-'">-</span></p>
+                <p><span class="label">Phone:</span> <span th:text="${patientPhone} ?: '-'">-</span></p>
+                <p><span class="label">Email:</span> <span th:text="${patientEmail} ?: '-'">-</span></p>
+                <p><span class="label">Booked By:</span> <span th:text="${bookedBy} ?: 'Self'">Self</span></p>
+              </td>
+              <td>
+                <p class="section-title">Appointment Details</p>
+                <p><span class="label">ID:</span> <span th:text="${bookingId} ?: 'N/A'">N/A</span></p>
+                <p><span class="label">Date:</span> <span th:text="${appointmentDate} ?: 'DD-MM-YYYY'">DD-MM-YYYY</span></p>
+                <p><span class="label">Time:</span> <span th:text="${appointmentTime} ?: 'HH:mm'">HH:mm</span></p>
+                <p><span class="label">Duration:</span> <span th:text="${appointmentDuration} ?: '-'">-</span></p>
+                <p><span class="label">Booked At:</span> <span th:text="${bookingTime} ?: '-'">-</span></p>
+              </td>
+              <td style="text-align: center;">
+                <p class="section-title">Appointment QR</p>
+                <img th:src="'data:image/png;base64,' + ${appointmentQrImage}"
+                     alt="QR Code for Appointment"
+                     class="qr-small"
+                     src="data:image/png;base64,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"
+                     onerror="this.onerror=null;this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='"/>
+                <p style="margin-top:4px;">Scan for Quick Check-in</p>
+              </td>
+            </tr>
+          </table>
+
+          
+
+          <table class="instructions-table">
+            <tr>
+              <td class="instructions-left" style="border:none;">
+                <p class="section-title">Assigned Doctor</p>
+                <p class="doctor-name" th:text="${doctorName} ?: 'Dr. Not Assigned'">Dr. Not Assigned</p>
+                <p class="doctor-specialty">Specialist in Diabetes & Hypertension | 12+ years experience</p>
+              </td>
+              <td class="instructions-right">
+                <div style="display:flex; align-items:center;justify-content: center;">
+                  <img src="https://cdn-icons-png.flaticon.com/512/3252/3252908.png"
+                       alt="QR Code for Map"
+                       style="max-width:100px;"
+                       th:attr="onerror=|this.onerror=null;this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='|"/>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <table class="instructions-table">
+            <tr>
+              <td class="instructions-left">
+                <p class="section-title">Important Instructions</p>
+                <ul class="instructions">
+                  <li>Arrive at least 10 minutes before your appointment time</li>
+                  <li>Bring your ID and any previous medical documents</li>
+                  <li>Rescheduling is allowed up to 2 hours before appointment</li>
+                  <li>Use the QR code for fast-track check-in at reception</li>
+                  <li>Clinic location map available via location QR code</li>
+                  <li>Please wear a mask if you are feeling unwell</li>
+                  <li>Contact reception for assistance if needed</li>
+                  <li>Payments can be made online or at reception</li>
+                  <li>Bring any prescribed medications for reference</li>
+                  <li>Follow any fasting instructions if provided</li>
+                </ul>
+              </td>
+              <td class="instructions-right">
+                <p class="section-title">Clinic Location</p>
+                <img th:src="'data:image/png;base64,' + ${locationQrImage}"
+                     alt="QR Code for Map"
+                     class="qr-small"
+                     src="data:image/png;base64,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"
+                     th:attr="onerror=|this.onerror=null;this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='|"/>
+                <p>Scan for Directions</p>
+              </td>
+            </tr>
+          </table>
+
+          <div class="footer-branding">
+            © 2025 ClinicHub.Care · All rights reserved · www.clinichub.care
+          </div>
+
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
