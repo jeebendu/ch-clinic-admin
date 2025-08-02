@@ -5,19 +5,15 @@ import AdminLayout from '@/admin/components/AdminLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Doctor } from '../types/Doctor';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import DoctorProfileSection from '../components/DoctorDetailView/DoctorProfileSection';
-import DoctorProfessionalSection from '../components/DoctorDetailView/DoctorProfessionalSection';
 import DoctorStatsSection from '../components/DoctorDetailView/DoctorStatsSection';
 import DoctorAvailabilitySection from '../components/DoctorDetailView/DoctorAvailabilitySection';
 import DoctorInfoCard from '../components/DoctorDetailView/DoctorInfoCard';
 import DoctorService from '../services/doctorService';
 import { 
   ArrowLeft, 
-  Calendar,
   User,
-  Stethoscope,
   BarChart3,
   Clock,
   Edit
@@ -133,14 +129,10 @@ const DoctorDetailView = () => {
 
         {/* Tabs Section */}
         <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span>Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="professional" className="flex items-center gap-2">
-              <Stethoscope className="h-4 w-4" />
-              <span>Professional</span>
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -154,10 +146,6 @@ const DoctorDetailView = () => {
           
           <TabsContent value="profile" className="mt-4">
             <DoctorProfileSection doctor={doctor} onSave={handleSaveDoctor} loading={loading} />
-          </TabsContent>
-          
-          <TabsContent value="professional" className="mt-4">
-            <DoctorProfessionalSection doctor={doctor} onSave={handleSaveDoctor} loading={loading} />
           </TabsContent>
           
           <TabsContent value="stats" className="mt-4">
