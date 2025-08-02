@@ -1,845 +1,595 @@
+
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { Plus, Trash, Clock, Coffee, Calendar, ChevronLeft, ChevronRight, Edit } from "lucide-react";
-import { format, addWeeks, startOfWeek, addDays, parseISO, isAfter, isBefore } from "date-fns";
-import { availabilityService } from "../services/availabilityService";
-import { breakService } from "../services/breakService";
-import { leaveService } from "../services/leaveService";
-import { TimePicker } from "@/admin/components/TimePicker";
-import { DoctorAvailability, TimeRange, DoctorBreak, DoctorLeave } from "../types/DoctorAvailability";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
+import { DoctorAvailability, TimeRange, DoctorLeave } from "../types/DoctorAvailability";
+import { Plus, Trash2, Edit, Calendar, ChevronLeft, ChevronRight, Clock, Coffee, X } from "lucide-react";
+import { toast } from "sonner";
+import { format, addDays, startOfWeek, isToday, isFuture } from "date-fns";
+import availabilityService from "../services/availabilityService";
 
 interface WeeklyScheduleTabProps {
   doctorBranch: DoctorBranch;
 }
 
-const weekDays = [
-  { value: "Sunday", label: "Sunday", index: 0 },
-  { value: "Monday", label: "Monday", index: 1 },
-  { value: "Tuesday", label: "Tuesday", index: 2 },
-  { value: "Wednesday", label: "Wednesday", index: 3 },
-  { value: "Thursday", label: "Thursday", index: 4 },
-  { value: "Friday", label: "Friday", index: 5 },
-  { value: "Saturday", label: "Saturday", index: 6 }
+const DAYS_OF_WEEK = [
+  "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
 ];
 
 const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) => {
-  const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState<DoctorAvailability[]>([]);
-  const [breaks, setBreaks] = useState<DoctorBreak[]>([]);
+  const [availabilities, setAvailabilities] = useState<DoctorAvailability[]>([]);
   const [leaves, setLeaves] = useState<DoctorLeave[]>([]);
+  const [loading, setLoading] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [rightSidebarTab, setRightSidebarTab] = useState<'preview' | 'breaks' | 'leaves'>('preview');
-  
-  // Dialog states
-  const [isAddBreakDialogOpen, setIsAddBreakDialogOpen] = useState(false);
-  const [isAddLeaveDialogOpen, setIsAddLeaveDialogOpen] = useState(false);
-  const [editingBreak, setEditingBreak] = useState<DoctorBreak | null>(null);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [editingLeave, setEditingLeave] = useState<DoctorLeave | null>(null);
-
-  // Form states
-  const [newBreak, setNewBreak] = useState<DoctorBreak>({
-    dayOfWeek: "Sunday",
-    breakStart: "12:00",
-    breakEnd: "13:00",
-    description: "Lunch Break",
-    doctorBranch: doctorBranch
-  });
-
-  const [newLeave, setNewLeave] = useState<DoctorLeave>({
-    id: null,
-    doctorBranch: doctorBranch,
-    leaveEnd: new Date(),
-    leaveStart: new Date(),
+  const [leaveForm, setLeaveForm] = useState({
+    leaveStart: "",
+    leaveEnd: "",
     reason: "",
-    approved: false
   });
 
   useEffect(() => {
-    if (doctorBranch && doctorBranch.id) {
-      fetchData();
+    if (doctorBranch?.id) {
+      fetchAvailabilities();
+      fetchLeaves();
     }
-  }, [doctorBranch]);
+  }, [doctorBranch?.id]);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchAvailabilities = async () => {
+    if (!doctorBranch?.id) return;
+    
     try {
-      await Promise.all([
-        fetchAvailability(),
-        fetchBreaks(),
-        fetchLeaves()
-      ]);
+      setLoading(true);
+      const data = await availabilityService.getAvailabilities(doctorBranch.id);
+      setAvailabilities(data || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Failed to fetch availabilities:", error);
+      toast.error("Failed to load availabilities");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchAvailability = async () => {
-    try {
-      const doctorAvailability = await availabilityService.findAllByDoctorBranchId(doctorBranch.id);
-      setAvailability(doctorAvailability.data);
-    } catch (error) {
-      toast.error('Failed to load schedule');
-    }
-  };
-
-  const fetchBreaks = async () => {
-    try {
-      const doctorBreaks = await breakService.getByDoctorBranchId(doctorBranch.id);
-      setBreaks(doctorBreaks.data);
-    } catch (error) {
-      toast.error('Failed to load breaks');
-    }
-  };
-
   const fetchLeaves = async () => {
+    if (!doctorBranch?.id) return;
+    
     try {
-      const doctorLeaves = await leaveService.getAllByDoctorBranchId(doctorBranch.id);
-      setLeaves(doctorLeaves.data);
+      const data = await availabilityService.getLeaves(doctorBranch.id);
+      setLeaves(data || []);
     } catch (error) {
-      toast.error('Failed to load leaves');
+      console.error("Failed to fetch leaves:", error);
+      toast.error("Failed to load leaves");
     }
   };
 
-  const handleDayChange = (dayIndex: number, field: keyof DoctorAvailability, value: any) => {
-    const newAvailability = [...availability];
-    const daySchedule = newAvailability[dayIndex] || {
-      dayOfWeek: weekDays[dayIndex].value,
-      active: false,
-      timeRanges: [],
-      doctorBranch: doctorBranch,
-      id: 0,
-      releaseType: "DAYS",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    };
-
-    if (field === 'active') {
-      daySchedule.active = value;
-      if (value && daySchedule.timeRanges.length === 0) {
-        daySchedule.timeRanges = [{
-          startTime: "09:00",
-          endTime: "17:00",
-          slotDuration: 30,
-          slotQuantity: 1
-        }];
-      }
-    } else {
-      daySchedule[field] = value;
-    }
-
-    newAvailability[dayIndex] = daySchedule;
-    setAvailability(newAvailability);
-  };
-
-  const handleTimeRangeChange = (dayIndex: number, rangeIndex: number, field: keyof TimeRange, value: any) => {
-    const newAvailability = [...availability];
-    const daySchedule = newAvailability[dayIndex];
-    if (daySchedule) {
-      daySchedule.timeRanges[rangeIndex] = {
-        ...daySchedule.timeRanges[rangeIndex],
-        [field]: value
-      };
-      setAvailability(newAvailability);
-    }
-  };
-
-  const addTimeRange = (dayIndex: number) => {
-    const newAvailability = [...availability];
-    const daySchedule = newAvailability[dayIndex];
-    if (daySchedule) {
-      daySchedule.timeRanges.push({
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 30,
-        slotQuantity: 1
-      });
-      setAvailability(newAvailability);
-    }
-  };
-
-  const removeTimeRange = (dayIndex: number, rangeIndex: number) => {
-    const newAvailability = [...availability];
-    const daySchedule = newAvailability[dayIndex];
-    if (daySchedule && daySchedule.timeRanges.length > 1) {
-      daySchedule.timeRanges.splice(rangeIndex, 1);
-      setAvailability(newAvailability);
-    }
-  };
-
-  const handleSaveSchedule = async () => {
+  const saveAvailability = async (dayAvailability: DoctorAvailability) => {
     try {
-      const activeSchedules = availability.filter(schedule => schedule.active);
-      const res = await availabilityService.saveSchedule(activeSchedules, doctorBranch.id);
-      if (res.data.status) {
-        toast.success('Weekly schedule saved successfully');
-        fetchAvailability();
+      if (dayAvailability.id) {
+        await availabilityService.updateAvailability(dayAvailability.id, dayAvailability);
       } else {
-        toast.error('Failed to save schedule');
-      }
-    } catch (error) {
-      toast.error('Failed to save schedule');
-    }
-  };
-
-  // Break management functions
-  const handleAddBreak = async () => {
-    try {
-      const res = await breakService.saveBreaks([newBreak], doctorBranch.id);
-      if (res.data.status) {
-        toast.success('Break added successfully');
-        setIsAddBreakDialogOpen(false);
-        setNewBreak({
-          dayOfWeek: "Sunday",
-          breakStart: "12:00",
-          breakEnd: "13:00",
-          description: "Lunch Break",
+        await availabilityService.createAvailability({
+          ...dayAvailability,
           doctorBranch: doctorBranch
         });
-        fetchBreaks();
-      } else {
-        toast.error('Failed to add break');
       }
+      await fetchAvailabilities();
+      toast.success("Schedule updated successfully");
     } catch (error) {
-      toast.error('Failed to add break');
+      console.error("Error saving availability:", error);
+      toast.error("Failed to save schedule");
     }
   };
 
-  const handleEditBreak = (breakItem: DoctorBreak) => {
-    setEditingBreak(breakItem);
-    setNewBreak(breakItem);
-    setIsAddBreakDialogOpen(true);
+  const toggleDayActive = (dayOfWeek: string) => {
+    const existing = availabilities.find(a => a.dayOfWeek === dayOfWeek);
+    const updatedAvailability: DoctorAvailability = existing 
+      ? { ...existing, active: !existing.active }
+      : {
+          id: 0,
+          dayOfWeek,
+          active: true,
+          timeRanges: [],
+          doctorBranch,
+          releaseType: "HOURS",
+          releaseBefore: 24,
+          releaseTime: "09:00"
+        };
+    
+    saveAvailability(updatedAvailability);
   };
 
-  const handleUpdateBreak = async () => {
-    try {
-      const res = await breakService.saveBreaks([newBreak], doctorBranch.id);
-      if (res.data.status) {
-        toast.success('Break updated successfully');
-        setIsAddBreakDialogOpen(false);
-        setEditingBreak(null);
-        fetchBreaks();
-      } else {
-        toast.error('Failed to update break');
-      }
-    } catch (error) {
-      toast.error('Failed to update break');
-    }
+  const addTimeRange = (dayOfWeek: string) => {
+    const existing = availabilities.find(a => a.dayOfWeek === dayOfWeek);
+    const newTimeRange: TimeRange = {
+      startTime: "09:00",
+      endTime: "17:00",
+      slotDuration: 30,
+      slotQuantity: 1
+    };
+
+    const updatedAvailability: DoctorAvailability = existing 
+      ? { ...existing, timeRanges: [...existing.timeRanges, newTimeRange] }
+      : {
+          id: 0,
+          dayOfWeek,
+          active: true,
+          timeRanges: [newTimeRange],
+          doctorBranch,
+          releaseType: "HOURS",
+          releaseBefore: 24,
+          releaseTime: "09:00"
+        };
+
+    saveAvailability(updatedAvailability);
   };
 
-  const handleDeleteBreak = async (id: number) => {
-    try {
-      const res = await breakService.deleteById(id);
-      if (res.data.status) {
-        toast.success('Break deleted successfully');
-        fetchBreaks();
-      } else {
-        toast.error('Failed to delete break');
-      }
-    } catch (error) {
-      toast.error('Failed to delete break');
-    }
+  const updateTimeRange = (dayOfWeek: string, rangeIndex: number, field: keyof TimeRange, value: string | number) => {
+    const availability = availabilities.find(a => a.dayOfWeek === dayOfWeek);
+    if (!availability) return;
+
+    const updatedRanges = availability.timeRanges.map((range, index) => 
+      index === rangeIndex ? { ...range, [field]: value } : range
+    );
+
+    const updatedAvailability = { ...availability, timeRanges: updatedRanges };
+    saveAvailability(updatedAvailability);
+  };
+
+  const removeTimeRange = (dayOfWeek: string, rangeIndex: number) => {
+    const availability = availabilities.find(a => a.dayOfWeek === dayOfWeek);
+    if (!availability) return;
+
+    const updatedRanges = availability.timeRanges.filter((_, index) => index !== rangeIndex);
+    const updatedAvailability = { ...availability, timeRanges: updatedRanges };
+    saveAvailability(updatedAvailability);
   };
 
   // Leave management functions
-  const handleAddLeave = async () => {
+  const handleSaveLeave = async () => {
     try {
-      if (!newLeave.leaveStart || !newLeave.leaveEnd) {
-        toast.error("Please select start and end dates");
-        return;
-      }
-
-      if (isAfter(new Date(newLeave.leaveStart), new Date(newLeave.leaveEnd))) {
-        toast.error("End date must be after start date");
-        return;
-      }
-
-      const res = await leaveService.saveLeave(newLeave);
-      if (res.data.status) {
-        toast.success(editingLeave ? 'Leave updated successfully' : 'Leave added successfully');
-        setIsAddLeaveDialogOpen(false);
-        setEditingLeave(null);
-        setNewLeave({
-          id: null,
-          doctorBranch: doctorBranch,
-          leaveEnd: new Date(),
-          leaveStart: new Date(),
-          reason: "",
+      if (editingLeave) {
+        await availabilityService.updateLeave(editingLeave.id, {
+          ...leaveForm,
+          leaveStart: new Date(leaveForm.leaveStart),
+          leaveEnd: new Date(leaveForm.leaveEnd),
+          doctorBranch
+        });
+        toast.success("Leave updated successfully");
+      } else {
+        await availabilityService.createLeave({
+          ...leaveForm,
+          leaveStart: new Date(leaveForm.leaveStart),
+          leaveEnd: new Date(leaveForm.leaveEnd),
+          doctorBranch,
           approved: false
         });
-        fetchLeaves();
-      } else {
-        toast.error('Failed to save leave');
+        toast.success("Leave added successfully");
       }
+      
+      await fetchLeaves();
+      setIsLeaveDialogOpen(false);
+      setEditingLeave(null);
+      setLeaveForm({ leaveStart: "", leaveEnd: "", reason: "" });
     } catch (error) {
-      toast.error('Failed to save leave');
+      console.error("Error saving leave:", error);
+      toast.error("Failed to save leave");
     }
   };
 
   const handleEditLeave = (leave: DoctorLeave) => {
     setEditingLeave(leave);
-    setNewLeave(leave);
-    setIsAddLeaveDialogOpen(true);
+    setLeaveForm({
+      leaveStart: format(new Date(leave.leaveStart), "yyyy-MM-dd"),
+      leaveEnd: format(new Date(leave.leaveEnd), "yyyy-MM-dd"),
+      reason: leave.reason
+    });
+    setIsLeaveDialogOpen(true);
   };
 
-  const handleDeleteLeave = async (id: number) => {
+  const handleDeleteLeave = async (leaveId: number) => {
     try {
-      const res = await leaveService.deleteLeave(id);
-      if (res.data.status) {
-        toast.success('Leave deleted successfully');
-        fetchLeaves();
-      } else {
-        toast.error('Failed to delete leave');
-      }
+      await availabilityService.deleteLeave(leaveId);
+      await fetchLeaves();
+      toast.success("Leave deleted successfully");
     } catch (error) {
-      toast.error('Failed to delete leave');
+      console.error("Error deleting leave:", error);
+      toast.error("Failed to delete leave");
     }
   };
 
-  // Slot preview generation
-  const generateSlotPreview = () => {
-    const startDate = startOfWeek(currentWeek);
-    const weekSlots = [];
-
-    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-      const currentDate = addDays(startDate, dayIndex);
-      const dayName = weekDays[dayIndex].value;
-      const daySchedule = availability.find(schedule => 
-        schedule.active && schedule.dayOfWeek === dayName
-      );
-
-      const daySlots = [];
-
-      if (daySchedule && daySchedule.timeRanges) {
-        daySchedule.timeRanges.forEach((timeRange) => {
-          const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
-          const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
-          const duration = timeRange.slotDuration;
-          const quantity = timeRange.slotQuantity || 1;
-
-          let currentTime = new Date(startTime);
-          while (currentTime < endTime) {
-            const slotEndTime = new Date(currentTime.getTime() + duration * 60000);
-            if (slotEndTime <= endTime) {
-              for (let q = 0; q < quantity; q++) {
-                daySlots.push({
-                  time: currentTime.toTimeString().slice(0, 5),
-                  endTime: slotEndTime.toTimeString().slice(0, 5),
-                  available: true,
-                  quantity: q + 1
-                });
-              }
-            }
-            currentTime = slotEndTime;
-          }
+  // Slot preview functions
+  const generateSlots = (timeRange: TimeRange, date: Date): any[] => {
+    const slots = [];
+    const startTime = new Date(`${format(date, 'yyyy-MM-dd')}T${timeRange.startTime}:00`);
+    const endTime = new Date(`${format(date, 'yyyy-MM-dd')}T${timeRange.endTime}:00`);
+    
+    let currentTime = new Date(startTime);
+    
+    while (currentTime < endTime) {
+      const slotEndTime = new Date(currentTime.getTime() + timeRange.slotDuration * 60000);
+      
+      for (let i = 0; i < timeRange.slotQuantity; i++) {
+        slots.push({
+          id: `${format(currentTime, 'HH:mm')}-${i}`,
+          startTime: format(currentTime, 'HH:mm'),
+          endTime: format(slotEndTime, 'HH:mm'),
+          available: true
         });
       }
-
-      weekSlots.push({
-        date: currentDate,
-        dayName: dayName,
-        slots: daySlots
-      });
+      
+      currentTime = slotEndTime;
     }
-
-    return weekSlots;
+    
+    return slots;
   };
 
-  const slotPreview = generateSlotPreview();
-
-  const handlePreviousWeek = () => {
-    setCurrentWeek(addWeeks(currentWeek, -1));
+  const getWeekDates = () => {
+    const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   };
 
-  const handleNextWeek = () => {
-    setCurrentWeek(addWeeks(currentWeek, 1));
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    setCurrentWeek(prev => addDays(prev, direction === 'next' ? 7 : -7));
   };
+
+  const getDayAvailability = (dayOfWeek: string) => {
+    return availabilities.find(a => a.dayOfWeek === dayOfWeek);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex gap-6">
-      {/* Main Content - Weekly Schedule */}
-      <div className="flex-1">
+    <div className="grid grid-cols-12 gap-6">
+      {/* Main Schedule Configuration - Left Side */}
+      <div className="col-span-8">
         <Card>
           <CardHeader>
             <CardTitle>Weekly Schedule Configuration</CardTitle>
-            <CardDescription>Configure doctor's working hours for each day of the week</CardDescription>
           </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {weekDays.map((day, dayIndex) => {
-                  const daySchedule = availability[dayIndex];
-                  const isActive = daySchedule?.active || false;
+          <CardContent className="space-y-6">
+            {DAYS_OF_WEEK.map((day) => {
+              const dayAvailability = getDayAvailability(day);
+              const isActive = dayAvailability?.active || false;
 
-                  return (
-                    <div key={day.value} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`day-${dayIndex}`}
-                              checked={isActive}
-                              onChange={(e) => handleDayChange(dayIndex, 'active', e.target.checked)}
-                              className="rounded border-gray-300"
-                            />
-                            <label htmlFor={`day-${dayIndex}`} className="font-medium text-lg">
-                              {day.label}
-                            </label>
-                          </div>
-                        </div>
-
-                        {isActive && (
-                          <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-2">
-                              <label className="text-sm font-medium">Release:</label>
-                              <Select
-                                value={daySchedule?.releaseBefore?.toString() || "1"}
-                                onValueChange={(value) => handleDayChange(dayIndex, 'releaseBefore', parseInt(value))}
-                              >
-                                <SelectTrigger className="w-20">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {[1, 2, 3, 7, 14, 30].map(num => (
-                                    <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Select
-                                value={daySchedule?.releaseType || "DAYS"}
-                                onValueChange={(value) => handleDayChange(dayIndex, 'releaseType', value)}
-                              >
-                                <SelectTrigger className="w-24">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="DAYS">Days</SelectItem>
-                                  <SelectItem value="HOURS">Hours</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <span className="text-sm">before at</span>
-                              <TimePicker
-                                value={daySchedule?.releaseTime || "09:00"}
-                                onChange={(value) => handleDayChange(dayIndex, 'releaseTime', value)}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {isActive && (
-                        <div className="space-y-3">
-                          {daySchedule?.timeRanges?.map((timeRange, rangeIndex) => (
-                            <div key={rangeIndex} className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end p-3 bg-muted/30 rounded">
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">Start Time</label>
-                                <TimePicker
-                                  value={timeRange.startTime}
-                                  onChange={(value) => handleTimeRangeChange(dayIndex, rangeIndex, 'startTime', value)}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">End Time</label>
-                                <TimePicker
-                                  value={timeRange.endTime}
-                                  onChange={(value) => handleTimeRangeChange(dayIndex, rangeIndex, 'endTime', value)}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">Duration (min)</label>
-                                <Select
-                                  value={timeRange.slotDuration?.toString() || "30"}
-                                  onValueChange={(value) => handleTimeRangeChange(dayIndex, rangeIndex, 'slotDuration', parseInt(value))}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="15">15</SelectItem>
-                                    <SelectItem value="30">30</SelectItem>
-                                    <SelectItem value="45">45</SelectItem>
-                                    <SelectItem value="60">60</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">Quantity</label>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  max="10"
-                                  value={timeRange.slotQuantity || 1}
-                                  onChange={(e) => handleTimeRangeChange(dayIndex, rangeIndex, 'slotQuantity', parseInt(e.target.value))}
-                                />
-                              </div>
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addTimeRange(dayIndex)}
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                                {daySchedule.timeRanges.length > 1 && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => removeTimeRange(dayIndex, rangeIndex)}
-                                    className="text-red-500"
-                                  >
-                                    <Trash className="h-3 w-3" />
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+              return (
+                <div key={day} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={isActive}
+                        onCheckedChange={() => toggleDayActive(day)}
+                      />
+                      <Label className="text-base font-medium capitalize">
+                        {day.toLowerCase()}
+                      </Label>
                     </div>
-                  );
-                })}
+                    {isActive && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addTimeRange(day)}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Time Range
+                      </Button>
+                    )}
+                  </div>
 
-                <div className="flex justify-end pt-4">
-                  <Button onClick={handleSaveSchedule}>
-                    Save Weekly Schedule
-                  </Button>
+                  {isActive && dayAvailability?.timeRanges && (
+                    <div className="space-y-3 ml-6">
+                      {dayAvailability.timeRanges.map((range, index) => (
+                        <div key={index} className="grid grid-cols-12 gap-3 items-center bg-gray-50 p-3 rounded">
+                          <div className="col-span-2">
+                            <Label className="text-xs">Start Time</Label>
+                            <Input
+                              type="time"
+                              value={range.startTime}
+                              onChange={(e) => updateTimeRange(day, index, 'startTime', e.target.value)}
+                              className="h-8"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Label className="text-xs">End Time</Label>
+                            <Input
+                              type="time"
+                              value={range.endTime}
+                              onChange={(e) => updateTimeRange(day, index, 'endTime', e.target.value)}
+                              className="h-8"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Label className="text-xs">Slot Duration (min)</Label>
+                            <Input
+                              type="number"
+                              value={range.slotDuration}
+                              onChange={(e) => updateTimeRange(day, index, 'slotDuration', parseInt(e.target.value))}
+                              className="h-8"
+                              min="1"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Label className="text-xs">Slots per Time</Label>
+                            <Input
+                              type="number"
+                              value={range.slotQuantity}
+                              onChange={(e) => updateTimeRange(day, index, 'slotQuantity', parseInt(e.target.value))}
+                              className="h-8"
+                              min="1"
+                            />
+                          </div>
+                          <div className="col-span-3">
+                            <div className="text-xs text-gray-600">
+                              Total slots: {Math.floor(
+                                ((new Date(`2000-01-01T${range.endTime}:00`).getTime() - 
+                                  new Date(`2000-01-01T${range.startTime}:00`).getTime()) / 
+                                (range.slotDuration * 60 * 1000)) * range.slotQuantity
+                              )}
+                            </div>
+                          </div>
+                          <div className="col-span-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeTimeRange(day, index)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
 
       {/* Right Sidebar */}
-      <div className="w-80">
-        <Card className="h-full">
-          <CardHeader className="pb-2">
-            <div className="flex space-x-1">
-              <Button
-                variant={rightSidebarTab === 'preview' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setRightSidebarTab('preview')}
-              >
-                <Clock className="h-4 w-4 mr-1" />
-                Preview
-              </Button>
-              <Button
-                variant={rightSidebarTab === 'breaks' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setRightSidebarTab('breaks')}
-              >
-                <Coffee className="h-4 w-4 mr-1" />
-                Breaks
-              </Button>
-              <Button
-                variant={rightSidebarTab === 'leaves' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setRightSidebarTab('leaves')}
-              >
-                <Calendar className="h-4 w-4 mr-1" />
+      <div className="col-span-4 space-y-6">
+        {/* Leaves Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
                 Leaves
-              </Button>
+              </CardTitle>
+              <Dialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" onClick={() => {
+                    setEditingLeave(null);
+                    setLeaveForm({ leaveStart: "", leaveEnd: "", reason: "" });
+                  }}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Leave
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingLeave ? "Edit Leave" : "Add New Leave"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="leaveStart">Start Date</Label>
+                      <Input
+                        id="leaveStart"
+                        type="date"
+                        value={leaveForm.leaveStart}
+                        onChange={(e) => setLeaveForm(prev => ({
+                          ...prev,
+                          leaveStart: e.target.value
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="leaveEnd">End Date</Label>
+                      <Input
+                        id="leaveEnd"
+                        type="date"
+                        value={leaveForm.leaveEnd}
+                        onChange={(e) => setLeaveForm(prev => ({
+                          ...prev,
+                          leaveEnd: e.target.value
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="reason">Reason</Label>
+                      <Textarea
+                        id="reason"
+                        value={leaveForm.reason}
+                        onChange={(e) => setLeaveForm(prev => ({
+                          ...prev,
+                          reason: e.target.value
+                        }))}
+                        placeholder="Enter reason for leave"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsLeaveDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSaveLeave}>
+                        {editingLeave ? "Update" : "Add"} Leave
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto">
-            {rightSidebarTab === 'preview' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Slot Preview</h3>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm" onClick={handlePreviousWeek}>
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm font-medium">
-                      {format(startOfWeek(currentWeek), "MMM d")} - {format(addDays(startOfWeek(currentWeek), 6), "MMM d")}
-                    </span>
-                    <Button variant="ghost" size="sm" onClick={handleNextWeek}>
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {slotPreview.map((day, index) => (
-                    <div key={index} className="border rounded-lg p-3">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-sm">{day.dayName}</h4>
-                        <span className="text-xs text-muted-foreground">
-                          {format(day.date, "MMM d")}
-                        </span>
+          <CardContent>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {leaves.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No leaves scheduled
+                </p>
+              ) : (
+                leaves.map((leave) => (
+                  <div key={leave.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">
+                        {format(new Date(leave.leaveStart), "MMM dd")} - {format(new Date(leave.leaveEnd), "MMM dd")}
                       </div>
-                      
-                      {day.slots.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">No slots available</p>
-                      ) : (
-                        <>
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {day.slots.slice(0, 8).map((slot, slotIndex) => (
-                              <Badge key={slotIndex} variant="secondary" className="text-xs">
-                                {slot.time}
-                                {slot.quantity > 1 && ` (${slot.quantity})`}
-                              </Badge>
-                            ))}
-                            {day.slots.length > 8 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{day.slots.length - 8} more
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Total: {day.slots.length} slots
-                          </p>
-                        </>
-                      )}
+                      <div className="text-xs text-gray-600">{leave.reason}</div>
+                      <Badge
+                        variant={leave.approved ? "default" : "secondary"}
+                        className="text-xs mt-1"
+                      >
+                        {leave.approved ? "Approved" : "Pending"}
+                      </Badge>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditLeave(leave)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteLeave(leave.id)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Trash2 className="h-3 w-3 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Slot Preview Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Slot Preview
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateWeek('prev')}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium">
+                  {format(currentWeek, 'MMM yyyy')}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateWeek('next')}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
-            )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {getWeekDates().map((date, index) => {
+                const dayName = DAYS_OF_WEEK[index];
+                const dayAvailability = getDayAvailability(dayName);
+                const isActiveDay = dayAvailability?.active;
+                const isCurrentDay = isToday(date);
+                const isFutureDay = isFuture(date) || isToday(date);
 
-            {rightSidebarTab === 'breaks' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Breaks</h3>
-                  <Button size="sm" onClick={() => setIsAddBreakDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
+                let totalSlots = 0;
+                const daySlots: any[] = [];
 
-                {breaks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No breaks configured
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {breaks.map((breakItem) => (
-                      <div key={breakItem.id} className="border rounded-lg p-3">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-medium text-sm">{breakItem.dayOfWeek}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {breakItem.breakStart} - {breakItem.breakEnd}
-                            </p>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditBreak(breakItem)}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteBreak(breakItem.id)}
-                              className="text-red-500"
-                            >
-                              <Trash className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        {breakItem.description && (
-                          <p className="text-xs text-muted-foreground">{breakItem.description}</p>
+                if (isActiveDay && dayAvailability?.timeRanges) {
+                  dayAvailability.timeRanges.forEach(range => {
+                    const slots = generateSlots(range, date);
+                    daySlots.push(...slots);
+                    totalSlots += slots.length;
+                  });
+                }
+
+                return (
+                  <div key={date.toISOString()} className="border rounded p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-medium ${isCurrentDay ? 'text-blue-600' : ''}`}>
+                          {format(date, 'EEE, MMM dd')}
+                        </span>
+                        {isCurrentDay && (
+                          <Badge variant="outline" className="text-xs">
+                            Today
+                          </Badge>
                         )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                      <span className="text-xs text-gray-600">
+                        {totalSlots} slots
+                      </span>
+                    </div>
 
-            {rightSidebarTab === 'leaves' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Leaves</h3>
-                  <Button size="sm" onClick={() => setIsAddLeaveDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-
-                {leaves.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No leaves scheduled
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {leaves.map((leave) => (
-                      <div key={leave.id} className="border rounded-lg p-3">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-medium text-sm">
-                              {format(new Date(leave.leaveStart), "MMM d")} - {format(new Date(leave.leaveEnd), "MMM d")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{leave.reason || "No reason"}</p>
+                    {!isActiveDay ? (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        No availability
+                      </div>
+                    ) : daySlots.length === 0 ? (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        No time ranges configured
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-1">
+                        {daySlots.slice(0, 12).map((slot, slotIndex) => (
+                          <div
+                            key={slotIndex}
+                            className={`text-xs p-1 rounded text-center ${
+                              !isFutureDay
+                                ? 'bg-gray-100 text-gray-400'
+                                : 'bg-green-50 text-green-700 border border-green-200'
+                            }`}
+                          >
+                            {slot.startTime}
                           </div>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditLeave(leave)}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteLeave(leave.id)}
-                              className="text-red-500"
-                            >
-                              <Trash className="h-3 w-3" />
-                            </Button>
+                        ))}
+                        {daySlots.length > 12 && (
+                          <div className="text-xs text-gray-500 text-center col-span-3 pt-1">
+                            +{daySlots.length - 12} more
                           </div>
-                        </div>
-                        {leave.approved && (
-                          <Badge variant="secondary" className="text-xs">Approved</Badge>
                         )}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
-            )}
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Add/Edit Break Dialog */}
-      <Dialog open={isAddBreakDialogOpen} onOpenChange={setIsAddBreakDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingBreak ? 'Edit Break' : 'Add New Break'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Day</label>
-              <Select
-                value={newBreak.dayOfWeek}
-                onValueChange={(value) => setNewBreak({ ...newBreak, dayOfWeek: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select day" />
-                </SelectTrigger>
-                <SelectContent>
-                  {weekDays.map((day) => (
-                    <SelectItem key={day.value} value={day.value}>
-                      {day.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Start Time</label>
-                <TimePicker
-                  value={newBreak.breakStart}
-                  onChange={(value) => setNewBreak({ ...newBreak, breakStart: value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">End Time</label>
-                <TimePicker
-                  value={newBreak.breakEnd}
-                  onChange={(value) => setNewBreak({ ...newBreak, breakEnd: value })}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Description</label>
-              <Input
-                placeholder="Break description"
-                value={newBreak.description}
-                onChange={(e) => setNewBreak({ ...newBreak, description: e.target.value })}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsAddBreakDialogOpen(false);
-              setEditingBreak(null);
-            }}>
-              Cancel
-            </Button>
-            <Button onClick={editingBreak ? handleUpdateBreak : handleAddBreak}>
-              {editingBreak ? 'Update' : 'Add'} Break
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add/Edit Leave Dialog */}
-      <Dialog open={isAddLeaveDialogOpen} onOpenChange={setIsAddLeaveDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingLeave ? 'Edit Leave' : 'Add New Leave'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Start Date</label>
-                <DatePicker
-                  date={newLeave.leaveStart ? new Date(newLeave.leaveStart) : undefined}
-                  onDateChange={(date) => setNewLeave({ ...newLeave, leaveStart: date })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">End Date</label>
-                <DatePicker
-                  date={newLeave.leaveEnd ? new Date(newLeave.leaveEnd) : undefined}
-                  onDateChange={(date) => setNewLeave({ ...newLeave, leaveEnd: date })}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Reason</label>
-              <Textarea
-                placeholder="Reason for leave"
-                value={newLeave.reason || ""}
-                onChange={(e) => setNewLeave({ ...newLeave, reason: e.target.value })}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="approved"
-                checked={newLeave.approved}
-                onChange={(e) => setNewLeave({ ...newLeave, approved: e.target.checked })}
-                className="rounded border-gray-300"
-              />
-              <label htmlFor="approved" className="text-sm font-medium">Approved</label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsAddLeaveDialogOpen(false);
-              setEditingLeave(null);
-            }}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddLeave}>
-              {editingLeave ? 'Update' : 'Add'} Leave
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
