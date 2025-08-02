@@ -12,12 +12,14 @@ import AudiometryReportView from "../components/reports/views/AudiometryReportVi
 import BeraReportView from "../components/reports/views/BeraReportView";
 import ABRReportView from "../components/reports/views/ABRReportView";
 import SpeechReportView from "../components/reports/views/SpeechReportView";
+import LaboratoryReportView from "../components/views/LaboratoryReportView";
 
 // Import report form components
 import AudiometryForm from "../components/reports/AudiometryForm";
 import BeraForm from "../components/reports/BeraForm";
 import ABRForm from "../components/reports/ABRForm";
 import SpeechForm from "../components/reports/SpeechForm";
+import LaboratoryReportForm from "../components/forms/LaboratoryReportForm";
 
 const PatientRoutes = () => {
   return (
@@ -32,11 +34,13 @@ const PatientRoutes = () => {
       <Route path="/report/bera/:id" element={<BeraReportView />} />
       <Route path="/report/abr/:id" element={<ABRReportView />} />
       <Route path="/report/speech/:id" element={<SpeechReportView />} />
+      <Route path="/report/laboratory/:id" element={<LaboratoryReportView />} />
 
       <Route path="/report/new/audiometry/:patientId" element={<AudiometryForm />} />
       <Route path="/report/new/bera/:patientId" element={<BeraForm standalone={true} />} />
       <Route path="/report/new/abr/:patientId" element={<ABRForm standalone={true} />} />
       <Route path="/report/new/speech/:patientId" element={<SpeechForm standalone={true} />} />
+      <Route path="/report/new/laboratory/:patientId" element={<LaboratoryReportForm />} />
     </Routes>
   );
 };

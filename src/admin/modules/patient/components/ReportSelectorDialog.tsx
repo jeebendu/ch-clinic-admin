@@ -9,6 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import ReportTypeSelector from './ReportTypeSelector';
+import { useToast } from '@/hooks/use-toast';
 
 interface ReportSelectorDialogProps {
   open: boolean;
@@ -24,11 +25,27 @@ const ReportSelectorDialog: React.FC<ReportSelectorDialogProps> = ({
   visitId
 }) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleReportTypeSelect = (type: string) => {
-    // Navigate to the appropriate report form based on selected type
-    navigate(`/admin/patients/report/new/${type}/${patientId}${visitId ? `?visitId=${visitId}` : ''}`);
     onOpenChange(false);
+    
+    // Create the base URL with visitId if provided
+    const baseUrl = `/admin/patients/report/new/${type}/${patientId}`;
+    const url = visitId ? `${baseUrl}?visitId=${visitId}` : baseUrl;
+    
+    // Check if the report type is implemented
+    const implementedTypes = ['audiometry', 'bera', 'abr', 'speech', 'laboratory'];
+    
+    if (implementedTypes.includes(type)) {
+      navigate(url);
+    } else {
+      toast({
+        title: "Not Implemented",
+        description: `${type.charAt(0).toUpperCase() + type.slice(1)} report form is not yet implemented.`,
+        variant: "destructive"
+      });
+    }
   };
 
   return (

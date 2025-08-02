@@ -12,9 +12,9 @@ import {
   FileAudio,
   Brain,
   Ear,
-  Heart, // Replacing Waveform
+  Heart,
   FilePenLine,
-  Pill, // Replacing Tooth
+  Pill,
   Microscope,
   Activity,
   FileX2
@@ -51,6 +51,12 @@ interface ReportTypeSelectorProps {
 const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({ onSelectReportType }) => {
   const reportTypes = [
     {
+      id: 'laboratory',
+      title: 'Laboratory',
+      description: 'Blood tests, urine analysis, and lab reports',
+      icon: <TestTube className="h-8 w-8 text-amber-500" />
+    },
+    {
       id: 'audiometry',
       title: 'Audiometry',
       description: 'Hearing assessment tests',
@@ -78,13 +84,7 @@ const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({ onSelectReportT
       id: 'dental',
       title: 'Dental',
       description: 'Oral examination findings',
-      icon: <Pill className="h-8 w-8 text-emerald-500" /> // Changed from Tooth to Pill
-    },
-    {
-      id: 'laboratory',
-      title: 'Laboratory',
-      description: 'Blood and other lab tests',
-      icon: <TestTube className="h-8 w-8 text-amber-500" />
+      icon: <Pill className="h-8 w-8 text-emerald-500" />
     },
     {
       id: 'radiography',

@@ -78,10 +78,22 @@ const PatientReportSection: React.FC<PatientReportSectionProps> = ({ patientId }
       case 'speech':
         navigate(`/admin/patients/report/new/speech/${patientId}`);
         break;
-      default:
+      case 'laboratory':
+        navigate(`/admin/patients/report/new/laboratory/${patientId}`);
+        break;
+      case 'dental':
+      case 'radiography':
+      case 'general':
         toast({
           title: "Not Implemented",
           description: `${type.charAt(0).toUpperCase() + type.slice(1)} report form is not yet implemented.`,
+          variant: "destructive"
+        });
+        break;
+      default:
+        toast({
+          title: "Unknown Report Type",
+          description: "Please select a valid report type.",
           variant: "destructive"
         });
     }
