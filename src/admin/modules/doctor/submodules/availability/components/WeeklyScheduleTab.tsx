@@ -1,316 +1,306 @@
-
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Clock, Calendar, Save, AlertCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Plus, Trash, Save } from "lucide-react";
-import { TimePicker } from "@/admin/components/TimePicker";
-import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
-import { Doctor } from "../../../types/Doctor";
-import { Branch } from "@/admin/modules/branch/types/Branch";
+import { DoctorAvailability, TimeRange, DoctorLeave } from "../types/DoctorAvailability";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
+import TimeRangeForm from "./TimeRangeForm";
 import LeavesSection from "./LeavesSection";
-import AvailabilityService from "../services/availabilityService";
+import SlotReleaseRules from "./SlotReleaseRules";
 
 interface WeeklyScheduleTabProps {
-  doctor: Doctor;
-  selectedBranch: Branch;
   doctorBranch: DoctorBranch;
+  availability: DoctorAvailability[];
+  onSave: (availabilities: DoctorAvailability[]) => void;
+  className?: string;
 }
 
-const daysOfWeek = [
-  { value: 'Sunday', label: 'Sunday' },
-  { value: 'Monday', label: 'Monday' },
-  { value: 'Tuesday', label: 'Tuesday' },
-  { value: 'Wednesday', label: 'Wednesday' },
-  { value: 'Thursday', label: 'Thursday' },
-  { value: 'Friday', label: 'Friday' },
-  { value: 'Saturday', label: 'Saturday' }
+const WEEKDAYS = [
+  "Monday",
+  "Tuesday", 
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday"
 ];
 
-const releaseTypes = [
-  { value: 'FIXED', label: 'Fixed Time' },
-  { value: 'RELATIVE', label: 'Minutes Before' }
-];
-
-const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, selectedBranch, doctorBranch }) => {
-  const [loading, setLoading] = useState(true);
-  const [schedules, setSchedules] = useState<DoctorAvailability[]>([]);
+const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({
+  doctorBranch,
+  availability,
+  onSave,
+  className
+}) => {
+  const [weeklyAvailability, setWeeklyAvailability] = useState<Record<string, DoctorAvailability>>({});
+  const [editingTimeRange, setEditingTimeRange] = useState<{
+    dayOfWeek: string;
+    timeRange?: TimeRange;
+    index?: number;
+  } | null>(null);
+  const [leaves, setLeaves] = useState<DoctorLeave[]>([]);
 
   useEffect(() => {
-    if (doctor && selectedBranch && doctorBranch?.id) {
-      fetchSchedules();
-    }
-  }, [doctor, selectedBranch, doctorBranch]);
-
-  const fetchSchedules = async () => {
-    setLoading(true);
-    try {
-      const response = await WeeklyScheduleService.getByDoctorBranchId(doctorBranch.id);
-      setSchedules(response.data || []);
-    } catch (error) {
-      console.error('Error fetching schedules:', error);
-      toast.error('Failed to load weekly schedule');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleScheduleChange = (dayIndex: number, field: keyof DoctorAvailability, value: any) => {
-    const newSchedules = [...schedules];
-    newSchedules[dayIndex] = {
-      ...newSchedules[dayIndex],
-      [field]: value
-    };
-    setSchedules(newSchedules);
-  };
-
-  const handleTimeRangeChange = (dayIndex: number, rangeIndex: number, field: keyof TimeRange, value: any) => {
-    const newSchedules = [...schedules];
-    const newTimeRanges = [...newSchedules[dayIndex].timeRanges];
-    newTimeRanges[rangeIndex] = {
-      ...newTimeRanges[rangeIndex],
-      [field]: value
-    };
-    newSchedules[dayIndex].timeRanges = newTimeRanges;
-    setSchedules(newSchedules);
-  };
-
-  const handleAddTimeRange = (dayIndex: number) => {
-    const newSchedules = [...schedules];
-    newSchedules[dayIndex].timeRanges.push({
-      startTime: "09:00",
-      endTime: "17:00",
-      slotDuration: 15,
-      slotQuantity: 1
-    });
-    setSchedules(newSchedules);
-  };
-
-  const handleRemoveTimeRange = (dayIndex: number, rangeIndex: number) => {
-    const newSchedules = [...schedules];
-    newSchedules[dayIndex].timeRanges.splice(rangeIndex, 1);
-    setSchedules(newSchedules);
-  };
-
-  const handleSaveSchedules = async () => {
-    try {
-      const response = await AvailabilityService.saveSchedules(schedules, doctorBranch.id);
-      if (response.data.status) {
-        toast.success('Weekly schedule saved successfully');
-        fetchSchedules();
+    const availabilityMap: Record<string, DoctorAvailability> = {};
+    
+    WEEKDAYS.forEach(day => {
+      const dayAvailability = availability.find(a => a.dayOfWeek === day);
+      if (dayAvailability) {
+        availabilityMap[day] = dayAvailability;
       } else {
-        toast.error('Failed to save weekly schedule');
+        availabilityMap[day] = {
+          id: 0,
+          dayOfWeek: day,
+          active: false,
+          timeRanges: [],
+          doctorBranch,
+          releaseType: 'AUTO',
+          releaseBefore: 1,
+          releaseTime: '06:00:00'
+        };
       }
-    } catch (error) {
-      console.error('Error saving schedules:', error);
-      toast.error('Failed to save weekly schedule');
-    }
+    });
+    
+    setWeeklyAvailability(availabilityMap);
+  }, [availability, doctorBranch]);
+
+  const handleDayToggle = (dayOfWeek: string, active: boolean) => {
+    setWeeklyAvailability(prev => ({
+      ...prev,
+      [dayOfWeek]: {
+        ...prev[dayOfWeek],
+        active,
+        timeRanges: active ? prev[dayOfWeek].timeRanges : []
+      }
+    }));
   };
 
-  // Initialize schedules if empty
-  useEffect(() => {
-    if (schedules.length === 0 && doctorBranch?.id && !loading) {
-      const initialSchedules = daysOfWeek.map((day, index) => ({
-        id: index,
-        dayOfWeek: day.value,
-        active: false,
-        timeRanges: [],
-        doctorBranch: doctorBranch,
-        releaseType: 'FIXED' as const,
-        releaseBefore: 1,
-        releaseTime: '06:00'
-      }));
-      setSchedules(initialSchedules);
-    }
-  }, [schedules, doctorBranch, loading]);
+  const handleAddTimeRange = (dayOfWeek: string) => {
+    setEditingTimeRange({ dayOfWeek });
+  };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const handleEditTimeRange = (dayOfWeek: string, index: number) => {
+    const timeRange = weeklyAvailability[dayOfWeek].timeRanges[index];
+    setEditingTimeRange({ dayOfWeek, timeRange, index });
+  };
+
+  const handleDeleteTimeRange = (dayOfWeek: string, index: number) => {
+    setWeeklyAvailability(prev => ({
+      ...prev,
+      [dayOfWeek]: {
+        ...prev[dayOfWeek],
+        timeRanges: prev[dayOfWeek].timeRanges.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const handleTimeRangeSubmit = (timeRange: TimeRange) => {
+    if (!editingTimeRange) return;
+    
+    const { dayOfWeek, index } = editingTimeRange;
+    
+    setWeeklyAvailability(prev => {
+      const dayAvailability = prev[dayOfWeek];
+      const updatedTimeRanges = [...dayAvailability.timeRanges];
+      
+      if (index !== undefined) {
+        updatedTimeRanges[index] = timeRange;
+      } else {
+        updatedTimeRanges.push(timeRange);
+      }
+      
+      return {
+        ...prev,
+        [dayOfWeek]: {
+          ...dayAvailability,
+          timeRanges: updatedTimeRanges
+        }
+      };
+    });
+    
+    setEditingTimeRange(null);
+  };
+
+  const handleSave = () => {
+    const availabilityList = Object.values(weeklyAvailability).filter(av => av.active);
+    onSave(availabilityList);
+    toast.success("Weekly schedule saved successfully");
+  };
+
+  const handleSlotReleaseRulesSave = (rules: any[]) => {
+    // Handle slot release rules save
+    console.log('Saving slot release rules:', rules);
+    toast.success("Slot release rules saved successfully");
+  };
+
+  // Get time ranges for the rules component
+  const getTimeRangesForRules = () => {
+    const timeRanges: Record<string, TimeRange[]> = {};
+    Object.entries(weeklyAvailability).forEach(([day, availability]) => {
+      if (availability.active && availability.timeRanges.length > 0) {
+        timeRanges[day] = availability.timeRanges;
+      }
+    });
+    return timeRanges;
+  };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${className}`}>
       {/* Main Schedule Section */}
-      <div className="lg:col-span-2">
+      <div className="lg:col-span-2 space-y-4">
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Weekly Schedule</CardTitle>
-                <CardDescription>Configure doctor's weekly availability</CardDescription>
-              </div>
-              <Button onClick={handleSaveSchedules}>
-                <Save className="h-4 w-4 mr-2" />
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Weekly Schedule
+              </span>
+              <Button onClick={handleSave} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
                 Save Schedule
               </Button>
-            </div>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {schedules.map((schedule, dayIndex) => (
-                <Card key={dayIndex} className="border-l-4 border-l-primary/20">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="font-semibold">{schedule.dayOfWeek}</h3>
+            <div className="space-y-4">
+              {WEEKDAYS.map(day => {
+                const dayAvailability = weeklyAvailability[day];
+                const isActive = dayAvailability?.active || false;
+                
+                return (
+                  <div key={day} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
                         <Switch
-                          checked={schedule.active}
-                          onCheckedChange={(value) => handleScheduleChange(dayIndex, 'active', value)}
+                          checked={isActive}
+                          onCheckedChange={(checked) => handleDayToggle(day, checked)}
                         />
+                        <span className="font-medium">{day}</span>
+                        {isActive && (
+                          <Badge variant="outline" className="text-xs">
+                            {dayAvailability.timeRanges.length} time ranges
+                          </Badge>
+                        )}
                       </div>
-                      {schedule.active && (
+                      {isActive && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleAddTimeRange(dayIndex)}
+                          onClick={() => handleAddTimeRange(day)}
+                          className="flex items-center gap-1"
                         >
-                          <Plus className="h-4 w-4 mr-1" />
+                          <Plus className="h-3 w-3" />
                           Add Time Range
                         </Button>
                       )}
                     </div>
-                  </CardHeader>
-
-                  {schedule.active && (
-                    <CardContent className="space-y-4">
-                      {/* Release Settings */}
-                      <div className="grid grid-cols-3 gap-4 p-3 bg-muted/30 rounded-md">
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Release Type</label>
-                          <Select
-                            value={schedule.releaseType}
-                            onValueChange={(value) => handleScheduleChange(dayIndex, 'releaseType', value)}
-                          >
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {releaseTypes.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {schedule.releaseType === 'FIXED' ? (
-                          <>
-                            <div>
-                              <label className="text-sm font-medium mb-1 block">Days Before</label>
-                              <Input
-                                type="number"
-                                min="0"
-                                max="30"
-                                value={schedule.releaseBefore}
-                                onChange={(e) => handleScheduleChange(dayIndex, 'releaseBefore', parseInt(e.target.value) || 1)}
-                                className="h-9"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium mb-1 block">Release Time</label>
-                              <TimePicker
-                                value={schedule.releaseTime}
-                                onChange={(value) => handleScheduleChange(dayIndex, 'releaseTime', value)}
-                              />
-                            </div>
-                          </>
+                    
+                    {isActive && (
+                      <div className="space-y-2">
+                        {dayAvailability.timeRanges.length === 0 ? (
+                          <div className="text-center py-4 text-muted-foreground border-2 border-dashed rounded">
+                            <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <p>No time ranges configured</p>
+                            <p className="text-sm">Add a time range to get started</p>
+                          </div>
                         ) : (
-                          <div className="col-span-2">
-                            <label className="text-sm font-medium mb-1 block">Minutes Before Slot</label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="1440"
-                              value={schedule.releaseBefore}
-                              onChange={(e) => handleScheduleChange(dayIndex, 'releaseBefore', parseInt(e.target.value) || 60)}
-                              className="h-9"
-                            />
+                          <div className="grid gap-2">
+                            {dayAvailability.timeRanges.map((timeRange, index) => (
+                              <div key={index} className="flex items-center justify-between p-3 bg-muted rounded border">
+                                <div className="flex items-center gap-4">
+                                  <Clock className="h-4 w-4 text-blue-500" />
+                                  <span className="font-mono">
+                                    {timeRange.startTime} - {timeRange.endTime}
+                                  </span>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {timeRange.slotDuration}min slots
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    Qty: {timeRange.slotQuantity}
+                                  </Badge>
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditTimeRange(day, index)}
+                                    className="h-8 px-2"
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteTimeRange(day, index)}
+                                    className="h-8 px-2 text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
-                      {/* Time Ranges */}
-                      {schedule.timeRanges.length === 0 ? (
-                        <div className="text-center py-6 border-2 border-dashed rounded-md">
-                          <p className="text-sm text-muted-foreground">No time ranges configured</p>
-                          <p className="text-xs text-muted-foreground mt-1">Add time ranges for this day</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {schedule.timeRanges.map((timeRange, rangeIndex) => (
-                            <div key={rangeIndex} className="grid grid-cols-5 gap-3 items-center p-3 border rounded-md">
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">Start Time</label>
-                                <TimePicker
-                                  value={timeRange.startTime}
-                                  onChange={(value) => handleTimeRangeChange(dayIndex, rangeIndex, 'startTime', value)}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">End Time</label>
-                                <TimePicker
-                                  value={timeRange.endTime}
-                                  onChange={(value) => handleTimeRangeChange(dayIndex, rangeIndex, 'endTime', value)}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">Duration (min)</label>
-                                <Input
-                                  type="number"
-                                  min="5"
-                                  max="120"
-                                  value={timeRange.slotDuration}
-                                  onChange={(e) => handleTimeRangeChange(dayIndex, rangeIndex, 'slotDuration', parseInt(e.target.value) || 15)}
-                                  className="h-9"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">Quantity</label>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  max="10"
-                                  value={timeRange.slotQuantity}
-                                  onChange={(e) => handleTimeRangeChange(dayIndex, rangeIndex, 'slotQuantity', parseInt(e.target.value) || 1)}
-                                  className="h-9"
-                                />
-                              </div>
-                              <div className="flex justify-center">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveTimeRange(dayIndex, rangeIndex)}
-                                  className="text-red-500 h-9 w-9 p-0"
-                                >
-                                  <Trash className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  )}
-                </Card>
+        {/* Slot Release Rules Section */}
+        <SlotReleaseRules
+          doctorBranch={doctorBranch}
+          timeRanges={getTimeRangesForRules()}
+          onSave={handleSlotReleaseRulesSave}
+        />
+      </div>
+
+      {/* Right Sidebar */}
+      <div className="space-y-4">
+        {/* Leaves Section */}
+        <LeavesSection
+          doctorBranch={doctorBranch}
+          leaves={leaves}
+          onLeavesChange={setLeaves}
+          weeklySchedule={weeklyAvailability}
+        />
+        
+        {/* Schedule Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Schedule Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {Object.entries(weeklyAvailability).map(([day, availability]) => (
+                <div key={day} className="flex justify-between text-sm">
+                  <span className={availability.active ? "font-medium" : "text-muted-foreground"}>
+                    {day}
+                  </span>
+                  <span className={availability.active ? "text-green-600" : "text-muted-foreground"}>
+                    {availability.active ? `${availability.timeRanges.length} ranges` : 'Closed'}
+                  </span>
+                </div>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Right Sidebar - Leaves Section */}
-      <div>
-        <LeavesSection doctorBranch={doctorBranch} />
-      </div>
+      {/* Time Range Form Modal */}
+      {editingTimeRange && (
+        <TimeRangeForm
+          timeRange={editingTimeRange.timeRange}
+          dayOfWeek={editingTimeRange.dayOfWeek}
+          onSubmit={handleTimeRangeSubmit}
+          onCancel={() => setEditingTimeRange(null)}
+        />
+      )}
     </div>
   );
 };
