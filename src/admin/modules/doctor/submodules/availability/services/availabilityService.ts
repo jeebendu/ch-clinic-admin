@@ -1,9 +1,12 @@
 
+import axios from "axios";
 import { DoctorAvailability } from "../types/DoctorAvailability";
+import { Branch } from "@/admin/modules/branch/types/Branch";
+import { Doctor } from "@/admin/modules/doctor/types/Doctor";
 import http from "@/lib/JwtInterceptor";
 
 
-const AvailabilityService = {
+export const availabilityService = {
   getByDoctorAndBranch: async (doctorId: number, branchId: number) => {
     try {
       return http.get(`/v1/doctor/weekly-schedule/branch/${branchId}/doctor/${doctorId}`);
@@ -52,5 +55,3 @@ const AvailabilityService = {
     }
   }
 };
-
-export default AvailabilityService;
