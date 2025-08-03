@@ -30,7 +30,5 @@ public interface WeeklyScheduleService {
 
     List<WeeklyScheduleWithoutDrBranch> findAllByDoctorBranchId(Long drBranchId);
 
-    Status generatePreviewSlots(Long doctorBranchId);
-
-    List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId, String date);
+   
 }

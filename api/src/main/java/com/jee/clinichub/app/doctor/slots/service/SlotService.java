@@ -1,7 +1,6 @@
 
 package com.jee.clinichub.app.doctor.slots.service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,5 +33,9 @@ public interface SlotService {
 
     List<SlotDto> getSlotsByDoctorBranchIdAndDate(Long doctorBranchId, String date);
 
-    Status cleanupPendingSlots(Long doctorBranchId, Date startDate, Date endDate);
+	List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId, String date);
+
+	
+	Status generatePreviewSlots(Long doctorBranchId);
+
 }

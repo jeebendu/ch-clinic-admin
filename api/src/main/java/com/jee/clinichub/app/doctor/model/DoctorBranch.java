@@ -74,4 +74,8 @@ public class DoctorBranch {
         this.consultationFee = doctorBranch.getConsultationFee();
         this.globalDoctorBranchId = doctorBranch.getGlobalDoctorBranchId();
     }
+    
+    public DoctorBranch(Long id) {
+        this.id = id;
+    }
 }
