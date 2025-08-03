@@ -3,7 +3,7 @@ import { DoctorAvailability } from "../types/DoctorAvailability";
 import http from "@/lib/JwtInterceptor";
 
 
-export const AvailabilityService = {
+const AvailabilityService = {
   getByDoctorAndBranch: async (doctorId: number, branchId: number) => {
     try {
       return http.get(`/v1/doctor/weekly-schedule/branch/${branchId}/doctor/${doctorId}`);

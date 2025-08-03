@@ -7,14 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { availabilityService } from "../services/availabilityService";
-import { Branch } from "@/admin/modules/branch/types/Branch";
-import { Doctor } from "../../../types/Doctor";
 import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
 import TimeRangeRow from "./TimeRangeRow";
 import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
+import AvailabilityService from "../services/availabilityService";
 
 interface WeeklyScheduleTabProps {
   doctorBranch: DoctorBranch;
@@ -161,7 +159,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) =
   const fetchAvailability = async () => {
     setLoading(true);
     try {
-      const availabilities = await availabilityService.findAllByDoctorBranchId(doctorBranch.id);
+      const availabilities = await AvailabilityService.findAllByDoctorBranchId(doctorBranch.id);
       if (availabilities.data && availabilities.data.length > 0) {
         const transformedData = availabilities.data.map((item: any, index: number) => ({
           ...item,
