@@ -27,7 +27,9 @@ import com.jee.clinichub.global.model.Status;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class SlotServiceImpl implements SlotService {
@@ -47,15 +49,15 @@ public class SlotServiceImpl implements SlotService {
     @Override
     public Status generateSlot(SlotHandler slotHandler) {
         try {
-
-            boolean isSlotExist = slotRepo.existsByDoctorBranch_idAndDateAndEndTime(
+            // Improved duplicate check using proper slot identification
+            boolean isSlotExist = slotRepo.existsByDoctorBranch_idAndDateAndStartTimeAndEndTime(
                     slotHandler.getDoctorBranchDto().getId(),
                     slotHandler.getDate(),
-                    slotHandler.getStartTime());
+                    slotHandler.getStartTime(),
+                    slotHandler.getEndTime());
 
             if (isSlotExist) {
-                return new Status(false, "Slot already exist in this time");
-
+                return new Status(false, "Slot already exists for this time period");
             }
 
             LocalTime startTime = slotHandler.getStartTime();
@@ -63,41 +65,51 @@ public class SlotServiceImpl implements SlotService {
             long totalMinutes = java.time.Duration.between(startTime, endTime).toMinutes();
 
             if (slotHandler.getSlotType().equals(SlotType.TIMEWISE)) {
-
                 List<Slot> slots = new ArrayList<>();
+                
                 if (endTime.isBefore(startTime)) {
                     return new Status(false, "End time should be greater than start time");
                 }
-                // int slotduration = (int) (totalMinutes / slotHandler.getMaxCapacity());
-                // slotHandler.setSlotDuration(slotduration);
 
-                while (!startTime.plusMinutes(slotHandler.getSlotDuration()).isAfter(endTime)) {
-
+                LocalTime currentStart = startTime;
+                while (!currentStart.plusMinutes(slotHandler.getSlotDuration()).isAfter(endTime)) {
                     if (totalMinutes < slotHandler.getSlotDuration()) {
                         return new Status(false,
                                 "Time gap between start time and end time should be greater than slot duration");
                     }
 
-                    Slot slot = new Slot();
-                    slot.setDoctorBranch(new DoctorBranch(slotHandler.getDoctorBranchDto()));
-                    slot.setDate(slotHandler.getDate());
-                    slot.setStartTime(startTime);
-                    slot.setSlotType(slotHandler.getSlotType());
-                    slot.setEndTime(startTime.plusMinutes(slotHandler.getSlotDuration()));
-                    slot.setAvailableSlots(1);
-                    slot.setTotalSlots(1);
-                    slot.setStatus(SlotStatus.AVAILABLE);
-                    slot.setDuration(slotHandler.getSlotDuration());
+                    LocalTime currentEnd = currentStart.plusMinutes(slotHandler.getSlotDuration());
+                    
+                    // Check if this specific time slot already exists
+                    boolean timeSlotExists = slotRepo.existsByDoctorBranch_idAndDateAndStartTimeAndEndTime(
+                            slotHandler.getDoctorBranchDto().getId(),
+                            slotHandler.getDate(),
+                            currentStart,
+                            currentEnd);
+                    
+                    if (!timeSlotExists) {
+                        Slot slot = new Slot();
+                        slot.setDoctorBranch(new DoctorBranch(slotHandler.getDoctorBranchDto()));
+                        slot.setDate(slotHandler.getDate());
+                        slot.setStartTime(currentStart);
+                        slot.setSlotType(slotHandler.getSlotType());
+                        slot.setEndTime(currentEnd);
+                        slot.setAvailableSlots(1);
+                        slot.setTotalSlots(1);
+                        slot.setStatus(SlotStatus.AVAILABLE);
+                        slot.setDuration(slotHandler.getSlotDuration());
 
-                    slots.add(slot);
-                    startTime = startTime.plusMinutes(slotHandler.getSlotDuration());
+                        slots.add(slot);
+                    }
+                    
+                    currentStart = currentStart.plusMinutes(slotHandler.getSlotDuration());
                 }
-                slotRepo.saveAll(slots);
-
+                
+                if (!slots.isEmpty()) {
+                    slotRepo.saveAll(slots);
+                }
             } else {
-
                 Slot slot = new Slot();
-
                 slot.setDoctorBranch(new DoctorBranch(slotHandler.getDoctorBranchDto()));
                 slot.setDate(slotHandler.getDate());
                 slot.setStartTime(slotHandler.getStartTime());
@@ -108,11 +120,12 @@ public class SlotServiceImpl implements SlotService {
                 slot.setDuration((int) totalMinutes);
                 slot.setStatus(SlotStatus.AVAILABLE);
                 slotRepo.save(slot);
-
             }
+            
             return new Status(true, "Slot generated successfully");
         } catch (Exception e) {
-            return new Status(false, "Fail to generating slot");
+            log.error("Error generating slot: {}", e.getMessage(), e);
+            return new Status(false, "Failed to generate slot");
         }
     }
 
@@ -142,8 +155,7 @@ public class SlotServiceImpl implements SlotService {
     public Status saveAllSlot(List<Slot> slotList) {
         try {
             slotRepo.saveAll(slotList);
-            return new Status(true, "Saved successfuly");
-
+            return new Status(true, "Saved successfully");
         } catch (Exception e) {
             return new Status(false, "Something went wrong");
         }
@@ -175,7 +187,7 @@ public class SlotServiceImpl implements SlotService {
             slotRepo.save(slot);
             return new Status(true, "Slot saved successfully");
         } catch (Exception e) {
-            return new Status(true, "Something went wrong while saving slot");
+            return new Status(false, "Something went wrong while saving slot");
         }
     }
 
@@ -196,8 +208,20 @@ public class SlotServiceImpl implements SlotService {
                 return slots.stream().map(SlotDto::new).collect(Collectors.toList());
             }
         } catch (Exception e) {
+            log.error("Error fetching slots: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }
 
+    @Override
+    @Transactional
+    public Status cleanupPendingSlots(Long doctorBranchId, Date startDate, Date endDate) {
+        try {
+            slotRepo.deletePendingSlotsByDoctorBranchAndDateRange(doctorBranchId, startDate, endDate);
+            return new Status(true, "Cleanup completed successfully");
+        } catch (Exception e) {
+            log.error("Error during cleanup: {}", e.getMessage(), e);
+            return new Status(false, "Cleanup failed");
+        }
+    }
 }
