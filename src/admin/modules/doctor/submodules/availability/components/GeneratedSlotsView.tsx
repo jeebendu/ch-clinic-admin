@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, RefreshCw } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { WeeklyScheduleService } from "../services/WeeklyScheduleService";
 import { Slot } from "@/admin/modules/appointments/types/Slot";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
@@ -23,19 +22,21 @@ const GeneratedSlotsView: React.FC<GeneratedSlotsViewProps> = ({ doctorBranch })
   const [groupedSlots, setGroupedSlots] = useState<GroupedSlots>({});
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
     if (doctorBranch?.id) {
-      fetchSlots();
+      fetchSlots(selectedDate);
     }
-  }, [doctorBranch?.id]);
+  }, [doctorBranch?.id, selectedDate]);
 
-  const fetchSlots = async () => {
+  const fetchSlots = async (date: Date) => {
     if (!doctorBranch?.id) return;
 
     setLoading(true);
     try {
-      const fetchedSlots = await WeeklyScheduleService.getSlotsByDoctorBranch(doctorBranch.id);
+      // Pass the selected date to the service
+      const fetchedSlots = await WeeklyScheduleService.getSlotsByDoctorBranch(doctorBranch.id, date);
       setSlots(fetchedSlots);
       groupSlotsByDate(fetchedSlots);
     } catch (error) {
@@ -79,7 +80,7 @@ const GeneratedSlotsView: React.FC<GeneratedSlotsViewProps> = ({ doctorBranch })
     try {
       await WeeklyScheduleService.generatePreviewSlots(doctorBranch.id);
       toast.success("Preview slots generated successfully");
-      await fetchSlots(); // Refresh the slots
+      await fetchSlots(selectedDate); // Refresh the slots
     } catch (error) {
       console.error("Error generating slots:", error);
       toast.error("Failed to generate preview slots");
@@ -110,9 +111,23 @@ const GeneratedSlotsView: React.FC<GeneratedSlotsViewProps> = ({ doctorBranch })
     }
   };
 
+  // Generate next 7 days starting from today
+  const getNext7Days = () => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      days.push(addDays(new Date(), i));
+    }
+    return days;
+  };
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    // This will trigger the useEffect to fetch slots for the selected date
+  };
+
   if (loading) {
     return (
-      <Card>
+      <Card className="mt-6">
         <CardContent className="flex justify-center items-center py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -124,7 +139,7 @@ const GeneratedSlotsView: React.FC<GeneratedSlotsViewProps> = ({ doctorBranch })
   }
 
   return (
-    <Card>
+    <Card className="mt-6">
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
@@ -140,7 +155,7 @@ const GeneratedSlotsView: React.FC<GeneratedSlotsViewProps> = ({ doctorBranch })
             <Button
               variant="outline"
               size="sm"
-              onClick={fetchSlots}
+              onClick={() => fetchSlots(selectedDate)}
               disabled={loading}
             >
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -167,7 +182,25 @@ const GeneratedSlotsView: React.FC<GeneratedSlotsViewProps> = ({ doctorBranch })
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* Next 7 Days Selector */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {getNext7Days().map((date, index) => (
+            <Button
+              key={index}
+              variant={format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd') ? 'default' : 'outline'}
+              size="sm"
+              className="flex-shrink-0"
+              onClick={() => handleDateClick(date)}
+            >
+              <div className="text-center">
+                <div className="text-xs">{format(date, 'EEE')}</div>
+                <div className="text-sm font-medium">{format(date, 'MMM d')}</div>
+              </div>
+            </Button>
+          ))}
+        </div>
+
         {Object.keys(groupedSlots).length === 0 ? (
           <div className="text-center py-6">
             <Calendar className="mx-auto h-12 w-12 mb-4 text-muted-foreground/50" />

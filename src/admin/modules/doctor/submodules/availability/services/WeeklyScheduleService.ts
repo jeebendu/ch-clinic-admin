@@ -15,9 +15,14 @@ export const WeeklyScheduleService = {
     }
   },
 
-  getSlotsByDoctorBranch: async (doctorBranchId: number): Promise<Slot[]> => {
+  getSlotsByDoctorBranch: async (doctorBranchId: number, date?: Date): Promise<Slot[]> => {
     try {
-      const response = await http.get(`/v1/doctor/weekly-schedule/slots/doctor-branch/${doctorBranchId}`);
+      let url = `/v1/doctor/weekly-schedule/slots/doctor-branch/${doctorBranchId}`;
+      if (date) {
+        const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+        url += `?date=${formattedDate}`;
+      }
+      const response = await http.get(url);
       return response.data || [];
     } catch (error) {
       console.error("Error fetching slots:", error);
