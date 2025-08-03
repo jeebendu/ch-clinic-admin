@@ -1,7 +1,9 @@
 package com.jee.clinichub.app.doctor.weeklySchedule.service;
 
+
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,10 +17,14 @@ import com.jee.clinichub.app.doctor.model.DoctorBranch;
 import com.jee.clinichub.app.doctor.model.DoctorBranchDto;
 import com.jee.clinichub.app.doctor.repository.DoctorBranchRepo;
 import com.jee.clinichub.app.doctor.slots.model.Slot;
+import com.jee.clinichub.app.doctor.slots.model.SlotDto;
+import com.jee.clinichub.app.doctor.slots.model.SlotHandler;
 import com.jee.clinichub.app.doctor.slots.model.SlotStatus;
 import com.jee.clinichub.app.doctor.slots.model.SlotType;
 import com.jee.clinichub.app.doctor.slots.service.SlotService;
+import com.jee.clinichub.app.doctor.timeRange.model.DoctorTimeRange;
 import com.jee.clinichub.app.doctor.timeRange.repository.DoctorTimeRangeRepository;
+import com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklySchedule;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklyScheduleDTO;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklyScheduleWithoutDrBranch;
@@ -119,25 +125,29 @@ public class WeeklyScheduleServiceImpl implements WeeklyScheduleService {
             
             // Generate slots for next 7 days
             for (int i = 0; i < 7; i++) {
-                LocalDate targetDate = currentDate.plusDays(i);
-                String dayOfWeek = targetDate.getDayOfWeek().name();
-                
-                // Find schedule for this day
-                WeeklySchedule daySchedule = activeSchedules.stream()
-                        .filter(schedule -> schedule.getDayOfWeek().equalsIgnoreCase(dayOfWeek))
-                        .findFirst()
-                        .orElse(null);
-                
+            	LocalDate targetDate = currentDate.plusDays(i);
+            	java.time.DayOfWeek systemDayOfWeek = targetDate.getDayOfWeek();
+
+            	// Convert "MONDAY" → "Monday"
+            	String customEnumDay = systemDayOfWeek.name().charAt(0) + systemDayOfWeek.name().substring(1).toLowerCase();
+
+            	// Match with your custom enum
+            	DayOfWeek matchedEnum = DayOfWeek.valueOf(customEnumDay);
+
+            	WeeklySchedule daySchedule = activeSchedules.stream()
+            	    .filter(schedule -> schedule.getDayOfWeek() == matchedEnum)
+            	    .findFirst()
+            	    .orElse(null);
+
                 if (daySchedule != null && daySchedule.getTimeRanges() != null && !daySchedule.getTimeRanges().isEmpty()) {
-                    // Generate slots for each time range
-                    daySchedule.getTimeRanges().forEach(timeRange -> {
+                    for (DoctorTimeRange timeRange : daySchedule.getTimeRanges()) {
                         try {
-                            LocalTime startTime = LocalTime.parse(timeRange.getStartTime());
-                            LocalTime endTime = LocalTime.parse(timeRange.getEndTime());
-                            
-                            // Create slots based on slot duration (default 15 minutes if not specified)
-                            int slotDurationMinutes = timeRange.getSlotDuration() != null ? timeRange.getSlotDuration() : 15;
-                            
+                            // Assuming timeRange.getStartTime() returns a string like "09:00"
+                            LocalTime startTime = timeRange.getStartTime();
+                            LocalTime endTime = timeRange.getEndTime();
+
+                            int slotDurationMinutes = timeRange != null  ? timeRange.getSlotDuration() : 15;
+
                             LocalTime currentSlotTime = startTime;
                             while (!currentSlotTime.plusMinutes(slotDurationMinutes).isAfter(endTime)) {
                                 Slot slot = new Slot();
@@ -150,14 +160,14 @@ public class WeeklyScheduleServiceImpl implements WeeklyScheduleService {
                                 slot.setTotalSlots(1);
                                 slot.setStatus(SlotStatus.PENDING); // Draft/Preview status
                                 slot.setDuration(slotDurationMinutes);
-                                
+
                                 previewSlots.add(slot);
                                 currentSlotTime = currentSlotTime.plusMinutes(slotDurationMinutes);
                             }
                         } catch (Exception e) {
-                            log.error("Error generating slots for time range: {}", e.getMessage());
+                            log.error("Error generating slots for time range: {}", e.getMessage(), e);
                         }
-                    });
+                    }
                 }
             }
             
@@ -177,9 +187,45 @@ public class WeeklyScheduleServiceImpl implements WeeklyScheduleService {
     @Override
     public List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId) {
         try {
-            // This would typically fetch from slot repository
-            // For now, returning empty list - you may need to implement this in SlotService
-            return new ArrayList<>();
+            // Get current date for filtering
+            LocalDate currentDate = LocalDate.now();
+            Date date = Date.from(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            
+            // Use SlotHandler to get filtered slots for the doctor branch
+            SlotHandler slotHandler = new SlotHandler();
+            slotHandler.setDoctorBranchDto(new com.jee.clinichub.app.doctor.model.DoctorBranchDto());
+            slotHandler.getDoctorBranchDto().setId(doctorBranchId);
+            slotHandler.setDate(date);
+            
+            // Get filtered slots from SlotService
+            List<SlotDto> slotDtos = slotService.getFilteredSlots(slotHandler);
+            
+            // Convert SlotDto to Slot entities
+            List<Slot> slots = new ArrayList<>();
+            for (SlotDto slotDto : slotDtos) {
+                Slot slot = new Slot();
+                slot.setId(slotDto.getId());
+                slot.setDate(slotDto.getDate());
+                slot.setStartTime(slotDto.getStartTime());
+                slot.setEndTime(slotDto.getEndTime());
+                slot.setDuration(slotDto.getDuration());
+                slot.setAvailableSlots(slotDto.getAvailableSlots());
+                slot.setTotalSlots(slotDto.getTotalSlots());
+                slot.setStatus(slotDto.getStatus());
+                slot.setSlotType(slotDto.getSlotType());
+                slot.setGlobalSlotId(slotDto.getGlobalSlotId());
+                
+                // Set doctor branch
+                DoctorBranch doctorBranch = new DoctorBranch();
+                if (slotDto.getDoctorBranch() != null) {
+                    doctorBranch.setId(slotDto.getDoctorBranch().getId());
+                    slot.setDoctorBranch(doctorBranch);
+                }
+                
+                slots.add(slot);
+            }
+            
+            return slots;
         } catch (Exception e) {
             log.error("Error fetching slots for doctor branch ID {}: {}", doctorBranchId, e.getMessage());
             return new ArrayList<>();
