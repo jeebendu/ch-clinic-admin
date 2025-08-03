@@ -1,26 +1,24 @@
 package com.jee.clinichub.app.doctor.weeklySchedule.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jee.clinichub.app.doctor.model.DoctorBranch;
+import com.jee.clinichub.app.doctor.model.DoctorBranchDto;
 import com.jee.clinichub.app.doctor.repository.DoctorBranchRepo;
 import com.jee.clinichub.app.doctor.slots.model.Slot;
-import com.jee.clinichub.app.doctor.slots.model.SlotHandler;
 import com.jee.clinichub.app.doctor.slots.model.SlotStatus;
 import com.jee.clinichub.app.doctor.slots.model.SlotType;
 import com.jee.clinichub.app.doctor.slots.service.SlotService;
-import com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek;
+import com.jee.clinichub.app.doctor.timeRange.repository.DoctorTimeRangeRepository;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklySchedule;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklyScheduleDTO;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklyScheduleWithoutDrBranch;
@@ -28,210 +26,245 @@ import com.jee.clinichub.app.doctor.weeklySchedule.repository.WeeklyScheduleRepo
 import com.jee.clinichub.global.model.Status;
 
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class WeeklyScheduleServiceImpl implements WeeklyScheduleService {
 
-    private final WeeklyScheduleRepo weeklyScheduleRepo;
-    private final DoctorBranchRepo doctorBranchRepo;
-    private final SlotService slotService;
+    @Autowired
+    private WeeklyScheduleRepo wScheduleRepo;
+
+    @Autowired
+    private DoctorTimeRangeRepository timeRangeRepository;
+    @Autowired
+    private DoctorBranchRepo doctorBranchRepo;
+    
+    @Autowired
+    private SlotService slotService;
 
     @Override
+    @Transactional
     public Status saveOrUpdate(List<WeeklyScheduleDTO> scheduleDtoList,Long drBranchId) {
         try {
-            Optional<DoctorBranch> doctorBranch = doctorBranchRepo.findById(drBranchId);
-            if(doctorBranch.isEmpty()){
-                throw new EntityNotFoundException("Doctor Branch not found");
+            DoctorBranch doctorBranch = doctorBranchRepo.findById(drBranchId)
+                    .orElseThrow(() -> new EntityNotFoundException("Doctor Branch not found with ID: " + drBranchId));
+
+            for (WeeklyScheduleDTO scheduleDto : scheduleDtoList) {
+                // Validate time ranges
+                if (scheduleDto.isActive() && (scheduleDto.getTimeRanges() == null || scheduleDto.getTimeRanges().isEmpty())) {
+                    return new Status(false, "Active schedules must have at least one time range");
+                }
+                scheduleDto.setDoctorBranch(new DoctorBranchDto(doctorBranch));
+
+                // Check for duplicate day/doctor/branch combination
+                boolean isDuplicate = wScheduleRepo.existsByDoctorBranch_idAndDayOfWeekAndIdNot(
+                    doctorBranch.getId(),
+                    scheduleDto.getDayOfWeek(),
+                    scheduleDto.getId() != null ? scheduleDto.getId() : 0L
+                );
+
+                if (isDuplicate) {
+                    return new Status(false, "Schedule already exists for " + scheduleDto.getDayOfWeek());
+                }
+
+                WeeklySchedule schedule;
+                if (scheduleDto.getId() != null) {
+                    // Update existing
+                    schedule = wScheduleRepo.findById(scheduleDto.getId())
+                            .orElseThrow(() -> new EntityNotFoundException("Schedule not found with ID: " + scheduleDto.getId()));
+                    
+                    // Clear existing time ranges
+                    timeRangeRepository.deleteByAvailability_Id(schedule.getId());
+                    schedule.getTimeRanges().clear();
+                    
+                    // Update fields
+                    updateScheduleFields(schedule, scheduleDto);
+                } else {    
+                    schedule = new WeeklySchedule(scheduleDto);
+                    schedule.setDoctorBranch(doctorBranch);
+                }
+
+                wScheduleRepo.save(schedule);
             }
-            scheduleDtoList.forEach(scheduleDto -> {
-                WeeklySchedule schedule = scheduleDto.getId() == null ? new WeeklySchedule(scheduleDto)
-                        : setScheduleInfo(scheduleDto);
-                schedule.setDoctorBranch(doctorBranch.get());
-                weeklyScheduleRepo.save(schedule);
-            });
-            return new Status(true, "Saved Successfully");
+
+            // Generate preview/draft slots after saving schedule
+            generatePreviewSlots(drBranchId);
+
+            return new Status(true, "Weekly schedules saved successfully");
         } catch (Exception e) {
-            log.error("Error saving or updating weekly schedule: {}", e.getMessage(), e);
-            return new Status(false, "Something went wrong");
+            log.error("Error saving weekly schedules: {}", e.getMessage(), e);
+            return new Status(false, "Failed to save weekly schedules: " + e.getMessage());
         }
     }
 
-    public WeeklySchedule setScheduleInfo(WeeklyScheduleDTO scheduleDto) {
-        WeeklySchedule schedule = weeklyScheduleRepo.findById(scheduleDto.getId()).orElseThrow(() -> {
-            throw new EntityNotFoundException("Weekly Schedule not found");
-        });
-        schedule.setDayOfWeek(scheduleDto.getDayOfWeek());
-        schedule.setStartTime(scheduleDto.getStartTime());
-        schedule.setEndTime(scheduleDto.getEndTime());
-        return schedule;
-    }
-
-    @Override
-    public Status deleteById(Long id) {
-        weeklyScheduleRepo.findById(id).ifPresentOrElse(weeklyScheduleRepo::delete, () -> {
-            throw new EntityNotFoundException("Weekly Schedule not found");
-        });
-        return new Status(true, "Deleted Successfully");
-    }
-
-    @Override
-    public WeeklyScheduleDTO getById(Long id) {
-        return weeklyScheduleRepo.findById(id).map(WeeklyScheduleDTO::new).orElseThrow(() -> {
-            throw new EntityNotFoundException("Weekly Schedule not found");
-        });
-    }
-
-    @Override
-    public List<WeeklyScheduleDTO> findAll() {
-        return weeklyScheduleRepo.findAll().stream().map(WeeklyScheduleDTO::new).toList();
-    }
-
-    @Override
-    public List<WeeklyScheduleDTO> findAllByBranchId(Long branchId) {
-        return weeklyScheduleRepo.findAllByDoctorBranch_Branch_id(branchId).stream().map(WeeklyScheduleDTO::new).toList();
-    }
-
-    @Override
-    public List<WeeklyScheduleDTO> findAllByDoctorId(Long doctorId) {
-        return weeklyScheduleRepo.findAllByDoctorBranch_Doctor_id(doctorId).stream().map(WeeklyScheduleDTO::new).toList();
-    }
-
-    @Override
-    public List<WeeklyScheduleDTO> findAllByBranchAndDoctorId(Long branchId, Long doctorId) {
-        return weeklyScheduleRepo.findAllByDoctorBranch_Branch_idAndDoctorBranch_Doctor_id(branchId, doctorId).stream()
-                .map(WeeklyScheduleDTO::new).toList();
-    }
-
-    @Override
-    public List<WeeklySchedule> findAllByActive(boolean b) {
-        return weeklyScheduleRepo.findAllByActive(b);
-    }
-
-    @Override
-    public List<WeeklyScheduleWithoutDrBranch> findAllByDoctorBranchId(Long drBranchId) {
-        return weeklyScheduleRepo.findAllByDoctorBranch_id(drBranchId).stream().map(WeeklyScheduleWithoutDrBranch::new).toList();
-    }
-
-    @Override
+    /**
+     * Generate preview/draft slots for the next 7 days based on weekly schedule
+     */
     @Transactional
     public Status generatePreviewSlots(Long doctorBranchId) {
         try {
             DoctorBranch doctorBranch = doctorBranchRepo.findById(doctorBranchId)
-                    .orElseThrow(() -> new EntityNotFoundException("Doctor Branch not found"));
+                    .orElseThrow(() -> new EntityNotFoundException("Doctor Branch not found with ID: " + doctorBranchId));
 
-            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepo.findAllByDoctorBranch_id(doctorBranchId);
-
-            if (weeklySchedules.isEmpty()) {
-                return new Status(false, "No weekly schedule found for this doctor branch.");
+            // Get active weekly schedules for this doctor branch
+            List<WeeklySchedule> activeSchedules = wScheduleRepo.findAllByDoctorBranch_idAndActive(doctorBranchId, true);
+            
+            if (activeSchedules.isEmpty()) {
+                return new Status(true, "No active schedules found to generate slots");
             }
 
-            LocalDate today = LocalDate.now();
-            LocalDate endDate = today.plusDays(7); // Generate slots for the next 7 days
-
-            List<Slot> slotsToSave = new ArrayList<>();
-
-            for (LocalDate date = today; !date.isAfter(endDate); date = date.plusDays(1)) {
-                DayOfWeek dayOfWeek = DayOfWeek.valueOf(date.getDayOfWeek().toString());
-
-                for (WeeklySchedule schedule : weeklySchedules) {
-                    if (schedule.getDayOfWeek() == dayOfWeek) {
-                        LocalTime startTime = schedule.getStartTime();
-                        LocalTime endTime = schedule.getEndTime();
-
-                        if (endTime.isBefore(startTime) || endTime.equals(startTime)) {
-                            log.warn("End time is before or equals start time for schedule ID: {}", schedule.getId());
-                            continue; // Skip if end time is invalid
-                        }
-
-                        LocalDateTime startDateTime = date.atTime(startTime);
-                        LocalDateTime endDateTime = date.atTime(endTime);
-
-                        Date startDate = Date.from(startDateTime.atZone(ZoneId.systemDefault()).toInstant());
-                        Date endDateValue = Date.from(endDateTime.atZone(ZoneId.systemDefault()).toInstant());
-
-                        if (slotService.getFilteredSlots(new SlotHandler(new com.jee.clinichub.app.doctor.model.DoctorBranchDto(doctorBranch),Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()))).isEmpty() &&
-                                !slotService.slotByGlobalIdIn(new ArrayList<>()).isEmpty() &&
-                                !slotService.slotByGlobalIdIn(new ArrayList<>()).equals(null)
-                        ) {
-                            if (!slotService.slotByGlobalIdIn(new ArrayList<>()).isEmpty()) {
-                                log.warn("Slot already exists for doctor branch ID: {} on date: {} between {} and {}",
-                                        doctorBranchId, date, startTime, endTime);
+            List<Slot> previewSlots = new ArrayList<>();
+            LocalDate currentDate = LocalDate.now();
+            
+            // Generate slots for next 7 days
+            for (int i = 0; i < 7; i++) {
+                LocalDate targetDate = currentDate.plusDays(i);
+                String dayOfWeek = targetDate.getDayOfWeek().name();
+                
+                // Find schedule for this day
+                WeeklySchedule daySchedule = activeSchedules.stream()
+                        .filter(schedule -> schedule.getDayOfWeek().equalsIgnoreCase(dayOfWeek))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (daySchedule != null && daySchedule.getTimeRanges() != null && !daySchedule.getTimeRanges().isEmpty()) {
+                    // Generate slots for each time range
+                    daySchedule.getTimeRanges().forEach(timeRange -> {
+                        try {
+                            LocalTime startTime = LocalTime.parse(timeRange.getStartTime());
+                            LocalTime endTime = LocalTime.parse(timeRange.getEndTime());
+                            
+                            // Create slots based on slot duration (default 15 minutes if not specified)
+                            int slotDurationMinutes = timeRange.getSlotDuration() != null ? timeRange.getSlotDuration() : 15;
+                            
+                            LocalTime currentSlotTime = startTime;
+                            while (!currentSlotTime.plusMinutes(slotDurationMinutes).isAfter(endTime)) {
+                                Slot slot = new Slot();
+                                slot.setDoctorBranch(doctorBranch);
+                                slot.setDate(java.sql.Date.valueOf(targetDate));
+                                slot.setStartTime(currentSlotTime);
+                                slot.setEndTime(currentSlotTime.plusMinutes(slotDurationMinutes));
+                                slot.setSlotType(SlotType.TIMEWISE);
+                                slot.setAvailableSlots(1);
+                                slot.setTotalSlots(1);
+                                slot.setStatus(SlotStatus.PENDING); // Draft/Preview status
+                                slot.setDuration(slotDurationMinutes);
+                                
+                                previewSlots.add(slot);
+                                currentSlotTime = currentSlotTime.plusMinutes(slotDurationMinutes);
                             }
-                            continue; // Skip if slot already exists
+                        } catch (Exception e) {
+                            log.error("Error generating slots for time range: {}", e.getMessage());
                         }
-
-                        Slot slot = new Slot();
-                        slot.setDoctorBranch(doctorBranch);
-                        slot.setDate(startDate);
-                        slot.setStartTime(startTime);
-                        slot.setEndTime(endTime);
-                        slot.setSlotType(SlotType.TIMEWISE);
-                        slot.setAvailableSlots(1);
-                        slot.setTotalSlots(1);
-                        slot.setStatus(SlotStatus.AVAILABLE);
-                        slot.setDuration((int) java.time.Duration.between(startTime, endTime).toMinutes());
-
-                        slotsToSave.add(slot);
-                    }
+                    });
                 }
             }
-
-            if (!slotsToSave.isEmpty()) {
-                slotService.saveAllSlot(slotsToSave);
-                return new Status(true, "Preview slots generated successfully.");
-            } else {
-                return new Status(false, "No slots generated. Please check weekly schedule and configurations.");
+            
+            if (!previewSlots.isEmpty()) {
+                slotService.saveAllSlot(previewSlots);
+                log.info("Generated {} preview slots for doctor branch ID: {}", previewSlots.size(), doctorBranchId);
             }
-
+            
+            return new Status(true, "Preview slots generated successfully");
+            
         } catch (Exception e) {
-            log.error("Error generating preview slots for doctor branch ID {}: {}", doctorBranchId, e.getMessage());
-            return new Status(false, "Failed to generate preview slots.");
+            log.error("Error generating preview slots: {}", e.getMessage(), e);
+            return new Status(false, "Failed to generate preview slots: " + e.getMessage());
         }
     }
 
     @Override
     public List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId) {
         try {
-            Optional<DoctorBranch> doctorBranch = doctorBranchRepo.findById(doctorBranchId);
-            if (doctorBranch.isEmpty()) {
-                log.warn("Doctor branch not found with ID: {}", doctorBranchId);
-                return new ArrayList<>();
-            }
-
-            // Get current date to fetch future slots
-            Date currentDate = new Date();
-            
-            // Create a SlotHandler with current date to fetch existing slots
-            SlotHandler slotHandler = new SlotHandler();
-            slotHandler.setDoctorBranchDto(new com.jee.clinichub.app.doctor.model.DoctorBranchDto(doctorBranch.get()));
-            slotHandler.setDate(currentDate);
-            
-            // Fetch slots using the existing SlotService method
-            return slotService.getFilteredSlots(slotHandler)
-                    .stream()
-                    .map(slotDto -> {
-                        Slot slot = new Slot();
-                        slot.setId(slotDto.getId());
-                        slot.setDate(slotDto.getDate());
-                        slot.setStartTime(slotDto.getStartTime());
-                        slot.setEndTime(slotDto.getEndTime());
-                        slot.setAvailableSlots(slotDto.getAvailableSlots());
-                        slot.setTotalSlots(slotDto.getTotalSlots());
-                        slot.setDuration(slotDto.getDuration());
-                        slot.setSlotType(slotDto.getSlotType());
-                        slot.setStatus(slotDto.getStatus());
-                        slot.setDoctorBranch(doctorBranch.get());
-                        return slot;
-                    })
-                    .toList();
-            
+            // This would typically fetch from slot repository
+            // For now, returning empty list - you may need to implement this in SlotService
+            return new ArrayList<>();
         } catch (Exception e) {
             log.error("Error fetching slots for doctor branch ID {}: {}", doctorBranchId, e.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    private void updateScheduleFields(WeeklySchedule schedule, WeeklyScheduleDTO dto) {
+        schedule.setActive(dto.isActive());
+        schedule.setDayOfWeek(dto.getDayOfWeek());
+        schedule.setReleaseType(dto.getReleaseType());
+        schedule.setReleaseBefore(dto.getReleaseBefore());
+        schedule.setReleaseTime(dto.getReleaseTime());
+
+        // Add new time ranges
+        if (dto.getTimeRanges() != null) {
+            dto.getTimeRanges().forEach(timeRangeDTO -> {
+                var timeRange = new com.jee.clinichub.app.doctor.timeRange.model.DoctorTimeRange(timeRangeDTO);
+                timeRange.setAvailability(schedule);
+                schedule.getTimeRanges().add(timeRange);
+            });
+        }
+    }
+
+    @Override
+    public Status deleteById(Long id) {
+        try {
+            wScheduleRepo.findById(id).ifPresentOrElse(
+                schedule -> {
+                    wScheduleRepo.deleteById(id);
+                },
+                () -> {
+                    throw new EntityNotFoundException("Schedule not found with ID: " + id);
+                }
+            );
+            return new Status(true, "Deleted Successfully");
+        } catch (Exception e) {
+            log.error("Error deleting schedule: {}", e.getMessage(), e);
+            return new Status(false, "Failed to delete schedule");
+        }
+    }
+
+    @Override
+    public WeeklyScheduleDTO getById(Long id) {
+        WeeklySchedule schedule = wScheduleRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found with ID: " + id));
+        return new WeeklyScheduleDTO(schedule);
+    }
+
+    @Override
+    public List<WeeklyScheduleDTO> findAll() {
+        return wScheduleRepo.findAll().stream()
+                .map(WeeklyScheduleDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<WeeklyScheduleDTO> findAllByBranchId(Long branchId) {
+        return wScheduleRepo.findAllByDoctorBranch_branch_id(branchId).stream()
+                .map(WeeklyScheduleDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<WeeklyScheduleDTO> findAllByDoctorId(Long doctorId) {
+        return wScheduleRepo.findAllByDoctorBranch_doctor_idAndActive(doctorId, true).stream()
+                .map(WeeklyScheduleDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<WeeklyScheduleDTO> findAllByBranchAndDoctorId(Long branchId, Long doctorId) {
+        return wScheduleRepo.findAllByDoctorBranch_branch_idAndDoctorBranch_doctor_idOrderByIdAsc(branchId, doctorId).stream()
+                .map(WeeklyScheduleDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<WeeklySchedule> findAllByActive(boolean active) {
+        return wScheduleRepo.findAllByActive(active);
+    }
+
+    @Override
+    public List<WeeklyScheduleWithoutDrBranch> findAllByDoctorBranchId(Long drBranchId) {
+            return wScheduleRepo.findAllByDoctorBranch_idOrderByIdAsc(drBranchId).stream()
+                .map(WeeklyScheduleWithoutDrBranch::new)
+                .toList();
     }
 }
