@@ -19,20 +19,20 @@ import {
 } from "@/components/ui/select"
 
 interface DatePickerProps {
-  date?: Date
-  onDateChange?: (date: Date | undefined) => void
+  value?: Date
+  onChange?: (date: Date | undefined) => void
   placeholder?: string
-  disabled?: boolean | ((date: Date) => boolean)
+  disabled?: boolean
   className?: string
 }
 
-export function DatePicker({ date, onDateChange, placeholder = "Pick a date", disabled, className }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder = "Pick a date", disabled, className }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
-  const [month, setMonth] = React.useState<Date>(date || new Date())
+  const [month, setMonth] = React.useState<Date>(value || new Date())
 
   const years = React.useMemo(() => {
     const currentYear = new Date().getFullYear()
-    const startYear = currentYear - 10
+    const startYear = currentYear - 100
     const endYear = currentYear + 10
     return Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i)
   }, [])
@@ -54,9 +54,6 @@ export function DatePicker({ date, onDateChange, placeholder = "Pick a date", di
     setMonth(newDate)
   }
 
-  const isButtonDisabled = typeof disabled === 'boolean' ? disabled : false;
-  const dateDisabledFunction = typeof disabled === 'function' ? disabled : undefined;
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -64,13 +61,13 @@ export function DatePicker({ date, onDateChange, placeholder = "Pick a date", di
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground",
+            !value && "text-muted-foreground",
             className
           )}
-          disabled={isButtonDisabled}
+          disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>{placeholder}</span>}
+          {value ? format(value, "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -104,14 +101,16 @@ export function DatePicker({ date, onDateChange, placeholder = "Pick a date", di
         
         <Calendar
           mode="single"
-          selected={date}
-          onSelect={(selectedDate) => {
-            onDateChange?.(selectedDate)
+          selected={value}
+          onSelect={(date) => {
+            onChange?.(date)
             setOpen(false)
           }}
           month={month}
           onMonthChange={setMonth}
-          disabled={dateDisabledFunction}
+          disabled={(date) =>
+            date > new Date() || date < new Date("1900-01-01")
+          }
           initialFocus
           className="p-3 pointer-events-auto"
         />
