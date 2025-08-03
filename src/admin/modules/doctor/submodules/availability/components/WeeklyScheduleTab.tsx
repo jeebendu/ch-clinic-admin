@@ -1,580 +1,451 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { Calendar } from "lucide-react";
+import { add, format, sub } from "date-fns";
+import { enUS } from "date-fns/locale";
+import * as z from "zod";
+
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Calendar as CalendarIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
-import { availabilityService } from "../services/availabilityService";
-import { Branch } from "@/admin/modules/branch/types/Branch";
-import { Doctor } from "../../../types/Doctor";
-import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
-import TimeRangeRow from "./TimeRangeRow";
-import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CalendarDateRangePicker } from "@/components/ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { TimePicker } from "@/admin/components/TimePicker";
+
+const days = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const weeklyScheduleSchema = z.object({
+  schedule: z.array(
+    z.object({
+      day: z.string(),
+      timeRanges: z.array(
+        z.object({
+          startTime: z.string(),
+          endTime: z.string(),
+        })
+      ),
+    })
+  ),
+});
+
+type WeeklyScheduleValues = z.infer<typeof weeklyScheduleSchema>;
 
 interface WeeklyScheduleTabProps {
-  doctorBranch: DoctorBranch;
+  onSubmit: (values: WeeklyScheduleValues) => void;
+  initialValues?: WeeklyScheduleValues;
 }
 
-const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) => {
-  const [loading, setLoading] = useState(true);
-  const [slotMode, setSlotMode] = useState<string>("TIMEWISE");
-  const [releaseBefore, setReleaseBefore] = useState<number>(1);
-  const [releaseTime, setReleaseTime] = useState<string>("09:00");
-  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
-
-  const [schedules, setSchedules] = useState<DoctorAvailability[]>([
-    {
-      dayOfWeek: "Sunday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1,
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Monday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Tuesday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Wednesday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Thursday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Friday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Saturday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "14:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    }
+export function WeeklyScheduleTab({ onSubmit, initialValues }: WeeklyScheduleTabProps) {
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isRecurrent, setIsRecurrent] = useState(false);
+  const [isSpecificDate, setIsSpecificDate] = useState(false);
+  const [isRange, setIsRange] = useState(false);
+  const [isTime, setIsTime] = useState(false);
+  const [isException, setIsException] = useState(false);
+  const [isAllDay, setIsAllDay] = useState(false);
+  const [isCustom, setIsCustom] = useState(false);
+  const [isWeekly, setIsWeekly] = useState(true);
+  const [isMonthly, setIsMonthly] = useState(false);
+  const [isYearly, setIsYearly] = useState(false);
+  const [isEvery, setIsEvery] = useState(false);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [timeRanges, setTimeRanges] = useState([
+    { startTime: "09:00", endTime: "17:00" },
   ]);
+  const [range, setRange] = useState<Date | undefined>({
+    from: new Date(),
+    to: add(new Date(), { days: 20 }),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm<WeeklyScheduleValues>({
+    resolver: zodResolver(weeklyScheduleSchema),
+    defaultValues: initialValues,
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "schedule",
+  });
+
+  const handleDayToggle = (day: string) => {
+    setSelectedDays((prevSelectedDays) =>
+      prevSelectedDays.includes(day)
+        ? prevSelectedDays.filter((selectedDay) => selectedDay !== day)
+        : [...prevSelectedDays, day]
+    );
+  };
+
+  const handleAddTimeRange = () => {
+    setTimeRanges([...timeRanges, { startTime: "09:00", endTime: "17:00" }]);
+  };
+
+  const handleRemoveTimeRange = (index: number) => {
+    setTimeRanges(timeRanges.filter((_, i) => i !== index));
+  };
+
+  const handleTimeRangeChange = (
+    index: number,
+    field: "startTime" | "endTime",
+    value: string
+  ) => {
+    setTimeRanges((prevTimeRanges) =>
+      prevTimeRanges.map((timeRange, i) =>
+        i === index ? { ...timeRange, [field]: value } : timeRange
+      )
+    );
+  };
+
+  const onSubmitHandler = (data: WeeklyScheduleValues) => {
+    console.log(data);
+    onSubmit(data);
+  };
 
   useEffect(() => {
-    if (doctorBranch && doctorBranch?.id ) {
-      fetchAvailability();
-    }
-  }, [doctorBranch]);
-
-  // useEffect(() => {
-  //   if (doctorBranch && doctorBranch?.id ) {
-  //     setSchedules((prev) =>
-  //       prev.map((schedule) => ({
-  //         ...schedule,
-  //         doctorBranch: null
-  //       }))
-  //     );
-  //   }
-  // }, [doctorBranch]);
-
-  // Recalculate values when slotMode changes
-  useEffect(() => {
-    // Trigger recalculation when slot mode changes
-    setSchedules(prev => [...prev]);
-  }, [slotMode]);
-
-  const fetchAvailability = async () => {
-    setLoading(true);
-    try {
-      const availabilities = await availabilityService.findAllByDoctorBranchId(doctorBranch.id);
-      if (availabilities.data && availabilities.data.length > 0) {
-        const transformedData = availabilities.data.map((item: any, index: number) => ({
-          ...item,
-          timeRanges: item.timeRanges || [{
-            id: item.id,
-            startTime: item.startTime || "09:00",
-            endTime: item.endTime || "17:00",
-            slotDuration: item.slotDuration || 15,
-            slotQuantity: item.slotQuantity || 1
-          }],
-          releaseTime: item.releaseTime || "09:00"
-        }));
-        setSchedules(transformedData);
-        setReleaseBefore(transformedData[0]?.releaseBefore || 1);
-        console.log(transformedData[0]?.releaseBefore);
-        setSlotMode(transformedData[0]?.releaseType || "TIMEWISE");
-        setReleaseTime(transformedData[0]?.releaseTime || "09:00");
-
-        // Clear validation errors when data is loaded
-        setValidationErrors({});
-      }
-    } catch (error) {
-      console.error('Error fetching doctor availability:', error);
-      toast.error('Failed to load availability schedule');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Calculate total slots for a time range with validation
-  const calculateTotalSlots = (timeRange: TimeRange) => {
-    if (!timeRange || !timeRange.startTime || !timeRange.endTime || !timeRange.slotDuration || !timeRange.slotQuantity) {
-      return 0;
-    }
-
-    const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
-    const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
-
-    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-      return 0;
-    }
-
-    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-
-    if (durationMinutes <= 0) {
-      return 0;
-    }
-
-    if (slotMode === "TIMEWISE") {
-      return Math.floor(durationMinutes / timeRange.slotDuration);
-    } else {
-      // COUNTWISE - patients per hour * total hours
-      const totalHours = durationMinutes / 60;
-      return Math.floor(timeRange.slotQuantity * totalHours);
-    }
-  };
-
-  // Calculate total duration in minutes with validation
-  const calculateDuration = (startTime: string, endTime: string): number => {
-    if (!startTime || !endTime) {
-      return 0;
-    }
-
-    const start = new Date(`2000-01-01T${startTime}:00`);
-    const end = new Date(`2000-01-01T${endTime}:00`);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return 0;
-    }
-
-    const duration = (end.getTime() - start.getTime()) / (1000 * 60);
-    return duration > 0 ? duration : 0;
-  };
-
-  // Format duration display with validation
-  const formatDuration = (minutes: number): string => {
-    if (!minutes || isNaN(minutes) || minutes <= 0) {
-      return "0min";
-    }
-
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours === 0) return `${mins}min`;
-    if (mins === 0) return `${hours}h`;
-    return `${hours}h ${mins}min`;
-  };
-
-  // Enhanced validation with better error messages
-  const validateTimeRanges = (): Record<string, string[]> => {
-    const errors: Record<string, string[]> = {};
-
-    schedules.forEach((day, dayIndex) => {
-      if (!day.active) return;
-
-      const dayErrors: string[] = [];
-
-      day.timeRanges.forEach((timeRange, rangeIndex) => {
-        if (!timeRange.startTime || !timeRange.endTime) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Start and end times are required`);
-          return;
-        }
-
-        const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
-        const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
-
-        if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Invalid time format`);
-          return;
-        }
-
-        // Check if end time is after start time
-        if (endTime <= startTime) {
-          dayErrors.push(`Range ${rangeIndex + 1}: End time must be after start time`);
-        }
-
-        // Check minimum duration
-        const duration = calculateDuration(timeRange.startTime, timeRange.endTime);
-        if (duration < 15) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Minimum duration is 15 minutes`);
-        }
-
-        // Check slot duration validity for TIMEWISE
-        if (slotMode === "TIMEWISE" && timeRange.slotDuration < 5) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Minimum slot duration is 5 minutes`);
-        }
-
-        // Check slot quantity validity for COUNTWISE
-        if (slotMode === "COUNTWISE" && timeRange.slotQuantity < 1) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Minimum 1 patient per hour`);
-        }
-
-        // Check for overlapping time ranges with better error messages
-        day.timeRanges.forEach((otherRange, otherIndex) => {
-          if (rangeIndex !== otherIndex && otherRange.startTime && otherRange.endTime) {
-            const otherStart = new Date(`2000-01-01T${otherRange.startTime}:00`);
-            const otherEnd = new Date(`2000-01-01T${otherRange.endTime}:00`);
-
-            if (!isNaN(otherStart.getTime()) && !isNaN(otherEnd.getTime()) &&
-              (startTime < otherEnd && endTime > otherStart)) {
-              dayErrors.push(`Range ${rangeIndex + 1} (${timeRange.startTime}-${timeRange.endTime}) overlaps with Range ${otherIndex + 1} (${otherRange.startTime}-${otherRange.endTime})`);
-            }
-          }
-        });
-      });
-
-      if (dayErrors.length > 0) {
-        errors[day.dayOfWeek] = dayErrors;
-      }
-    });
-
-    return errors;
-  };
-
-  const handleToggleDay = (dayIndex: number) => {
-    const newSchedules = [...schedules];
-    newSchedules[dayIndex].active = !newSchedules[dayIndex].active;
-    setSchedules(newSchedules);
-  };
-
-  const handleAddTimeRange = (dayIndex: number) => {
-    const newSchedules = [...schedules];
-    const dayName = newSchedules[dayIndex].dayOfWeek.toLowerCase();
-    const newTimeRange: TimeRange = {
-      startTime: "09:00",
-      endTime: "17:00",
-      slotDuration: slotMode === "COUNTWISE" ? 60 : 15,
-      slotQuantity: slotMode === "COUNTWISE" ? 15 : 1
-    };
-
-    newSchedules[dayIndex].timeRanges.push(newTimeRange);
-    setSchedules(newSchedules);
-  };
-
-  const handleUpdateTimeRange = (dayIndex: number, timeRangeId: number, updates: Partial<TimeRange>) => {
-    const newSchedules = [...schedules];
-    const timeRangeIndex = newSchedules[dayIndex].timeRanges.findIndex(tr => tr.id === timeRangeId);
-    if (timeRangeIndex !== -1) {
-      newSchedules[dayIndex].timeRanges[timeRangeIndex] = {
-        ...newSchedules[dayIndex].timeRanges[timeRangeIndex],
-        ...updates
-      };
-      setSchedules(newSchedules);
-
-      // Real-time validation - validate immediately after update
-      const errors = validateTimeRanges();
-      setValidationErrors(errors);
-    }
-  };
-
-  const handleDeleteTimeRange = (dayIndex: number, timeRangeId: number) => {
-    const newSchedules = [...schedules];
-    newSchedules[dayIndex].timeRanges = newSchedules[dayIndex].timeRanges.filter(tr => tr.id !== timeRangeId);
-    setSchedules(newSchedules);
-  };
-
-  const handleSaveSchedule = async () => {
-    // Validate before saving
-    const errors = validateTimeRanges();
-    setValidationErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
-      toast.error('Please fix all validation errors before saving');
-      return;
-    }
-
-    try {
-      const apiData = schedules.map(schedule => ({
-        ...schedule,
-        startTime: schedule.timeRanges[0]?.startTime || "09:00",
-        endTime: schedule.timeRanges[0]?.endTime || "17:00",
-        slotDuration: schedule.timeRanges[0]?.slotDuration || 15,
-        slotQuantity: schedule.timeRanges[0]?.slotQuantity || 1,
-        releaseType: slotMode,
-        releaseBefore: releaseBefore,
-        releaseTime: releaseTime
+    // When selectedDays or timeRanges change, update the form values
+    if (selectedDays.length > 0) {
+      const newSchedule = selectedDays.map((day) => ({
+        day: day,
+        timeRanges: timeRanges,
       }));
-
-      const res = await availabilityService.saveSchedule(apiData,doctorBranch.id);
-      if (res.data.status) {
-        toast.success('Weekly schedule saved successfully!');
-        setValidationErrors({}); // Clear all errors on successful save
-      } else {
-        toast.error('Failed to save weekly schedule');
-      }
-      fetchAvailability();
-    } catch (error) {
-      console.error('Error saving schedule:', error);
-      toast.error('Failed to save weekly schedule');
+      setValue("schedule", newSchedule);
     }
-  };
-
-  const handleReleaseBeforeChange = (value: string) => {
-    setReleaseBefore(Number(value));
-    setSchedules((prev) =>
-      prev.map((schedule) => ({
-        ...schedule,
-        releaseBefore: Number(value)
-      }))
-    );
-  };
-
-  const handleReleaseTimeChange = (value: string) => {
-    setReleaseTime(value);
-    setSchedules((prev) =>
-      prev.map((schedule) => ({
-        ...schedule,
-        releaseTime: value
-      }))
-    );
-  };
-
-  const handleSlotModeChange = (value: string) => {
-    setSlotMode(value);
-    console.log(value)
-    setSchedules((prev) =>
-      prev.map((schedule) => ({
-        ...schedule,
-        releaseType: value,
-        timeRanges: schedule.timeRanges.map(tr => ({
-          ...tr,
-          slotDuration: value === "COUNTWISE" ? 60 : 15,
-          slotQuantity: value === "COUNTWISE" ? 15 : 1
-        }))
-      }))
-    );
-  };
+  }, [selectedDays, timeRanges, setValue]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Weekly Schedule</CardTitle>
-        <CardDescription>Set doctor's weekly working hours for this branch</CardDescription>
-
-        <div className="space-y-6">
-          {/* Release Configuration - All in one row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-            {/* Release Type Radio Buttons */}
-            <div>
-              <Label className="text-base font-medium mb-3 block">Release Type</Label>
-              <RadioGroup value={slotMode} onValueChange={handleSlotModeChange} className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="TIMEWISE" id="timewise" />
-                  <Label htmlFor="timewise" className="cursor-pointer">Timewise</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="COUNTWISE" id="countwise" />
-                  <Label htmlFor="countwise" className="cursor-pointer">Countwise</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Release Before */}
-            <div>
-              <Label className="text-base font-medium mb-2 block">Release Before</Label>
-              <Select value={String(releaseBefore)} onValueChange={handleReleaseBeforeChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select release day" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Same Day</SelectItem>
-                  <SelectItem value="1">Before 1 Day</SelectItem>
-                  <SelectItem value="2">Before 2 Days</SelectItem>
-                  <SelectItem value="3">Before 3 Days</SelectItem>
-                  <SelectItem value="4">Before 4 Days</SelectItem>
-                  <SelectItem value="5">Before 5 Days</SelectItem>
-                  <SelectItem value="6">Before 6 Days</SelectItem>
-                  <SelectItem value="7">Before 7 Days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Release Time with ClockTimePicker */}
-            <div>
-              <Label className="text-base font-medium mb-2 block">Release Time</Label>
-              <ClockTimePicker
-                value={releaseTime}
-                onChange={handleReleaseTimeChange}
+    <form onSubmit={handleSubmit(onSubmitHandler)} className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="date">Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarDateRangePicker
+                date={date}
+                onSelect={setDate}
+                mode="single"
               />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div>
+          <Label>Recurrence</Label>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={isRecurrent ? "default" : "outline"}
+              onClick={() => setIsRecurrent(!isRecurrent)}
+            >
+              {isRecurrent ? "Recurrent" : "One Time"}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {isRecurrent && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Type</Label>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={isSpecificDate ? "default" : "outline"}
+                onClick={() => {
+                  setIsSpecificDate(true);
+                  setIsRange(false);
+                }}
+              >
+                Specific Date
+              </Button>
+              <Button
+                variant={isRange ? "default" : "outline"}
+                onClick={() => {
+                  setIsRange(true);
+                  setIsSpecificDate(false);
+                }}
+              >
+                Range
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <Label>Time</Label>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={isTime ? "default" : "outline"}
+                onClick={() => setIsTime(!isTime)}
+              >
+                Time
+              </Button>
+              <Button
+                variant={isException ? "default" : "outline"}
+                onClick={() => setIsException(!isException)}
+              >
+                Exception
+              </Button>
+              <Button
+                variant={isAllDay ? "default" : "outline"}
+                onClick={() => setIsAllDay(!isAllDay)}
+              >
+                All Day
+              </Button>
             </div>
           </div>
         </div>
-      </CardHeader>
+      )}
 
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      {isSpecificDate && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="date">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarDateRangePicker
+                  date={date}
+                  onSelect={setDate}
+                  mode="single"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-        ) : (
-          <>
-            <div className="space-y-6">
-              {schedules.map((day, dayIndex) => (
-                <div key={day.dayOfWeek} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={day.active}
-                        onCheckedChange={() => handleToggleDay(dayIndex)}
-                      />
-                      <h3 className="text-lg font-semibold">{day.dayOfWeek}</h3>
-                    </div>
-                    {day.active && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddTimeRange(dayIndex)}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Time Range
-                      </Button>
-                    )}
-                  </div>
+        </div>
+      )}
 
-                  {/* Validation Errors */}
-                  {validationErrors[day.dayOfWeek] && (
-                    <Alert className="mb-4 border-red-200 bg-red-50">
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="text-red-700">
-                        <ul className="list-disc list-inside space-y-1">
-                          {validationErrors[day.dayOfWeek].map((error, index) => (
-                            <li key={index}>{error}</li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
+      {isRange && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="from">From</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !range?.from && "text-muted-foreground"
                   )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {range?.from ? format(range.from, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarDateRangePicker
+                  date={range}
+                  onSelect={(date) =>
+                    setRange({
+                      from: date,
+                      to: range?.to,
+                    })
+                  }
+                  mode="single"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-                  {day.active && (
-                    <div className="space-y-3">
-                      {day.timeRanges.map((timeRange) => {
-                        const duration = calculateDuration(timeRange.startTime, timeRange.endTime);
-                        const totalSlots = calculateTotalSlots(timeRange);
-
-                        return (
-                          <div key={timeRange.id} className="space-y-2">
-                            <TimeRangeRow
-                              timeRange={timeRange}
-                              onUpdate={(id, updates) => handleUpdateTimeRange(dayIndex, id, updates)}
-                              onDelete={(id) => handleDeleteTimeRange(dayIndex, id)}
-                              canDelete={day.timeRanges.length > 1}
-                              isDisabled={!day.active}
-                              releaseType={slotMode}
-                              duration={formatDuration(duration)}
-                              totalSlots={totalSlots}
-                              allTimeRanges={day.timeRanges}
-                              hasValidationError={!!validationErrors[day.dayOfWeek]}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
+          <div>
+            <Label htmlFor="to">To</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !range?.to && "text-muted-foreground"
                   )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {range?.to ? format(range.to, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarDateRangePicker
+                  date={range}
+                  onSelect={(date) =>
+                    setRange({
+                      from: range?.from,
+                      to: date,
+                    })
+                  }
+                  mode="single"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      )}
 
-                  {!day.active && (
-                    <p className="text-sm text-muted-foreground ml-10">
-                      Day is not available
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 flex justify-end">
-              <Button onClick={handleSaveSchedule} size="lg">
-                Save Weekly Schedule
+      {isTime && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Time</Label>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={isCustom ? "default" : "outline"}
+                onClick={() => setIsCustom(!isCustom)}
+              >
+                Custom
               </Button>
             </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+          </div>
+        </div>
+      )}
 
-export default WeeklyScheduleTab;
+      {isCustom && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Recurrence Pattern</Label>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={isWeekly ? "default" : "outline"}
+                onClick={() => {
+                  setIsWeekly(true);
+                  setIsMonthly(false);
+                  setIsYearly(false);
+                }}
+              >
+                Weekly
+              </Button>
+              <Button
+                variant={isMonthly ? "default" : "outline"}
+                onClick={() => {
+                  setIsMonthly(true);
+                  setIsWeekly(false);
+                  setIsYearly(false);
+                }}
+              >
+                Monthly
+              </Button>
+              <Button
+                variant={isYearly ? "default" : "outline"}
+                onClick={() => {
+                  setIsYearly(true);
+                  setIsWeekly(false);
+                  setIsMonthly(false);
+                }}
+              >
+                Yearly
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isWeekly && isCustom && (
+        <div>
+          <Label>Select Days</Label>
+          <div className="flex flex-wrap gap-2">
+            {days.map((day) => (
+              <Button
+                key={day}
+                variant={selectedDays.includes(day) ? "default" : "outline"}
+                onClick={() => handleDayToggle(day)}
+              >
+                {day}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isWeekly && isCustom && (
+        <div>
+          <Label>Time Ranges</Label>
+          {timeRanges.map((timeRange, index) => (
+            <div key={index} className="flex items-center space-x-4 mb-2">
+              
+              <TimePicker
+                value={timeRange.startTime}
+                onChange={(time) => handleTimeRangeChange(index, 'startTime', time)}
+                placeholder="Start time"
+              />
+
+              
+              <TimePicker
+                value={timeRange.endTime}
+                onChange={(time) => handleTimeRangeChange(index, 'endTime', time)}
+                placeholder="End time"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => handleRemoveTimeRange(index)}
+              >
+                Remove
+              </Button>
+            </div>
+          ))}
+          <Button type="button" variant="secondary" onClick={handleAddTimeRange}>
+            Add Time Range
+          </Button>
+        </div>
+      )}
+
+      <Button type="submit">Submit</Button>
+    </form>
+  );
+}
