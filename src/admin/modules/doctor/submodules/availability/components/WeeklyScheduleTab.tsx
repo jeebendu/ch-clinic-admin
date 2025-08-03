@@ -197,8 +197,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) =
       return 0;
     }
 
-    const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
-    const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
+    const startTime = new Date(`2000-01-01T${formatTimeString(timeRange.startTime)}`);
+    const endTime = new Date(`2000-01-01T${formatTimeString(timeRange.endTime)}`);
 
     if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
       return 0;
@@ -225,8 +225,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) =
       return 0;
     }
 
-    const start = new Date(`2000-01-01T${startTime}:00`);
-    const end = new Date(`2000-01-01T${endTime}:00`);
+    const start = new Date(`2000-01-01T${formatTimeString(startTime)}`);
+    const end = new Date(`2000-01-01T${formatTimeString(endTime)}`);
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return 0;
@@ -249,6 +249,14 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) =
     return `${hours}h ${mins}min`;
   };
 
+  const formatTimeString = (timeStr: string) => {
+        // If time already includes seconds (HH:mm:ss), return as-is
+        if (timeStr.match(/^\d{2}:\d{2}:\d{2}$/)) return timeStr;
+        // If time is just HH:mm, append seconds
+        if (timeStr.match(/^\d{2}:\d{2}$/)) return `${timeStr}:00`;
+        throw new Error(`Invalid time format: ${timeStr}`);
+      };
+
   // Enhanced validation with better error messages
   const validateTimeRanges = (): Record<string, string[]> => {
     const errors: Record<string, string[]> = {};
@@ -264,8 +272,10 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) =
           return;
         }
 
-        const startTime = new Date(`2000-01-01T${timeRange.startTime}:00`);
-        const endTime = new Date(`2000-01-01T${timeRange.endTime}:00`);
+       
+
+      const startTime = new Date(`2000-01-01T${formatTimeString(timeRange.startTime)}`);
+      const endTime = new Date(`2000-01-01T${formatTimeString(timeRange.endTime)}`);
 
         if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
           dayErrors.push(`Range ${rangeIndex + 1}: Invalid time format`);
@@ -296,8 +306,8 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) =
         // Check for overlapping time ranges with better error messages
         day.timeRanges.forEach((otherRange, otherIndex) => {
           if (rangeIndex !== otherIndex && otherRange.startTime && otherRange.endTime) {
-            const otherStart = new Date(`2000-01-01T${otherRange.startTime}:00`);
-            const otherEnd = new Date(`2000-01-01T${otherRange.endTime}:00`);
+            const otherStart = new Date(`2000-01-01T${formatTimeString(otherRange.startTime)}`);
+            const otherEnd = new Date(`2000-01-01T${formatTimeString(otherRange.endTime)}`);
 
             if (!isNaN(otherStart.getTime()) && !isNaN(otherEnd.getTime()) &&
               (startTime < otherEnd && endTime > otherStart)) {

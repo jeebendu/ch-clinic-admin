@@ -22,6 +22,14 @@ export interface DoctorAvailability {
   releaseTime: string; // New field for release time
 }
 
+export interface DoctorShedule {
+  doctorBranch: DoctorBranch;
+  id: number;
+  releaseType: string;
+  releaseBefore: number;
+  releaseTime: string; // New field for release time
+}
+
 export interface DoctorLeave {
   id: number;
   doctorBranch: DoctorBranch;
