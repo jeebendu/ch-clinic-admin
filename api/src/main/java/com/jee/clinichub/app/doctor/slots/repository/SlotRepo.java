@@ -1,3 +1,4 @@
+
 package com.jee.clinichub.app.doctor.slots.repository;
 
 import java.time.LocalTime;
@@ -9,23 +10,18 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.jee.clinichub.app.doctor.slots.model.Slot;
 import com.jee.clinichub.app.doctor.slots.model.SlotProj;
+import com.jee.clinichub.app.doctor.slots.model.SlotStatus;
 
 @Repository
 public interface SlotRepo extends JpaRepository<Slot, Long> {
 
     @Query("SELECT s FROM Slot s WHERE s.doctorBranch.doctor.id = :doctorId AND s.doctorBranch.branch.id = :branchId AND s.date = :date")
     List<SlotProj> getFilteredSlots(Long doctorId, Long branchId, String date);
-
-    // List<Slot> findAllByDoctor_idAndBranch_idAndDate(Long id, Long id2, Date date);
-
-    // boolean existsByDoctor_idAndBranch_idAndDateAndEndTime(Long id, Long id2, Date date, LocalTime startTime);
-
-    // boolean existsByDoctor_idAndBranch_idAndDateAndStartTimeAndEndTime(Long id, Long id2, Date dateValue,
-    //         LocalTime currentStart, LocalTime currentEnd);
 
     boolean existsByDoctorBranch_idAndDateAndEndTime(long id, Date date, LocalTime startTime);
 
@@ -46,5 +42,11 @@ public interface SlotRepo extends JpaRepository<Slot, Long> {
     List<Slot> findAllByDoctorBranch_globalDoctorBranchIdAndDateBetween(UUID doctorBranchGlobalId, Date startOfDay,
             Date endOfDay);
 
-    
+    @Query("SELECT s FROM Slot s WHERE s.status = :status AND s.date BETWEEN :startDate AND :endDate")
+    List<Slot> findPendingSlotsInDateRange(@Param("status") SlotStatus status, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    // Convenience method for finding pending slots
+    default List<Slot> findPendingSlotsInDateRange(Date startDate, Date endDate) {
+        return findPendingSlotsInDateRange(SlotStatus.PENDING, startDate, endDate);
+    }
 }
