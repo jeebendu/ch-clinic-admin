@@ -12,7 +12,7 @@ import { Branch } from "@/admin/modules/branch/types/Branch";
 import { Doctor } from "../../../types/Doctor";
 import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
 import TimeRangeRow from "./TimeRangeRow";
-import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
+import { TimePicker } from "@/admin/components/TimePicker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 
@@ -473,10 +473,10 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) =
               </Select>
             </div>
 
-            {/* Release Time with ClockTimePicker */}
+            {/* Release Time with TimePicker */}
             <div>
               <Label className="text-base font-medium mb-2 block">Release Time</Label>
-              <ClockTimePicker
+              <TimePicker
                 value={releaseTime}
                 onChange={handleReleaseTimeChange}
               />
