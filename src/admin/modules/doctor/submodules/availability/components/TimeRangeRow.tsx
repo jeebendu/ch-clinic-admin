@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, AlertCircle } from "lucide-react";
 import { TimeRange } from "../types/DoctorAvailability";
-import { ClockTimePicker } from "@/admin/components/ClockTimePicker";
+import { TimePicker } from "@/admin/components/TimePicker";
 
 interface TimeRangeRowProps {
   timeRange: TimeRange;
@@ -78,7 +77,7 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
       {/* Start Time */}
       <div>
         <Label className="text-sm font-medium mb-1 block">Start Time</Label>
-        <ClockTimePicker
+        <TimePicker
           value={timeRange.startTime}
           onChange={(value) => handleTimeChange('startTime', value)}
           disabled={isDisabled}
@@ -88,7 +87,7 @@ const TimeRangeRow: React.FC<TimeRangeRowProps> = ({
       {/* End Time */}
       <div>
         <Label className="text-sm font-medium mb-1 block">End Time</Label>
-        <ClockTimePicker
+        <TimePicker
           value={timeRange.endTime}
           onChange={(value) => handleTimeChange('endTime', value)}
           disabled={isDisabled}
