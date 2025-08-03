@@ -9,7 +9,17 @@ const WeeklyScheduleService = {
       console.error("Error fetching doctor breaks:", error);
       throw error;
     }
+  },
+
+  getByDoctorBranchId: async (doctorBranchId: number) => {
+    try {
+      return http.get(`/v1/doctor/weekly-schedule/doctor-branch/${doctorBranchId}`);
+    } catch (error) {
+      console.error("Error fetching doctor breaks:", error);
+      throw error;
+    }
   }
+
 };
 
 export default WeeklyScheduleService;
