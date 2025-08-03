@@ -1,7 +1,9 @@
+
 package com.jee.clinichub.app.doctor.weeklySchedule.service;
 
 import java.util.List;
 
+import com.jee.clinichub.app.doctor.slots.model.Slot;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklySchedule;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklyScheduleDTO;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklyScheduleWithoutDrBranch;
@@ -27,4 +29,8 @@ public interface WeeklyScheduleService {
     List<WeeklySchedule> findAllByActive(boolean b);
 
     List<WeeklyScheduleWithoutDrBranch> findAllByDoctorBranchId(Long drBranchId);
+
+    Status generatePreviewSlots(Long doctorBranchId);
+
+    List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId);
 }

@@ -1,3 +1,4 @@
+
 package com.jee.clinichub.app.doctor.weeklySchedule.controller;
 
 import java.util.List;
@@ -5,6 +6,7 @@ import java.util.List;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import com.jee.clinichub.app.doctor.slots.model.Slot;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklyScheduleDTO;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklyScheduleWithoutDrBranch;
 import com.jee.clinichub.app.doctor.weeklySchedule.service.WeeklyScheduleService;
@@ -56,5 +58,15 @@ public class WeeklyScheduleController {
     @GetMapping("/doctor-branch/{drBranchId}")
     public List<WeeklyScheduleWithoutDrBranch> findAllByDoctorBranchId(@PathVariable Long drBranchId) {
         return wScheduleService.findAllByDoctorBranchId(drBranchId);
+    }
+
+    @PostMapping("/generate-preview-slots/{doctorBranchId}")
+    public Status generatePreviewSlots(@PathVariable Long doctorBranchId) {
+        return wScheduleService.generatePreviewSlots(doctorBranchId);
+    }
+
+    @GetMapping("/slots/doctor-branch/{doctorBranchId}")
+    public List<Slot> getSlotsByDoctorBranchId(@PathVariable Long doctorBranchId) {
+        return wScheduleService.getSlotsByDoctorBranchId(doctorBranchId);
     }
 }
