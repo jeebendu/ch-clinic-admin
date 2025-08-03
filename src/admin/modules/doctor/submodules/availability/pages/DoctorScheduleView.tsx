@@ -75,7 +75,7 @@ const DoctorScheduleView = () => {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto">
+      <div className="space-y-4">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
             <Button variant="ghost" onClick={handleBackClick} className="mr-4">

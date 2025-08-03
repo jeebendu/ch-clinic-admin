@@ -89,7 +89,7 @@ const DoctorAvailabilitySection: React.FC<DoctorAvailabilitySectionProps> = ({ d
       </CardHeader>
       <CardContent>
         {/* Branch Selection if multiple branches */}
-        {doctor.branchList && doctor.branchList.length > 1 && (
+        {/* {doctor.branchList && doctor.branchList.length > 1 && (
           <div className="mb-6">
             <label className="text-sm font-medium mb-2 block">Select Branch</label>
             <select
@@ -104,7 +104,7 @@ const DoctorAvailabilitySection: React.FC<DoctorAvailabilitySectionProps> = ({ d
               ))}
             </select>
           </div>
-        )}
+        )} */}
 
         {doctorBranchObj ? (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
