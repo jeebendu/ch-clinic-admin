@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
@@ -138,7 +139,6 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) =
         </CardContent>
       </Card>
       
-      {/* Add Generated Slots View at the bottom */}
       <GeneratedSlotsView doctorBranch={doctorBranch} />
     </div>
   );
