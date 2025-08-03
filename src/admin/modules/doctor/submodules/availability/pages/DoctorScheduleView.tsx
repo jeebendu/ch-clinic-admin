@@ -1,21 +1,19 @@
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AdminLayout from "@/admin/components/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Doctor } from "../../../types/Doctor";
-import { Branch } from "@/admin/modules/branch/types/Branch";
 import doctorService from "../../../services/doctorService";
 import WeeklyScheduleTab from "../components/WeeklyScheduleTab";
 import BreaksTab from "../components/BreaksTab";
 import LeavesTab from "../components/LeavesTab";
 import HolidaysTab from "../components/HolidaysTab";
-import BranchService from "@/admin/modules/branch/services/branchService";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 import DoctorService from "../../../services/doctorService";
 
