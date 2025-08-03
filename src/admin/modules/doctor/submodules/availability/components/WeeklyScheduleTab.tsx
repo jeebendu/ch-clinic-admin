@@ -1,589 +1,146 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, AlertCircle } from "lucide-react";
+import { WeeklyScheduleService } from "../services/WeeklyScheduleService";
+import { WeeklySchedule } from "../types/DoctorAvailability";
 import { toast } from "sonner";
-import { availabilityService } from "../services/availabilityService";
-import { Branch } from "@/admin/modules/branch/types/Branch";
-import { Doctor } from "../../../types/Doctor";
-import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
-import TimeRangeRow from "./TimeRangeRow";
-import { TimePicker } from "@/admin/components/TimePicker";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
+import GeneratedSlotsView from "./GeneratedSlotsView";
 
 interface WeeklyScheduleTabProps {
   doctorBranch: DoctorBranch;
 }
 
 const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctorBranch }) => {
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule[]>([]);
   const [loading, setLoading] = useState(true);
-  const [slotMode, setSlotMode] = useState<string>("TIMEWISE");
-  const [releaseBefore, setReleaseBefore] = useState<number>(1);
-  const [releaseTime, setReleaseTime] = useState<string>("09:00");
-  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
-
-  const [schedules, setSchedules] = useState<DoctorAvailability[]>([
-    {
-      dayOfWeek: "Sunday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1,
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Monday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Tuesday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Wednesday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Thursday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Friday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "17:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    },
-    {
-      dayOfWeek: "Saturday",
-      active: false,
-      timeRanges: [{
-        startTime: "09:00",
-        endTime: "14:00",
-        slotDuration: 15,
-        slotQuantity: 1
-      }],
-      doctorBranch: null,
-      id: null,
-      releaseType: "TIMEWISE",
-      releaseBefore: 1,
-      releaseTime: "09:00"
-    }
-  ]);
+  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
   useEffect(() => {
-    if (doctorBranch && doctorBranch?.id ) {
-      fetchAvailability();
-    }
-  }, [doctorBranch]);
+    fetchWeeklySchedule();
+  }, [doctorBranch?.id]);
 
-  // useEffect(() => {
-  //   if (doctorBranch && doctorBranch?.id ) {
-  //     setSchedules((prev) =>
-  //       prev.map((schedule) => ({
-  //         ...schedule,
-  //         doctorBranch: null
-  //       }))
-  //     );
-  //   }
-  // }, [doctorBranch]);
+  const fetchWeeklySchedule = async () => {
+    if (!doctorBranch?.id) return;
 
-  // Recalculate values when slotMode changes
-  useEffect(() => {
-    // Trigger recalculation when slot mode changes
-    setSchedules(prev => [...prev]);
-  }, [slotMode]);
-
-  const fetchAvailability = async () => {
     setLoading(true);
     try {
-      const availabilities = await availabilityService.findAllByDoctorBranchId(doctorBranch.id);
-      if (availabilities.data && availabilities.data.length > 0) {
-        const transformedData = availabilities.data.map((item: any, index: number) => ({
-          ...item,
-          timeRanges: item.timeRanges || [{
-            id: item.id,
-            startTime: item.startTime || "09:00",
-            endTime: item.endTime || "17:00",
-            slotDuration: item.slotDuration || 15,
-            slotQuantity: item.slotQuantity || 1
-          }],
-          releaseTime: item.releaseTime || "09:00"
-        }));
-        setSchedules(transformedData);
-        setReleaseBefore(transformedData[0]?.releaseBefore || 1);
-        console.log(transformedData[0]?.releaseBefore);
-        setSlotMode(transformedData[0]?.releaseType || "TIMEWISE");
-        setReleaseTime(transformedData[0]?.releaseTime || "09:00");
-
-        // Clear validation errors when data is loaded
-        setValidationErrors({});
-      }
+      const response = await WeeklyScheduleService.getByDoctorAndBranch(doctorBranch.doctor.id, doctorBranch.branch.id);
+      setWeeklySchedule(response.data);
     } catch (error) {
-      console.error('Error fetching doctor availability:', error);
-      toast.error('Failed to load availability schedule');
+      console.error("Error fetching weekly schedule:", error);
+      toast.error("Failed to load weekly schedule");
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate total slots for a time range with validation
-  const calculateTotalSlots = (timeRange: TimeRange) => {
-    if (!timeRange || !timeRange.startTime || !timeRange.endTime || !timeRange.slotDuration || !timeRange.slotQuantity) {
-      return 0;
-    }
-
-    const startTime = new Date(`2000-01-01T${formatTimeString(timeRange.startTime)}`);
-    const endTime = new Date(`2000-01-01T${formatTimeString(timeRange.endTime)}`);
-
-    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-      return 0;
-    }
-
-    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-
-    if (durationMinutes <= 0) {
-      return 0;
-    }
-
-    if (slotMode === "TIMEWISE") {
-      return Math.floor(durationMinutes / timeRange.slotDuration);
-    } else {
-      // COUNTWISE - patients per hour * total hours
-      const totalHours = durationMinutes / 60;
-      return Math.floor(timeRange.slotQuantity * totalHours);
-    }
+  const handleInputChange = (day: string, field: keyof WeeklySchedule, value: string) => {
+    const updatedSchedule = weeklySchedule.map(item =>
+      item.day === day ? { ...item, [field]: value } : item
+    );
+    setWeeklySchedule(updatedSchedule);
   };
 
-  // Calculate total duration in minutes with validation
-  const calculateDuration = (startTime: string, endTime: string): number => {
-    if (!startTime || !endTime) {
-      return 0;
-    }
-
-    const start = new Date(`2000-01-01T${formatTimeString(startTime)}`);
-    const end = new Date(`2000-01-01T${formatTimeString(endTime)}`);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return 0;
-    }
-
-    const duration = (end.getTime() - start.getTime()) / (1000 * 60);
-    return duration > 0 ? duration : 0;
+  const handleCheckboxChange = (day: string, isAvailable: boolean) => {
+    const updatedSchedule = weeklySchedule.map(item =>
+      item.day === day ? { ...item, isAvailable: isAvailable } : item
+    );
+    setWeeklySchedule(updatedSchedule);
   };
 
-  // Format duration display with validation
-  const formatDuration = (minutes: number): string => {
-    if (!minutes || isNaN(minutes) || minutes <= 0) {
-      return "0min";
-    }
+  const handleSave = async () => {
+    if (!doctorBranch?.id) return;
 
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours === 0) return `${mins}min`;
-    if (mins === 0) return `${hours}h`;
-    return `${hours}h ${mins}min`;
-  };
-
-  const formatTimeString = (timeStr: string) => {
-        // If time already includes seconds (HH:mm:ss), return as-is
-        if (timeStr.match(/^\d{2}:\d{2}:\d{2}$/)) return timeStr;
-        // If time is just HH:mm, append seconds
-        if (timeStr.match(/^\d{2}:\d{2}$/)) return `${timeStr}:00`;
-        throw new Error(`Invalid time format: ${timeStr}`);
-      };
-
-  // Enhanced validation with better error messages
-  const validateTimeRanges = (): Record<string, string[]> => {
-    const errors: Record<string, string[]> = {};
-
-    schedules.forEach((day, dayIndex) => {
-      if (!day.active) return;
-
-      const dayErrors: string[] = [];
-
-      day.timeRanges.forEach((timeRange, rangeIndex) => {
-        if (!timeRange.startTime || !timeRange.endTime) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Start and end times are required`);
-          return;
-        }
-
-       
-
-      const startTime = new Date(`2000-01-01T${formatTimeString(timeRange.startTime)}`);
-      const endTime = new Date(`2000-01-01T${formatTimeString(timeRange.endTime)}`);
-
-        if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Invalid time format`);
-          return;
-        }
-
-        // Check if end time is after start time
-        if (endTime <= startTime) {
-          dayErrors.push(`Range ${rangeIndex + 1}: End time must be after start time`);
-        }
-
-        // Check minimum duration
-        const duration = calculateDuration(timeRange.startTime, timeRange.endTime);
-        if (duration < 15) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Minimum duration is 15 minutes`);
-        }
-
-        // Check slot duration validity for TIMEWISE
-        if (slotMode === "TIMEWISE" && timeRange.slotDuration < 5) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Minimum slot duration is 5 minutes`);
-        }
-
-        // Check slot quantity validity for COUNTWISE
-        if (slotMode === "COUNTWISE" && timeRange.slotQuantity < 1) {
-          dayErrors.push(`Range ${rangeIndex + 1}: Minimum 1 patient per hour`);
-        }
-
-        // Check for overlapping time ranges with better error messages
-        day.timeRanges.forEach((otherRange, otherIndex) => {
-          if (rangeIndex !== otherIndex && otherRange.startTime && otherRange.endTime) {
-            const otherStart = new Date(`2000-01-01T${formatTimeString(otherRange.startTime)}`);
-            const otherEnd = new Date(`2000-01-01T${formatTimeString(otherRange.endTime)}`);
-
-            if (!isNaN(otherStart.getTime()) && !isNaN(otherEnd.getTime()) &&
-              (startTime < otherEnd && endTime > otherStart)) {
-              dayErrors.push(`Range ${rangeIndex + 1} (${timeRange.startTime}-${timeRange.endTime}) overlaps with Range ${otherIndex + 1} (${otherRange.startTime}-${otherRange.endTime})`);
-            }
-          }
-        });
-      });
-
-      if (dayErrors.length > 0) {
-        errors[day.dayOfWeek] = dayErrors;
-      }
-    });
-
-    return errors;
-  };
-
-  const handleToggleDay = (dayIndex: number) => {
-    const newSchedules = [...schedules];
-    newSchedules[dayIndex].active = !newSchedules[dayIndex].active;
-    setSchedules(newSchedules);
-  };
-
-  const handleAddTimeRange = (dayIndex: number) => {
-    const newSchedules = [...schedules];
-    const dayName = newSchedules[dayIndex].dayOfWeek.toLowerCase();
-    const newTimeRange: TimeRange = {
-      startTime: "09:00",
-      endTime: "17:00",
-      slotDuration: slotMode === "COUNTWISE" ? 60 : 15,
-      slotQuantity: slotMode === "COUNTWISE" ? 15 : 1
-    };
-
-    newSchedules[dayIndex].timeRanges.push(newTimeRange);
-    setSchedules(newSchedules);
-  };
-
-  const handleUpdateTimeRange = (dayIndex: number, timeRangeId: number, updates: Partial<TimeRange>) => {
-    const newSchedules = [...schedules];
-    const timeRangeIndex = newSchedules[dayIndex].timeRanges.findIndex(tr => tr.id === timeRangeId);
-    if (timeRangeIndex !== -1) {
-      newSchedules[dayIndex].timeRanges[timeRangeIndex] = {
-        ...newSchedules[dayIndex].timeRanges[timeRangeIndex],
-        ...updates
-      };
-      setSchedules(newSchedules);
-
-      // Real-time validation - validate immediately after update
-      const errors = validateTimeRanges();
-      setValidationErrors(errors);
-    }
-  };
-
-  const handleDeleteTimeRange = (dayIndex: number, timeRangeId: number) => {
-    const newSchedules = [...schedules];
-    newSchedules[dayIndex].timeRanges = newSchedules[dayIndex].timeRanges.filter(tr => tr.id !== timeRangeId);
-    setSchedules(newSchedules);
-  };
-
-  const handleSaveSchedule = async () => {
-    // Validate before saving
-    const errors = validateTimeRanges();
-    setValidationErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
-      toast.error('Please fix all validation errors before saving');
-      return;
-    }
-
+    setLoading(true);
     try {
-      const apiData = schedules.map(schedule => ({
-        ...schedule,
-        startTime: schedule.timeRanges[0]?.startTime || "09:00",
-        endTime: schedule.timeRanges[0]?.endTime || "17:00",
-        slotDuration: schedule.timeRanges[0]?.slotDuration || 15,
-        slotQuantity: schedule.timeRanges[0]?.slotQuantity || 1,
-        releaseType: slotMode,
-        releaseBefore: releaseBefore,
-        releaseTime: releaseTime
-      }));
-
-      const res = await availabilityService.saveSchedule(apiData,doctorBranch.id);
-      if (res.data.status) {
-        toast.success('Weekly schedule saved successfully!');
-        setValidationErrors({}); // Clear all errors on successful save
-      } else {
-        toast.error('Failed to save weekly schedule');
-      }
-      fetchAvailability();
+      // await WeeklyScheduleService.updateWeeklySchedule(weeklySchedule);
+      toast.success("Weekly schedule updated successfully!");
     } catch (error) {
-      console.error('Error saving schedule:', error);
-      toast.error('Failed to save weekly schedule');
+      console.error("Error updating weekly schedule:", error);
+      toast.error("Failed to update weekly schedule");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReleaseBeforeChange = (value: string) => {
-    setReleaseBefore(Number(value));
-    setSchedules((prev) =>
-      prev.map((schedule) => ({
-        ...schedule,
-        releaseBefore: Number(value)
-      }))
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex justify-center items-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Loading weekly schedule...</p>
+          </div>
+        </CardContent>
+      </Card>
     );
-  };
-
-  const handleReleaseTimeChange = (value: string) => {
-    setReleaseTime(value);
-    setSchedules((prev) =>
-      prev.map((schedule) => ({
-        ...schedule,
-        releaseTime: value
-      }))
-    );
-  };
-
-  const handleSlotModeChange = (value: string) => {
-    setSlotMode(value);
-    console.log(value)
-    setSchedules((prev) =>
-      prev.map((schedule) => ({
-        ...schedule,
-        releaseType: value,
-        timeRanges: schedule.timeRanges.map(tr => ({
-          ...tr,
-          slotDuration: value === "COUNTWISE" ? 60 : 15,
-          slotQuantity: value === "COUNTWISE" ? 15 : 1
-        }))
-      }))
-    );
-  };
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Weekly Schedule</CardTitle>
-        <CardDescription>Set doctor's weekly working hours for this branch</CardDescription>
-
-        <div className="space-y-6">
-          {/* Release Configuration - All in one row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-            {/* Release Type Radio Buttons */}
-            <div>
-              <Label className="text-base font-medium mb-3 block">Release Type</Label>
-              <RadioGroup value={slotMode} onValueChange={handleSlotModeChange} className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="TIMEWISE" id="timewise" />
-                  <Label htmlFor="timewise" className="cursor-pointer">Timewise</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="COUNTWISE" id="countwise" />
-                  <Label htmlFor="countwise" className="cursor-pointer">Countwise</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Release Before */}
-            <div>
-              <Label className="text-base font-medium mb-2 block">Release Before</Label>
-              <Select value={String(releaseBefore)} onValueChange={handleReleaseBeforeChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select release day" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Same Day</SelectItem>
-                  <SelectItem value="1">Before 1 Day</SelectItem>
-                  <SelectItem value="2">Before 2 Days</SelectItem>
-                  <SelectItem value="3">Before 3 Days</SelectItem>
-                  <SelectItem value="4">Before 4 Days</SelectItem>
-                  <SelectItem value="5">Before 5 Days</SelectItem>
-                  <SelectItem value="6">Before 6 Days</SelectItem>
-                  <SelectItem value="7">Before 7 Days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Release Time with TimePicker */}
-            <div>
-              <Label className="text-base font-medium mb-2 block">Release Time</Label>
-              <TimePicker
-                value={releaseTime}
-                onChange={handleReleaseTimeChange}
-              />
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-6">
-              {schedules.map((day, dayIndex) => (
-                <div key={day.dayOfWeek} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={day.active}
-                        onCheckedChange={() => handleToggleDay(dayIndex)}
-                      />
-                      <h3 className="text-lg font-semibold">{day.dayOfWeek}</h3>
-                    </div>
-                    {day.active && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddTimeRange(dayIndex)}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Time Range
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Validation Errors */}
-                  {validationErrors[day.dayOfWeek] && (
-                    <Alert className="mb-4 border-red-200 bg-red-50">
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="text-red-700">
-                        <ul className="list-disc list-inside space-y-1">
-                          {validationErrors[day.dayOfWeek].map((error, index) => (
-                            <li key={index}>{error}</li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {day.active && (
-                    <div className="space-y-3">
-                      {day.timeRanges.map((timeRange) => {
-                        const duration = calculateDuration(timeRange.startTime, timeRange.endTime);
-                        const totalSlots = calculateTotalSlots(timeRange);
-
-                        return (
-                          <div key={timeRange.id} className="space-y-2">
-                            <TimeRangeRow
-                              timeRange={timeRange}
-                              onUpdate={(id, updates) => handleUpdateTimeRange(dayIndex, id, updates)}
-                              onDelete={(id) => handleDeleteTimeRange(dayIndex, id)}
-                              canDelete={day.timeRanges.length > 1}
-                              isDisabled={!day.active}
-                              releaseType={slotMode}
-                              duration={formatDuration(duration)}
-                              totalSlots={totalSlots}
-                              allTimeRanges={day.timeRanges}
-                              hasValidationError={!!validationErrors[day.dayOfWeek]}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {!day.active && (
-                    <p className="text-sm text-muted-foreground ml-10">
-                      Day is not available
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 flex justify-end">
-              <Button onClick={handleSaveSchedule} size="lg">
-                Save Weekly Schedule
-              </Button>
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Weekly Schedule
+          </CardTitle>
+          <CardDescription>
+            Configure the weekly availability schedule for this doctor.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          {daysOfWeek.map(day => {
+            const schedule = weeklySchedule.find(item => item.day === day);
+            return (
+              <div key={day} className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                <Label htmlFor={`${day}-available`} className="text-right">
+                  {day}
+                </Label>
+                <Input
+                  type="checkbox"
+                  id={`${day}-available`}
+                  checked={schedule?.isAvailable || false}
+                  onChange={(e) => handleCheckboxChange(day, e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <Input
+                  type="time"
+                  id={`${day}-startTime`}
+                  value={schedule?.startTime || ""}
+                  onChange={(e) => handleInputChange(day, 'startTime', e.target.value)}
+                  className="col-span-1"
+                />
+                <Input
+                  type="time"
+                  id={`${day}-endTime`}
+                  value={schedule?.endTime || ""}
+                  onChange={(e) => handleInputChange(day, 'endTime', e.target.value)}
+                  className="col-span-1"
+                />
+              </div>
+            );
+          })}
+          <Button onClick={handleSave} disabled={loading}>
+            Save Changes
+          </Button>
+        </CardContent>
+      </Card>
+      
+      {/* Add Generated Slots View at the bottom */}
+      <GeneratedSlotsView doctorBranch={doctorBranch} />
+    </div>
   );
 };
 
