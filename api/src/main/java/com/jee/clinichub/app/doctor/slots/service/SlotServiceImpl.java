@@ -1,7 +1,11 @@
 package com.jee.clinichub.app.doctor.slots.service;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -172,6 +176,27 @@ public class SlotServiceImpl implements SlotService {
             return new Status(true, "Slot saved successfully");
         } catch (Exception e) {
             return new Status(true, "Something went wrong while saving slot");
+        }
+    }
+
+    @Override
+    public List<SlotDto> getSlotsByDoctorBranchIdAndDate(Long doctorBranchId, String date) {
+        try {
+            if (date == null || date.isEmpty()) {
+                // If no date provided, return slots for today
+                Date today = new Date();
+                List<Slot> slots = slotRepo.findAllByDoctorBranch_idAndDate(doctorBranchId, today);
+                return slots.stream().map(SlotDto::new).collect(Collectors.toList());
+            } else {
+                // Parse the date string (expected format: yyyy-MM-dd)
+                LocalDate localDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                Date targetDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                
+                List<Slot> slots = slotRepo.findAllByDoctorBranch_idAndDate(doctorBranchId, targetDate);
+                return slots.stream().map(SlotDto::new).collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            return new ArrayList<>();
         }
     }
 

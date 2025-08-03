@@ -32,5 +32,5 @@ public interface WeeklyScheduleService {
 
     Status generatePreviewSlots(Long doctorBranchId);
 
-    List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId);
+    List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId, String date);
 }

@@ -1,4 +1,3 @@
-
 package com.jee.clinichub.app.doctor.weeklySchedule.controller;
 
 import java.util.List;
@@ -66,7 +65,9 @@ public class WeeklyScheduleController {
     }
 
     @GetMapping("/slots/doctor-branch/{doctorBranchId}")
-    public List<Slot> getSlotsByDoctorBranchId(@PathVariable Long doctorBranchId) {
-        return wScheduleService.getSlotsByDoctorBranchId(doctorBranchId);
+    public List<Slot> getSlotsByDoctorBranchId(
+            @PathVariable Long doctorBranchId,
+            @RequestParam(required = false) String date) {
+        return wScheduleService.getSlotsByDoctorBranchId(doctorBranchId, date);
     }
 }

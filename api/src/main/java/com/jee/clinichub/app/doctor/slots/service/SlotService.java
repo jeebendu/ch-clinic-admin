@@ -1,3 +1,4 @@
+
 package com.jee.clinichub.app.doctor.slots.service;
 
 import java.util.List;
@@ -25,8 +26,11 @@ public interface SlotService {
     Status saveAllSlot(List<Slot> slotList);
 
     List<UUID> slotByGlobalIdIn(List<UUID> globalSlotIds);
+    
     Slot slotByGlobalId(UUID globalId);
 
     Status saveOrUpdateSlot(Slot slot);
+
+    List<SlotDto> getSlotsByDoctorBranchIdAndDate(Long doctorBranchId, String date);
 
 }
