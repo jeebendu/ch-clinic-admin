@@ -7,14 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Trash, Save } from "lucide-react";
-import { weeklyScheduleService } from "../services/weeklyScheduleService";
-import { timeRangeService } from "../services/timeRangeService";
 import { TimePicker } from "@/admin/components/TimePicker";
 import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
 import { Doctor } from "../../../types/Doctor";
 import { Branch } from "@/admin/modules/branch/types/Branch";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 import LeavesSection from "./LeavesSection";
+import WeeklyScheduleService from "../services/WeeklyScheduleService";
 
 interface WeeklyScheduleTabProps {
   doctor: Doctor;
@@ -50,7 +49,7 @@ const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({ doctor, selectedB
   const fetchSchedules = async () => {
     setLoading(true);
     try {
-      const response = await weeklyScheduleService.getByDoctorBranchId(doctorBranch.id);
+      const response = await WeeklyScheduleService.getByDoctorAndBranch(doctorBranch.doctor.id,doctorBranch.branch.id);
       setSchedules(response.data || []);
     } catch (error) {
       console.error('Error fetching schedules:', error);

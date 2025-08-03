@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WeeklyScheduleTab from "../../submodules/availability/components/WeeklyScheduleTab";
 import { Doctor } from "../../types/Doctor";
-import { Branch } from "@/admin/modules/branch/types/Branch";
 import { DoctorBranch } from "@/admin/modules/appointments/types/DoctorClinic";
 
 interface DoctorAvailabilitySectionProps {

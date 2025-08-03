@@ -9,9 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Doctor } from "../types/Doctor";
 import { Calendar, Clock, Mail, MapPin, Phone, Star, UserCheck, Briefcase, Award, Languages } from "lucide-react";
 import { format } from "date-fns";
-import { WeeklyScheduleService } from "../submodules/availability/services/WeeklyScheduleService";
 import { toast } from "@/hooks/use-toast";
 import { DoctorAvailability } from "../types/DoctorAvailability";
+import WeeklyScheduleService from "../submodules/availability/services/WeeklyScheduleService";
 
 interface DoctorViewProps {
   isOpen: boolean;
