@@ -1,3 +1,4 @@
+
 package com.jee.clinichub.app.doctor.weeklySchedule.service;
 
 
@@ -82,9 +83,8 @@ public class WeeklyScheduleServiceImpl implements WeeklyScheduleService {
             }
 
             // Generate preview/draft slots after saving schedule
-            generatePreviewSlots(drBranchId);
+            return generatePreviewSlots(drBranchId);
 
-            return new Status(true, "Weekly schedules saved successfully");
         } catch (Exception e) {
             log.error("Error saving weekly schedules: {}", e.getMessage(), e);
             return new Status(false, "Failed to save weekly schedules: " + e.getMessage());
@@ -173,5 +173,13 @@ public class WeeklyScheduleServiceImpl implements WeeklyScheduleService {
                 .toList();
     }
 
-	
+    @Override
+    public Status generatePreviewSlots(Long doctorBranchId) {
+        try {
+            return slotService.generatePreviewSlots(doctorBranchId);
+        } catch (Exception e) {
+            log.error("Error generating preview slots: {}", e.getMessage(), e);
+            return new Status(false, "Failed to generate preview slots: " + e.getMessage());
+        }
+    }
 }
