@@ -1,33 +1,46 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save, TestTube } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { laboratoryService, TestCategory, TestType, TestParameter, TestResult, TestReport } from '../../services/laboratoryService';
 import AdminLayout from '@/admin/components/AdminLayout';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 const LaboratoryReportForm: React.FC = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-
+  
   const [categories, setCategories] = useState<TestCategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [testTypes, setTestTypes] = useState<TestType[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<TestCategory | null>(null);
   const [selectedTestType, setSelectedTestType] = useState<TestType | null>(null);
-  const [parameters, setParameters] = useState<TestParameter[]>([]);
-  const [results, setResults] = useState<TestResult[]>([]);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [reportNumber, setReportNumber] = useState<string>('');
-  const [diagnosis, setDiagnosis] = useState<string>('');
-  const [comments, setComments] = useState<string>('');
   const [loading, setLoading] = useState(false);
+
+  const formSchema = z.object({
+    diagnosis: z.string().optional(),
+    comments: z.string().optional(),
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      diagnosis: '',
+      comments: '',
+    },
+  });
 
   useEffect(() => {
     loadCategories();
@@ -41,9 +54,9 @@ const LaboratoryReportForm: React.FC = () => {
     } catch (error) {
       console.error('Error loading categories:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to load test categories',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load test categories",
+        variant: "destructive"
       });
     }
   };
@@ -54,74 +67,71 @@ const LaboratoryReportForm: React.FC = () => {
       setReportNumber(number);
     } catch (error) {
       console.error('Error generating report number:', error);
+      setReportNumber('LAB000001');
     }
   };
 
-  const handleCategoryChange = async (categoryId: string) => {
-    const id = parseInt(categoryId);
-    setSelectedCategory(id);
+  const handleCategoryChange = (categoryId: string) => {
+    const category = categories.find(c => c.id === parseInt(categoryId));
+    setSelectedCategory(category || null);
     setSelectedTestType(null);
-    setParameters([]);
-    setResults([]);
-
-    try {
-      const types = await laboratoryService.getTestTypesByCategory(id);
-      setTestTypes(types);
-    } catch (error) {
-      console.error('Error loading test types:', error);
-    }
+    setTestResults([]);
   };
 
   const handleTestTypeChange = async (testTypeId: string) => {
-    const id = parseInt(testTypeId);
-    
     try {
-      const testType = await laboratoryService.getTestTypeWithParameters(id);
+      const testType = await laboratoryService.getTestTypeWithParameters(parseInt(testTypeId));
       setSelectedTestType(testType);
-      setParameters(testType.parameters || []);
       
-      // Initialize results for each parameter
-      const initialResults: TestResult[] = (testType.parameters || []).map(param => ({
+      // Initialize test results with empty values
+      const initialResults: TestResult[] = testType.parameters?.map(param => ({
         testParameter: param,
         resultValue: undefined,
         resultText: '',
         notes: '',
-        flag: 'NORMAL'
-      }));
-      setResults(initialResults);
+        flag: 'NORMAL' as const
+      })) || [];
+      
+      setTestResults(initialResults);
     } catch (error) {
-      console.error('Error loading test type parameters:', error);
-    }
-  };
-
-  const handleResultChange = (index: number, field: keyof TestResult, value: any) => {
-    const updatedResults = [...results];
-    updatedResults[index] = { ...updatedResults[index], [field]: value };
-    
-    // Auto-flag based on reference ranges
-    if (field === 'resultValue' && value) {
-      const param = updatedResults[index].testParameter;
-      if (param.referenceMin !== undefined && param.referenceMax !== undefined) {
-        const numValue = parseFloat(value);
-        if (numValue < param.referenceMin) {
-          updatedResults[index].flag = 'LOW';
-        } else if (numValue > param.referenceMax) {
-          updatedResults[index].flag = 'HIGH';
-        } else {
-          updatedResults[index].flag = 'NORMAL';
-        }
-      }
-    }
-    
-    setResults(updatedResults);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedTestType || !patientId) {
+      console.error('Error loading test type:', error);
       toast({
-        title: 'Error',
-        description: 'Please select a test type',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load test parameters",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateTestResult = (index: number, field: string, value: any) => {
+    const updatedResults = [...testResults];
+    updatedResults[index] = {
+      ...updatedResults[index],
+      [field]: value
+    };
+    setTestResults(updatedResults);
+  };
+
+  const getResultFlag = (result: TestResult): TestResult['flag'] => {
+    if (!result.resultValue || !result.testParameter.referenceMin || !result.testParameter.referenceMax) {
+      return 'NORMAL';
+    }
+    
+    const value = result.resultValue;
+    const min = result.testParameter.referenceMin;
+    const max = result.testParameter.referenceMax;
+    
+    if (value < min) return 'LOW';
+    if (value > max) return 'HIGH';
+    return 'NORMAL';
+  };
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    if (!patientId || !selectedTestType) {
+      toast({
+        title: "Error",
+        description: "Please select a test type",
+        variant: "destructive"
       });
       return;
     }
@@ -129,43 +139,46 @@ const LaboratoryReportForm: React.FC = () => {
     setLoading(true);
     try {
       const report: TestReport = {
-        reportNumber,
         patient: { id: parseInt(patientId) },
         testType: { id: selectedTestType.id },
-        diagnosis,
-        comments,
+        reportDate: new Date().toISOString(),
+        diagnosis: data.diagnosis,
+        comments: data.comments,
         status: 'COMPLETED',
-        results: results.filter(r => r.resultValue || r.resultText)
+        results: testResults.map(result => ({
+          ...result,
+          flag: getResultFlag(result)
+        }))
       };
 
       await laboratoryService.saveReport(report);
       
       toast({
-        title: 'Success',
-        description: 'Laboratory report saved successfully',
+        title: "Success",
+        description: "Laboratory report saved successfully"
       });
       
-      navigate(`/admin/patients/view/${patientId}`);
+      navigate(-1);
     } catch (error) {
       console.error('Error saving report:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to save laboratory report',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to save laboratory report",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const getFlagColor = (flag?: string) => {
+  const getFlagColor = (flag: TestResult['flag']) => {
     switch (flag) {
       case 'HIGH':
       case 'CRITICAL_HIGH':
         return 'bg-red-100 text-red-800';
       case 'LOW':
       case 'CRITICAL_LOW':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-blue-100 text-blue-800';
       case 'ABNORMAL':
         return 'bg-yellow-100 text-yellow-800';
       default:
@@ -180,186 +193,190 @@ const LaboratoryReportForm: React.FC = () => {
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <TestTube className="h-6 w-6 text-amber-500" />
-            Laboratory Report
-          </h1>
-          <p className="text-muted-foreground">Create new laboratory test report</p>
+        <div className="flex items-center gap-2">
+          <TestTube className="h-5 w-5 text-clinic-primary" />
+          <h1 className="text-2xl font-bold">Laboratory Report</h1>
         </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Report Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Report Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Report Number</Label>
-                <Input value={reportNumber} readOnly className="bg-muted" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Test Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Test Selection</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Test Category</Label>
-                <Select onValueChange={handleCategoryChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(category => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label>Test Type</Label>
-                <Select onValueChange={handleTestTypeChange} disabled={!selectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select test type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {testTypes.map(type => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Test Parameters */}
-        {parameters.length > 0 && (
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Report Information - Compact single line */}
           <Card>
-            <CardHeader>
-              <CardTitle>Test Results</CardTitle>
+            <CardHeader className="pb-4">
+              <CardTitle>Report Information</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {parameters.map((param, index) => (
-                  <div key={param.id} className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg">
-                    <div>
-                      <Label className="font-medium">{param.name}</Label>
-                      <p className="text-sm text-muted-foreground">
-                        {param.referenceMin && param.referenceMax ? 
-                          `${param.referenceMin} - ${param.referenceMax} ${param.unit}` :
-                          param.referenceText || 'No reference'
-                        }
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <Label>Value</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={results[index]?.resultValue || ''}
-                        onChange={(e) => handleResultChange(index, 'resultValue', e.target.value)}
-                        placeholder="Enter value"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label>Text Result</Label>
-                      <Input
-                        value={results[index]?.resultText || ''}
-                        onChange={(e) => handleResultChange(index, 'resultText', e.target.value)}
-                        placeholder="Text result"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label>Flag</Label>
-                      <Select
-                        value={results[index]?.flag || 'NORMAL'}
-                        onValueChange={(value) => handleResultChange(index, 'flag', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="NORMAL">Normal</SelectItem>
-                          <SelectItem value="HIGH">High</SelectItem>
-                          <SelectItem value="LOW">Low</SelectItem>
-                          <SelectItem value="CRITICAL_HIGH">Critical High</SelectItem>
-                          <SelectItem value="CRITICAL_LOW">Critical Low</SelectItem>
-                          <SelectItem value="ABNORMAL">Abnormal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="flex items-end">
-                      <Badge className={getFlagColor(results[index]?.flag)}>
-                        {results[index]?.flag || 'NORMAL'}
-                      </Badge>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Report Number</label>
+                  <div className="mt-1 text-sm font-mono bg-gray-50 p-2 rounded border">{reportNumber}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Test Category</label>
+                  <Select onValueChange={handleCategoryChange}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Test Type</label>
+                  <Select 
+                    onValueChange={handleTestTypeChange}
+                    disabled={!selectedCategory}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select test type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedCategory?.testTypes?.map((testType) => (
+                        <SelectItem key={testType.id} value={testType.id.toString()}>
+                          {testType.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Report Date</label>
+                  <div className="mt-1 text-sm bg-gray-50 p-2 rounded border">
+                    {new Date().toLocaleDateString()}
                   </div>
-                ))}
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Diagnosis & Comments */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Clinical Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          {/* Test Results - Table format */}
+          {testResults.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Test Results</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[200px]">Parameter</TableHead>
+                        <TableHead className="w-[120px]">Result Value</TableHead>
+                        <TableHead className="w-[100px]">Unit</TableHead>
+                        <TableHead className="w-[150px]">Reference Range</TableHead>
+                        <TableHead className="w-[100px]">Flag</TableHead>
+                        <TableHead>Notes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {testResults.map((result, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            {result.testParameter.name}
+                          </TableCell>
+                          <TableCell>
+                            {result.testParameter.referenceText ? (
+                              <Input
+                                type="text"
+                                placeholder="Enter text result"
+                                value={result.resultText || ''}
+                                onChange={(e) => updateTestResult(index, 'resultText', e.target.value)}
+                                className="h-8"
+                              />
+                            ) : (
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={result.resultValue || ''}
+                                onChange={(e) => updateTestResult(index, 'resultValue', parseFloat(e.target.value) || undefined)}
+                                className="h-8"
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="text"
+                              placeholder={result.testParameter.unit}
+                              value={result.unitOverride || result.testParameter.unit}
+                              onChange={(e) => updateTestResult(index, 'unitOverride', e.target.value)}
+                              className="h-8"
+                            />
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600">
+                            {result.testParameter.referenceText ? (
+                              <span>{result.testParameter.referenceText}</span>
+                            ) : (
+                              <span>
+                                {result.testParameter.referenceMin} - {result.testParameter.referenceMax}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getFlagColor(getResultFlag(result))}>
+                              {getResultFlag(result)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="text"
+                              placeholder="Add notes..."
+                              value={result.notes || ''}
+                              onChange={(e) => updateTestResult(index, 'notes', e.target.value)}
+                              className="h-8"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Diagnosis and Comments */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <Label>Diagnosis</Label>
+                <label className="text-sm font-medium text-gray-700">Diagnosis</label>
                 <Textarea
-                  value={diagnosis}
-                  onChange={(e) => setDiagnosis(e.target.value)}
                   placeholder="Enter diagnosis..."
-                  rows={3}
+                  value={form.watch('diagnosis')}
+                  onChange={(e) => form.setValue('diagnosis', e.target.value)}
+                  className="mt-1"
                 />
               </div>
-              
               <div>
-                <Label>Comments</Label>
+                <label className="text-sm font-medium text-gray-700">Comments</label>
                 <Textarea
-                  value={comments}
-                  onChange={(e) => setComments(e.target.value)}
-                  placeholder="Additional comments..."
-                  rows={3}
+                  placeholder="Enter additional comments..."
+                  value={form.watch('comments')}
+                  onChange={(e) => form.setValue('comments', e.target.value)}
+                  className="mt-1"
                 />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={loading || !selectedTestType}>
-            <Save className="h-4 w-4 mr-2" />
-            {loading ? 'Saving...' : 'Save Report'}
-          </Button>
-        </div>
-      </div>
+          {/* Submit Button */}
+          <div className="flex justify-end">
+            <Button type="submit" disabled={loading || testResults.length === 0}>
+              <Save className="h-4 w-4 mr-2" />
+              {loading ? 'Saving...' : 'Save Report'}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
     </AdminLayout>
   );
