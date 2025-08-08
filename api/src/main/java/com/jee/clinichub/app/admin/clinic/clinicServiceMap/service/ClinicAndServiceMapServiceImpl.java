@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import com.jee.clinichub.app.admin.clinic.clinicServiceMap.model.ClinicServiceMap;
 import com.jee.clinichub.app.admin.clinic.clinicServiceMap.model.ClinicAndServiceMapDto;
 import com.jee.clinichub.app.admin.clinic.clinicServiceMap.repository.ClinicServiceMapRepo;
+import com.jee.clinichub.app.branch.context.BranchContextHolder;
 import com.jee.clinichub.app.branch.model.Branch;
+import com.jee.clinichub.app.branch.model.BranchDto;
+import com.jee.clinichub.app.branch.repository.BranchRepository;
 import com.jee.clinichub.app.enquiryService.model.EnquiryServiceType;
 import com.jee.clinichub.global.model.Status;
 
@@ -20,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class ClinicAndServiceMapServiceImpl implements ClinicAndServiceMapService {
 
     private final ClinicServiceMapRepo clinicServiceMapRepo;
+    private final BranchRepository branchRepository;
 
     @Override
     public List<ClinicAndServiceMapDto> getAllService() {
@@ -38,11 +42,19 @@ public class ClinicAndServiceMapServiceImpl implements ClinicAndServiceMapServic
     @Override
     public Status saveOrUpdate(ClinicAndServiceMapDto clinicAndServiceMapDto) {
         try {
+            Branch branch = BranchContextHolder.getCurrentBranch();
+
+            if (branch != null && branch.getId() != null) {
+                branch = branchRepository.findById(branch.getId()).get();
+                clinicAndServiceMapDto.setBranch(new BranchDto(branch));
+            } else {
+                throw new EntityNotFoundException("Branch not found");
+            }
             boolean isExists = clinicServiceMapRepo.existsByBranch_clinic_idAndBranch_idAndEnquiryService_idAndIdNot(
-                clinicAndServiceMapDto.getBranch().getClinic().getId(),
-                clinicAndServiceMapDto.getBranch().getId(),
-                clinicAndServiceMapDto.getEnquiryService().getId(),
-                clinicAndServiceMapDto.getId() != null ? clinicAndServiceMapDto.getId() : -1
+                    branch.getClinic().getId(),
+                    branch.getId(),
+                    clinicAndServiceMapDto.getEnquiryService().getId(),
+                    clinicAndServiceMapDto.getId() != null ? clinicAndServiceMapDto.getId() : -1
 
             );
 
@@ -50,10 +62,13 @@ public class ClinicAndServiceMapServiceImpl implements ClinicAndServiceMapServic
                 return new Status(false, "This Service already exists with this branch and clinic");
             }
 
-            ClinicServiceMap clinicServiceMap = clinicAndServiceMapDto.getId() == null ? new ClinicServiceMap(clinicAndServiceMapDto)
+            ClinicServiceMap clinicServiceMap = clinicAndServiceMapDto.getId() == null
+                    ? new ClinicServiceMap(clinicAndServiceMapDto)
                     : update(clinicAndServiceMapDto);
-                    clinicServiceMapRepo.save(clinicServiceMap);
-            return new Status(true, clinicAndServiceMapDto.getId() == null ? "Saved successfuly" : "Update successfuly");
+            clinicServiceMap.setBranch(branch);
+            clinicServiceMapRepo.save(clinicServiceMap);
+            return new Status(true,
+                    clinicAndServiceMapDto.getId() == null ? "Saved successfuly" : "Update successfuly");
         } catch (Exception e) {
             return new Status(false, "Something went wrong");
         }
@@ -67,7 +82,6 @@ public class ClinicAndServiceMapServiceImpl implements ClinicAndServiceMapServic
 
         ClinicServiceMap existing = optionalService.get();
 
-        existing.setPrice(clinicAndServiceMapDto.getPrice());
         existing.setEnquiryService(new EnquiryServiceType(clinicAndServiceMapDto.getEnquiryService()));
         existing.setBranch(Branch.fromDto(clinicAndServiceMapDto.getBranch()));
         return existing;
@@ -83,8 +97,6 @@ public class ClinicAndServiceMapServiceImpl implements ClinicAndServiceMapServic
                 });
         return new Status(true, "Deleted Successfully");
     }
-
- 
 
     @Override
     public List<ClinicAndServiceMapDto> getAllByBranchId(Long id) {

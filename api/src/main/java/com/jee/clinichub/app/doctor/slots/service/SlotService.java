@@ -34,8 +34,9 @@ public interface SlotService {
     List<SlotDto> getSlotsByDoctorBranchIdAndDate(Long doctorBranchId, String date);
 
 	List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId, String date);
-
 	
-	Status generatePreviewSlots(Long doctorBranchId);
+	Status generatePreviewSlots(Long doctorBranchId, int daysToGenerate);
+
+	void syncSlotsToMaster(String clientId,int days);
 
 }

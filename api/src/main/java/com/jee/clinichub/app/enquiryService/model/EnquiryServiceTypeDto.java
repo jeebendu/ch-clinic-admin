@@ -32,10 +32,13 @@ public class EnquiryServiceTypeDto {
 	
 	private Long count;
 
+	private java.util.UUID globalId;
+
 
 	public EnquiryServiceTypeDto(EnquiryServiceType enquiryServiceType) {
 		this.id = enquiryServiceType.getId();
 		this.name = enquiryServiceType.getName();
+		this.globalId=enquiryServiceType.getGlobalId();
 	}
 
 }

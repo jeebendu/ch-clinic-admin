@@ -4,20 +4,18 @@ import java.io.Serializable;
 
 import org.hibernate.annotations.DynamicUpdate;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.jee.clinichub.app.catalog.product.model.Product;
-import com.jee.clinichub.app.patient.model.Patient;
+import com.jee.clinichub.app.doctor.model.DoctorStatus;
 import com.jee.clinichub.config.audit.Auditable;
+import com.jee.clinichub.global.utility.SlugUtil;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,43 +23,44 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
-//@Audited
+// @Audited
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @DynamicUpdate
 @Entity
 @Table(name = "service_type")
-//@EntityListeners(AuditingEntityListener.class)
+// @EntityListeners(AuditingEntityListener.class)
 
 public class EnquiryServiceType extends Auditable<String> implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	@Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
-	@Column(name="name")
+
+	@Column(name = "name")
 	private String name;
 
+	@Column(name = "global_id", unique = true)
+	private java.util.UUID globalId;
 
+	@PrePersist
+	public void generateSlugAndGlobalUuid() {
+		if (this.globalId == null) {
+			this.globalId = java.util.UUID.randomUUID();
+		}
+
+	}
 
 	public EnquiryServiceType(EnquiryServiceTypeDto enquiryServiceTypeDto) {
-		this.id=enquiryServiceTypeDto.getId();
-		this.name=enquiryServiceTypeDto.getName();	
+		this.id = enquiryServiceTypeDto.getId();
+		this.name = enquiryServiceTypeDto.getName();
+		this.globalId=enquiryServiceTypeDto.getGlobalId();
 	}
-
 
 	public EnquiryServiceType(long id) {
-		this.id=id;
+		this.id = id;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
 
 }

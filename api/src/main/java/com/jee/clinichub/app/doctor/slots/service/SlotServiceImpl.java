@@ -1,18 +1,20 @@
 package com.jee.clinichub.app.doctor.slots.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jee.clinichub.app.doctor.model.DoctorBranch;
@@ -26,25 +28,29 @@ import com.jee.clinichub.app.doctor.slots.model.SlotStatus;
 import com.jee.clinichub.app.doctor.slots.model.SlotType;
 import com.jee.clinichub.app.doctor.slots.repository.SlotRepo;
 import com.jee.clinichub.app.doctor.timeRange.model.DoctorTimeRange;
+import com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklySchedule;
 import com.jee.clinichub.app.doctor.weeklySchedule.repository.WeeklyScheduleRepo;
 import com.jee.clinichub.global.model.Status;
+import com.jee.clinichub.global.tenant.context.TenantContextHolder;
+import com.jee.clinichub.global.utility.DateUtility;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @Service
+@RequiredArgsConstructor
 public class SlotServiceImpl implements SlotService {
 
-    @Autowired
-    private SlotRepo slotRepo;
-
-    @Autowired
-    private DoctorBranchRepo doctorBranchRepo;
-
-    @Autowired
-    private WeeklyScheduleRepo weeklyScheduleRepo;
+    private final SlotRepo slotRepo;
+    private final DoctorBranchRepo doctorBranchRepo;
+    private final WeeklyScheduleRepo wScheduleRepo;
+    private final DoctorSlotSyncService slotSyncService;
+    
+    @Value("${app.default-tenant}")
+	private String defaultTenant;
 
     @Override
     public List<SlotDto> getAllSlots() {
@@ -57,283 +63,372 @@ public class SlotServiceImpl implements SlotService {
     }
 
     @Override
-    public Status deleteById(Long id) {
-        try {
-            slotRepo.findById(id).ifPresentOrElse(
-                    slot -> {
-                        slotRepo.deleteById(id);
-                    },
-                    () -> {
-                        throw new EntityNotFoundException("Slot not found with ID: " + id);
-                    }
-            );
-            return new Status(true, "Deleted Successfully");
-        } catch (Exception e) {
-            log.error("Error deleting slot: {}", e.getMessage(), e);
-            return new Status(false, "Failed to delete slot");
-        }
-    }
-
-    @Override
-    public List<SlotDto> getFilteredSlots(SlotHandler slotHandler) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getFilteredSlots'");
-    }
-
-    @Override
-    public Status saveAllSlot(List<Slot> slotList) {
-        try {
-            slotRepo.saveAll(slotList);
-            return new Status(true, "Slots saved successfully");
-        } catch (Exception e) {
-            log.error("Error saving slots: {}", e.getMessage(), e);
-            return new Status(false, "Failed to save slots: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public List<UUID> slotByGlobalIdIn(List<UUID> globalSlotIds) {
-        return slotRepo.findAllByGlobalSlotIdIn(globalSlotIds).stream().map(Slot::getGlobalSlotId).toList();
-    }
-
-    @Override
-    public Slot slotByGlobalId(UUID globalId) {
-        return slotRepo.findAllByGlobalSlotId(globalId).orElse(null);
-    }
-
-    @Override
-    public Status saveOrUpdateSlot(Slot slot) {
-        try {
-            slotRepo.save(slot);
-            return new Status(true, "Slot saved successfully");
-        } catch (Exception e) {
-            log.error("Error saving slot: {}", e.getMessage(), e);
-            return new Status(false, "Failed to save slot: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public List<SlotDto> getSlotsByDoctorBranchIdAndDate(Long doctorBranchId, String date) {
-        Date dateValue = java.sql.Date.valueOf(date);
-        return slotRepo.findAllByDoctorBranch_idAndDate(doctorBranchId, dateValue).stream().map(SlotDto::new).toList();
-    }
-
-    @Override
-    public List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId, String date) {
-		Date dateValue = java.sql.Date.valueOf(date);
-        return slotRepo.findAllByDoctorBranch_idAndDate(doctorBranchId, dateValue);
-	}
-
-	
-
-	@Override
-    @Transactional
     public Status generateSlot(SlotHandler slotHandler) {
         try {
-            DoctorBranch doctorBranch = doctorBranchRepo.findById(slotHandler.getDoctorBranchDto().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Doctor Branch not found"));
+            // IMPROVED: More comprehensive duplicate check
+            boolean isSlotExist = slotRepo.existsByDoctorBranch_idAndDateAndStartTimeAndEndTime(
+                    slotHandler.getDoctorBranchDto().getId(),
+                    slotHandler.getDate(),
+                    slotHandler.getStartTime(),
+                    slotHandler.getEndTime());
 
-            List<Slot> slotsToSave = new ArrayList<>();
-            LocalTime currentStart = slotHandler.getStartTime();
+            if (isSlotExist) {
+                return new Status(false, "Slot already exists for this time period");
+            }
+
+            LocalTime startTime = slotHandler.getStartTime();
             LocalTime endTime = slotHandler.getEndTime();
+            long totalMinutes = java.time.Duration.between(startTime, endTime).toMinutes();
 
-            if (slotHandler.getSlotType() == SlotType.TIMEWISE) {
-                while (currentStart.isBefore(endTime)) {
+            if (slotHandler.getSlotType().equals(SlotType.TIMEWISE)) {
+                List<Slot> slots = new ArrayList<>();
+                
+                if (endTime.isBefore(startTime)) {
+                    return new Status(false, "End time should be greater than start time");
+                }
+
+                LocalTime currentStart = startTime;
+                while (!currentStart.plusMinutes(slotHandler.getSlotDuration()).isAfter(endTime)) {
+                    if (totalMinutes < slotHandler.getSlotDuration()) {
+                        return new Status(false,
+                                "Time gap between start time and end time should be greater than slot duration");
+                    }
+
                     LocalTime currentEnd = currentStart.plusMinutes(slotHandler.getSlotDuration());
                     
-                    if (currentEnd.isAfter(endTime)) {
-                        break;
-                    }
+                    // IMPROVED: Check each individual time slot for duplicates
+                    boolean timeSlotExists = slotRepo.existsByDoctorBranch_idAndDateAndStartTimeAndEndTime(
+                            slotHandler.getDoctorBranchDto().getId(),
+                            slotHandler.getDate(),
+                            currentStart,
+                            currentEnd);
+                    
+                    if (!timeSlotExists) {
+                        Slot slot = new Slot();
+                        slot.setDoctorBranch(new DoctorBranch(slotHandler.getDoctorBranchDto()));
+                        slot.setDate(slotHandler.getDate());
+                        slot.setStartTime(currentStart);
+                        slot.setSlotType(slotHandler.getSlotType());
+                        slot.setEndTime(currentEnd);
+                        slot.setAvailableSlots(1);
+                        slot.setTotalSlots(1);
+                        slot.setStatus(SlotStatus.AVAILABLE);
+                        slot.setDuration(slotHandler.getSlotDuration());
 
-                    // Use extracted duplicate checking method
-                    if (!isDuplicateSlot(slotHandler.getDoctorBranchDto().getId(), slotHandler.getDate(), currentStart, currentEnd)) {
-                        Slot slot = createSlotFromHandler(slotHandler, doctorBranch, currentStart, currentEnd);
-                        slotsToSave.add(slot);
-                    } else {
-                        log.warn("Duplicate slot found for time {} - {}, skipping", currentStart, currentEnd);
+                        slots.add(slot);
                     }
-
-                    currentStart = currentEnd;
+                    
+                    currentStart = currentStart.plusMinutes(slotHandler.getSlotDuration());
                 }
-            } else if (slotHandler.getSlotType() == SlotType.COUNTWISE) {
-                // Use extracted duplicate checking method
-                if (!isDuplicateSlot(slotHandler.getDoctorBranchDto().getId(), slotHandler.getDate(), currentStart, endTime)) {
-                    Slot slot = createSlotFromHandler(slotHandler, doctorBranch, currentStart, endTime);
-                    slot.setTotalSlots(slotHandler.getMaxCapacity());
-                    slot.setAvailableSlots(slotHandler.getMaxCapacity());
-                    slotsToSave.add(slot);
+                
+                if (!slots.isEmpty()) {
+                    slotRepo.saveAll(slots);
+                    return new Status(true, "Slot generated successfully. Created " + slots.size() + " slots.");
                 } else {
-                    return new Status(false, "Duplicate slot already exists for this time range");
+                    return new Status(false, "All slots already exist for this time period");
                 }
-            }
-
-            if (!slotsToSave.isEmpty()) {
-                slotRepo.saveAll(slotsToSave);
-                return new Status(true, "Slots generated successfully. Total: " + slotsToSave.size());
             } else {
-                return new Status(false, "No slots were generated. All slots may already exist.");
+                Slot slot = new Slot();
+                slot.setDoctorBranch(new DoctorBranch(slotHandler.getDoctorBranchDto()));
+                slot.setDate(slotHandler.getDate());
+                slot.setStartTime(slotHandler.getStartTime());
+                slot.setEndTime(slotHandler.getEndTime());
+                slot.setSlotType(slotHandler.getSlotType());
+                slot.setAvailableSlots(slotHandler.getMaxCapacity());
+                slot.setTotalSlots(slotHandler.getMaxCapacity());
+                slot.setDuration((int) totalMinutes);
+                slot.setStatus(SlotStatus.AVAILABLE);
+                slotRepo.save(slot);
             }
-
+            
+            return new Status(true, "Slot generated successfully");
         } catch (Exception e) {
-            log.error("Error generating slots: {}", e.getMessage(), e);
-            return new Status(false, "Failed to generate slots: " + e.getMessage());
+            log.error("Error generating slot: {}", e.getMessage(), e);
+            return new Status(false, "Failed to generate slot: " + e.getMessage());
         }
     }
-
-    @Override
+    
+   
+    private LocalTime normalizeTime(LocalTime time) {
+        return time.withSecond(0).withNano(0);
+    }
+    
+    /**
+     * Generate preview/draft slots for the next 7 days based on weekly schedule
+     * Your Current Flow Summary
+		Generate slots for the next 7 days.
+		For each day, find the applicable schedule.
+		For each time range in that schedule:
+		Break it into slotDuration pieces.
+		If the slot doesn’t exist in DB, create a temporary/preview slot.
+		Save only new slots.
+     */
     @Transactional
-    public Status generatePreviewSlots(Long doctorBranchId) {
+    @Override
+    public Status generatePreviewSlots(Long doctorBranchId, int daysToGenerate) {
         try {
             DoctorBranch doctorBranch = doctorBranchRepo.findById(doctorBranchId)
                     .orElseThrow(() -> new EntityNotFoundException("Doctor Branch not found with ID: " + doctorBranchId));
 
-            List<WeeklySchedule> activeSchedules = weeklyScheduleRepo.findAllByDoctorBranch_idAndActive(doctorBranchId, true);
-            
+            // Get active weekly schedules for this doctor branch
+            List<WeeklySchedule> activeSchedules = wScheduleRepo.findAllByDoctorBranch_idAndActive(doctorBranchId, true);
+
             if (activeSchedules.isEmpty()) {
-                return new Status(false, "No active weekly schedules found for this doctor branch");
+                return new Status(true, "No active schedules found to generate slots");
             }
 
-            // Clean up existing PENDING slots for the next 30 days
-            LocalDate startDate = LocalDate.now();
-            LocalDate endDate = startDate.plusDays(30);
-            Date startDateObj = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-            Date endDateObj = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-            
-            slotRepo.deleteSlotsByStatusAndDateRange(doctorBranchId, SlotStatus.PENDING, startDateObj, endDateObj);
-
             List<Slot> previewSlots = new ArrayList<>();
-            
-            // Generate slots for next 30 days
-            for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-                DayOfWeek dayOfWeek = date.getDayOfWeek();
-                com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek scheduleDayOfWeek = mapToDayOfWeek(dayOfWeek);
-                
-                // Find schedule for this day
+            LocalDate currentDate = LocalDate.now();
+
+            for (int i = 0; i < daysToGenerate; i++) {
+                LocalDate targetDate = currentDate.plusDays(i);
+                java.time.DayOfWeek systemDayOfWeek = targetDate.getDayOfWeek();
+
+                // Convert MONDAY → Monday
+                String customEnumDay = systemDayOfWeek.name().charAt(0) + systemDayOfWeek.name().substring(1).toLowerCase();
+                DayOfWeek matchedEnum = DayOfWeek.valueOf(customEnumDay);
+
                 WeeklySchedule daySchedule = activeSchedules.stream()
-                        .filter(schedule -> schedule.getDayOfWeek() == scheduleDayOfWeek)
-                        .findFirst()
-                        .orElse(null);
-                
-                if (daySchedule != null && daySchedule.getTimeRanges() != null) {
-                    Date dateObj = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    
+                    .filter(schedule -> schedule.getDayOfWeek() == matchedEnum)
+                    .findFirst()
+                    .orElse(null);
+
+                if (daySchedule != null && daySchedule.getTimeRanges() != null && !daySchedule.getTimeRanges().isEmpty()) {
                     for (DoctorTimeRange timeRange : daySchedule.getTimeRanges()) {
-                        List<Slot> dailySlots = generateDailyPreviewSlots(doctorBranch, dateObj, timeRange);
-                        previewSlots.addAll(dailySlots);
+                        try {
+                            log.info("⏱️ Processing time range: {} - {}", timeRange.getStartTime(), timeRange.getEndTime());
+
+                            LocalTime startTime = normalizeTime(timeRange.getStartTime());
+                            LocalTime endTime = normalizeTime(timeRange.getEndTime());
+
+                            int slotDurationMinutes = timeRange != null ? timeRange.getSlotDuration() : 15;
+                	        LocalTime currentSlotTime = startTime;
+
+                            while (!currentSlotTime.plusMinutes(slotDurationMinutes).isAfter(endTime)) {
+                                LocalTime nextSlotTime = currentSlotTime.plusMinutes(slotDurationMinutes);
+
+                                boolean isSlotExist = slotRepo.existsByDoctorBranch_idAndDateAndStartTimeAndEndTime(
+                                    doctorBranchId,
+                                    java.sql.Date.valueOf(targetDate),
+                                    currentSlotTime,
+                                    nextSlotTime
+                                );
+
+                                if (!isSlotExist) {
+                                    log.info("✅ Creating new slot: {} - {}", currentSlotTime, nextSlotTime);
+
+                                    Slot slot = new Slot();
+                                    slot.setDoctorBranch(doctorBranch);
+                                    slot.setDate(java.sql.Date.valueOf(targetDate));
+                                    slot.setStartTime(currentSlotTime);
+                                    slot.setEndTime(nextSlotTime);
+                                    slot.setSlotType(daySchedule.getReleaseType());
+                                    slot.setAvailableSlots(15);
+                                    slot.setTotalSlots(15);
+                                    slot.setStatus(SlotStatus.AVAILABLE);
+                                    slot.setDuration(slotDurationMinutes);
+
+                                    previewSlots.add(slot);
+                                } else {
+                                    log.warn("⚠️ Slot already exists: {} - {}. Skipping.", currentSlotTime, nextSlotTime);
+                                }
+
+                                currentSlotTime = nextSlotTime; // Move to next slot
+                            }
+
+                        } catch (Exception e) {
+                            log.error("❌ Error generating slots for time range {} - {}: {}", 
+                                      timeRange.getStartTime(), timeRange.getEndTime(), e.getMessage(), e);
+                        }
                     }
                 }
             }
 
             if (!previewSlots.isEmpty()) {
-                slotRepo.saveAll(previewSlots);
-                return new Status(true, "Preview slots generated successfully. Total: " + previewSlots.size());
-            } else {
-                return new Status(false, "No preview slots were generated");
+                saveAllSlot(previewSlots);
+                log.info("Generated {} preview slots for doctor branch ID: {}", previewSlots.size(), doctorBranchId);
             }
+
+            return new Status(true, "Preview slots generated successfully");
 
         } catch (Exception e) {
             log.error("Error generating preview slots: {}", e.getMessage(), e);
             return new Status(false, "Failed to generate preview slots: " + e.getMessage());
         }
     }
-
-    /**
-     * Extracted duplicate checking logic to be reused by both generateSlot and generatePreviewSlots
-     */
-    private boolean isDuplicateSlot(Long doctorBranchId, Date date, LocalTime startTime, LocalTime endTime) {
-        return slotRepo.existsByDoctorBranch_idAndDateAndStartTimeAndEndTime(doctorBranchId, date, startTime, endTime);
-    }
-
-    private List<Slot> generateDailyPreviewSlots(DoctorBranch doctorBranch, Date date, DoctorTimeRange timeRange) {
-        List<Slot> slots = new ArrayList<>();
-        
-        LocalTime currentStart = timeRange.getStartTime();
-        LocalTime endTime = timeRange.getEndTime();
-        int slotDuration = timeRange.getSlotDuration() != null ? timeRange.getSlotDuration() : 30;
-        
-        if (timeRange.getSlotType() == SlotType.TIMEWISE) {
-            while (currentStart.isBefore(endTime)) {
-                LocalTime currentEnd = currentStart.plusMinutes(slotDuration);
-                
-                if (currentEnd.isAfter(endTime)) {
-                    break;
-                }
-
-                // Use extracted duplicate checking method
-                if (!isDuplicateSlot(doctorBranch.getId(), date, currentStart, currentEnd)) {
-                    Slot slot = new Slot();
-                    slot.setDoctorBranch(doctorBranch);
-                    slot.setDate(date);
-                    slot.setStartTime(currentStart);
-                    slot.setEndTime(currentEnd);
-                    slot.setDuration(slotDuration);
-                    slot.setSlotType(SlotType.TIMEWISE);
-                    slot.setStatus(SlotStatus.PENDING);
-                    slot.setTotalSlots(1);
-                    slot.setAvailableSlots(1);
-                    slot.setGlobalSlotId(UUID.randomUUID());
-                    
-                    slots.add(slot);
-                } else {
-                    log.debug("Skipping duplicate slot for time {} - {} on {}", currentStart, currentEnd, date);
-                }
-
-                currentStart = currentEnd;
-            }
-        } else if (timeRange.getSlotType() == SlotType.COUNTWISE) {
-            // Use extracted duplicate checking method
-            if (!isDuplicateSlot(doctorBranch.getId(), date, currentStart, endTime)) {
+    
+    @Override
+	public List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId, String date) {
+		
+        try {
+            // Get current date for filtering
+            Date date_ = DateUtility.stringToDate(date,"yyyy-MM-dd");
+            
+            // Use SlotHandler to get filtered slots for the doctor branch
+            SlotHandler slotHandler = new SlotHandler();
+            slotHandler.setDoctorBranchDto(new com.jee.clinichub.app.doctor.model.DoctorBranchDto());
+            slotHandler.getDoctorBranchDto().setId(doctorBranchId);
+            slotHandler.setDate(date_);
+            
+            // Get filtered slots from SlotService
+            List<SlotDto> slotDtos = getFilteredSlots(slotHandler);
+            
+            // Convert SlotDto to Slot entities
+            List<Slot> slots = new ArrayList<>();
+            for (SlotDto slotDto : slotDtos) {
                 Slot slot = new Slot();
-                slot.setDoctorBranch(doctorBranch);
-                slot.setDate(date);
-                slot.setStartTime(currentStart);
-                slot.setEndTime(endTime);
-                slot.setDuration((int) java.time.Duration.between(currentStart, endTime).toMinutes());
-                slot.setSlotType(SlotType.COUNTWISE);
-                slot.setStatus(SlotStatus.PENDING);
-                slot.setTotalSlots(timeRange.getMaxCapacity() != null ? timeRange.getMaxCapacity() : 10);
-                slot.setAvailableSlots(timeRange.getMaxCapacity() != null ? timeRange.getMaxCapacity() : 10);
-                slot.setGlobalSlotId(UUID.randomUUID());
+                slot.setId(slotDto.getId());
+                slot.setDate(slotDto.getDate());
+                slot.setStartTime(slotDto.getStartTime());
+                slot.setEndTime(slotDto.getEndTime());
+                slot.setDuration(slotDto.getDuration());
+                slot.setAvailableSlots(slotDto.getAvailableSlots());
+                slot.setTotalSlots(slotDto.getTotalSlots());
+                slot.setStatus(slotDto.getStatus());
+                slot.setSlotType(slotDto.getSlotType());
+                slot.setGlobalSlotId(slotDto.getGlobalSlotId());
+                
+                // Set doctor branch
+                DoctorBranch doctorBranch = new DoctorBranch();
+                if (slotDto.getDoctorBranch() != null) {
+                    doctorBranch.setId(slotDto.getDoctorBranch().getId());
+                    slot.setDoctorBranch(doctorBranch);
+                }
                 
                 slots.add(slot);
-            } else {
-                log.debug("Skipping duplicate COUNTWISE slot for time {} - {} on {}", currentStart, endTime, date);
             }
+            
+            return slots;
+        } catch (Exception e) {
+            log.error("Error fetching slots for doctor branch ID {}: {}", doctorBranchId, e.getMessage());
+            return new ArrayList<>();
         }
-        
-        return slots;
     }
 
-    private Slot createSlotFromHandler(SlotHandler slotHandler, DoctorBranch doctorBranch, LocalTime startTime, LocalTime endTime) {
-        Slot slot = new Slot();
-        slot.setDoctorBranch(doctorBranch);
-        slot.setDate(slotHandler.getDate());
-        slot.setStartTime(startTime);
-        slot.setEndTime(endTime);
-        slot.setDuration(slotHandler.getSlotDuration());
-        slot.setSlotType(slotHandler.getSlotType());
-        slot.setStatus(SlotStatus.AVAILABLE);
-        slot.setTotalSlots(1);
-        slot.setAvailableSlots(1);
-        slot.setGlobalSlotId(UUID.randomUUID());
-        return slot;
+
+
+    @Override
+    public Status deleteById(Long id) {
+        slotRepo.findById(id).ifPresentOrElse((slotRepo::delete), () -> {
+            throw new EntityNotFoundException("Slot with id '" + id + "' not found");
+        });
+        return new Status(true, "Slot deleted successfully");
     }
 
-    private com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek mapToDayOfWeek(DayOfWeek dayOfWeek) {
-        switch (dayOfWeek) {
-            case MONDAY: return com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek.MONDAY;
-            case TUESDAY: return com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek.TUESDAY;
-            case WEDNESDAY: return com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek.WEDNESDAY;
-            case THURSDAY: return com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek.THURSDAY;
-            case FRIDAY: return com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek.FRIDAY;
-            case SATURDAY: return com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek.SATURDAY;
-            case SUNDAY: return com.jee.clinichub.app.doctor.weeklySchedule.model.DayOfWeek.SUNDAY;
-            default: throw new IllegalArgumentException("Unknown day of week: " + dayOfWeek);
+    @Override
+    public List<SlotDto> getFilteredSlots(SlotHandler slotHandler) {
+        try {
+            // Log incoming request
+            log.info("=== getFilteredSlots called ===");
+            log.info("Doctor Branch ID: " + slotHandler.getDoctorBranchDto().getId());
+            log.info("Date from frontend: " + slotHandler.getDate());
+            log.info("Date class type: " + slotHandler.getDate().getClass().getName());
+
+            // Query DB
+            List<Slot> slots = slotRepo.findAllByDoctorBranch_idAndDate(
+                    slotHandler.getDoctorBranchDto().getId(),
+                    slotHandler.getDate());
+
+            // Log DB results
+            log.info("Slots found: " + slots.size());
+            slots.forEach(slot -> 
+                log.info("Slot ID: " + slot.getId() + " | Date: " + slot.getDate() + " | Time: " + slot.getStartTime())
+            );
+
+            return slots.stream().map(SlotDto::new).toList();
+
+        } catch (Exception e) {
+            System.err.println("Error in getFilteredSlots: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 
     @Override
-    public Page<Slot> getAllSlots(Pageable pageable) {
-        return slotRepo.findAll(pageable);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Status saveAllSlot(List<Slot> slotList) {
+        try {
+            slotRepo.saveAll(slotList);
+            return new Status(true, "Saved successfuly");
+
+        } catch (Exception e) {
+            return new Status(false, "Something went wrong");
+        }
     }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public List<UUID> slotByGlobalIdIn(List<UUID> globalSlotIds) {
+        return slotRepo.findAllByGlobalSlotIdIn(globalSlotIds)
+                .stream()
+                .map(Slot::getGlobalSlotId)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Slot slotByGlobalId(UUID globalId) {
+        return slotRepo.findAllByGlobalSlotId(globalId).get();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Status saveOrUpdateSlot(Slot slot) {
+        try {
+            if (slot.getId() == null) {
+                slot.setStatus(SlotStatus.AVAILABLE);
+                slot.setAvailableSlots(slot.getAvailableSlots()!=0?slot.getAvailableSlots():1);
+            }
+            slotRepo.save(slot);
+            return new Status(true, "Slot saved successfully");
+        } catch (Exception e) {
+            return new Status(true, "Something went wrong while saving slot");
+        }
+    }
+
+    @Override
+    public List<SlotDto> getSlotsByDoctorBranchIdAndDate(Long doctorBranchId, String date) {
+        try {
+            if (date == null || date.isEmpty()) {
+                // If no date provided, return slots for today
+                Date today = new Date();
+                List<Slot> slots = slotRepo.findAllByDoctorBranch_idAndDate(doctorBranchId, today);
+                return slots.stream().map(SlotDto::new).collect(Collectors.toList());
+            } else {
+                // Parse the date string (expected format: yyyy-MM-dd)
+                LocalDate localDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                Date targetDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                
+                List<Slot> slots = slotRepo.findAllByDoctorBranch_idAndDate(doctorBranchId, targetDate);
+                return slots.stream().map(SlotDto::new).collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void syncSlotsToMaster(String clientId,int days) {
+    	 log.info("🔄 [Client: {}] Starting slot sync to master...", clientId);
+
+    	// 1. Fetch all public slots from tenant
+    	 LocalDate today = LocalDate.now();
+    	 LocalDate endDate = today.plusDays(days - 1); // inclusive
+
+    	 Date startDate = Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    	 Date finalDate = Date.from(endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+
+         List<Slot> tenantSlots = slotRepo.findAllByDateBetween(startDate, finalDate);
+         
+         if (tenantSlots.isEmpty()) {
+             log.warn("⚠️ [Client: {}] No slots found for sync.", clientId);
+             return;
+         }
+         
+         TenantContextHolder.setCurrentTenant(defaultTenant);
+         slotSyncService.syncSlotsToMaster(tenantSlots);
+	}
+
+	
+
 }

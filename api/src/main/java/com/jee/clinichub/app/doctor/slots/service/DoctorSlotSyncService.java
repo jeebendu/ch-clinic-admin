@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jee.clinichub.app.doctor.model.DoctorBranch;
+import com.jee.clinichub.app.doctor.repository.DoctorBranchRepo;
 import com.jee.clinichub.app.doctor.service.DoctorService;
 import com.jee.clinichub.app.doctor.slots.model.Slot;
 import com.jee.clinichub.app.doctor.slots.model.SlotDto;
@@ -37,14 +39,66 @@ public class DoctorSlotSyncService {
 
     private final DoctorService doctorService;
     private final SlotRepo slotRepo;
-    private final SlotService slotService;
+    private final DoctorBranchRepo doctorBranchRepo;
 
     @Value("${app.default-tenant}")
     private String defaultTenant;
 
     @PersistenceContext
     private EntityManager entityManager;
+    
+    
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void syncSlotsToMaster(List<Slot> tenantSlots) {
+        List<Slot> toInsert = new ArrayList<>();
+        List<Slot> toUpdate = new ArrayList<>();
 
+        for (Slot tenantSlot : tenantSlots) {
+            UUID globalDoctorBranchId = tenantSlot.getDoctorBranch().getGlobalDoctorBranchId();
+            DoctorBranch masterDoctorBranch = doctorBranchRepo
+                    .findByGlobalDoctorBranchId(globalDoctorBranchId)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "No DoctorBranch found in master for GlobalDoctorBranchId: " + globalDoctorBranchId));
+
+            Optional<Slot> existing = slotRepo.findByGlobalSlotId(tenantSlot.getGlobalSlotId());
+
+            if (existing.isPresent()) {
+                // Update
+                Slot masterSlot = existing.get();
+                masterSlot.setDate(tenantSlot.getDate());
+                masterSlot.setStartTime(tenantSlot.getStartTime());
+                masterSlot.setEndTime(tenantSlot.getEndTime());
+                masterSlot.setAvailableSlots(tenantSlot.getAvailableSlots());
+                masterSlot.setStatus(tenantSlot.getStatus());
+                masterSlot.setSlotType(tenantSlot.getSlotType());
+                masterSlot.setDuration(tenantSlot.getDuration());
+                masterSlot.setDoctorBranch(masterDoctorBranch); // ✅ Always set master branch
+                slotRepo.save(masterSlot);
+
+                toUpdate.add(masterSlot);
+            } else {
+                // Insert
+                Slot newSlot = new Slot();
+                newSlot.setGlobalSlotId(tenantSlot.getGlobalSlotId());
+                newSlot.setDate(tenantSlot.getDate());
+                newSlot.setStartTime(tenantSlot.getStartTime());
+                newSlot.setEndTime(tenantSlot.getEndTime());
+                newSlot.setAvailableSlots(tenantSlot.getAvailableSlots());
+                newSlot.setStatus(tenantSlot.getStatus());
+                newSlot.setSlotType(tenantSlot.getSlotType());
+                newSlot.setDuration(tenantSlot.getDuration());
+                newSlot.setDoctorBranch(masterDoctorBranch); // ✅ Set branch here too
+                slotRepo.save(newSlot);
+
+                toInsert.add(newSlot);
+            }
+        }
+
+        log.info("✅ [Client: {}] Slot sync complete. Inserted: {} | Updated: {}",
+                "Master", toInsert.size(), toUpdate.size());
+    }
+    
+    /*
     public void syncSlotToMaster(UUID doctorBranchGlobalId,LocalDate date) {
         try {
 
@@ -53,11 +107,8 @@ public class DoctorSlotSyncService {
         Date startOfDay = Date.from(date.atStartOfDay(zone).toInstant());
         Date endOfDay = Date.from(date.atTime(LocalTime.MAX).atZone(zone).toInstant());
 
-        List<Slot> existingSlots = slotRepo
-            .findAllByDoctorBranch_globalDoctorBranchIdAndDateBetween(
-                doctorBranchGlobalId, startOfDay, endOfDay);
-
-            this.saveSlotToTenant(doctorBranchGlobalId, existingSlots);
+        List<Slot> existingSlots = slotRepo.findAllByDoctorBranch_globalDoctorBranchIdAndDateBetween(doctorBranchGlobalId, startOfDay, endOfDay);
+        this.saveSlotToTenant(doctorBranchGlobalId, existingSlots);
 
         } catch (Exception e) {
             throw new RuntimeException(
@@ -65,8 +116,10 @@ public class DoctorSlotSyncService {
         }
     }
 
+   
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveSlotToTenant(UUID doctorBranchGlobalId, List<Slot> existingSlots) {
+    	
         String originalTenantContext = TenantContextHolder.getCurrentTenant();
         try {
             TenantContextHolder.setCurrentTenant(defaultTenant);
@@ -98,7 +151,7 @@ public class DoctorSlotSyncService {
                     .collect(Collectors.toList());
 
             if (!slotList.isEmpty()) {
-                Status status = slotService.saveAllSlot(slotList);
+                Status status = slotRepo.save(slotList);
                 if (!status.isStatus()) {
                     throw new RuntimeException("Fail to save to master");
                 }
@@ -115,7 +168,7 @@ public class DoctorSlotSyncService {
             TenantContextHolder.setCurrentTenant(originalTenantContext);
         }
     }
-
+*/
    
 
 

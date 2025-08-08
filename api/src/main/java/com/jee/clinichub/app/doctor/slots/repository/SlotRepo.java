@@ -1,6 +1,7 @@
 
 package com.jee.clinichub.app.doctor.slots.repository;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Date;
@@ -9,11 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.jee.clinichub.app.doctor.slots.model.Slot;
 import com.jee.clinichub.app.doctor.slots.model.SlotProj;
@@ -52,23 +51,16 @@ public interface SlotRepo extends JpaRepository<Slot, Long> {
         return findPendingSlotsInDateRange(SlotStatus.PENDING, startDate, endDate);
     }
 
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Slot s WHERE s.doctorBranch.id = :doctorBranchId AND s.status = :status AND s.date BETWEEN :startDate AND :endDate")
-    void deletePendingSlotsByDoctorBranchAndDateRange(@Param("doctorBranchId") Long doctorBranchId, 
-                                                     @Param("startDate") Date startDate, 
-                                                     @Param("endDate") Date endDate);
+	boolean existsByDoctorBranch_idAndDateAndStartTimeAndEndTime(Long doctorBranchId, LocalDate date,
+			LocalTime startTime, LocalTime endTime);
+	
+	
+	@Query("SELECT s FROM Slot s WHERE s.startTime = :startTime AND s.endTime = :endTime")
+	List<Slot> findByStartTimeAndEndTime(@Param("startTime") LocalTime startTime,
+	                                     @Param("endTime") LocalTime endTime);
+	
+	
+    List<Slot> findAllByDateBetween(Date start, Date end);
 
-    // Convenience method for deleting pending slots
-    default void deletePendingSlotsByDoctorBranchAndDateRange(Long doctorBranchId, Date startDate, Date endDate) {
-        deletePendingSlotsByDoctorBranchAndDateRange(doctorBranchId, SlotStatus.PENDING, startDate, endDate);
-    }
-
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Slot s WHERE s.doctorBranch.id = :doctorBranchId AND s.status = :status AND s.date BETWEEN :startDate AND :endDate")
-    void deleteSlotsByStatusAndDateRange(@Param("doctorBranchId") Long doctorBranchId, 
-                                        @Param("status") SlotStatus status,
-                                        @Param("startDate") Date startDate, 
-                                        @Param("endDate") Date endDate);
+	Optional<Slot> findByGlobalSlotId(UUID globalSlotId);
 }

@@ -1,4 +1,3 @@
-
 package com.jee.clinichub.app.doctor.weeklySchedule.service;
 
 
@@ -6,11 +5,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jee.clinichub.app.doctor.model.DoctorBranch;
 import com.jee.clinichub.app.doctor.model.DoctorBranchDto;
 import com.jee.clinichub.app.doctor.repository.DoctorBranchRepo;
+import com.jee.clinichub.app.doctor.slots.model.Slot;
 import com.jee.clinichub.app.doctor.slots.service.SlotService;
 import com.jee.clinichub.app.doctor.timeRange.repository.DoctorTimeRangeRepository;
 import com.jee.clinichub.app.doctor.weeklySchedule.model.WeeklySchedule;
@@ -83,8 +84,9 @@ public class WeeklyScheduleServiceImpl implements WeeklyScheduleService {
             }
 
             // Generate preview/draft slots after saving schedule
-            return generatePreviewSlots(drBranchId);
+            slotService.generatePreviewSlots(drBranchId,7);
 
+            return new Status(true, "Weekly schedules saved successfully");
         } catch (Exception e) {
             log.error("Error saving weekly schedules: {}", e.getMessage(), e);
             return new Status(false, "Failed to save weekly schedules: " + e.getMessage());
@@ -173,13 +175,50 @@ public class WeeklyScheduleServiceImpl implements WeeklyScheduleService {
                 .toList();
     }
 
-    @Override
-    public Status generatePreviewSlots(Long doctorBranchId) {
-        try {
-            return slotService.generatePreviewSlots(doctorBranchId);
-        } catch (Exception e) {
-            log.error("Error generating preview slots: {}", e.getMessage(), e);
-            return new Status(false, "Failed to generate preview slots: " + e.getMessage());
-        }
-    }
+	@Override
+	public Status generatePreviewSlots(Long doctorBranchId) {
+		return slotService.generatePreviewSlots(doctorBranchId,7);
+	}
+
+	@Override
+	public List<Slot> getSlotsByDoctorBranchId(Long doctorBranchId, String date) {
+		
+		return slotService.getSlotsByDoctorBranchId(doctorBranchId,date);
+	}
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void generateSlotsForTenant(String clientId) {
+	    long startTime = System.currentTimeMillis();
+	    log.info("🟢 [Client: {}] Starting slot generation for tenant...", clientId);
+
+	    List<WeeklySchedule> activeSchedules = findAllByActive(true);
+	    if (activeSchedules.isEmpty()) {
+	        log.warn("⚠️ [Client: {}] No active schedules found. Skipping slot generation.", clientId);
+	        return;
+	    }
+
+	    int totalBranches = activeSchedules.size();
+	    int successCount = 0;
+	    int failCount = 0;
+
+	    for (WeeklySchedule schedule : activeSchedules) {
+	        Long branchId = schedule.getDoctorBranch().getId();
+	        try {
+	            log.info("📅 [Client: {}] Generating slots for Branch ID: {} (Next 7 days)", clientId, branchId);
+	            slotService.generatePreviewSlots(branchId, 7); // keeps next 7 days full
+	            successCount++;
+	        } catch (Exception e) {
+	            failCount++;
+	            log.error("❌ [Client: {}] Failed to generate slots for Branch ID: {} - {}",
+	                      clientId, branchId, e.getMessage(), e);
+	        }
+	    }
+
+	    long duration = System.currentTimeMillis() - startTime;
+	    log.info("✅ [Client: {}] Slot generation completed. Branches: {} | Success: {} | Failed: {} | Time: {} ms",
+	             clientId, totalBranches, successCount, failCount, duration);
+	}
+
+	
 }

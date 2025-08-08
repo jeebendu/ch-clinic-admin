@@ -39,16 +39,20 @@ public class Slot extends Auditable<String> implements Serializable {
 
     @Column(name = "start_time")
     private LocalTime startTime;
+    
     @Column(name = "end_time")
     private LocalTime endTime;
+    
     @Column(name = "available_slots")
     private int availableSlots;
 
     @Column(name = "total_slots")
     private int totalSlots;
+    
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private SlotStatus status;
+    
     @Column(name = "date")
     private Date date;
 
