@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, TestTube } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { laboratoryService, TestCategory, TestType, TestParameter, TestResult, TestReport } from '../../services/laboratoryService';
+import AdminLayout from '@/admin/components/AdminLayout';
 
 const LaboratoryReportForm: React.FC = () => {
   const { patientId } = useParams<{ patientId: string }>();
@@ -173,7 +174,8 @@ const LaboratoryReportForm: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <AdminLayout>
+    <div className="">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
@@ -359,6 +361,7 @@ const LaboratoryReportForm: React.FC = () => {
         </div>
       </div>
     </div>
+    </AdminLayout>
   );
 };
 
