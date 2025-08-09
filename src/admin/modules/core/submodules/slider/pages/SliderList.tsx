@@ -5,7 +5,7 @@ import AdminLayout from "@/admin/components/AdminLayout";
 
 const SliderList = () => {
   return (
-    <AdminLayout>
+    <>
       <PageHeader 
         title="Website Sliders" 
         showAddButton={true}
@@ -15,7 +15,7 @@ const SliderList = () => {
       <div className="bg-white p-4 rounded-lg shadow">
         <p>Slider list page - coming soon</p>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

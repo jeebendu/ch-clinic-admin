@@ -5,7 +5,7 @@ import AdminLayout from "@/admin/components/AdminLayout";
 
 const RepairList = () => {
   return (
-    <AdminLayout>
+    <>
       <PageHeader 
         title="Patient Repairs" 
         showAddButton={true}
@@ -15,7 +15,7 @@ const RepairList = () => {
       <div className="bg-white p-4 rounded-lg shadow">
         <p>Repair list page - coming soon</p>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

@@ -185,7 +185,7 @@ const RepairCompanyList = () => {
   const loadedElements = filteredRepairCompanies.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Repair Company" 
@@ -266,7 +266,7 @@ const RepairCompanyList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

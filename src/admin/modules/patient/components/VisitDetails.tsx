@@ -428,7 +428,7 @@ const VisitDetails = () => {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         {/* Header with back button and actions */}
         <div className="flex items-center justify-between">
@@ -1123,7 +1123,7 @@ const VisitDetails = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 };
 

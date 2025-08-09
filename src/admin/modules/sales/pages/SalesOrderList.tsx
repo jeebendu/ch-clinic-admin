@@ -204,7 +204,7 @@ const SalesOrderList = () => {
   const loadedElements = filteredOrders.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Orders" 
@@ -271,7 +271,7 @@ const SalesOrderList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

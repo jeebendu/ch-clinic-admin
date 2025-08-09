@@ -294,7 +294,7 @@ const DoctorListPage = () => {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="h-full flex flex-col" onScroll={handleScroll}>
         <PageHeader
           title="Doctors"
@@ -386,7 +386,7 @@ const DoctorListPage = () => {
           onVerify={handleDoctorVerify}
         />
       )}
-    </AdminLayout>
+    </>
   );
 };
 

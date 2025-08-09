@@ -185,7 +185,7 @@ const SequenceList = () => {
   const loadedElements = filteredSequences.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Sequence" 
@@ -266,7 +266,7 @@ const SequenceList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

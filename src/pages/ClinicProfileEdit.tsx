@@ -79,19 +79,19 @@ const ClinicProfileEdit = () => {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <>
         <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading clinic profile...</p>
           </div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -132,7 +132,7 @@ const ClinicProfileEdit = () => {
           isLoading={isSaving}
         /> */}
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

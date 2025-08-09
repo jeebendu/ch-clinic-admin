@@ -99,7 +99,7 @@ const PatientList = () => {
   const loadedElements = patients.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Patients" 
@@ -159,7 +159,7 @@ const PatientList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

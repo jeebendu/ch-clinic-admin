@@ -74,7 +74,7 @@ const DoctorScheduleView = () => {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
@@ -141,7 +141,7 @@ const DoctorScheduleView = () => {
           </Card>
         )}
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

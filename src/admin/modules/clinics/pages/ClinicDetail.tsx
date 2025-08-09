@@ -387,27 +387,27 @@ const ClinicDetail = () => {
 
   if (isLoadingClinic) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <p className="text-muted-foreground">Loading clinic information...</p>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   if (clinicError || !clinic) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex flex-col items-center justify-center h-64 gap-4">
           <p className="text-destructive">Error loading clinic. It might not exist or you may not have access.</p>
           <Button onClick={() => navigate("/admin/clinics")}>Return to Clinics List</Button>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         {/* Header with basic clinic info */}
         <PageHeader
@@ -1134,7 +1134,7 @@ const ClinicDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 };
 

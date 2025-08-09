@@ -235,7 +235,7 @@ const ReferralDoctorReport = () => {
   const loadedElements = filteredReferralData.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Referral Doctor Report" 
@@ -350,7 +350,7 @@ const ReferralDoctorReport = () => {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

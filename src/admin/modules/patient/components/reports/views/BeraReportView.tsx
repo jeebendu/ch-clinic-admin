@@ -64,17 +64,17 @@ const BeraReportView: React.FC = () => {
 
   if (loading) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"></div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   if (!report) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
           <p className="text-destructive font-medium">Report not found</p>
           <Button variant="outline" onClick={handleBack}>
@@ -82,12 +82,12 @@ const BeraReportView: React.FC = () => {
             Back
           </Button>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
@@ -179,7 +179,7 @@ const BeraReportView: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

@@ -225,7 +225,7 @@ const EnquiryServiceTypeList = () => {
   const loadedElements = filteredSpeciality.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Service" 
@@ -293,7 +293,7 @@ const EnquiryServiceTypeList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

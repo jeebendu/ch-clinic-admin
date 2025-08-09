@@ -18,7 +18,7 @@ const AudiometryTest: React.FC = () => {
   };
   
   return (
-    <AdminLayout>
+    <>
       <div className="p-6">
         <PageHeader 
           title="Audiometry Test" 
@@ -29,7 +29,7 @@ const AudiometryTest: React.FC = () => {
           <Audiogram onSave={handleSaveAudiogram} />
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

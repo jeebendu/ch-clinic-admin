@@ -219,7 +219,7 @@ const BranchList = () => {
   const loadedElements = filteredBranches.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Branches" 
@@ -293,7 +293,7 @@ const BranchList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

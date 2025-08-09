@@ -5,7 +5,7 @@ import AdminLayout from "@/admin/components/AdminLayout";
 
 const AvailabilityList = () => {
   return (
-    <AdminLayout>
+    <>
       <PageHeader 
         title="Doctor Availability" 
         showAddButton={true}
@@ -15,7 +15,7 @@ const AvailabilityList = () => {
       <div className="bg-white p-4 rounded-lg shadow">
         <p>Availability list page - coming soon</p>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

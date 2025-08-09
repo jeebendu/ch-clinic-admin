@@ -70,7 +70,7 @@ const upcomingAppointments = [
 
 const DoctorDashboard = () => {
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <PageHeader 
           title="Doctor Dashboard" 
@@ -154,7 +154,7 @@ const DoctorDashboard = () => {
           </Card>
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

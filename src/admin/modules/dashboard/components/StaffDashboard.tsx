@@ -82,7 +82,7 @@ const StaffDashboard = () => {
   };
   
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <PageHeader 
           title="Staff Dashboard" 
@@ -214,7 +214,7 @@ const StaffDashboard = () => {
           <QuickPatientForm onFormClose={() => setQuickFormOpen(false)} />
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 };
 

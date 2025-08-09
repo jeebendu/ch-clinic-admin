@@ -301,7 +301,7 @@ const ClinicRequestsList = () => {
   const loadedElements = filteredRequests.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Clinic Requests" 
@@ -453,7 +453,7 @@ const ClinicRequestsList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

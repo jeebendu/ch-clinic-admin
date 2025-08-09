@@ -190,7 +190,7 @@ export default function DoctorAvailability() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-6">
         <PageHeader 
           title="Doctor Availability & Leaves" 
@@ -387,6 +387,6 @@ export default function DoctorAvailability() {
           </TabsContent>
         </Tabs>
       </div>
-    </AdminLayout>
+    </>
   );
 }

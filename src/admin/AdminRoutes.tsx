@@ -1,10 +1,9 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import "./styles/admin.css";
 import DashboardRoutes from "./modules/dashboard/routes/DashboardRoutes";
 import AppointmentRoutes from "./modules/appointments/routes/AppointmentRoutes";
 import PatientRoutes from "./modules/patient/routes/PatientRoutes";
 import BranchRoutes from "./modules/branch/routes/BranchRoutes";
-import CustomerRoutes from "./modules/customer/routes/CustomerRoutes";
 import DoctorRoutes from "./modules/doctor/DoctorRoutes";
 import UserRoutes from "./modules/user/UserRoutes";
 import CoreRoutes from "./modules/core/routes/CoreRoutes";
@@ -26,37 +25,43 @@ import ReportsRoutes from "./modules/reports/routes/ReportsRoutes";
 import AudiometryRoutes from "./modules/audiometry/routes/AudiometryRoutes";
 import EnquiryServiceTypeRoutes from "./modules/clinics/enquiry-service/routes/EnquiryServiceTypeRoutes";
 import LabRoutes from "./modules/lab/routes/LabRoutes";
+import AdminLayout from "./components/AdminLayout";
 
 const AdminRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<DashboardRoutes />} />
-      <Route path="/dashboard/*" element={<DashboardRoutes />} />
-      <Route path="/appointments/*" element={<AppointmentRoutes />} />
-      <Route path="/patients/*" element={<PatientRoutes />} />
-      <Route path="/branch/*" element={<BranchRoutes />} />
-      <Route path="/sequence/*" element={<SequenceRoutes />} />
-      <Route path="/repair-company/*" element={<RepairCompanyRoutes />} />
-      <Route path="/courier/*" element={<CourierRoutes />} />
-      <Route path="/distributor/*" element={<DistributorRoutes />} />
-      <Route path="/product/*" element={<ProductRoutes/>} />
-      <Route path="/category/*" element={<CategoryRoutes/>} />
-      <Route path="/brand/*" element={<BrandRoutes />} />
-      <Route path="/product-type/*" element={<ProductTypeRoutes />} />
-      <Route path="/doctor/*" element={<DoctorRoutes />} />
-      <Route path="/users/*" element={<UserRoutes />} />
-      <Route path="/expense/*" element={<ExpenseRoutes/>} />
-      <Route path="/core/*" element={<CoreRoutes />} />
-      <Route path="/reports/*" element={<ReportsRoutes />} />
-      <Route path="/:section" element={<DashboardRoutes />} />
-      <Route path="/enquiry/*" element={<EnquiryRoutes />} />
-      <Route path="/salesOrder/*" element={<SalesOrderList />} />
-      <Route path="/purchaseOrder/*" element={<PurchaseOrderList />} />
-      <Route path="/medical-council/*" element={<MedicalCouncilList />} />
-      <Route path="/medical-degree/*" element={<MedicalDegreeList />} />
-      <Route path="/service/*" element={<EnquiryServiceTypeRoutes />} />
-      <Route path="/audiometry/*" element={<AudiometryRoutes />} />
-      <Route path="/lab/*" element={<LabRoutes />} />
+      {/* Layout route wraps all admin routes */}
+
+       <Route path="appointments/*" element={<AppointmentRoutes />} />
+       <Route path="patients/*" element={<PatientRoutes />} />
+
+      <Route element={<AdminLayout><Outlet /></AdminLayout>}>
+        <Route path="/" element={<DashboardRoutes />} />
+        <Route path="dashboard/*" element={<DashboardRoutes />} />
+        <Route path="branch/*" element={<BranchRoutes />} />
+        <Route path="sequence/*" element={<SequenceRoutes />} />
+        <Route path="repair-company/*" element={<RepairCompanyRoutes />} />
+        <Route path="courier/*" element={<CourierRoutes />} />
+        <Route path="distributor/*" element={<DistributorRoutes />} />
+        <Route path="product/*" element={<ProductRoutes />} />
+        <Route path="category/*" element={<CategoryRoutes />} />
+        <Route path="brand/*" element={<BrandRoutes />} />
+        <Route path="product-type/*" element={<ProductTypeRoutes />} />
+        <Route path="doctor/*" element={<DoctorRoutes />} />
+        <Route path="users/*" element={<UserRoutes />} />
+        <Route path="expense/*" element={<ExpenseRoutes />} />
+        <Route path="core/*" element={<CoreRoutes />} />
+        <Route path="reports/*" element={<ReportsRoutes />} />
+        <Route path=":section" element={<DashboardRoutes />} />
+        <Route path="enquiry/*" element={<EnquiryRoutes />} />
+        <Route path="salesOrder/*" element={<SalesOrderList />} />
+        <Route path="purchaseOrder/*" element={<PurchaseOrderList />} />
+        <Route path="medical-council/*" element={<MedicalCouncilList />} />
+        <Route path="medical-degree/*" element={<MedicalDegreeList />} />
+        <Route path="service/*" element={<EnquiryServiceTypeRoutes />} />
+        <Route path="audiometry/*" element={<AudiometryRoutes />} />
+        <Route path="lab/*" element={<LabRoutes />} />
+      </Route>
     </Routes>
   );
 };

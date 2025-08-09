@@ -185,7 +185,7 @@ const CourierList = () => {
   const loadedElements = filteredCouriers.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Courier" 
@@ -266,7 +266,7 @@ const CourierList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

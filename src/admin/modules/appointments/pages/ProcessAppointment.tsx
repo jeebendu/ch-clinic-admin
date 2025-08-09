@@ -262,7 +262,7 @@ const ProcessAppointment = () => {
   }
 
   return (
-    <AdminLayout>
+    <>
       <PageHeader title="Process Appointment" />
       <div className="container mx-auto mt-4">
         <div className="flex justify-between items-center">
@@ -834,7 +834,7 @@ const ProcessAppointment = () => {
           </Form>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 };
 

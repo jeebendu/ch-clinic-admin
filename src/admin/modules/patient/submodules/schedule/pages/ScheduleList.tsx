@@ -5,7 +5,7 @@ import AdminLayout from "@/admin/components/AdminLayout";
 
 const ScheduleList = () => {
   return (
-    <AdminLayout>
+    <>
       <PageHeader 
         title="Patient Schedules" 
         showAddButton={true}
@@ -15,7 +15,7 @@ const ScheduleList = () => {
       <div className="bg-white p-4 rounded-lg shadow">
         <p>Schedule list page - coming soon</p>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

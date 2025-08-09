@@ -174,7 +174,7 @@ const ExpenseList = () => {
   const loadedElements = filteredExpense.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Expense" 
@@ -255,7 +255,7 @@ const ExpenseList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

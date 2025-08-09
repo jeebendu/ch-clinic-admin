@@ -667,7 +667,7 @@ const AudiometryForm: React.FC = () => {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6 p-4">
         <h1 className="text-2xl font-bold">Audiometry Assessment</h1>
         <form onSubmit={onSubmit} className="space-y-6">
@@ -1122,7 +1122,7 @@ const AudiometryForm: React.FC = () => {
           </div>
         </form>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

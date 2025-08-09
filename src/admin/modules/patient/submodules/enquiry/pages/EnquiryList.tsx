@@ -92,7 +92,7 @@ const EnquiryList = () => {
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader
           title="Enquiries"
@@ -126,7 +126,7 @@ const EnquiryList = () => {
           enquiry={selectedEnquiry}
         />
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

@@ -188,7 +188,7 @@ const CategoryList = () => {
   const loadedElements = filteredCategories.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Category" 
@@ -269,7 +269,7 @@ const CategoryList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

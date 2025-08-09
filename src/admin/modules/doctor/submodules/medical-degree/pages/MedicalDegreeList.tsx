@@ -166,7 +166,7 @@ const MedicalDegreeList = () => {
   const loadedElements = filteredBranches.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Degree List" 
@@ -249,7 +249,7 @@ const MedicalDegreeList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

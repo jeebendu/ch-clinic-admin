@@ -247,7 +247,7 @@ const ClinicsList = () => {
   const inactiveClinics = clinics.filter(c => c.tenant?.status !== 'active').length;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Clinics" 
@@ -325,7 +325,7 @@ const ClinicsList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

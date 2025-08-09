@@ -185,7 +185,7 @@ const DistributorList = () => {
   const loadedElements = filteredDistributors.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Distributor" 
@@ -266,7 +266,7 @@ const DistributorList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

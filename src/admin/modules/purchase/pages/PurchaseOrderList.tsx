@@ -185,7 +185,7 @@ const PurchaseOrderList = () => {
   const loadedElements = filteredOrders.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Purchase Orders" 
@@ -268,7 +268,7 @@ const PurchaseOrderList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

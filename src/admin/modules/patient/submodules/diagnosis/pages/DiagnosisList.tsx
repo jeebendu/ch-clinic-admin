@@ -5,7 +5,7 @@ import AdminLayout from "@/admin/components/AdminLayout";
 
 const DiagnosisList = () => {
   return (
-    <AdminLayout>
+    <>
       <PageHeader 
         title="Patient Diagnoses" 
         description="Manage patient diagnoses and conditions"
@@ -16,7 +16,7 @@ const DiagnosisList = () => {
       <div className="bg-white p-4 rounded-lg shadow">
         <p>Diagnosis list page - coming soon</p>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

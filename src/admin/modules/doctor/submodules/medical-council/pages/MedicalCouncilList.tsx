@@ -164,7 +164,7 @@ const MedicalCouncilList = () => {
   const loadedElements = filteredBranches.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Council List" 
@@ -247,7 +247,7 @@ const MedicalCouncilList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

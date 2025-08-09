@@ -27,11 +27,11 @@ const Dashboard = () => {
   }, [navigate, userRole]);
   
   return (
-    <AdminLayout>
+    <>
       <div>
         Redirecting to {userRole.toLowerCase()} dashboard...
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

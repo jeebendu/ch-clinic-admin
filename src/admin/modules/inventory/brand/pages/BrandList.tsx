@@ -187,7 +187,7 @@ const BrandList = () => {
   const loadedElements = filteredBrands.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Brand" 
@@ -268,7 +268,7 @@ const BrandList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

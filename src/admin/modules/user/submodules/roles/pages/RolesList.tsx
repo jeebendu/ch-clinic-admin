@@ -176,7 +176,7 @@ const [roleList,setRoleList] = useState<Role[]>([]);
   const loadedElements = role.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Role" 
@@ -259,7 +259,7 @@ const [roleList,setRoleList] = useState<Role[]>([]);
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

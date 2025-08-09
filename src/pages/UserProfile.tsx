@@ -263,26 +263,26 @@ const UserProfile = () => {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <>
         <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading user profile...</p>
           </div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   if (!user) {
     return (
-      <AdminLayout>
+      <>
         <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <p className="text-gray-600">User profile not found.</p>
           </div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
@@ -300,7 +300,7 @@ const UserProfile = () => {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="container mx-auto p-6 space-y-8">
         {/* Header with Back Button */}
         <div className="flex items-center justify-between">
@@ -906,7 +906,7 @@ const UserProfile = () => {
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

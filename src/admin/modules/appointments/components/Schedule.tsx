@@ -19,7 +19,7 @@ const Schedule = () => {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-6">
         <PageHeader
           title="Schedule"
@@ -45,7 +45,7 @@ const Schedule = () => {
           onSave={handleSaveSlot}
         />
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

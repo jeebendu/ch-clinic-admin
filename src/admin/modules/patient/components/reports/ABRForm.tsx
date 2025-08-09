@@ -284,7 +284,7 @@ const ABRForm: React.FC<ABRFormProps> = ({
 
   if (standalone) {
     return (
-      <AdminLayout>
+      <>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -302,7 +302,7 @@ const ABRForm: React.FC<ABRFormProps> = ({
           
           {formContent}
         </div>
-      </AdminLayout>
+      </>
     );
   }
 

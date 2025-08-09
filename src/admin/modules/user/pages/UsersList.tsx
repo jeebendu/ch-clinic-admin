@@ -151,7 +151,7 @@ const UsersList = () => {
   const loadedElements = users.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader
           title="Users"
@@ -235,7 +235,7 @@ const UsersList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

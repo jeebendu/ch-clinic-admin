@@ -299,31 +299,31 @@ const ClinicProfile = () => {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <>
         <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading clinic profile...</p>
           </div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   if (!clinic) {
     return (
-      <AdminLayout>
+      <>
         <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <p className="text-gray-600">Clinic data not found.</p>
           </div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="container mx-auto p-6 space-y-8">
         {/* Header with Back Button */}
         <div className="flex items-center justify-between">
@@ -742,7 +742,7 @@ const ClinicProfile = () => {
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

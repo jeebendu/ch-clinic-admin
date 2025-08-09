@@ -76,7 +76,7 @@ const LoginHistoryList = () => {
     }, [handleLoadMore, loadingMore, loginHistory.length, totalElements]);
 
     return (
-        <AdminLayout>
+        <>
             <div className="space-y-6">
                 <PageHeader 
                     title="Login History" 
@@ -113,7 +113,7 @@ const LoginHistoryList = () => {
                     </div>
                 )}
             </div>
-        </AdminLayout>
+        </>
     );
 };
 

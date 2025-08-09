@@ -5,7 +5,7 @@ import AdminLayout from "@/admin/components/AdminLayout";
 
 const PercentageList = () => {
   return (
-    <AdminLayout>
+    <>
       <PageHeader 
         title="Doctor Percentages" 
         showAddButton={true}
@@ -15,7 +15,7 @@ const PercentageList = () => {
       <div className="bg-white p-4 rounded-lg shadow">
         <p>Percentage list page - coming soon</p>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

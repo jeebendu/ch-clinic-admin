@@ -117,20 +117,20 @@ const PatientView = () => {
 
   if (loading) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="space-y-2 text-center">
             <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent mx-auto"></div>
             <p className="text-muted-foreground">Loading patient details...</p>
           </div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   if (!patient) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
           <p className="text-destructive font-medium">Patient not found</p>
           <Button variant="outline" onClick={handleBackClick}>
@@ -138,12 +138,12 @@ const PatientView = () => {
             Back to patients
           </Button>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -253,7 +253,7 @@ const PatientView = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 };
 

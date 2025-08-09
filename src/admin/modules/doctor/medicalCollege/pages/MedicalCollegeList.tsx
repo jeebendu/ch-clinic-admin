@@ -169,7 +169,7 @@ const MedicalCollegeList = () => {
   const loadedElements = filteredBranches.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader
           title="College List"
@@ -252,7 +252,7 @@ const MedicalCollegeList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

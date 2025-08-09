@@ -185,7 +185,7 @@ const ProductTypeList = () => {
   const loadedElements = filteredTypes.length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4">
         <PageHeader 
           title="Product-Type" 
@@ -264,7 +264,7 @@ const ProductTypeList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 };
 

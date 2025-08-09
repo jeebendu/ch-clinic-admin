@@ -51,7 +51,7 @@ const statsData = [
 
 const AdminDashboard = () => {
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <PageHeader 
           title="Admin Dashboard" 
@@ -153,7 +153,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 
