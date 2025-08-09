@@ -68,9 +68,26 @@ public class LabOrderController {
         return labOrderService.getLabOrdersByVisitId(visitId);
     }
 
+    @GetMapping(value = "/branch/{branchId}")
+    public List<LabOrderDTO> getLabOrdersByBranchId(@PathVariable Long branchId) {
+        return labOrderService.getLabOrdersByBranchId(branchId);
+    }
+
     @GetMapping(value = "/status/{status}")
     public List<LabOrderDTO> getLabOrdersByStatus(@PathVariable LabOrderStatus status) {
         return labOrderService.getLabOrdersByStatus(status);
+    }
+
+    @GetMapping(value = "/branch/{branchId}/status/{status}")
+    public List<LabOrderDTO> getLabOrdersByBranchIdAndStatus(@PathVariable Long branchId, 
+                                                           @PathVariable LabOrderStatus status) {
+        return labOrderService.getLabOrdersByBranchIdAndStatus(branchId, status);
+    }
+
+    @GetMapping(value = "/patient/{patientId}/branch/{branchId}")
+    public List<LabOrderDTO> getLabOrdersByPatientIdAndBranchId(@PathVariable Long patientId, 
+                                                               @PathVariable Long branchId) {
+        return labOrderService.getLabOrdersByPatientIdAndBranchId(patientId, branchId);
     }
 
     @GetMapping(value = "/search/order-number")
@@ -81,6 +98,18 @@ public class LabOrderController {
     @GetMapping(value = "/search/doctor")
     public List<LabOrderDTO> searchByReferringDoctor(@RequestParam String doctorName) {
         return labOrderService.searchByReferringDoctor(doctorName);
+    }
+
+    @GetMapping(value = "/branch/{branchId}/search/order-number")
+    public List<LabOrderDTO> searchByBranchIdAndOrderNumber(@PathVariable Long branchId, 
+                                                           @RequestParam String orderNumber) {
+        return labOrderService.searchByBranchIdAndOrderNumber(branchId, orderNumber);
+    }
+
+    @GetMapping(value = "/branch/{branchId}/search/doctor")
+    public List<LabOrderDTO> searchByBranchIdAndReferringDoctor(@PathVariable Long branchId, 
+                                                               @RequestParam String doctorName) {
+        return labOrderService.searchByBranchIdAndReferringDoctor(branchId, doctorName);
     }
 
     @PostMapping(value = "/generate-order-number")

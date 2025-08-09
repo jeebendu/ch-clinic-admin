@@ -53,6 +53,9 @@ public class LabOrder extends Auditable<String> implements Serializable {
     @JoinColumn(name = "patient_id")
     private Patient patient;
 
+    @Column(name = "branch_id", nullable = false)
+    private Long branchId;
+
     @Column(name = "order_number", unique = true, nullable = false)
     private String orderNumber;
 
@@ -85,6 +88,7 @@ public class LabOrder extends Auditable<String> implements Serializable {
             this.id = labOrderDTO.getId();
         }
         this.visitId = labOrderDTO.getVisitId();
+        this.branchId = labOrderDTO.getBranchId();
         this.orderNumber = labOrderDTO.getOrderNumber();
         this.status = labOrderDTO.getStatus();
         this.priority = labOrderDTO.getPriority();

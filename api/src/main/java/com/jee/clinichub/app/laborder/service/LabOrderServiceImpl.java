@@ -1,4 +1,3 @@
-
 package com.jee.clinichub.app.laborder.service;
 
 import java.time.LocalDateTime;
@@ -49,6 +48,11 @@ public class LabOrderServiceImpl implements LabOrderService {
     @Override
     public Status saveOrUpdate(LabOrderDTO labOrderDTO) {
         try {
+            // Validate branchId is provided
+            if (labOrderDTO.getBranchId() == null) {
+                return new Status(false, "Branch ID is required");
+            }
+
             // Generate order number if creating new order
             if (labOrderDTO.getId() == null && (labOrderDTO.getOrderNumber() == null || labOrderDTO.getOrderNumber().isEmpty())) {
                 generateOrderNumber(labOrderDTO);
@@ -78,6 +82,7 @@ public class LabOrderServiceImpl implements LabOrderService {
             .orElseThrow(() -> new EntityNotFoundException("Lab Order not found with ID: " + labOrderDTO.getId()));
 
         existingOrder.setVisitId(labOrderDTO.getVisitId());
+        existingOrder.setBranchId(labOrderDTO.getBranchId());
         existingOrder.setOrderNumber(labOrderDTO.getOrderNumber());
         existingOrder.setStatus(labOrderDTO.getStatus());
         existingOrder.setPriority(labOrderDTO.getPriority());
@@ -170,8 +175,26 @@ public class LabOrderServiceImpl implements LabOrderService {
     }
 
     @Override
+    public List<LabOrderDTO> getLabOrdersByBranchId(Long branchId) {
+        List<LabOrder> labOrders = labOrderRepository.findAllByBranchId(branchId);
+        return labOrders.stream().map(LabOrderDTO::new).collect(Collectors.toList());
+    }
+
+    @Override
     public List<LabOrderDTO> getLabOrdersByStatus(LabOrderStatus status) {
         List<LabOrder> labOrders = labOrderRepository.findAllByStatus(status);
+        return labOrders.stream().map(LabOrderDTO::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LabOrderDTO> getLabOrdersByBranchIdAndStatus(Long branchId, LabOrderStatus status) {
+        List<LabOrder> labOrders = labOrderRepository.findAllByBranchIdAndStatus(branchId, status);
+        return labOrders.stream().map(LabOrderDTO::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LabOrderDTO> getLabOrdersByPatientIdAndBranchId(Long patientId, Long branchId) {
+        List<LabOrder> labOrders = labOrderRepository.findAllByPatient_idAndBranchId(patientId, branchId);
         return labOrders.stream().map(LabOrderDTO::new).collect(Collectors.toList());
     }
 
@@ -184,6 +207,18 @@ public class LabOrderServiceImpl implements LabOrderService {
     @Override
     public List<LabOrderDTO> searchByReferringDoctor(String doctorName) {
         List<LabOrder> labOrders = labOrderRepository.findByReferringDoctorContaining(doctorName);
+        return labOrders.stream().map(LabOrderDTO::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LabOrderDTO> searchByBranchIdAndOrderNumber(Long branchId, String orderNumber) {
+        List<LabOrder> labOrders = labOrderRepository.findByBranchIdAndOrderNumberContaining(branchId, orderNumber);
+        return labOrders.stream().map(LabOrderDTO::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LabOrderDTO> searchByBranchIdAndReferringDoctor(Long branchId, String doctorName) {
+        List<LabOrder> labOrders = labOrderRepository.findByBranchIdAndReferringDoctorContaining(branchId, doctorName);
         return labOrders.stream().map(LabOrderDTO::new).collect(Collectors.toList());
     }
 

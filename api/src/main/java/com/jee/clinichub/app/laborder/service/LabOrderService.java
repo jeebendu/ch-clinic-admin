@@ -23,11 +23,21 @@ public interface LabOrderService {
     
     List<LabOrderDTO> getLabOrdersByVisitId(Long visitId);
     
+    List<LabOrderDTO> getLabOrdersByBranchId(Long branchId);
+    
     List<LabOrderDTO> getLabOrdersByStatus(LabOrderStatus status);
+    
+    List<LabOrderDTO> getLabOrdersByBranchIdAndStatus(Long branchId, LabOrderStatus status);
+    
+    List<LabOrderDTO> getLabOrdersByPatientIdAndBranchId(Long patientId, Long branchId);
     
     List<LabOrderDTO> searchByOrderNumber(String orderNumber);
     
     List<LabOrderDTO> searchByReferringDoctor(String doctorName);
+    
+    List<LabOrderDTO> searchByBranchIdAndOrderNumber(Long branchId, String orderNumber);
+    
+    List<LabOrderDTO> searchByBranchIdAndReferringDoctor(Long branchId, String doctorName);
     
     Status generateOrderNumber(LabOrderDTO labOrderDTO);
 }

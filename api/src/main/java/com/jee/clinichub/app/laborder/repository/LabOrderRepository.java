@@ -18,9 +18,15 @@ public interface LabOrderRepository extends JpaRepository<LabOrder, Long> {
     
     List<LabOrder> findAllByVisitId(Long visitId);
     
+    List<LabOrder> findAllByBranchId(Long branchId);
+    
     List<LabOrder> findAllByStatus(LabOrderStatus status);
     
+    List<LabOrder> findAllByBranchIdAndStatus(Long branchId, LabOrderStatus status);
+    
     List<LabOrder> findAllByPatient_idAndStatus(Long patientId, LabOrderStatus status);
+    
+    List<LabOrder> findAllByPatient_idAndBranchId(Long patientId, Long branchId);
     
     boolean existsByOrderNumber(String orderNumber);
     
@@ -29,4 +35,10 @@ public interface LabOrderRepository extends JpaRepository<LabOrder, Long> {
     
     @Query("SELECT l FROM LabOrder l WHERE l.referringDoctor LIKE %:doctorName%")
     List<LabOrder> findByReferringDoctorContaining(@Param("doctorName") String doctorName);
+    
+    @Query("SELECT l FROM LabOrder l WHERE l.branchId = :branchId AND l.orderNumber LIKE %:orderNumber%")
+    List<LabOrder> findByBranchIdAndOrderNumberContaining(@Param("branchId") Long branchId, @Param("orderNumber") String orderNumber);
+    
+    @Query("SELECT l FROM LabOrder l WHERE l.branchId = :branchId AND l.referringDoctor LIKE %:doctorName%")
+    List<LabOrder> findByBranchIdAndReferringDoctorContaining(@Param("branchId") Long branchId, @Param("doctorName") String doctorName);
 }

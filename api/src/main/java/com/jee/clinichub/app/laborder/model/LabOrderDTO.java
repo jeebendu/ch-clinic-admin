@@ -26,6 +26,9 @@ public class LabOrderDTO {
     @NotNull(message = "Patient is mandatory")
     private PatientDTO patient;
     
+    @NotNull(message = "Branch is mandatory")
+    private Long branchId;
+    
     @NotBlank(message = "Order number is mandatory")
     private String orderNumber;
     
@@ -46,6 +49,7 @@ public class LabOrderDTO {
         if (labOrder.getPatient() != null) {
             this.patient = new PatientDTO(labOrder.getPatient());
         }
+        this.branchId = labOrder.getBranchId();
         this.orderNumber = labOrder.getOrderNumber();
         this.status = labOrder.getStatus();
         this.priority = labOrder.getPriority();
