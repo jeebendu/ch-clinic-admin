@@ -5,52 +5,51 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Download, Eye, Print, FileText } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Search, FileText, Download, Send, Eye } from "lucide-react";
 
 const LabReports = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const reports = [
     {
       id: "RPT-001",
       orderId: "LAB-001",
-      patient: "John Doe",
-      age: 35,
-      tests: ["Complete Blood Count"],
-      reportDate: "2024-01-15",
-      status: "Ready",
-      doctor: "Dr. Smith"
+      patientName: "John Doe",
+      testName: "Complete Blood Count",
+      reportDate: "2024-01-16",
+      status: "ready",
+      reportedBy: "Dr. Smith"
     },
     {
       id: "RPT-002",
-      orderId: "LAB-003",
-      patient: "Mike Johnson",
-      age: 42,
-      tests: ["X-Ray Chest"],
-      reportDate: "2024-01-14",
-      status: "Delivered",
-      doctor: "Dr. Johnson"
+      orderId: "LAB-002",
+      patientName: "Jane Smith",
+      testName: "Lipid Profile",
+      reportDate: "2024-01-15",
+      status: "sent",
+      reportedBy: "Dr. Johnson"
     },
     {
       id: "RPT-003",
-      orderId: "LAB-005",
-      patient: "Anna Davis",
-      age: 29,
-      tests: ["Lipid Profile", "Liver Function Test"],
-      reportDate: "2024-01-13",
-      status: "Ready",
-      doctor: "Dr. Wilson"
-    },
+      orderId: "LAB-003",
+      patientName: "Mike Johnson",
+      testName: "X-Ray Chest",
+      reportDate: "2024-01-15",
+      status: "draft",
+      reportedBy: "Dr. Brown"
+    }
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Ready':
+      case 'draft':
+        return 'bg-gray-100 text-gray-800';
+      case 'ready':
         return 'bg-green-100 text-green-800';
-      case 'Delivered':
+      case 'sent':
         return 'bg-blue-100 text-blue-800';
-      case 'Pending':
-        return 'bg-yellow-100 text-yellow-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -60,16 +59,10 @@ const LabReports = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Lab Reports</h1>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <FileText className="h-4 w-4 mr-2" />
-            Generate Report
-          </Button>
-          <Button>
-            <Download className="h-4 w-4 mr-2" />
-            Export All
-          </Button>
-        </div>
+        <Button>
+          <FileText className="h-4 w-4 mr-2" />
+          Generate Report
+        </Button>
       </div>
 
       {/* Search and Filters */}
@@ -80,7 +73,7 @@ const LabReports = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by report ID or patient name..."
+                  placeholder="Search reports by ID or patient name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
@@ -88,99 +81,71 @@ const LabReports = () => {
               </div>
             </div>
             
-            <Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="ready">Ready</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by date" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="sent">Sent</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Reports List */}
+      {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Reports ({reports.length})</CardTitle>
+          <CardTitle>All Reports</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2 font-medium">Report ID</th>
-                  <th className="text-left p-2 font-medium">Order ID</th>
-                  <th className="text-left p-2 font-medium">Patient</th>
-                  <th className="text-left p-2 font-medium">Tests</th>
-                  <th className="text-left p-2 font-medium">Doctor</th>
-                  <th className="text-left p-2 font-medium">Date</th>
-                  <th className="text-left p-2 font-medium">Status</th>
-                  <th className="text-left p-2 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.map((report) => (
-                  <tr key={report.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2">
-                      <span className="font-medium text-blue-600">{report.id}</span>
-                    </td>
-                    <td className="p-2">
-                      <span className="text-gray-600">{report.orderId}</span>
-                    </td>
-                    <td className="p-2">
-                      <div>
-                        <p className="font-medium">{report.patient}</p>
-                        <p className="text-sm text-gray-500">{report.age} years</p>
-                      </div>
-                    </td>
-                    <td className="p-2">
-                      <div className="space-y-1">
-                        {report.tests.map((test, index) => (
-                          <div key={index} className="text-sm">{test}</div>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="p-2 text-sm">{report.doctor}</td>
-                    <td className="p-2 text-sm text-gray-600">{report.reportDate}</td>
-                    <td className="p-2">
-                      <Badge className={getStatusColor(report.status)}>
-                        {report.status}
-                      </Badge>
-                    </td>
-                    <td className="p-2">
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" title="View Report">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" title="Print Report">
-                          <Print className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" title="Download Report">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Report ID</TableHead>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Patient</TableHead>
+                <TableHead>Test Name</TableHead>
+                <TableHead>Report Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Reported By</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {reports.map((report) => (
+                <TableRow key={report.id}>
+                  <TableCell className="font-medium">{report.id}</TableCell>
+                  <TableCell>{report.orderId}</TableCell>
+                  <TableCell>{report.patientName}</TableCell>
+                  <TableCell>{report.testName}</TableCell>
+                  <TableCell>{report.reportDate}</TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(report.status)}>
+                      {report.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{report.reportedBy}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

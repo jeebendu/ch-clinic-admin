@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import "./styles/admin.css";
 import DashboardRoutes from "./modules/dashboard/routes/DashboardRoutes";
@@ -26,6 +25,7 @@ import MedicalDegreeList from "./modules/doctor/submodules/medical-degree/pages/
 import ReportsRoutes from "./modules/reports/routes/ReportsRoutes";
 import AudiometryRoutes from "./modules/audiometry/routes/AudiometryRoutes";
 import EnquiryServiceTypeRoutes from "./modules/clinics/enquiry-service/routes/EnquiryServiceTypeRoutes";
+import LabRoutes from "./modules/lab/routes/LabRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -56,6 +56,7 @@ const AdminRoutes = () => {
       <Route path="/medical-degree/*" element={<MedicalDegreeList />} />
       <Route path="/service/*" element={<EnquiryServiceTypeRoutes />} />
       <Route path="/audiometry/*" element={<AudiometryRoutes />} />
+      <Route path="/lab/*" element={<LabRoutes />} />
     </Routes>
   );
 };
