@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -67,6 +68,9 @@ public class PatientServiceImpl implements PatientService {
 	private final UserRepository userRepository;
 	private final QRCodeGenerator qrCodeGenerator;
 	private final ClinicMasterRepository clinicMasterRepository;
+	
+	@Value("${app.default-tenant}")
+    private String defaultTenant;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -398,24 +402,49 @@ public class PatientServiceImpl implements PatientService {
 	}
 	
 	
+	/**
+	 * Resolves the tenant ID for a given patient.
+	 */
+	private String resolveTenantId(BranchDto branch) {
+	    String tenantId = "";
+	    String originalTenantContext = TenantContextHolder.getCurrentTenant();
+
+	    try {
+	        if (defaultTenant.equalsIgnoreCase(originalTenantContext)) {
+	            // In default tenant → use ClinicMasterRepo
+	            ClinicDto clinic = branch.getClinic();
+	            if (clinic != null) {
+	                Optional<ClinicMaster> clinicMasterOptional = clinicMasterRepository.findById(clinic.getId());
+	                if (clinicMasterOptional.isPresent()) {
+	                    ClinicMaster clinicMaster = clinicMasterOptional.get();
+	                    tenantId = clinicMaster.getTenant().getClientId();
+	                }
+	            }
+	        } else {
+	            // In tenant DB → just use current tenant ID
+	            tenantId = originalTenantContext;
+	        }
+	    } catch (Exception e) {
+	        log.error("Error resolving tenant ID for patient: {}", e.getMessage(), e);
+	    } finally {
+	        TenantContextHolder.setCurrentTenant(originalTenantContext); // restore context
+	    }
+
+	    return tenantId;
+	}
+	
+	
+	/**
+	 * Generates QR code for patient.
+	 */
 	public String generatePatientQRCode(PatientDto patient) {
 	    try {
-	    	
-	    	String tenantId = "";
-        	ClinicDto clinic = patient.getBranch().getClinic();
-        	if(clinic!=null) {
-        		Optional<ClinicMaster> clinicMasterOptional = clinicMasterRepository.findById(clinic.getId());
-            	if(clinicMasterOptional.isPresent()) { 
-            		ClinicMaster clinicMaster = clinicMasterOptional.get();
-            		tenantId = clinicMaster.getTenant().getClientId();      
-            	}
-        	}
-        	
-        	
-	    	String branchId = patient.getBranch().getGlobalBranchId().toString();
-	    	
-	    	
-	        Map<String, Object> data = new HashMap();
+	        // ✅ Reuse tenant resolution
+	        String tenantId = resolveTenantId(patient.getBranch());
+
+	        String branchId = patient.getBranch().getGlobalBranchId().toString();
+
+	        Map<String, Object> data = new HashMap<>();
 	        data.put("type", "patient");
 	        data.put("tenantId", tenantId);
 	        data.put("branchId", branchId);
@@ -425,14 +454,13 @@ public class PatientServiceImpl implements PatientService {
 	        data.put("mobile", patient.getUser().getPhone());
 	        data.put("dob", patient.getDob() != null ? patient.getDob().toString() : null);
 	        data.put("gender", patient.getGender());
-	        // Add more patient fields if needed
 
-	        // Encode JSON to base64
+	        // Encode JSON to Base64
 	        String encoded = Base64Converter.encodeToBase64Json(data);
 	        log.info("Encoded Patient QR (base64): {}", encoded);
 
-	        // Generate QR from encoded base64
-	        return qrCodeGenerator.generateQRCodeImage(encoded); // returns base64 image string
+	        // Generate QR code
+	        return qrCodeGenerator.generateQRCodeImage(encoded);
 
 	    } catch (Exception e) {
 	        log.error("Error generating patient QR code: {}", e.getMessage(), e);

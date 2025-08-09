@@ -408,26 +408,39 @@ public class SlotServiceImpl implements SlotService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void syncSlotsToMaster(String clientId,int days) {
-    	 log.info("🔄 [Client: {}] Starting slot sync to master...", clientId);
+    public void syncSlotsToMaster(String clientId, int days) {
+        log.info("🔄 [Client: {}] Starting slot sync to master for next {} days...", clientId, days);
 
-    	// 1. Fetch all public slots from tenant
-    	 LocalDate today = LocalDate.now();
-    	 LocalDate endDate = today.plusDays(days - 1); // inclusive
+        try {
+            // 1. Calculate date range
+            LocalDate today = LocalDate.now();
+            LocalDate endDate = today.plusDays(days - 1); // inclusive
 
-    	 Date startDate = Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    	 Date finalDate = Date.from(endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+            Date startDate = Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date finalDate = Date.from(endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
 
-         List<Slot> tenantSlots = slotRepo.findAllByDateBetween(startDate, finalDate);
-         
-         if (tenantSlots.isEmpty()) {
-             log.warn("⚠️ [Client: {}] No slots found for sync.", clientId);
-             return;
-         }
-         
-         TenantContextHolder.setCurrentTenant(defaultTenant);
-         slotSyncService.syncSlotsToMaster(tenantSlots);
-	}
+            log.debug("📅 [Client: {}] Date range for slot sync: {} to {}", clientId, startDate, finalDate);
+
+            // 2. Fetch all slots from tenant DB
+            List<Slot> tenantSlots = slotRepo.findAllByDateBetween(startDate, finalDate);
+            log.info("📊 [Client: {}] Found {} slots to sync.", clientId, tenantSlots.size());
+
+            if (tenantSlots.isEmpty()) {
+                log.warn("⚠️ [Client: {}] No slots found for the given date range. Skipping sync.", clientId);
+                return;
+            }
+
+            // 3. Switch to master DB and sync
+            log.debug("🔁 [Client: {}] Switching tenant context to master...", clientId);
+            TenantContextHolder.setCurrentTenant(defaultTenant);
+
+            slotSyncService.syncSlotsToMaster(tenantSlots);
+
+            log.info("✅ [Client: {}] Slot sync process completed successfully.", clientId);
+        } catch (Exception e) {
+            log.error("❌ [Client: {}] Error occurred during slot sync: {}", clientId, e.getMessage(), e);
+        }
+    }
 
 	
 

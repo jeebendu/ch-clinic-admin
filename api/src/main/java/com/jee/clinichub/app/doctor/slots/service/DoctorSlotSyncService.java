@@ -1,16 +1,10 @@
 package com.jee.clinichub.app.doctor.slots.service;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,13 +15,9 @@ import com.jee.clinichub.app.doctor.model.DoctorBranch;
 import com.jee.clinichub.app.doctor.repository.DoctorBranchRepo;
 import com.jee.clinichub.app.doctor.service.DoctorService;
 import com.jee.clinichub.app.doctor.slots.model.Slot;
-import com.jee.clinichub.app.doctor.slots.model.SlotDto;
 import com.jee.clinichub.app.doctor.slots.repository.SlotRepo;
-import com.jee.clinichub.global.model.Status;
-import com.jee.clinichub.global.tenant.context.TenantContextHolder;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -50,53 +40,83 @@ public class DoctorSlotSyncService {
     
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void syncSlotsToMaster(List<Slot> tenantSlots) {
+        log.info("🔄 Starting slot sync to master. Total slots to process: {}", 
+                tenantSlots != null ? tenantSlots.size() : 0);
+
+        if (tenantSlots == null || tenantSlots.isEmpty()) {
+            log.warn("⚠️ No slots received for sync. Skipping process.");
+            return;
+        }
+
         List<Slot> toInsert = new ArrayList<>();
         List<Slot> toUpdate = new ArrayList<>();
 
-        for (Slot tenantSlot : tenantSlots) {
-            UUID globalDoctorBranchId = tenantSlot.getDoctorBranch().getGlobalDoctorBranchId();
-            DoctorBranch masterDoctorBranch = doctorBranchRepo
-                    .findByGlobalDoctorBranchId(globalDoctorBranchId)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "No DoctorBranch found in master for GlobalDoctorBranchId: " + globalDoctorBranchId));
+        try {
+            for (Slot tenantSlot : tenantSlots) {
+                try {
+                    log.debug("📌 Processing tenant slot: GlobalSlotId={}, Date={}, Time={} - {}",
+                            tenantSlot.getGlobalSlotId(),
+                            tenantSlot.getDate(),
+                            tenantSlot.getStartTime(),
+                            tenantSlot.getEndTime());
 
-            Optional<Slot> existing = slotRepo.findByGlobalSlotId(tenantSlot.getGlobalSlotId());
+                    UUID globalDoctorBranchId = tenantSlot.getDoctorBranch().getGlobalDoctorBranchId();
+                    DoctorBranch masterDoctorBranch = doctorBranchRepo
+                            .findByGlobalDoctorBranchId(globalDoctorBranchId)
+                            .orElseThrow(() -> new IllegalStateException(
+                                    "No DoctorBranch found in master for GlobalDoctorBranchId: " + globalDoctorBranchId));
 
-            if (existing.isPresent()) {
-                // Update
-                Slot masterSlot = existing.get();
-                masterSlot.setDate(tenantSlot.getDate());
-                masterSlot.setStartTime(tenantSlot.getStartTime());
-                masterSlot.setEndTime(tenantSlot.getEndTime());
-                masterSlot.setAvailableSlots(tenantSlot.getAvailableSlots());
-                masterSlot.setStatus(tenantSlot.getStatus());
-                masterSlot.setSlotType(tenantSlot.getSlotType());
-                masterSlot.setDuration(tenantSlot.getDuration());
-                masterSlot.setDoctorBranch(masterDoctorBranch); // ✅ Always set master branch
-                slotRepo.save(masterSlot);
+                    Optional<Slot> existing = slotRepo.findByGlobalSlotId(tenantSlot.getGlobalSlotId());
 
-                toUpdate.add(masterSlot);
-            } else {
-                // Insert
-                Slot newSlot = new Slot();
-                newSlot.setGlobalSlotId(tenantSlot.getGlobalSlotId());
-                newSlot.setDate(tenantSlot.getDate());
-                newSlot.setStartTime(tenantSlot.getStartTime());
-                newSlot.setEndTime(tenantSlot.getEndTime());
-                newSlot.setAvailableSlots(tenantSlot.getAvailableSlots());
-                newSlot.setStatus(tenantSlot.getStatus());
-                newSlot.setSlotType(tenantSlot.getSlotType());
-                newSlot.setDuration(tenantSlot.getDuration());
-                newSlot.setDoctorBranch(masterDoctorBranch); // ✅ Set branch here too
-                slotRepo.save(newSlot);
+                    if (existing.isPresent()) {
+                        // Update
+                        Slot masterSlot = existing.get();
+                        masterSlot.setDate(tenantSlot.getDate());
+                        masterSlot.setStartTime(tenantSlot.getStartTime());
+                        masterSlot.setEndTime(tenantSlot.getEndTime());
+                        masterSlot.setAvailableSlots(tenantSlot.getAvailableSlots());
+                        masterSlot.setStatus(tenantSlot.getStatus());
+                        masterSlot.setSlotType(tenantSlot.getSlotType());
+                        masterSlot.setDuration(tenantSlot.getDuration());
+                        masterSlot.setDoctorBranch(masterDoctorBranch); // ✅ Always set master branch
+                        slotRepo.save(masterSlot);
 
-                toInsert.add(newSlot);
+                        toUpdate.add(masterSlot);
+                        log.debug("✏️ Updated slot in master: GlobalSlotId={}", tenantSlot.getGlobalSlotId());
+                    } else {
+                        // Insert
+                        Slot newSlot = new Slot();
+                        newSlot.setGlobalSlotId(tenantSlot.getGlobalSlotId());
+                        newSlot.setDate(tenantSlot.getDate());
+                        newSlot.setStartTime(tenantSlot.getStartTime());
+                        newSlot.setEndTime(tenantSlot.getEndTime());
+                        newSlot.setAvailableSlots(tenantSlot.getAvailableSlots());
+                        newSlot.setStatus(tenantSlot.getStatus());
+                        newSlot.setSlotType(tenantSlot.getSlotType());
+                        newSlot.setDuration(tenantSlot.getDuration());
+                        newSlot.setDoctorBranch(masterDoctorBranch); // ✅ Set branch here too
+                        slotRepo.save(newSlot);
+
+                        toInsert.add(newSlot);
+                        log.debug("➕ Inserted new slot in master: GlobalSlotId={}", tenantSlot.getGlobalSlotId());
+                    }
+
+                } catch (Exception e) {
+                    log.error("❌ Error processing slot: GlobalSlotId={} | Reason={}", tenantSlot != null ? tenantSlot.getGlobalSlotId() : "null", e.getMessage(), e);
+                }
             }
-        }
 
-        log.info("✅ [Client: {}] Slot sync complete. Inserted: {} | Updated: {}",
-                "Master", toInsert.size(), toUpdate.size());
+            log.info("✅ [Client: {}] Slot sync complete. Inserted: {} | Updated: {}", "Master", toInsert.size(), toUpdate.size());
+        } catch (Exception e) {
+            log.error("💥 Critical failure in slot sync to master. Reason={}", e.getMessage(), e);
+        }
     }
+
+
+	public void syncSlotToMaster(UUID globalDoctorBranchId, LocalDate date) {
+		// TODO Auto-generated method stub
+		
+	}
     
     /*
     public void syncSlotToMaster(UUID doctorBranchGlobalId,LocalDate date) {
