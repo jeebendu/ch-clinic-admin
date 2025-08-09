@@ -39,7 +39,7 @@ import lombok.ToString;
 @Table(name = "lab_orders")
 @ToString
 @EqualsAndHashCode(callSuper = false, exclude = {"labOrderItems"})
-public class LabOrder extends Auditable<String> implements Serializable {
+public class LabOrderV2 extends Auditable<String> implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -83,7 +83,7 @@ public class LabOrder extends Auditable<String> implements Serializable {
     @OneToMany(mappedBy = "labOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<LabOrderItem> labOrderItems = new ArrayList<>();
 
-    public LabOrder(LabOrderDTO labOrderDTO) {
+    public LabOrderV2(LabOrderDTO labOrderDTO) {
         if (labOrderDTO.getId() != null) {
             this.id = labOrderDTO.getId();
         }

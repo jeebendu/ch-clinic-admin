@@ -47,9 +47,9 @@ public class DoctorSlotSchedulerService {
         }
     }
 
-    //@Scheduled(cron = "0 0 0 * * *") // At 12:00 AM every day
+    @Scheduled(cron = "0 0 0 * * *") // At 12:00 AM every day
     //@Scheduled(cron = "0 * * * * *") // Every 1 minute at 0th second
-    @Scheduled(fixedRate = 3 * 60 * 1000)
+    //@Scheduled(fixedRate = 3 * 60 * 1000)
     public void syncSlotsToMaster() {
         String originalTenantContext = TenantContextHolder.getCurrentTenant();
         try {

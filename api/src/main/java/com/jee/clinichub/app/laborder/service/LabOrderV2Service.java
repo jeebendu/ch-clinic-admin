@@ -7,7 +7,7 @@ import com.jee.clinichub.app.laborder.model.LabOrderDTO;
 import com.jee.clinichub.app.laborder.model.enums.LabOrderStatus;
 import com.jee.clinichub.global.model.Status;
 
-public interface LabOrderService {
+public interface LabOrderV2Service {
 
     List<LabOrderDTO> getAllLabOrders();
     

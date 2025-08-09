@@ -41,7 +41,7 @@ public class LabOrderItem extends Auditable<String> implements Serializable {
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lab_order_id")
-    private LabOrder labOrder;
+    private LabOrderV2 labOrder;
 
     @Column(name = "test_type_id", nullable = false)
     private Long testTypeId;

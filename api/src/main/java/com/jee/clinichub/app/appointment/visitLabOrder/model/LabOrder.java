@@ -60,8 +60,10 @@ public class LabOrder extends Auditable<String> implements Serializable {
     @Column(name = "priority")
     @Enumerated(EnumType.STRING)
     private PriorityTest priority;
+    
     private String notes;
     @Column(name = "status")
+    
     @Enumerated(EnumType.STRING)
     private LabOrderStatus status;
 

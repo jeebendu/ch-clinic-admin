@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jee.clinichub.app.laborder.model.LabOrderDTO;
 import com.jee.clinichub.app.laborder.model.enums.LabOrderStatus;
-import com.jee.clinichub.app.laborder.service.LabOrderService;
+import com.jee.clinichub.app.laborder.service.LabOrderV2Service;
 import com.jee.clinichub.global.model.Status;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,9 +28,9 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("v1/lab-orders")
 @RequiredArgsConstructor
-public class LabOrderController {
+public class LabOrderV2Controller {
 
-    private final LabOrderService labOrderService;
+    private final LabOrderV2Service labOrderService;
 
     @GetMapping(value = "/list")
     public List<LabOrderDTO> getAllLabOrders() {

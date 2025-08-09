@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.jee.clinichub.app.laborder.model.enums.LabOrderPriority;
 import com.jee.clinichub.app.laborder.model.enums.LabOrderStatus;
-import com.jee.clinichub.app.patient.model.PatientDTO;
+import com.jee.clinichub.app.patient.model.PatientDto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -24,7 +24,7 @@ public class LabOrderDTO {
     private Long visitId;
     
     @NotNull(message = "Patient is mandatory")
-    private PatientDTO patient;
+    private PatientDto patient;
     
     @NotNull(message = "Branch is mandatory")
     private Long branchId;
@@ -41,13 +41,13 @@ public class LabOrderDTO {
     
     private List<LabOrderItemDTO> labOrderItems = new ArrayList<>();
 
-    public LabOrderDTO(LabOrder labOrder) {
+    public LabOrderDTO(LabOrderV2 labOrder) {
         if (labOrder.getId() != null) {
             this.id = labOrder.getId();
         }
         this.visitId = labOrder.getVisitId();
         if (labOrder.getPatient() != null) {
-            this.patient = new PatientDTO(labOrder.getPatient());
+            this.patient = new PatientDto(labOrder.getPatient());
         }
         this.branchId = labOrder.getBranchId();
         this.orderNumber = labOrder.getOrderNumber();

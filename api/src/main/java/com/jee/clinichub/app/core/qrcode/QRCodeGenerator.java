@@ -36,6 +36,12 @@ public class QRCodeGenerator {
      * Generate QR code image and return as Base64 string
      */
     public String generateQRCodeImage(String content) throws WriterException, IOException {
+    	
+    	// Default to placeholder if empty
+        if (content == null || content.trim().isEmpty()) {
+            content = "NA"; // You can use any default text or URL here
+        }
+        
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         
         Map<EncodeHintType, Object> hints = new HashMap<>();

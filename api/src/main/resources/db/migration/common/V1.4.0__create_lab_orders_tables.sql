@@ -40,8 +40,8 @@ CREATE TABLE lab_order_items (
 CREATE INDEX idx_lab_orders_patient_id ON lab_orders(patient_id);
 CREATE INDEX idx_lab_orders_branch_id ON lab_orders(branch_id);
 CREATE INDEX idx_lab_orders_order_number ON lab_orders(order_number);
-CREATE INDEX idx_lab_orders_status ON lab_orders(status);
+CREATE INDEX idx_lab_orders_status_v2 ON lab_orders(status);
 CREATE INDEX idx_lab_orders_order_date ON lab_orders(order_date);
 CREATE INDEX idx_lab_order_items_lab_order_id ON lab_order_items(lab_order_id);
 CREATE INDEX idx_lab_order_items_test_type_id ON lab_order_items(test_type_id);
-CREATE INDEX idx_lab_order_items_status ON lab_order_items(status);
+CREATE INDEX idx_lab_order_items_status_v2 ON lab_order_items(status);
