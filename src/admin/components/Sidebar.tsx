@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,7 +26,12 @@ import {
   ChevronRight,
   FileText,
   BarChart2,
-  Ear
+  Ear,
+  FlaskConical,
+  Plus,
+  ClipboardList,
+  TestTube2,
+  Library
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import AuthService from "@/services/authService";
@@ -99,6 +103,44 @@ const navItems: NavItem[] = [
         href: "/admin/medical-degree",
         roles: ["Admin"]
       },
+    ]
+  },
+
+  { 
+    icon: <FlaskConical className="h-5 w-5" />, 
+    label: "Lab", 
+    roles: ["Admin", "Doctor", "Staff"],
+    submenu: [
+      {
+        label: "Dashboard",
+        href: "/admin/lab/dashboard",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "New Lab Order",
+        href: "/admin/lab/new-order",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "Orders",
+        href: "/admin/lab/orders",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "Reports",
+        href: "/admin/lab/reports",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "Test Catalog",
+        href: "/admin/lab/test-catalog",
+        roles: ["Admin"]
+      },
+      {
+        label: "Settings",
+        href: "/admin/lab/settings",
+        roles: ["Admin"]
+      }
     ]
   },
  
@@ -269,8 +311,8 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                           to={subItem.href}
                           className={({ isActive }) => cn(
                             "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent/10 transition-colors text-sm",
-                            isActive && "bg-sidebar-accent/20", // Normalized active color
-                            "text-left" // Ensure left alignment
+                            isActive && "bg-sidebar-accent/20",
+                            "text-left"
                           )}
                           onClick={onClose}
                         >
