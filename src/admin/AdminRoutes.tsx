@@ -25,6 +25,7 @@ import MedicalCouncilList from "./modules/doctor/submodules/medical-council/page
 import MedicalDegreeList from "./modules/doctor/submodules/medical-degree/pages/MedicalDegreeList";
 import ReportsRoutes from "./modules/reports/routes/ReportsRoutes";
 import AudiometryRoutes from "./modules/audiometry/routes/AudiometryRoutes";
+import EnquiryServiceTypeRoutes from "./modules/clinics/enquiry-service/routes/EnquiryServiceTypeRoutes";
 
 const AdminRoutes = () => {
   return (
@@ -53,6 +54,7 @@ const AdminRoutes = () => {
       <Route path="/purchaseOrder/*" element={<PurchaseOrderList />} />
       <Route path="/medical-council/*" element={<MedicalCouncilList />} />
       <Route path="/medical-degree/*" element={<MedicalDegreeList />} />
+      <Route path="/service/*" element={<EnquiryServiceTypeRoutes />} />
       <Route path="/audiometry/*" element={<AudiometryRoutes />} />
     </Routes>
   );

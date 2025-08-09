@@ -8,8 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { availabilityService } from "../services/availabilityService";
-import { Branch } from "@/admin/modules/branch/types/Branch";
-import { Doctor } from "../../../types/Doctor";
 import { DoctorAvailability, TimeRange } from "../types/DoctorAvailability";
 import TimeRangeRow from "./TimeRangeRow";
 import { TimePicker } from "@/admin/components/TimePicker";

@@ -4,13 +4,14 @@ import AdminLayout from "@/admin/components/AdminLayout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { User } from "../types/User";
+import { Staff, User } from "../types/User";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
 import UserTable from "../components/UserTable";
 import FormDialog from "@/components/ui/form-dialog";
 import UserService from "../services/userService";
+import UserForm from "../components/UserForm";
 
 const UsersList = () => {
   const navigate = useNavigate();
@@ -22,11 +23,11 @@ const UsersList = () => {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [showFilter, setShowFilter] = useState(false);
-  
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
-  
-  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+
+  const [userToEdit, setUserToEdit] = useState<Staff | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   // Define filter options
@@ -51,7 +52,7 @@ const UsersList = () => {
       ]
     }
   ]);
-  
+
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
     status: [],
     location: []
@@ -61,36 +62,14 @@ const UsersList = () => {
     queryKey: ['user', page, size, searchTerm, selectedFilters],
     queryFn: async () => {
       const response = await UserService.list();
-      return response;
+      return response.data;
     },
   });
 
   // Extract users from the response
   const users = Array.isArray(data) ? data : [];
 
-  // Filter users based on search term and filters
-  const filteredUsers = users.filter(user => {
-    // Filter by search term
-    if (searchTerm && !user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !user.email.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
 
-    // Filter by status
-    if (selectedFilters.status.length > 0) {
-      const statusMatch = selectedFilters.status.includes(user.active ? 'active' : 'inactive');
-      if (!statusMatch) return false;
-    }
-
-    // Filter by location
-    if (selectedFilters.location.length > 0) {
-      const locationMatch = selectedFilters.location.includes(user.location.toLowerCase());
-      if (!locationMatch) return false;
-    }
-
-    return true;
-  });
 
   useEffect(() => {
     setViewMode(isMobile ? 'list' : 'grid');
@@ -112,7 +91,7 @@ const UsersList = () => {
     refetch();
   };
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: Staff) => {
     setUserToEdit(user);
     setIsEditFormOpen(true);
   };
@@ -124,7 +103,7 @@ const UsersList = () => {
 
   const confirmDelete = async () => {
     if (userToDelete === null) return;
-    
+
     try {
       await UserService.deleteById(userToDelete);
       toast({
@@ -146,8 +125,8 @@ const UsersList = () => {
 
   const handleFilterChange = (filterId: string, optionId: string) => {
     setSelectedFilters(prev => {
-      const newFilters = {...prev};
-      
+      const newFilters = { ...prev };
+
       if (newFilters[filterId].includes(optionId)) {
         // Remove filter if already selected
         newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
@@ -155,7 +134,7 @@ const UsersList = () => {
         // Add filter if not already selected
         newFilters[filterId] = [...newFilters[filterId], optionId];
       }
-      
+
       return newFilters;
     });
   };
@@ -168,14 +147,14 @@ const UsersList = () => {
     setSearchTerm("");
   };
 
-  const totalElements = filteredUsers.length || 0;
-  const loadedElements = filteredUsers.length || 0;
+  const totalElements = users.length || 0;
+  const loadedElements = users.length || 0;
 
   return (
     <AdminLayout>
       <div className="space-y-4">
-        <PageHeader 
-          title="Users" 
+        <PageHeader
+          title="Users"
           viewMode={viewMode}
           onViewModeToggle={toggleViewMode}
           showAddButton={true}
@@ -189,7 +168,7 @@ const UsersList = () => {
         />
 
         {showFilter && (
-          <FilterCard 
+          <FilterCard
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             filters={filters}
@@ -210,8 +189,8 @@ const UsersList = () => {
         ) : (
           <div>
             {viewMode === 'grid' && (
-              <UserTable 
-                users={filteredUsers} 
+              <UserTable
+                user={users}
                 onDelete={handleDeleteUser}
                 onEdit={handleEditUser}
               />
@@ -219,16 +198,13 @@ const UsersList = () => {
           </div>
         )}
       </div>
-      
+
       <FormDialog
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         title="Add New User"
       >
-        <>
-        
-        </>
-       
+        <UserForm staff={null} onSuccess={handleCloseForm} />
       </FormDialog>
 
       <FormDialog
@@ -237,9 +213,9 @@ const UsersList = () => {
         title="Edit User"
       >
         <>
-        
+          <UserForm staff={userToEdit} onSuccess={handleCloseForm} />
         </>
-       
+
       </FormDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

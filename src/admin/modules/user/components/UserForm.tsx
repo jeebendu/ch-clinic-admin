@@ -26,12 +26,13 @@ const formSchema = z.object({
         id: z.number({ required_error: "Role is required" }),
     }),
     email: z.string().email("Invalid email address").optional(),
-    phone: z.string().optional(),
+    phone: z.string().min(10, "Valid Phone is required"),
     gender: z.string().optional(),
     dob: z.date().optional(),
     effectiveFrom: z.date().optional(),
     effectiveTo: z.date().optional(),
     active: z.boolean().optional(),
+    address: z.string().optional(),
 });
 
 
@@ -61,7 +62,8 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
         dob: staff?.dob ? new Date(staff?.dob) : undefined,
         effectiveFrom: staff?.user?.effectiveFrom ? new Date(staff?.user.effectiveFrom) : undefined,
         effectiveTo: staff?.user?.effectiveTo ? new Date(staff?.user.effectiveTo) : undefined,
-        active: true,
+        active:  true,
+        // address:staff?.user?.address?||
     };
 
     const form = useForm<FormValues>({
@@ -80,8 +82,6 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
 
         return age;
     }
-
-
     const onSubmit = async (data: FormValues) => {
         console.log(data)
         console.log(data.role)
@@ -100,7 +100,7 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
             };
             const userData: User = {
                 id: staff?.user?.id || null,
-                uid: staff?.user?.uid || null,
+                uid: staff?.user?.uid || `new-user-${Date.now()}`,
                 username: data?.username,
                 name: `${data?.firstname} ${data?.lastname}`,
                 email: data?.email || "",
@@ -115,10 +115,12 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
                 effectiveFrom: data?.effectiveFrom,
                 effectiveTo: data?.effectiveTo,
                 image: staff?.user?.image || "",
-                status: data?.active
+                status:true
+
             };
 
             const staffData: Staff = {
+                ...staff,
                 id: staff?.id,
                 uid: staff?.uid,
                 name: `${data?.firstname} ${data?.lastname}`,
@@ -131,23 +133,21 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
                 gender: data?.gender,
                 dob: data?.dob,
                 user: userData
+
+
             };
 
+      let staffForm = new FormData();
 
-            let formData = new FormData();
+        const emptyFile = new File([''], 'empty.txt', { type: 'text/plain' });
+        staffForm.append('profile', emptyFile);
+      
 
+        const staffBLOB = new Blob([JSON.stringify(staffData)], { type: 'application/json' });
+        staffForm.append('staff', staffBLOB);
+ 
 
-            const emptyFile = new File([''], 'empty.txt', { type: 'text/plain' });
-            formData.append('profile', emptyFile);
-
-            if (staffData && typeof staffData === 'object') {
-                const doctorBLOB = new Blob([JSON.stringify(staffData)], { type: 'application/json' });
-                formData.append('staff', doctorBLOB);
-            } else {
-                console.error("Invalid staff Data");
-            }
-
-            const res = await UserService.saveOrUpdate(formData);
+            const res = await UserService.saveOrUpdate(staffForm);
             if (res.data.status) {
                 toast({
                     title: `User ${isEditing ? "updated" : "added"} successfully`,
@@ -172,7 +172,9 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
             });
         }
     };
-
+useEffect(() => {
+  console.log("Form Errors", form.formState.errors);
+}, [form.formState.errors]);
     useEffect(() => {
         fetchRoleList();
     }, []);
@@ -196,7 +198,7 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
                     {/* <FormField control={form.control} name="role" label="Role" /> */}
                     <FormField control={form.control} name="email" label="Email" />
                     <FormField control={form.control} name="phone" label="Phone" />
-                    <FormField control={form.control} name="address" label="Address" />
+                    {/* <FormField control={form.control} name="address" label="Address" /> */}
                     {/* Role selection */}
                     <Controller
                         control={form.control}
@@ -244,8 +246,6 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
                         )}
                     />
 
-
-
                     {/* Date of Birth Field */}
                     <Controller
                         control={form.control}
@@ -267,6 +267,7 @@ const UserForm: React.FC<UserFormProps> = ({ staff, onSuccess }) => {
                             </div>
                         )}
                     />
+
                     <Controller
                         control={form.control}
                         name="effectiveFrom"

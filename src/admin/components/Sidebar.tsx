@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -194,7 +195,21 @@ const navItems: NavItem[] = [
     label: "Enquiries", 
     href: "/admin/enquiry", 
     roles: ["Admin", "Doctor", "Staff"] 
-  }
+  },
+  {
+    icon: <Settings className="h-5 w-5" />,
+    label: "Config",
+    roles: ["Admin"],
+    submenu: [
+        {
+        label: "Services",
+        href: "/admin/service",
+        roles: ["Admin"]
+        }
+
+    ]
+  },
+
 ];
 
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
@@ -311,8 +326,8 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                           to={subItem.href}
                           className={({ isActive }) => cn(
                             "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent/10 transition-colors text-sm",
-                            isActive && "bg-sidebar-accent/20",
-                            "text-left"
+                            isActive && "bg-sidebar-accent/20", // Normalized active color
+                            "text-left" // Ensure left alignment
                           )}
                           onClick={onClose}
                         >
