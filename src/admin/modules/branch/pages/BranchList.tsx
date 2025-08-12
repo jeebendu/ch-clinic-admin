@@ -1,299 +1,171 @@
-import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { AdminLayout } from "@/admin/components/AdminLayout";
-import PageHeader from "@/admin/components/PageHeader";
-import BranchService from '@/admin/modules/branch/services/branchService';
-import { Branch } from "../types/Branch";
-import BranchTable from "../components/BranchTable";
-import BranchCardList from "../components/BranchCardList";
-import BranchForm from "../components/BranchForm";
-import { useToast } from "@/components/ui/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import FormDialog from "@/components/ui/form-dialog";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog";
-import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 
-const BranchList = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
-  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(10);
-  const [showFilter, setShowFilter] = useState(false);
-  
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [branchToDelete, setBranchToDelete] = useState<number | null>(null);
-  
-  const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);
-  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Building2, Search, Filter, Plus, MapPin, Phone, Mail, Users, MoreVertical } from 'lucide-react';
+import { Branch } from '../types/Branch';
+import { branchMockService } from '../services/branchMockService';
 
-  const [filters, setFilters] = useState<FilterOption[]>([
-    {
-      id: 'status',
-      label: 'Status',
-      options: [
-        { id: 'active', label: 'Active' },
-        { id: 'inactive', label: 'Inactive' }
-      ]
-    },
-    {
-      id: 'type',
-      label: 'Type',
-      options: [
-        { id: 'primary', label: 'Primary' },
-        { id: 'secondary', label: 'Secondary' }
-      ]
-    }
-  ]);
-  
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
-    status: [],
-    type: []
-  });
+type ViewMode = 'list' | 'grid';
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['branches', page, size, searchTerm, selectedFilters],
-    queryFn: async () => {
-      const response = await BranchService.list();
-      console.log("Branch API response (direct):", response);
-      return response;
-    },
-  });
-
-  const branches = Array.isArray(data) ? data : [];
-  console.log("Extracted branches:", branches);
-
-  const filteredBranches = branches.filter(branch => {
-    if (searchTerm && !branch.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !branch.code?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !branch.location.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
-
-    if (selectedFilters.status.length > 0) {
-      const statusMatch = selectedFilters.status.includes(branch.active ? 'active' : 'inactive');
-      if (!statusMatch) return false;
-    }
-
-    if (selectedFilters.type.length > 0) {
-      const typeMatch = selectedFilters.type.includes(branch.primary ? 'primary' : 'secondary');
-      if (!typeMatch) return false;
-    }
-
-    return true;
-  });
+const BranchList: React.FC = () => {
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   useEffect(() => {
-    setViewMode('list'); // Always default to list
-  }, [isMobile]);
+    loadBranches();
+  }, []);
 
-  const toggleViewMode = () => {
-    setViewMode(viewMode === 'list' ? 'table' : 'list');
-  };
-
-  const handleAddBranch = () => {
-    setBranchToEdit(null);
-    setIsAddFormOpen(true);
-  };
-
-  const handleCloseForm = () => {
-    setIsAddFormOpen(false);
-    setIsEditFormOpen(false);
-    setBranchToEdit(null);
-    refetch();
-  };
-
-  const handleEditBranch = (branch: Branch) => {
-    setBranchToEdit(branch);
-    setIsEditFormOpen(true);
-  };
-
-  const handleDeleteBranch = (id: number) => {
-    setBranchToDelete(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (branchToDelete === null) return;
-    
+  const loadBranches = async () => {
     try {
-      await BranchService.deleteById(branchToDelete);
-      toast({
-        title: "Branch deleted",
-        description: "Branch has been successfully deleted.",
-        className: "bg-clinic-primary text-white"
-      });
-      refetch();
-      setDeleteDialogOpen(false);
-      setBranchToDelete(null);
+      const data = await branchMockService.getBranches();
+      setBranches(data);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete branch.",
-        variant: "destructive",
-      });
+      console.error('Error loading branches:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleFilterChange = (filterId: string, optionId: string) => {
-    setSelectedFilters(prev => {
-      const newFilters = {...prev};
-      
-      if (newFilters[filterId].includes(optionId)) {
-        newFilters[filterId] = newFilters[filterId].filter(id => id !== optionId);
-      } else {
-        newFilters[filterId] = [...newFilters[filterId], optionId];
-      }
-      
-      return newFilters;
-    });
-  };
+  const filteredBranches = branches.filter(branch => {
+    const matchesSearch = branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         branch.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && branch.active) ||
+                         (statusFilter === 'inactive' && !branch.active);
+    return matchesSearch && matchesStatus;
+  });
 
-  const handleClearFilters = () => {
-    setSelectedFilters({
-      status: [],
-      type: []
-    });
-    setSearchTerm("");
-  };
+  const renderBranchCard = (branch: Branch) => (
+    <Card key={branch.id} className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-blue-600" />
+            {branch.name}
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {branch.primary && (
+              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                Primary
+              </Badge>
+            )}
+            <Badge variant={branch.active ? "default" : "secondary"}>
+              {branch.active ? 'Active' : 'Inactive'}
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-start gap-2 text-sm text-gray-600">
+          <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span>{branch.location}</span>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span className="font-medium">Code:</span>
+          <span>{branch.code}</span>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span className="font-medium">City:</span>
+          <span>{branch.city}, {branch.state.name}</span>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span className="font-medium">Pincode:</span>
+          <span>{branch.pincode}</span>
+        </div>
 
-  const renderForm = () => {
+        <div className="flex gap-2 pt-3">
+          <Button variant="outline" size="sm" className="flex-1">
+            Edit
+          </Button>
+          <Button variant="outline" size="sm">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  if (loading) {
     return (
-      <FormDialog
-        isOpen={isAddFormOpen}
-        onClose={() => setIsAddFormOpen(false)}
-        title="Add New Branch"
-      >
-        <BranchForm onSuccess={handleCloseForm} />
-      </FormDialog>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
     );
-  };
-
-  const renderEditForm = () => {
-    if (!branchToEdit) return null;
-    
-    if (isMobile) {
-      return (
-        <Drawer open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-          <DrawerContent className="h-[85%]">
-            <DrawerHeader className="border-b border-clinic-accent">
-              <DrawerTitle className="text-clinic-primary">Edit Branch</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-4">
-              <BranchForm branch={branchToEdit} onSuccess={handleCloseForm} />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    } 
-    
-    return (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="border-b border-clinic-accent pb-4">
-            <DialogTitle className="text-clinic-primary">Edit Branch</DialogTitle>
-            <DialogDescription>Update branch information.</DialogDescription>
-          </DialogHeader>
-          <BranchForm branch={branchToEdit} onSuccess={handleCloseForm} />
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const totalElements = filteredBranches.length || 0;
-  const loadedElements = filteredBranches.length || 0;
+  }
 
   return (
-    <>
-      <div className="space-y-4">
-        <PageHeader 
-          title="Branches" 
-          viewMode={viewMode}
-          onViewModeToggle={toggleViewMode}
-          showAddButton={true}
-          addButtonLabel="Add Branch"
-          onAddButtonClick={handleAddBranch}
-          onRefreshClick={() => refetch()}
-          loadedElements={loadedElements}
-          totalElements={totalElements}
-          onFilterToggle={() => setShowFilter(!showFilter)}
-          showFilter={showFilter}
-        />
-
-        {showFilter && (
-          <FilterCard 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            filters={filters}
-            selectedFilters={selectedFilters}
-            onFilterChange={handleFilterChange}
-            onClearFilters={handleClearFilters}
-          />
-        )}
-
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading branches...</p>
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading branches. Please try again.</p>
-          </div>
-        ) : (
-          <div>
-            {viewMode === 'table' ? (
-              <BranchTable 
-                branches={filteredBranches} 
-                onDelete={handleDeleteBranch}
-                onEdit={handleEditBranch}
-              />
-            ) : (
-              <BranchCardList 
-                branches={filteredBranches} 
-                onDelete={handleDeleteBranch}
-                onEdit={handleEditBranch}
-              />
-            )}
-          </div>
-        )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Branch Management</h1>
+          <p className="text-gray-600">Manage clinic branches and locations</p>
+        </div>
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Branch
+        </Button>
       </div>
-      
-      {renderForm()}
-      {renderEditForm()}
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the branch
-              and remove all associated data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setBranchToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search branches..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setStatusFilter(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="list">List</SelectItem>
+                <SelectItem value="grid">Grid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Branch List */}
+      <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+        {filteredBranches.map(renderBranchCard)}
+      </div>
+
+      {filteredBranches.length === 0 && (
+        <div className="text-center py-12">
+          <Building2 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No branches found</h3>
+          <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+        </div>
+      )}
+    </div>
   );
 };
 

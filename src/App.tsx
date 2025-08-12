@@ -1,62 +1,45 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import NotFound from "./pages/NotFound";
-import AdminRoutes from "./admin/AdminRoutes";
-import { useTenant } from "./hooks/use-tenant";
-import ResetPassword from "./pages/ResetPassword";
-import PublicPatientRegistration from "./pages/PublicPatientRegistration";
-import ClinicProfile from "./pages/ClinicProfile";
-import ClinicProfileEdit from "./pages/ClinicProfileEdit";
-import UserProfile from "./pages/UserProfile";
+// Admin pages
+import AdminDashboard from './admin/pages/AdminDashboard';
+import AppointmentList from './admin/modules/appointments/pages/AppointmentList';
+import PatientList from './admin/modules/patient/pages/PatientList';
+import DoctorList from './admin/modules/doctor/pages/DoctorList';
+import QueuePage from './admin/modules/queue/pages/QueuePage';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
-// Component to initialize tenant info
-const TenantInitializer = ({ children }: { children: React.ReactNode }) => {
-  useTenant(); // This will fetch tenant info on app startup
-  return <>{children}</>;
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <TenantInitializer>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div className="App">
           <Routes>
-
-            {/* Login route */}
-            <Route path="/" element={<Login />} />
-
-            {/* Reset password route */}
-            <Route path="/reset-password" element={<ResetPassword />} />
-
-            {/* Public patient registration route */}
-            <Route path="/register-patient" element={<PublicPatientRegistration />} />
-
-            {/* Clinic profile routes */}
-            <Route path="/clinic-profile" element={<ClinicProfile />} />
-            <Route path="/clinic-profile/edit" element={<ClinicProfileEdit />} />
-
-            {/* User profile route */}
-            <Route path="/me" element={<UserProfile />} />
-
-            {/* Admin routes */}
-            <Route path="/admin/*" element={<AdminRoutes />} />
-
-            {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/appointments" element={<AppointmentList />} />
+            <Route path="/admin/patients" element={<PatientList />} />
+            <Route path="/admin/doctors" element={<DoctorList />} />
+            <Route path="/admin/queue" element={<QueuePage />} />
+            
+            {/* Default redirect */}
+            <Route path="/" element={<Navigate to="/admin" replace />} />
           </Routes>
-        </TenantInitializer>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+          <Toaster />
+        </div>
+      </Router>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
