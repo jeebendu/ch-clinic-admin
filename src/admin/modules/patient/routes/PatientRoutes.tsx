@@ -6,6 +6,7 @@ import Patients from "../pages/Patients";
 import PatientView from "../components/PatientView";
 import PatientPrescription from "../components/PatientPrescription";
 import VisitDetails from "../components/VisitDetails";
+import VisitRoutes from "../submodules/visit/routes/VisitRoutes";
 
 // Import report view components
 import AudiometryReportView from "../components/reports/views/AudiometryReportView";
@@ -26,6 +27,7 @@ const PatientRoutes = () => {
     <Routes>
       <Route path="/" element={<Patients />} />
       <Route path="/list" element={<PatientList />} />
+      <Route path="/visits/*" element={<VisitRoutes />} />
       <Route path="/view/:id" element={<PatientView />} />
       <Route path="/prescription/:id" element={<PatientPrescription />} />
       <Route path="/visit/:id" element={<VisitDetails />} />
