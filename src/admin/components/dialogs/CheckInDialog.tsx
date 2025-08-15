@@ -21,7 +21,7 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
   onClose,
   onCheckIn
 }) => {
-  const [status, setStatus] = useState<CheckInStatus>('not_checked_in');
+  const [status, setStatus] = useState<CheckInStatus>('checked_in');
   const [notes, setNotes] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {

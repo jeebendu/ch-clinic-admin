@@ -129,7 +129,7 @@ const LabOrders = () => {
   };
 
   return (
-    <AdminLayout>
+  
       <div className="space-y-6">
         <PageHeader
           title="Lab Orders"
@@ -305,7 +305,7 @@ const LabOrders = () => {
           )}
         </div>
       </div>
-    </AdminLayout>
+   
   );
 };
 

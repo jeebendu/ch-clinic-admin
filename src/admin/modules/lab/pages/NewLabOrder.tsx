@@ -155,7 +155,7 @@ const NewLabOrder = () => {
   };
 
   return (
-    <AdminLayout>
+    
       <div className="space-y-6">
         <PageHeader
           title="New Lab Order"
@@ -364,7 +364,7 @@ const NewLabOrder = () => {
           </div>
         </form>
       </div>
-    </AdminLayout>
+    
   );
 };
 

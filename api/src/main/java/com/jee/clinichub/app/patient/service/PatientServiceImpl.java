@@ -246,8 +246,7 @@ public class PatientServiceImpl implements PatientService {
 			patient = patientRepository.save(patient);
 
 			if (patientDto.getId() == null) {
-				sequenceService.incrementSequense(patientDto.getUser().getBranch().getId(),
-						module.getId(), nextSequense);
+				sequenceService.incrementSequense(patientDto.getUser().getBranch().getId(),module.getId(), nextSequense);
 			}
 
 			return new Status(true, ((patientDto.getId() == null) ? "Added" : "Updated") + " Successfully");

@@ -28,6 +28,8 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.font.FontProvider;
+import com.jee.clinichub.app.admin.clinic.allclinic.model.Clinic;
+import com.jee.clinichub.app.admin.clinic.allclinic.repository.ClinicRepository;
 import com.jee.clinichub.app.core.mail.MailRequest;
 import com.jee.clinichub.app.core.qrcode.QRCodeGenerator;
 import com.jee.clinichub.app.laboratory.model.TestReport;
@@ -78,6 +80,8 @@ public class TestReportServiceImpl implements TestReportService {
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired private QRCodeGenerator qrCodeGenerator;
+    
+    @Autowired private ClinicRepository clinicRepository;
     
     @Override
     public List<TestReportDTO> getAllReports() {
@@ -256,6 +260,9 @@ public class TestReportServiceImpl implements TestReportService {
                 log.warn("Test report not found for ID: {}", id);
                 throw new EntityNotFoundException("Test report not found with ID: " + id);
             }
+            
+            Optional<Clinic> clinicOptional  = clinicRepository.findById(1L);
+            Clinic clinic  = clinicOptional.get();
 
             // Prepare Thymeleaf HTML
             Context context = new Context();
@@ -264,12 +271,12 @@ public class TestReportServiceImpl implements TestReportService {
             context.setVariable("mainLogoUrl", "https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png");
 
 	        // Tenant logo – fallback to empty if not available
-	        String tenantLogoUrl = "https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png";
+	        String tenantLogoUrl = clinic.getLogo();
 	        context.setVariable("clinicLogo", tenantLogoUrl);
 	        
 	        context.setVariable("clinicForm", "Lab Report");
-	        context.setVariable("clinicName", "Panda Patholab");
-	        context.setVariable("clinicLocation", "Near Pati Medicine store, Dungura, Balasore, Odisha");
+	        context.setVariable("clinicName", clinic.getName());
+	        context.setVariable("clinicLocation", clinic.getAddress());
 	        context.setVariable("clinicLogo", tenantLogoUrl);
 	        
 	        context.setVariable("patient", reportDTO.getPatient());

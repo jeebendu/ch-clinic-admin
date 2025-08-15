@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+/api/target
+/api/.settings
+/api/.classpath
+/api/.env
+/api/.factorypath
+/api/.project
+/api/src/main/resources/application-prod.yml
+/api/src/main/resources/application-uat.yml
+/api/src/main/resources/logback-spring2.xml
+/api/src/main/resources/application.yml

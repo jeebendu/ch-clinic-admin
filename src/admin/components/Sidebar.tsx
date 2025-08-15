@@ -1,224 +1,376 @@
-import React from "react";
-import {
-  LayoutDashboard,
-  Calendar,
-  Users,
-  User,
-  Settings,
-  HelpCircle,
-  Logout,
-  Building2,
-  Activity,
-  FileText,
-  Plus,
-} from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useTenant } from "@/contexts/TenantContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { useTheme } from "@/hooks/use-theme";
-
-interface NavItem {
-  title: string;
-  icon: any;
-  href: string;
-  items?: NavItem[];
-}
-
-const menuItems = [
-  {
-    title: "Dashboard",
-    icon: LayoutDashboard,
-    href: "/admin",
-    items: []
-  },
-  {
-    title: "Appointments",
-    icon: Calendar,
-    href: "/admin/appointments",
-    items: [
-      { title: "All Appointments", href: "/admin/appointments" },
-      { title: "Schedule", href: "/admin/appointments/schedule" },
-      { title: "Requests", href: "/admin/appointments/requests" }
-    ]
-  },
-  {
-    title: "Queue Management",
-    icon: Users,
-    href: "/admin/queue",
-    items: []
-  },
-  {
-    title: "Patients",
-    icon: Users,
-    href: "/admin/patients",
-    items: [
-      { title: "All Patients", href: "/admin/patients" },
-      { title: "Add Patient", href: "/admin/patients/add" }
-    ]
-  },
-  {
-    title: "Doctors",
-    icon: User,
-    href: "/admin/doctors",
-    items: [
-      { title: "All Doctors", href: "/admin/doctors" },
-      { title: "Add Doctor", href: "/admin/doctors/add" }
-    ]
-  },
-  {
-    title: "Branches",
-    icon: Building2,
-    href: "/admin/branches",
-    items: [
-      { title: "All Branches", href: "/admin/branches" },
-      { title: "Add Branch", href: "/admin/branches/add" }
-    ]
-  },
-  {
-    title: "Activities",
-    icon: Activity,
-    href: "/admin/activities",
-    items: []
-  },
-  {
-    title: "Reports",
-    icon: FileText,
-    href: "/admin/reports",
-    items: []
-  },
-];
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { 
+  Home, 
+  Users,
+  Calendar,
+  Settings,
+  Clock,
+  CalendarDays,
+  Building2,
+  UserCircle,
+  FileBox,
+  UserCog,
+  PanelLeft,
+  X,
+  Package,
+  UserPlus,
+  MessageSquare,
+  ArrowDownRightFromCircle,
+  Settings2Icon,
+  ShoppingBasket,
+  Truck,
+  ChevronRight,
+  FileText,
+  BarChart2,
+  Ear,
+  FlaskConical,
+  Plus,
+  ClipboardList,
+  TestTube2,
+  Library
+} from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+import AuthService from "@/services/authService";
+import { useTenant } from "@/hooks/use-tenant";
+import { getTenantFileUrl } from "@/utils/tenantUtils";
 
 interface SidebarProps {
-  onClose: () => void;
-  collapsed: boolean;
+  onClose?: () => void;
+  collapsed?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onClose, collapsed }) => {
-  const { pathname } = useLocation();
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
+type UserRole = "Admin" | "Doctor" | "Staff";
+
+interface NavItem {
+  icon: React.ReactNode;
+  label: string;
+  href?: string;
+  roles: string[];
+  submenu?: {
+    label: string;
+    href: string;
+    roles: string[];
+  }[];
+  onClick?: () => void;
+}
+
+const navItems: NavItem[] = [
+  { 
+    icon: <Home className="h-5 w-5" />, 
+    label: "Admin Dashboard", 
+    href: "/admin/dashboard/admin", 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <Calendar className="h-5 w-5" />, 
+    label: "Appointments", 
+    href: "/admin/appointments", 
+    roles: ["Admin", "Doctor", "Staff"] 
+  },
+  { 
+    icon: <Users className="h-5 w-5" />, 
+    label: "Patients", 
+    href: "/admin/patients", 
+    roles: ["Admin", "Doctor", "Staff"] 
+  },
+  
+  { 
+    icon: <UserCircle className="h-5 w-5" />, 
+    label: "Doctors", 
+    roles: ["Admin"],
+    submenu: [
+      {
+        label: "Doctor List",
+        href: "/admin/doctor",
+        roles: ["Admin"]
+      },
+      {
+        label: "Speciality",
+        href: "/admin/doctor/speciality",
+        roles: ["Admin"]
+      },
+      {
+        label: "Medical Council",
+        href: "/admin/medical-council",
+        roles: ["Admin"]
+      },
+      {
+        label: "Degree",
+        href: "/admin/medical-degree",
+        roles: ["Admin"]
+      },
+    ]
+  },
+
+  { 
+    icon: <FlaskConical className="h-5 w-5" />, 
+    label: "Lab", 
+    roles: ["Admin", "Doctor", "Staff"],
+    submenu: [
+      {
+        label: "Dashboard",
+        href: "/admin/lab/dashboard",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "New Lab Order",
+        href: "/admin/lab/new-order",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "Orders",
+        href: "/admin/lab/orders",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "Reports",
+        href: "/admin/lab/reports",
+        roles: ["Admin", "Doctor", "Staff"]
+      },
+      {
+        label: "Test Catalog",
+        href: "/admin/lab/test-catalog",
+        roles: ["Admin"]
+      },
+      {
+        label: "Settings",
+        href: "/admin/lab/settings",
+        roles: ["Admin"]
+      }
+    ]
+  },
+ 
+  { 
+    icon: <BarChart2 className="h-5 w-5" />, 
+    label: "Reports", 
+    roles: ["Admin"],
+    submenu: [
+      {
+        label: "Referral Doctor",
+        href: "/admin/reports/referral-doctor",
+        roles: ["Admin"]
+      },
+    ]
+  },
+  { 
+    icon: <UserCog className="h-5 w-5" />, 
+    label: "Users", 
+    roles: ["Admin"],
+    submenu: [
+      {
+        label: "User List",
+        href: "/admin/users",
+        roles: ["Admin"]
+      },
+      {
+        label: "Roles",
+        href: "/admin/users/roles",
+        roles: ["Admin"]
+      },
+      {
+        label: "Login History",
+        href: "/admin/users/login-history",
+        roles: ["Admin"]
+      },
+      {
+        label: "Clinic Profile",
+        href: "/clinic-profile",
+        roles: ["Admin"]
+      }
+    ]
+  },
+  { 
+    icon: <Building2 className="h-5 w-5" />, 
+    label: "Branches", 
+    href: "/admin/branch", 
+    roles: ["Admin"] 
+  },
+  { 
+    icon: <MessageSquare className="h-5 w-5" />, 
+    label: "Enquiries", 
+    href: "/admin/enquiry", 
+    roles: ["Admin", "Doctor", "Staff"] 
+  },
+  {
+    icon: <Settings className="h-5 w-5" />,
+    label: "Config",
+    roles: ["Admin"],
+    submenu: [
+        {
+        label: "Services",
+        href: "/admin/service",
+        roles: ["Admin"]
+        }
+
+    ]
+  },
+
+];
+
+const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
+  const userRole: UserRole = AuthService.getUserRole() as UserRole;
+  const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
   const { tenant } = useTenant();
-    const { setTheme } = useTheme();
+  const location = useLocation();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-    if (onClose) {
-      onClose();
-    }
+  const toggleSubmenu = (label: string) => {
+    setOpenSubmenus(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
+    );
   };
 
-  const renderMenuItems = (items: NavItem[], level = 0) => {
-    return items.map((item) => {
-      const isActive = pathname === item.href;
-      const hasSubMenu = item.items && item.items.length > 0;
-      const marginLeft = level * 4; // 4 units of spacing for each level
+  // Get tenant logo URL
+  let tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
+  if (!tenantLogoUrl) {
+    tenantLogoUrl = 'https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';
+  }
+  console.log("Tenant Logo URL:", tenantLogoUrl);
 
-      return (
-        <li key={item.title}>
-          <Link
-            to={item.href}
-            className={cn(
-              "flex items-center text-sm font-medium py-2 px-3 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground",
-              isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
-              collapsed && !hasSubMenu ? "justify-center" : "",
-              !collapsed && hasSubMenu ? "justify-between" : "",
-            )}
-            onClick={isMobile ? onClose : undefined}
-            style={{ marginLeft: `${marginLeft}px` }}
-          >
-            <div className="flex items-center">
-              <item.icon className="mr-2 h-4 w-4" />
-              {!collapsed && <span>{item.title}</span>}
-            </div>
-            {!collapsed && hasSubMenu && <span>{">"}</span>}
-          </Link>
-          {hasSubMenu && renderMenuItems(item.items, level + 1)}
-        </li>
-      );
+  useEffect(() => {
+    const handleQuickForm = () => {
+      document.dispatchEvent(new CustomEvent('open-quick-form'));
+    };
+    
+    document.addEventListener('open-quick-form', handleQuickForm);
+    return () => {
+      document.removeEventListener('open-quick-form', handleQuickForm);
+    };
+  }, []);
+
+  // Auto-open submenu based on current route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    navItems.forEach(item => {
+      if (item.submenu) {
+        const hasActiveSubmenu = item.submenu.some(subItem => 
+          currentPath.includes(subItem.href)
+        );
+        
+        if (hasActiveSubmenu && !openSubmenus.includes(item.label)) {
+          setOpenSubmenus(prev => [...prev, item.label]);
+        }
+      }
     });
-  };
+  }, [location.pathname]);
+
+  const filteredNavItems = navItems.filter(item => 
+    item.roles.includes(userRole)
+  );
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center py-4">
-        <Link to="/admin" className="flex items-center gap-2 font-semibold">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={tenant?.logo} />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
-          {!collapsed && <span className="text-lg">{tenant?.title || tenant?.name}</span>}
-        </Link>
-      </div>
-      <div className="flex-1 overflow-y-auto py-2">
-        <ul>{renderMenuItems(menuItems)}</ul>
-      </div>
-      <div className="pb-3 pt-4">
-        {!collapsed && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center justify-between font-medium py-2 px-3 rounded-md transition-colors hover:bg-secondary">
-                <div className="flex items-center">
-                  <Avatar className="h-8 w-8 mr-2">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="Avatar" />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                  <span>{tenant?.adminEmail}</span>
-                </div>
-                <span>{">"}</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80" align="end">
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" /> <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" /> <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <HelpCircle className="mr-2 h-4 w-4" /> <span>Help</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
-                <Logout className="mr-2 h-4 w-4" /> <span>Log out</span>
-              </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <div className="px-2 py-1">
-                  <div className="grid gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="theme"
-                        onClick={() => {
-                          const theme = localStorage.getItem("theme");
-                          if (theme === "dark") {
-                            setTheme("light");
-                          } else {
-                            setTheme("dark");
-                          }
-                        }}
-                      />
-                      <Label htmlFor="theme">Dark Mode</Label>
-                    </div>
-                  </div>
-                </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <aside className={cn(
+      "text-sidebar-foreground h-full transition-all duration-300 flex flex-col",
+      collapsed ? "w-[70px]" : "w-64"
+    )}>
+      <div className="p-3 flex-none border-b flex items-center">
+        {tenantLogoUrl && (
+          <div className={cn(
+            "flex items-center",
+            collapsed ? "justify-center w-full" : ""
+          )}>
+            <img 
+              src={tenantLogoUrl} 
+              alt={tenant?.title || 'Tenant Logo'} 
+              className={cn("h-8 w-auto", collapsed ? "mx-auto" : "")}
+            />
+          </div>
         )}
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="md:hidden text-sidebar-foreground ml-auto"
+        >
+          <X className="h-5 w-5" />
+        </Button>
       </div>
-    </div>
+
+      <ScrollArea className="flex-1">
+        <nav>
+          {filteredNavItems.map((item) => (
+            <React.Fragment key={item.label}>
+              {item.submenu ? (
+                <Collapsible
+                  open={openSubmenus.includes(item.label)}
+                  onOpenChange={() => toggleSubmenu(item.label)}
+                >
+                  <CollapsibleTrigger className={cn(
+                    "flex w-full items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                    openSubmenus.includes(item.label) && "bg-sidebar-accent text-sidebar-accent-foreground",
+                    collapsed && "justify-center"
+                  )}>
+                    <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
+                    {!collapsed && (
+                      <>
+                        <span className="flex-1 text-left">{item.label}</span>
+                        <ChevronRight className={cn(
+                          "h-4 w-4 transition-transform",
+                          openSubmenus.includes(item.label) && "rotate-90"
+                        )} />
+                      </>
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    {!collapsed && item.submenu.map(subItem => {
+                      return (
+                        <NavLink
+                          key={subItem.href}
+                          to={subItem.href}
+                          className={({ isActive }) => cn(
+                            "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent/10 transition-colors text-sm",
+                            isActive && "bg-sidebar-accent/20", // Normalized active color
+                            "text-left" // Ensure left alignment
+                          )}
+                          onClick={onClose}
+                        >
+                          {subItem.label}
+                        </NavLink>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+              ) : (
+                <NavLink
+                  to={item.href!}
+                  className={({ isActive }) => cn(
+                    "flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                    isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-l-4 border-sidebar-primary",
+                    !isActive && "border-l-4 border-transparent",
+                    collapsed && "justify-center"
+                  )}
+                  onClick={(e) => {
+                    if (item.onClick) {
+                      e.preventDefault();
+                      item.onClick();
+                    }
+                    
+                    if (window.innerWidth < 768 && onClose) {
+                      onClose();
+                    }
+                  }}
+                >
+                  <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
+                  {!collapsed && <span>{item.label}</span>}
+                  {!collapsed && (item.label.includes("Dashboard") || item.label === "Appointments" || item.label === "Doctors" || item.label === "Patients") && (
+                    <span className="ml-auto">
+                      <PanelLeft className="h-4 w-4 rotate-180" />
+                    </span>
+                  )}
+                </NavLink>
+              )}
+            </React.Fragment>
+          ))}
+        </nav>
+      </ScrollArea>
+    </aside>
   );
 };
 
