@@ -1,17 +1,29 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Search, Plus, User } from 'lucide-react';
+import { User, Stethoscope, FileText, Clock } from 'lucide-react';
 import { queueService } from '../services/queueService';
-import { QueueSource } from '../types/Queue';
 import { Patient } from '../../patient/types/Patient';
 import { Doctor } from '../../doctor/types/Doctor';
-import { Branch } from '../../branch/types/Branch';
+import { useToast } from '@/components/ui/use-toast';
 
 interface AddToQueueDialogProps {
   isOpen: boolean;
@@ -24,269 +36,253 @@ const AddToQueueDialog: React.FC<AddToQueueDialogProps> = ({
   onClose,
   onSuccess
 }) => {
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
-  const [source, setSource] = useState<QueueSource>('walk_in');
-  const [notes, setNotes] = useState('');
-  
-  // Mock data - replace with actual API calls
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
+  const [reasonForVisit, setReasonForVisit] = useState('');
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [patientsData, doctorsData] = await Promise.all([
+          queueService.getPatients(),
+          queueService.getDoctors()
+        ]);
+        setPatients(patientsData);
+        setDoctors(doctorsData);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+
     if (isOpen) {
-      loadMockData();
+      loadData();
     }
   }, [isOpen]);
 
-  const loadMockData = () => {
-    // Mock patients
-    setPatients([
-      {
-        id: 1,
-        uid: 'P001',
-        firstname: 'John',
-        lastname: 'Doe',
-        fullName: 'John Doe',
-        email: 'john.doe@email.com',
-        mobile: '+1234567890',
-        gender: 'Male',
-        dob: new Date('1990-01-01'),
-        age: 34,
-        address: '123 Main St',
-        state: { id: 1, name: 'California', code: 'CA' },
-        district: { id: 1, name: 'Los Angeles', code: 'LA', state: { id: 1, name: 'California', code: 'CA' } },
-        refDoctor: null,
-        user: { id: 1, username: 'johndoe', email: 'john.doe@email.com', phone: '+1234567890' }
-      }
-    ]);
-
-    // Mock doctors
-    setDoctors([
-      {
-        id: 1,
-        uid: 'D001',
-        firstname: 'Dr. Sarah',
-        lastname: 'Wilson',
-        qualification: 'MBBS, MD',
-        expYear: 10,
-        online: true,
-        gender: 'Female',
-        specializationList: [{ id: 1, name: 'Cardiology' }]
-      }
-    ]);
-
-    // Mock branches
-    setBranches([
-      {
-        id: 1,
-        name: 'Main Branch',
-        code: 'MB001',
-        location: 'Downtown',
-        active: true,
-        primary: true,
-        state: { id: 1, name: 'California', code: 'CA' },
-        district: { id: 1, name: 'Los Angeles', code: 'LA', state: { id: 1, name: 'California', code: 'CA' } },
-        country: { id: 1, name: 'United States', code: 'US' },
-        city: 'Los Angeles',
-        mapurl: '',
-        pincode: 90210,
-        image: '',
-        latitude: 34.0522,
-        longitude: -118.2437
-      }
-    ]);
-  };
-
   const handleSubmit = async () => {
-    if (!selectedPatient || !selectedDoctor || !selectedBranch) {
+    if (!selectedPatientId || !selectedDoctorId) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both patient and doctor",
+        variant: "destructive"
+      });
       return;
     }
 
-    setLoading(true);
     try {
-      await queueService.addToQueue(
-        selectedPatient,
-        selectedDoctor,
-        selectedBranch,
-        source
+      setLoading(true);
+      
+      await queueService.quickAddToQueue(
+        parseInt(selectedPatientId),
+        parseInt(selectedDoctorId)
       );
+
+      toast({
+        title: "Success",
+        description: "Patient added to queue successfully. Visit record created.",
+      });
+
+      // Reset form
+      setSelectedPatientId('');
+      setSelectedDoctorId('');
+      setReasonForVisit('');
+      setNotes('');
       
       onSuccess();
-      handleClose();
+      onClose();
     } catch (error) {
       console.error('Error adding to queue:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add patient to queue. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setStep(1);
-    setSelectedPatient(null);
-    setSelectedDoctor(null);
-    setSelectedBranch(null);
-    setSource('walk_in');
-    setNotes('');
-    setSearchTerm('');
-    onClose();
-  };
-
-  const filteredPatients = patients.filter(patient =>
-    patient.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.mobile.includes(searchTerm)
-  );
+  const selectedPatient = patients.find(p => p.id.toString() === selectedPatientId);
+  const selectedDoctor = doctors.find(d => d.id.toString() === selectedDoctorId);
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5 text-blue-600" />
-            Add Patient to Queue
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh]">
+        <DialogHeader className="border-b pb-4">
+          <DialogTitle className="flex items-center space-x-2">
+            <User className="w-5 h-5 text-blue-500" />
+            <span>Add Patient to Queue</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="search">Search Patient</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="search"
-                    placeholder="Search by name or mobile..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {filteredPatients.map((patient) => (
-                  <div
-                    key={patient.id}
-                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                      selectedPatient?.id === patient.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedPatient(patient)}
-                  >
+        <DialogBody className="space-y-6 py-4">
+          {/* Patient Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Select Patient</Label>
+            <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a patient..." />
+              </SelectTrigger>
+              <SelectContent>
+                {patients.map((patient) => (
+                  <SelectItem key={patient.id} value={patient.id.toString()}>
                     <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-blue-600" />
+                      <User className="w-4 h-4 text-gray-400" />
+                      <div>
+                        <div className="font-medium">
+                          {patient.firstname} {patient.lastname}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {patient.uid} • {patient.mobile}
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
-                          {patient.firstname} {patient.lastname}
-                        </p>
-                        <p className="text-xs text-gray-500">{patient.mobile}</p>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {selectedPatient && (
+              <div className="mt-2 p-3 bg-blue-50 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">
+                      {selectedPatient.firstname} {selectedPatient.lastname}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {selectedPatient.age} years • {selectedPatient.gender}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedPatient.mobile} • {selectedPatient.city}
+                    </p>
+                  </div>
+                  <Badge variant="outline">{selectedPatient.uid}</Badge>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Doctor Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Select Doctor</Label>
+            <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a doctor..." />
+              </SelectTrigger>
+              <SelectContent>
+                {doctors.map((doctor) => (
+                  <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                    <div className="flex items-center space-x-3">
+                      <Stethoscope className="w-4 h-4 text-green-500" />
+                      <div>
+                        <div className="font-medium">
+                          {doctor.firstname} {doctor.lastname}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {doctor.qualification} • {doctor.specializationList[0]?.name}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </SelectHeader>
                 ))}
+              </SelectContent>
+            </Select>
+
+            {selectedDoctor && (
+              <div className="mt-2 p-3 bg-green-50 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">
+                      {selectedDoctor.firstname} {selectedDoctor.lastname}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {selectedDoctor.qualification}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedDoctor.specializationList[0]?.name} • {selectedDoctor.expYear} years exp
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={selectedDoctor.online ? "default" : "secondary"}>
+                      {selectedDoctor.online ? "Available" : "Offline"}
+                    </Badge>
+                  </div>
+                </div>
               </div>
+            )}
+          </div>
 
-              <Button
-                onClick={() => setStep(2)}
-                disabled={!selectedPatient}
-                className="w-full"
-              >
-                Continue
-              </Button>
-            </div>
-          )}
+          {/* Reason for Visit */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Reason for Visit</Label>
+            <Input
+              placeholder="e.g., Regular checkup, Follow-up, Consultation"
+              value={reasonForVisit}
+              onChange={(e) => setReasonForVisit(e.target.value)}
+            />
+          </div>
 
-          {step === 2 && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="doctor">Select Doctor</Label>
-                <Select onValueChange={(value) => {
-                  const doctor = doctors.find(d => d.id.toString() === value);
-                  setSelectedDoctor(doctor || null);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose doctor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {doctors.map((doctor) => (
-                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                        Dr. {doctor.firstname} {doctor.lastname}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {/* Additional Notes */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Additional Notes (Optional)</Label>
+            <Textarea
+              placeholder="Any additional information about the visit..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          {/* Summary */}
+          {selectedPatient && selectedDoctor && (
+            <div className="p-4 bg-gray-50 rounded-lg border">
+              <div className="flex items-center space-x-2 mb-3">
+                <Clock className="w-4 h-4 text-gray-500" />
+                <span className="font-medium text-gray-700">Visit Summary</span>
               </div>
-
-              <div>
-                <Label htmlFor="branch">Select Branch</Label>
-                <Select onValueChange={(value) => {
-                  const branch = branches.find(b => b.id.toString() === value);
-                  setSelectedBranch(branch || null);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose branch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {branches.map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id.toString()}>
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="source">Source</Label>
-                <Select value={source} onValueChange={(value) => setSource(value as QueueSource)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="walk_in">Walk-in</SelectItem>
-                    <SelectItem value="staff_added">Staff Added</SelectItem>
-                    <SelectItem value="online_appointment">Online Appointment</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Additional notes..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                  Back
-                </Button>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!selectedDoctor || !selectedBranch || loading}
-                  className="flex-1"
-                >
-                  {loading ? 'Adding...' : 'Add to Queue'}
-                </Button>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Patient:</p>
+                  <p className="font-medium">{selectedPatient.firstname} {selectedPatient.lastname}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Doctor:</p>
+                  <p className="font-medium">{selectedDoctor.firstname} {selectedDoctor.lastname}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Visit Type:</p>
+                  <p className="font-medium">Walk-in (Physical Visit)</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Date:</p>
+                  <p className="font-medium">{new Date().toLocaleDateString()}</p>
+                </div>
               </div>
             </div>
           )}
+        </DialogBody>
+
+        <div className="flex justify-end space-x-3 pt-4 border-t">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !selectedPatientId || !selectedDoctorId}
+            className="flex items-center space-x-2"
+          >
+            <FileText className="w-4 h-4" />
+            <span>{loading ? 'Adding...' : 'Add to Queue & Create Visit'}</span>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
