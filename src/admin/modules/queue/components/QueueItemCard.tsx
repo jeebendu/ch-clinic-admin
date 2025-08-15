@@ -4,10 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dropdown, DropdownContent, DropdownItem, DropdownTrigger } from '@/components/ui/dropdown-menu';
 import { Clock, Phone, User, MoreVertical, PhoneCall, UserCheck, CheckCircle, XCircle } from 'lucide-react';
 import { QueueItem, QueueStatus } from '../types/Queue';
 import { formatDistance } from 'date-fns';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface QueueItemCardProps {
   item: QueueItem;
@@ -109,25 +109,25 @@ const QueueItemCard: React.FC<QueueItemCardProps> = ({ item, onStatusUpdate, onR
               </div>
             </div>
             
-            <Dropdown>
-              <DropdownTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
-              </DropdownTrigger>
-              <DropdownContent align="end">
-                <DropdownItem onClick={() => handleStatusUpdate('no_show')}>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleStatusUpdate('no_show')}>
                   <XCircle className="h-4 w-4 mr-2" />
                   Mark No Show
-                </DropdownItem>
-                <DropdownItem 
+                </DropdownMenuItem>
+                <DropdownMenuItem 
                   onClick={() => onRemove(item.id)}
                   className="text-red-600"
                 >
                   Remove from Queue
-                </DropdownItem>
-              </DropdownContent>
-            </Dropdown>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Patient Info */}
