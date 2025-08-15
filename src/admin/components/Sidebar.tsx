@@ -78,7 +78,13 @@ const navItems: NavItem[] = [
     href: "/admin/patients", 
     roles: ["Admin", "Doctor", "Staff"] 
   },
-  
+
+  { 
+    icon: <Users className="h-5 w-5" />, 
+    label: "Queue", 
+    href: "/admin/queue", 
+    roles: ["Admin", "Doctor", "Staff"] 
+  },
   { 
     icon: <UserCircle className="h-5 w-5" />, 
     label: "Doctors", 
