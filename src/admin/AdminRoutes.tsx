@@ -26,6 +26,7 @@ import AudiometryRoutes from "./modules/audiometry/routes/AudiometryRoutes";
 import EnquiryServiceTypeRoutes from "./modules/clinics/enquiry-service/routes/EnquiryServiceTypeRoutes";
 import LabRoutes from "./modules/lab/routes/LabRoutes";
 import AdminLayout from "./components/AdminLayout";
+import QueuePage from "./modules/queue/pages/QueuePage";
 
 const AdminRoutes = () => {
   return (
@@ -61,6 +62,7 @@ const AdminRoutes = () => {
         <Route path="service/*" element={<EnquiryServiceTypeRoutes />} />
         <Route path="audiometry/*" element={<AudiometryRoutes />} />
         <Route path="lab/*" element={<LabRoutes />} />
+        <Route path="/queue" element={<QueuePage />} />
       </Route>
     </Routes>
   );
