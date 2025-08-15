@@ -1,3 +1,4 @@
+
 import { Routes, Route, Outlet } from "react-router-dom";
 import "./styles/admin.css";
 import DashboardRoutes from "./modules/dashboard/routes/DashboardRoutes";
@@ -25,8 +26,8 @@ import ReportsRoutes from "./modules/reports/routes/ReportsRoutes";
 import AudiometryRoutes from "./modules/audiometry/routes/AudiometryRoutes";
 import EnquiryServiceTypeRoutes from "./modules/clinics/enquiry-service/routes/EnquiryServiceTypeRoutes";
 import LabRoutes from "./modules/lab/routes/LabRoutes";
+import QueueRoutes from "./modules/queue/routes/QueueRoutes";
 import AdminLayout from "./components/AdminLayout";
-import QueuePage from "./modules/queue/pages/QueuePage";
 
 const AdminRoutes = () => {
   return (
@@ -53,6 +54,7 @@ const AdminRoutes = () => {
         <Route path="expense/*" element={<ExpenseRoutes />} />
         <Route path="core/*" element={<CoreRoutes />} />
         <Route path="reports/*" element={<ReportsRoutes />} />
+        <Route path="queue/*" element={<QueueRoutes />} />
         <Route path=":section" element={<DashboardRoutes />} />
         <Route path="enquiry/*" element={<EnquiryRoutes />} />
         <Route path="salesOrder/*" element={<SalesOrderList />} />
@@ -62,7 +64,6 @@ const AdminRoutes = () => {
         <Route path="service/*" element={<EnquiryServiceTypeRoutes />} />
         <Route path="audiometry/*" element={<AudiometryRoutes />} />
         <Route path="lab/*" element={<LabRoutes />} />
-        <Route path="/queue" element={<QueuePage />} />
       </Route>
     </Routes>
   );
