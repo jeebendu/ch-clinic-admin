@@ -4,8 +4,9 @@ import AdminLayout from '@/admin/components/AdminLayout';
 import QueueBoard from '../components/QueueBoard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, Clock, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Plus, Users, Clock, CheckCircle, XCircle, RefreshCw, UserPlus } from 'lucide-react';
 import QueueTable from '../components/QueueTable';
+import AddToQueueDialog from '../components/AddToQueueDialog';
 import { queueService } from '../services/queueService';
 import { QueueItem, QueueStats, QueueStatus } from '../types/Queue';
 import { useToast } from '@/components/ui/use-toast';
@@ -21,6 +22,7 @@ const QueuePage: React.FC = () => {
     longestWaitTime: 0
   });
   const [loading, setLoading] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const { toast } = useToast();
 
   const loadQueueData = async () => {
@@ -89,6 +91,14 @@ const QueuePage: React.FC = () => {
     });
   };
 
+  const handleAddPatientSuccess = () => {
+    loadQueueData(); // Refresh the queue data
+    toast({
+      title: "Patient Added",
+      description: "Patient has been successfully added to the queue and visit record created.",
+    });
+  };
+
   const statsCards = [
     {
       title: 'Waiting',
@@ -133,9 +143,12 @@ const QueuePage: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </Button>
-          <Button className="flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>Add to Queue</span>
+          <Button 
+            onClick={() => setShowAddDialog(true)}
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Add Patient to Queue</span>
           </Button>
         </div>
       </div>
@@ -164,9 +177,14 @@ const QueuePage: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Today's Queue</CardTitle>
-            <Badge variant="outline" className="text-sm">
-              {queueItems.length} patients
-            </Badge>
+            <div className="flex items-center space-x-3">
+              <Badge variant="outline" className="text-sm">
+                {queueItems.length} patients
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                Live Updates
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -178,6 +196,13 @@ const QueuePage: React.FC = () => {
           />
         </CardContent>
       </Card>
+
+      {/* Add Patient Dialog */}
+      <AddToQueueDialog
+        isOpen={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        onSuccess={handleAddPatientSuccess}
+      />
     </div>
   );
 };
