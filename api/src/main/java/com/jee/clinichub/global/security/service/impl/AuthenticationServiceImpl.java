@@ -344,7 +344,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		if (resetToken != null && resetToken.getResetTime() == null) {
 			LocalDateTime tokenCreationTime = resetToken.getCreatedTime().toInstant()
 					.atZone(ZoneId.systemDefault()).toLocalDateTime();
-			LocalDateTime expirationTime = tokenCreationTime.plusHours(1);
+			LocalDateTime expirationTime = tokenCreationTime.plusHours(24);
 			LocalDateTime now = LocalDateTime.now();
 			return now.isBefore(expirationTime);
 		}

@@ -188,7 +188,7 @@ const AddToQueueDialog: React.FC<AddToQueueDialogProps> = ({
                         </div>
                       </div>
                     </div>
-                  </SelectHeader>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
