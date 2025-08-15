@@ -14,10 +14,10 @@ export interface Patient {
   lastname: string;
   fullName?: string;
   email: string;
-  mobile: string;
-  phone?: string;
+  mobile: string; // Changed from 'phone' to 'mobile' to match API
+  phone?: string; // Added for backwards compatibility
   whatsappNo?: string;
-  alternativeContact?: string;
+  alternativeContact?: string; // Added this property
   gender: string;
   dob: Date;
   age: number;

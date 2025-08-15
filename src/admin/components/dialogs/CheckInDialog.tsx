@@ -1,33 +1,32 @@
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 
-export type CheckInStatus = "pending" | "checkedIn" | "completed" | "cancelled";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { UserCheck } from 'lucide-react';
+import { CheckInStatus } from '../../modules/appointments/types/PaymentFlow';
 
 interface CheckInDialogProps {
+  appointment: any;
   isOpen: boolean;
   onClose: () => void;
-  appointment: any; // Replace 'any' with your appointment type
+  onCheckIn: (status: CheckInStatus, notes?: string) => void;
 }
 
-const CheckInDialog = ({ isOpen, onClose, appointment }: CheckInDialogProps) => {
-  const [status, setStatus] = useState<CheckInStatus>("checkedIn");
+const CheckInDialog: React.FC<CheckInDialogProps> = ({
+  appointment,
+  isOpen,
+  onClose,
+  onCheckIn
+}) => {
+  const [status, setStatus] = useState<CheckInStatus>('checked_in');
+  const [notes, setNotes] = useState('');
 
-  const handleStatusChange = (newStatus: CheckInStatus) => {
-    setStatus(newStatus);
-  };
-
-  const handleCheckIn = () => {
-    // Implement your check-in logic here, e.g., API call
-    console.log("Checking in appointment:", appointment.id, "with status:", status);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onCheckIn(status, notes || undefined);
     onClose();
   };
 
@@ -35,80 +34,47 @@ const CheckInDialog = ({ isOpen, onClose, appointment }: CheckInDialogProps) => 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Appointment Check-In</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <UserCheck className="h-5 w-5 text-blue-600" />
+            Update Check-in Status
+          </DialogTitle>
         </DialogHeader>
-        <DialogBody>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">Appointment Details</h3>
-              <p>Patient: {appointment.patientName}</p>
-              <p>Doctor: {appointment.doctorName}</p>
-              <p>Date: {appointment.date}</p>
-              <p>Time: {appointment.time}</p>
-            </div>
 
-            <div>
-              <h3 className="text-lg font-medium">Check-In Status</h3>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="checkedIn"
-                    checked={status === "checkedIn"}
-                    onCheckedChange={(checked) => {
-                      if (checked) handleStatusChange("checkedIn");
-                    }}
-                  />
-                  <label
-                    htmlFor="checkedIn"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Checked In
-                  </label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="completed"
-                    checked={status === "completed"}
-                    onCheckedChange={(checked) => {
-                      if (checked) handleStatusChange("completed");
-                    }}
-                  />
-                  <label
-                    htmlFor="completed"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Completed
-                  </label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="cancelled"
-                    checked={status === "cancelled"}
-                    onCheckedChange={(checked) => {
-                      if (checked) handleStatusChange("cancelled");
-                    }}
-                  />
-                  <label
-                    htmlFor="cancelled"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Cancelled
-                  </label>
-                </div>
-              </div>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="status">Check-in Status</Label>
+            <Select value={status} onValueChange={(value: CheckInStatus) => setStatus(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="not_checked_in">Not Checked In</SelectItem>
+                <SelectItem value="checked_in">Checked In</SelectItem>
+                <SelectItem value="in_consultation">In Consultation</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </DialogBody>
-        <DialogFooter>
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleCheckIn}>
-            Confirm Check-In
-          </Button>
-        </DialogFooter>
+
+          <div>
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Additional notes about check-in"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700">
+              Update Status
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
