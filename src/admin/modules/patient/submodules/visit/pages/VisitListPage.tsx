@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -13,6 +13,7 @@ import visitService from "../services/visitService";
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
   const [searchTerm, setSearchTerm] = useState('');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const {
     data,
@@ -41,24 +42,17 @@ const VisitListPage = () => {
     },
   });
 
-  // Enable auto-scroll (returns a sentinel ref to attach at the bottom)
+  // Enable auto-scroll with explicit rootRef
   const { loadMoreRef } = useAutoScroll({
     hasNextPage: hasNextPage || false,
     isFetchingNextPage,
-    fetchNextPage
+    fetchNextPage,
+    rootRef: scrollContainerRef
   });
 
   // Flatten all pages into a single array
   const allVisits: VisitItem[] = data?.pages.flatMap(page => page.content) || [];
   const totalElements = data?.pages[0]?.totalElements || 0;
-
-  console.log('📊 VisitListPage render:', {
-    allVisitsCount: allVisits.length,
-    totalElements,
-    hasNextPage,
-    isFetchingNextPage,
-    pagesLoaded: data?.pages.length || 0
-  });
 
   const handleViewModeToggle = () => {
     setViewMode(prev => prev === 'list' ? 'table' : 'list');
@@ -105,7 +99,10 @@ const VisitListPage = () => {
       />
 
       {/* Main content container with explicit height and overflow */}
-      <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+      <div
+        ref={scrollContainerRef}
+        className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto"
+      >
         {viewMode === 'list' ? (
           <VisitList visits={allVisits} />
         ) : (
@@ -137,8 +134,8 @@ const VisitListPage = () => {
 
         {/* Sentinel: placed at the bottom to trigger auto-load when visible */}
         {hasNextPage && (
-          <div 
-            ref={loadMoreRef as unknown as React.Ref<HTMLDivElement>} 
+          <div
+            ref={loadMoreRef as unknown as React.Ref<HTMLDivElement>}
             className="h-10 flex items-center justify-center bg-muted/20 rounded border-2 border-dashed border-muted-foreground/20"
           >
             <span className="text-xs text-muted-foreground">Load More Trigger Zone</span>
