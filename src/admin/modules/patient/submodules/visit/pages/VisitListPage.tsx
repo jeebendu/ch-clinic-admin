@@ -1,0 +1,125 @@
+
+import { useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import PageHeader from "@/admin/components/PageHeader";
+import { VisitList } from "../components/VisitList";
+import { VisitTable } from "../components/VisitTable";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { VisitItem } from "../types/VisitItem";
+import visitService from "../services/visitService";
+
+const VisitListPage = () => {
+  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['visits', searchTerm],
+    queryFn: ({ pageParam = 0 }) => {
+      console.log('Fetching visits - page:', pageParam, 'search:', searchTerm);
+      return visitService.getAllVisits(pageParam, 10, searchTerm);
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      console.log('Getting next page param:', lastPage);
+      if (!lastPage.hasNext) return undefined;
+      return lastPage.number + 1;
+    },
+  });
+
+  // Auto-scroll hook
+  useAutoScroll({
+    hasNextPage: hasNextPage || false,
+    isFetchingNextPage,
+    fetchNextPage
+  });
+
+  // Flatten all pages into a single array
+  const allVisits: VisitItem[] = data?.pages.flatMap(page => page.content) || [];
+  const totalElements = data?.pages[0]?.totalElements || 0;
+
+  const handleViewModeToggle = () => {
+    setViewMode(prev => prev === 'list' ? 'table' : 'list');
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleRefresh = () => {
+    refetch();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading visits...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-red-600">Error loading visits: {error?.message}</p>
+        <Button onClick={() => refetch()}>Try Again</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Patient Visits"
+        description="Manage patient visits and appointments"
+        viewMode={viewMode}
+        onViewModeToggle={handleViewModeToggle}
+        onRefreshClick={handleRefresh}
+        loadedElements={allVisits.length}
+        totalElements={totalElements}
+        onSearchChange={handleSearchChange}
+        searchValue={searchTerm}
+      />
+
+      <div className="space-y-4">
+        {viewMode === 'list' ? (
+          <VisitList visits={allVisits} />
+        ) : (
+          <VisitTable visits={allVisits} />
+        )}
+
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2">Loading more visits...</span>
+          </div>
+        )}
+
+        {!hasNextPage && allVisits.length > 0 && (
+          <div className="text-center py-4 text-muted-foreground">
+            No more visits to load
+          </div>
+        )}
+
+        {allVisits.length === 0 && !isLoading && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No visits found</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default VisitListPage;
