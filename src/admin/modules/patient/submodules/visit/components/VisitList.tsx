@@ -45,37 +45,64 @@ const VisitList = () => {
   } = useInfiniteQuery({
     queryKey: ['visits-paginated', searchTerm, selectedBranch],
     queryFn: async ({ pageParam = 0 }) => {
+      console.log('Fetching visits page:', pageParam, 'searchTerm:', searchTerm, 'branch:', selectedBranch);
       const response = await visitService.getAllVisits(pageParam, 20, searchTerm);
+      console.log('Visits response:', response);
       return response;
     },
     getNextPageParam: (lastPage) => {
-      return lastPage.hasNext ? lastPage.number + 1 : undefined;
+      console.log('Last page:', lastPage);
+      const hasNext = lastPage && !lastPage.last && lastPage.number < (lastPage.totalPages - 1);
+      console.log('Has next page:', hasNext, 'Current page:', lastPage?.number, 'Total pages:', lastPage?.totalPages);
+      return hasNext ? (lastPage.number + 1) : undefined;
     },
     initialPageParam: 0,
   });
 
-  // Auto-scroll functionality for list view only
+  // Improved scroll handler with better debugging
   const handleScroll = useCallback(() => {
-    if (viewMode !== 'list' || !contentRef.current) return;
+    if (viewMode !== 'list' || !contentRef.current) {
+      console.log('Scroll handler skipped - viewMode:', viewMode, 'contentRef exists:', !!contentRef.current);
+      return;
+    }
     
-    const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
-    const threshold = 200; // pixels from bottom
+    const container = contentRef.current;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const threshold = 200;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
     
-    if (scrollHeight - scrollTop - clientHeight < threshold && hasNextPage && !isFetchingNextPage) {
+    console.log('Scroll metrics:', {
+      scrollTop,
+      scrollHeight,
+      clientHeight,
+      distanceFromBottom,
+      threshold,
+      hasNextPage,
+      isFetchingNextPage
+    });
+    
+    if (distanceFromBottom < threshold && hasNextPage && !isFetchingNextPage) {
+      console.log('Triggering fetchNextPage');
       fetchNextPage();
     }
   }, [viewMode, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Set up scroll listener for list view
   useEffect(() => {
     const container = contentRef.current;
     if (viewMode === 'list' && container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
+      console.log('Adding scroll listener');
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        console.log('Removing scroll listener');
+        container.removeEventListener('scroll', handleScroll);
+      };
     }
   }, [handleScroll, viewMode]);
 
   // Effect to refetch data when branch changes
   useEffect(() => {
+    console.log('Branch changed, refetching data. New branch:', selectedBranch);
     refetch();
   }, [selectedBranch, refetch]);
 
@@ -83,7 +110,10 @@ const VisitList = () => {
   const allVisits = data?.pages.flatMap(page => page.content) || [];
   const totalElements = data?.pages[0]?.totalElements || 0;
 
+  console.log('All visits count:', allVisits.length, 'Total elements:', totalElements);
+
   const handleSearchChange = (value: string) => {
+    console.log('Search term changed:', value);
     setSearchTerm(value);
   };
 
@@ -106,6 +136,7 @@ const VisitList = () => {
       setDeleteDialogOpen(false);
       setVisitToDelete(null);
     } catch (error) {
+      console.error('Delete error:', error);
       toast({
         title: "Error",
         description: "Failed to delete visit.",
@@ -140,7 +171,10 @@ const VisitList = () => {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => refetch()}
+        onClick={() => {
+          console.log('Manual refresh triggered');
+          refetch();
+        }}
         className="flex items-center gap-2"
       >
         <RefreshCw className="h-4 w-4" />
@@ -170,12 +204,13 @@ const VisitList = () => {
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading visits. Please try again.</p>
+            <p className="text-destructive">Error loading visits: {error.message}</p>
+            <Button onClick={() => refetch()} className="ml-2">Retry</Button>
           </div>
         ) : (
           <div 
             ref={viewMode === 'list' ? contentRef : undefined} 
-            className={viewMode === 'list' ? "overflow-auto max-h-[calc(100vh-180px)]" : ""}
+            className={viewMode === 'list' ? "overflow-auto max-h-[calc(100vh-180px)] border rounded-md" : ""}
           >
             {viewMode === 'grid' && (
               <VisitTable 
@@ -187,7 +222,7 @@ const VisitList = () => {
             )}
             
             {viewMode === 'list' && (
-              <div className="space-y-3">
+              <div className="space-y-3 p-4">
                 {allVisits.map((visit) => (
                   <VisitCardRow
                     key={visit.id}
@@ -198,12 +233,20 @@ const VisitList = () => {
                 ))}
                 {isFetchingNextPage && (
                   <div className="flex items-center justify-center py-4">
-                    <p className="text-muted-foreground">Loading more visits...</p>
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-clinic-primary"></div>
+                      <p className="text-muted-foreground">Loading more visits...</p>
+                    </div>
                   </div>
                 )}
                 {!hasNextPage && allVisits.length > 0 && (
                   <div className="flex items-center justify-center py-4">
                     <p className="text-muted-foreground text-sm">No more visits to load</p>
+                  </div>
+                )}
+                {allVisits.length === 0 && !isLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-muted-foreground">No visits found</p>
                   </div>
                 )}
               </div>
@@ -215,12 +258,6 @@ const VisitList = () => {
                 onVisitClick={handleViewVisit}
               />
             )}
-          </div>
-        )}
-
-        {allVisits.length === 0 && !isLoading && (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">No visits found</p>
           </div>
         )}
       </div>
