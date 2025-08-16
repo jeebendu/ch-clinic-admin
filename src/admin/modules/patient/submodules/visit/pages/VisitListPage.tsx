@@ -24,6 +24,7 @@ const VisitListPage = () => {
     selectedVisit,
     editDialogOpen,
     setEditDialogOpen,
+    setSelectedVisit,
   } = useVisitActions();
 
   const {
@@ -85,8 +86,15 @@ const VisitListPage = () => {
   };
 
   const handleVisitSave = (visit?: Visit) => {
+    console.log('Visit saved, refreshing list...', visit);
     // Refresh the visit list after save
     refetch();
+  };
+
+  const handleEditDialogClose = () => {
+    console.log('Closing edit dialog');
+    setEditDialogOpen(false);
+    setSelectedVisit(null);
   };
 
   if (isLoading) {
@@ -121,6 +129,8 @@ const VisitListPage = () => {
         return <VisitTable visits={allVisits} />;
     }
   };
+
+  console.log('VisitListPage render - editDialogOpen:', editDialogOpen, 'selectedVisit:', selectedVisit?.id);
 
   return (
     <div className="space-y-6">
@@ -194,7 +204,7 @@ const VisitListPage = () => {
       {/* Edit Visit Dialog */}
       <VisitFormDialog
         isOpen={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
+        onClose={handleEditDialogClose}
         onSave={handleVisitSave}
         visit={selectedVisit}
       />
