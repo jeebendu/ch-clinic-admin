@@ -1,3 +1,4 @@
+
 package com.jee.clinichub.app.patient.schedule.controller;
 
 import java.util.List;
@@ -7,6 +8,9 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jee.clinichub.app.branch.context.BranchContextHolder;
 import com.jee.clinichub.app.patient.schedule.model.DoctorReferralDto;
 import com.jee.clinichub.app.patient.schedule.model.DrReferalSearch;
 import com.jee.clinichub.app.patient.schedule.model.Schedule;
@@ -37,6 +42,18 @@ public class ScheduleController {
     @GetMapping(value="/list")
     public List<ScheduleDto> getAllSchedulees(){
         return scheduleService.getAllSchedules();
+    }
+
+    @PostMapping(value="/list/paginated/{pageNo}/{pageSize}")
+    public Page<ScheduleDto> getAllSchedulesPaginated(
+            @PathVariable int pageNo, 
+            @PathVariable int pageSize,
+            @RequestBody(required = false) SearchSchedule search) {
+        
+        Long branchId = BranchContextHolder.getCurrentBranch().getId();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        
+        return scheduleService.getAllSchedulesPaginated(pageable, branchId, search);
     }
     
     @PostMapping(value="/refdr/list")
