@@ -1,109 +1,118 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import React, { useEffect } from "react";
+import { X, ChevronDown, Filter as FilterIcon, Check } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
-export interface FilterOption {
+export type FilterOption = {
   id: string;
   label: string;
   options: {
     id: string;
     label: string;
   }[];
-}
+};
 
 interface FilterCardProps {
   searchTerm: string;
-  onSearchChange: (value: string) => void;
+  onSearchChange: (term: string) => void;
   filters: FilterOption[];
   selectedFilters: Record<string, string[]>;
   onFilterChange: (filterId: string, optionId: string) => void;
   onClearFilters: () => void;
 }
 
-const FilterCard: React.FC<FilterCardProps> = ({
-  searchTerm,
-  onSearchChange,
-  filters,
-  selectedFilters,
+const FilterCard = ({ 
+  searchTerm, 
+  onSearchChange, 
+  filters, 
+  selectedFilters, 
   onFilterChange,
-  onClearFilters,
-}) => {
-  const getTotalSelectedCount = () => {
-    return Object.values(selectedFilters).reduce((total, arr) => total + arr.length, 0);
+  onClearFilters
+}: FilterCardProps) => {
+  
+  const handleFilterSelect = (filterId: string, optionId: string) => {
+    onFilterChange(filterId, optionId);
   };
 
-  const getSelectedFilterLabels = () => {
-    const labels: string[] = [];
-    filters.forEach(filter => {
-      const selected = selectedFilters[filter.id] || [];
-      selected.forEach(optionId => {
-        const option = filter.options.find(opt => opt.id === optionId);
-        if (option) {
-          labels.push(`${filter.label}: ${option.label}`);
-        }
-      });
-    });
-    return labels;
+  const getSelectedCount = (filterId: string) => {
+    return selectedFilters[filterId]?.[0] || "Patient";
   };
 
   return (
-    <Card className="mb-6">
-      <CardContent className="p-4">
-        <div className="space-y-4">
-          {/* Active Filters Display */}
-          {getTotalSelectedCount() > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium">Active filters:</span>
-              {getSelectedFilterLabels().map((label, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {label}
-                </Badge>
-              ))}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={onClearFilters}
-                className="h-6 px-2 text-xs"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear all
-              </Button>
-            </div>
-          )}
+    <div className="filter-card mt-2 mb-2">
+      {/* Filter by Keyword */}
+      <div className="filter-input">
+        <FilterIcon className="h-4 w-4 filter-input-icon text-primary" />
+        <input 
+          type="text" 
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Filter by keyword..."
+        />
+      </div>
+      
+      <div className="filter-divider" />
 
-          {/* Filter Groups */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {filters.map(filter => (
-              <div key={filter.id} className="space-y-2">
-                <h4 className="text-sm font-medium">{filter.label}</h4>
-                <div className="space-y-1">
-                  {filter.options.map(option => {
-                    const isSelected = (selectedFilters[filter.id] || []).includes(option.id);
-                    return (
-                      <label
-                        key={option.id}
-                        className="flex items-center space-x-2 cursor-pointer text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => onFilterChange(filter.id, option.id)}
-                          className="rounded border-gray-300"
-                        />
-                        <span className={isSelected ? 'font-medium' : ''}>{option.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
+      {/* Dynamic Filters */}
+      {filters.map((filter) => (
+        <DropdownMenu key={filter.id}>
+          <DropdownMenuTrigger asChild>
+            <div className="filter-select">
+              <span className="filter-select-label">
+                {filter.label} {`(${getSelectedCount(filter.id)})`}
+                <ChevronDown className="h-3 w-3" />
+              </span>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {filter.options.map((option) => (
+              <DropdownMenuCheckboxItem 
+                key={option.id}
+                checked={selectedFilters[filter.id]?.includes(option.id)} 
+                onCheckedChange={() => handleFilterSelect(filter.id, option.id)}
+              >
+                {option.label}
+              </DropdownMenuCheckboxItem>
             ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+            {getSelectedCount(filter.id) && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="justify-center text-sm text-primary font-medium"
+                  onClick={() => {
+                    // Clear just this filter
+                    const newSelectedFilters = {...selectedFilters};
+                    newSelectedFilters[filter.id] = [];
+                    // Call onFilterChange with the updated object
+                    filter.options.forEach(option => {
+                      if (selectedFilters[filter.id]?.includes(option.id)) {
+                        onFilterChange(filter.id, option.id);
+                      }
+                    });
+                  }}
+                >
+                  Clear Selection
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ))}
+
+      {/* Clear Button */}
+      <div className="filter-clear" onClick={onClearFilters}>
+        <X className="h-4 w-4" />
+      </div>
+    </div>
   );
 };
 
