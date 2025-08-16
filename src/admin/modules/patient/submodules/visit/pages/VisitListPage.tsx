@@ -37,7 +37,7 @@ const VisitListPage = () => {
     },
   });
 
-  // Auto-scroll hook
+  // Enable auto-scroll
   useAutoScroll({
     hasNextPage: hasNextPage || false,
     isFetchingNextPage,
@@ -92,6 +92,7 @@ const VisitListPage = () => {
         searchValue={searchTerm}
       />
 
+      {/* Main content container */}
       <div className="space-y-4">
         {viewMode === 'list' ? (
           <VisitList visits={allVisits} />
@@ -99,6 +100,7 @@ const VisitListPage = () => {
           <VisitTable visits={allVisits} />
         )}
 
+        {/* Loading indicator */}
         {isFetchingNextPage && (
           <div className="flex justify-center py-4">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -106,12 +108,14 @@ const VisitListPage = () => {
           </div>
         )}
 
+        {/* End of results indicator */}
         {!hasNextPage && allVisits.length > 0 && (
           <div className="text-center py-4 text-muted-foreground">
             No more visits to load
           </div>
         )}
 
+        {/* Empty state */}
         {allVisits.length === 0 && !isLoading && (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No visits found</p>

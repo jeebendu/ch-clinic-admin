@@ -8,27 +8,43 @@ interface UseAutoScrollProps {
 }
 
 export const useAutoScroll = ({ hasNextPage, isFetchingNextPage, fetchNextPage }: UseAutoScrollProps) => {
-  const loadingRef = useRef(false);
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (loadingRef.current || !hasNextPage || isFetchingNextPage) return;
+      // Prevent multiple simultaneous requests
+      if (isLoadingRef.current || !hasNextPage || isFetchingNextPage) {
+        return;
+      }
 
-      const scrollPosition = window.innerHeight + window.scrollY;
-      const threshold = document.documentElement.offsetHeight - 300;
+      // Get scroll position
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
 
-      if (scrollPosition >= threshold) {
-        loadingRef.current = true;
+      // Calculate if we're near the bottom (within 200px)
+      const isNearBottom = scrollTop + windowHeight >= documentHeight - 200;
+
+      if (isNearBottom) {
+        console.log('Near bottom - fetching next page');
+        isLoadingRef.current = true;
         fetchNextPage();
-        
-        // Reset loading flag after a delay
-        setTimeout(() => {
-          loadingRef.current = false;
-        }, 1000);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Add event listener
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Reset loading flag when fetching completes
+  useEffect(() => {
+    if (!isFetchingNextPage) {
+      isLoadingRef.current = false;
+    }
+  }, [isFetchingNextPage]);
 };
