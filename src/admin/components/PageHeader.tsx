@@ -1,116 +1,137 @@
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Grid, List, Plus, RefreshCw, Filter, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, Filter, RefreshCw, Plus, List, Table, Calendar } from 'lucide-react';
 
 interface PageHeaderProps {
   title: string;
-  description?: string;
+  viewMode?: 'list' | 'table' | 'calendar';
   onViewModeToggle?: () => void;
-  viewMode?: 'list' | 'calendar' | 'grid';
-  showAddButton?: boolean;
-  addButtonLabel?: string;
-  onAddButtonClick?: () => void;
   onRefreshClick?: () => void;
   onFilterToggle?: () => void;
   showFilter?: boolean;
-  additionalActions?: React.ReactNode;
   loadedElements?: number;
   totalElements?: number;
   onSearchChange?: (value: string) => void;
   searchValue?: string;
+  showAddButton?: boolean;
+  addButtonLabel?: string;
+  onAddButtonClick?: () => void;
 }
 
-export const PageHeader = ({ 
+const PageHeader: React.FC<PageHeaderProps> = ({
   title,
-  description,
-  onViewModeToggle,
   viewMode = 'list',
-  showAddButton = false,
-  addButtonLabel = "New",
-  onAddButtonClick,
+  onViewModeToggle,
   onRefreshClick,
   onFilterToggle,
   showFilter,
-  additionalActions,
   loadedElements,
   totalElements,
   onSearchChange,
-  searchValue = "",
-}: PageHeaderProps) => {
+  searchValue,
+  showAddButton,
+  addButtonLabel = "Add",
+  onAddButtonClick,
+}) => {
+  const getViewModeIcon = () => {
+    switch (viewMode) {
+      case 'list':
+        return <List className="h-4 w-4" />;
+      case 'table':
+        return <Table className="h-4 w-4" />;
+      case 'calendar':
+        return <Calendar className="h-4 w-4" />;
+      default:
+        return <List className="h-4 w-4" />;
+    }
+  };
+
+  const getViewModeLabel = () => {
+    switch (viewMode) {
+      case 'list':
+        return 'List View';
+      case 'table':
+        return 'Table View';
+      case 'calendar':
+        return 'Calendar View';
+      default:
+        return 'List View';
+    }
+  };
+
   return (
-    <div className="sticky-header-page">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 py-1">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold">{title}</h1>
+    <div className="border-b bg-background px-4 md:px-6 py-4">
+      <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
+        {/* Title and Stats */}
+        <div className="flex items-center space-x-4">
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           {loadedElements !== undefined && totalElements !== undefined && (
-            <p className="text-sm text-muted-foreground">
-              Showing {loadedElements} of {totalElements} items
-            </p>
+            <span className="text-sm text-muted-foreground">
+              {loadedElements} of {totalElements}
+            </span>
           )}
         </div>
-        
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+
+        {/* Actions */}
+        <div className="flex items-center space-x-2">
+          {/* Search */}
           {onSearchChange && (
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search..."
-                value={searchValue}
+                value={searchValue || ''}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-8 h-9 w-full"
+                className="pl-9 w-64"
               />
             </div>
           )}
-          
-          <div className="flex space-x-2">
-            {onViewModeToggle && (
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={onViewModeToggle}
-              >
-                {viewMode === 'list' ? (
-                  <Grid className="h-4 w-4" />
-                ) : (
-                  <List className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-            
-            {onRefreshClick && (
-              <Button variant="ghost" size="icon" className="text-gray-600 rounded-full" onClick={onRefreshClick}>
-                <RefreshCw className="h-5 w-5 text-primary" />
-              </Button>
-            )}
-            
-            {onFilterToggle && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className={cn(
-                  "text-gray-600 rounded-full",
-                  showFilter && "bg-primary/10 text-primary"
-                )}
-                onClick={onFilterToggle}
-              >
-                <Filter className={cn(
-                  "h-5 w-5",
-                  showFilter && "text-primary"
-                )} />
-              </Button>
-            )}
-            
-            {additionalActions}
-          </div>
-          
-          {showAddButton && (
-            <Button className="rounded-full hidden sm:flex" onClick={onAddButtonClick}>
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">{addButtonLabel}</span>
+
+          {/* Filter Toggle */}
+          {onFilterToggle && (
+            <Button
+              variant={showFilter ? "default" : "outline"}
+              size="sm"
+              onClick={onFilterToggle}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+          )}
+
+          {/* View Mode Toggle */}
+          {onViewModeToggle && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onViewModeToggle}
+              title={getViewModeLabel()}
+            >
+              {getViewModeIcon()}
+            </Button>
+          )}
+
+          {/* Refresh */}
+          {onRefreshClick && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefreshClick}
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          )}
+
+          {/* Add Button */}
+          {showAddButton && onAddButtonClick && (
+            <Button
+              size="sm"
+              onClick={onAddButtonClick}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {addButtonLabel}
             </Button>
           )}
         </div>

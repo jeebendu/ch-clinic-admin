@@ -4,10 +4,11 @@ import PageHeader from "@/admin/components/PageHeader";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import EnhancedInfiniteVisitList from "../components/EnhancedInfiniteVisitList";
 import VisitCalendar from "../components/VisitCalendar";
+import VisitTable from "../components/VisitTable";
 import { useQuery } from "@tanstack/react-query";
 import VisitService from "../services/visitService";
 
-type ViewMode = 'list' | 'calendar';
+type ViewMode = 'list' | 'table' | 'calendar';
 
 const EnhancedVisitListPage: React.FC = () => {
   
@@ -106,7 +107,11 @@ const EnhancedVisitListPage: React.FC = () => {
   };
 
   const handleViewModeToggle = () => {
-    setViewMode(prev => prev === 'list' ? 'calendar' : 'list');
+    setViewMode(prev => {
+      if (prev === 'list') return 'table';
+      if (prev === 'table') return 'calendar';
+      return 'list';
+    });
   };
 
   const handleRefresh = () => {
@@ -119,8 +124,18 @@ const EnhancedVisitListPage: React.FC = () => {
   };
 
   const handleVisitClick = (visit: any) => {
-    console.log("Calendar visit clicked:", visit);
-    // TODO: Implement visit detail view from calendar
+    console.log("Visit clicked:", visit);
+    // TODO: Implement visit detail view
+  };
+
+  const handleVisitView = (visit: any) => {
+    console.log("View visit:", visit);
+    // TODO: Implement visit view
+  };
+
+  const handleVisitEdit = (visit: any) => {
+    console.log("Edit visit:", visit);
+    // TODO: Implement visit edit
   };
 
   return (
@@ -168,6 +183,15 @@ const EnhancedVisitListPage: React.FC = () => {
             pageSize={20}
             onVisitUpdate={handleVisitUpdate}
           />
+        ) : viewMode === 'table' ? (
+          <div className="p-4 md:p-6">
+            <VisitTable
+              visits={visits}
+              onView={handleVisitView}
+              onEdit={handleVisitEdit}
+              loading={false}
+            />
+          </div>
         ) : (
           <VisitCalendar
             visits={visits}
