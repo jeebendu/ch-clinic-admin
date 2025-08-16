@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import menuData from '../config/menuItems.json';
 import { NavItem } from '@/config/NavItems';
@@ -13,7 +13,7 @@ export const useMenuItems = (): NavItem[] => {
     const transformMenuItems = (items: any[]): NavItem[] => {
       return items.map(item => ({
         ...item,
-        icon: getIcon(item.icon),
+        icon: getIcon(item.icon), // Now returns JSX element directly
         current: location.pathname === item.href,
         submenu: item.submenu ? transformMenuItems(item.submenu) : undefined
       }));
