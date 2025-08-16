@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Outlet, Route, Routes } from "react-router-dom";
 import PatientList from "../components/PatientList";
 import Patients from "../pages/Patients";
 import PatientView from "../components/PatientView";
@@ -21,12 +21,15 @@ import BeraForm from "../components/reports/BeraForm";
 import ABRForm from "../components/reports/ABRForm";
 import SpeechForm from "../components/reports/SpeechForm";
 import LaboratoryReportForm from "../components/forms/LaboratoryReportForm";
+import AdminLayout from "@/admin/components/AdminLayout";
 
 const PatientRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Patients />} />
       <Route path="/list" element={<PatientList />} />
+
+      <Route element={<AdminLayout><Outlet /></AdminLayout>}>
       <Route path="/visits/*" element={<VisitRoutes />} />
       <Route path="/view/:id" element={<PatientView />} />
       <Route path="/prescription/:id" element={<PatientPrescription />} />
@@ -43,6 +46,7 @@ const PatientRoutes = () => {
       <Route path="/report/new/abr/:patientId" element={<ABRForm standalone={true} />} />
       <Route path="/report/new/speech/:patientId" element={<SpeechForm standalone={true} />} />
       <Route path="/report/new/laboratory/:patientId" element={<LaboratoryReportForm />} />
+      </Route>
     </Routes>
   );
 };

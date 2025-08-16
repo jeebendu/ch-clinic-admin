@@ -1,33 +1,29 @@
 import http from "@/lib/JwtInterceptor";
+import { PatientSchedule } from "../types/PatientSchedule";
+import { getEnvVariable } from "@/utils/envUtils";
 
-
-const api = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-
-export interface Schedule {
-  id: number;
-  name: string;
-  // Add other properties of the Schedule interface as needed
-}
+const apiUrl = getEnvVariable('API_URL');
 
 class ScheduleService {
+
   list() {
-    return http.get(`${api}/v1/schedule/list`);
+    return http.get(`${apiUrl}/v1/schedule/list`);
   }
 
   deleteById(id: number) {
-    return http.get(`${api}/v1/schedule/delete/id/${id}`);
+    return http.get(`${apiUrl}/v1/schedule/delete/id/${id}`);
   }
 
   listByPID(id: number) {
-    return http.get(`${api}/v1/schedule/list/PID/${id}`);
+    return http.get(`${apiUrl}/v1/schedule/list/PID/${id}`);
   }
 
   getById(id: number) {
-    return http.get(`${api}/v1/schedule/id/${id}`);
+    return http.get(`${apiUrl}/v1/schedule/id/${id}`);
   }
 
-  saveOrUpdate(schedule: Schedule) {
-    return http.post(`${api}/v1/schedule/saveOrUpdate`, schedule);
+  saveOrUpdate(schedule: PatientSchedule) {
+    return http.post(`${apiUrl}/v1/schedule/saveOrUpdate`, schedule);
   }
 }
 

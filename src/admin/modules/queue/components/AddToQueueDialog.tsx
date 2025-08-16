@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { UserPlus, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import queueService from '../services/queueService';
+import { queueService } from '../services/queueService';
 
 interface AddToQueueDialogProps {
   isOpen: boolean;
