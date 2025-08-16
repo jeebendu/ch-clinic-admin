@@ -6,6 +6,7 @@ import { Visit } from "../types/Visit";
 
 export const useVisitActions = () => {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const handleViewDetails = (visit: Visit) => {
     console.log('Viewing visit details:', visit);
@@ -15,7 +16,8 @@ export const useVisitActions = () => {
 
   const handleEditVisit = (visit: Visit) => {
     console.log('Editing visit:', visit);
-    // Add your edit logic here
+    setSelectedVisit(visit);
+    setEditDialogOpen(true);
   };
 
   const handleDeleteVisit = (visit: Visit) => {
@@ -88,7 +90,7 @@ export const useVisitActions = () => {
       variant: "destructive",
       confirm: true,
       confirmTitle: "Delete Visit",
-      confirmDescription: `Are you sure you want to delete the visit for ${visit.patient?.name}? This action cannot be undone.`
+      confirmDescription: `Are you sure you want to delete the visit for ${visit.patient?.firstname} ${visit.patient?.lastname}? This action cannot be undone.`
     });
 
     return baseActions;
@@ -97,6 +99,8 @@ export const useVisitActions = () => {
   return {
     selectedVisit,
     setSelectedVisit,
+    editDialogOpen,
+    setEditDialogOpen,
     getVisitActions,
     handleViewDetails,
     handleEditVisit,

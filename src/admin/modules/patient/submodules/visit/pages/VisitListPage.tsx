@@ -2,20 +2,29 @@
 import { useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import PageHeader from "@/admin/components/PageHeader";
 import { VisitList } from "../components/VisitList";
 import { VisitTable } from "../components/VisitTable";
 import { VisitCalendar } from "../components/VisitCalendar";
 import { VisitGrid } from "../components/VisitGrid";
+import VisitFormDialog from "../components/VisitFormDialog";
 import { useAutoScroll } from "../hooks/useAutoScroll";
+import { useVisitActions } from "../hooks/useVisitActions";
 import visitService from "../services/visitService";
 import { Visit } from "../types/Visit";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
   const [searchTerm, setSearchTerm] = useState('');
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const {
+    selectedVisit,
+    editDialogOpen,
+    setEditDialogOpen,
+  } = useVisitActions();
 
   const {
     data,
@@ -71,6 +80,15 @@ const VisitListPage = () => {
     refetch();
   };
 
+  const handleAddVisit = () => {
+    setAddDialogOpen(true);
+  };
+
+  const handleVisitSave = (visit?: Visit) => {
+    // Refresh the visit list after save
+    refetch();
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -106,17 +124,24 @@ const VisitListPage = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Patient Visits"
-        description="Manage patient visits and appointments"
-        viewMode={viewMode}
-        onViewModeToggle={handleViewModeToggle}
-        onRefreshClick={handleRefresh}
-        loadedElements={allVisits.length}
-        totalElements={totalElements}
-        onSearchChange={handleSearchChange}
-        searchValue={searchTerm}
-      />
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="Patient Visits"
+          description="Manage patient visits and appointments"
+          viewMode={viewMode}
+          onViewModeToggle={handleViewModeToggle}
+          onRefreshClick={handleRefresh}
+          loadedElements={allVisits.length}
+          totalElements={totalElements}
+          onSearchChange={handleSearchChange}
+          searchValue={searchTerm}
+        />
+        
+        <Button onClick={handleAddVisit} className="ml-4">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Visit
+        </Button>
+      </div>
 
       {/* Main content container with explicit height and overflow */}
       <div
@@ -158,6 +183,21 @@ const VisitListPage = () => {
           </div>
         )}
       </div>
+
+      {/* Add Visit Dialog */}
+      <VisitFormDialog
+        isOpen={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        onSave={handleVisitSave}
+      />
+
+      {/* Edit Visit Dialog */}
+      <VisitFormDialog
+        isOpen={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        onSave={handleVisitSave}
+        visit={selectedVisit}
+      />
     </div>
   );
 };
