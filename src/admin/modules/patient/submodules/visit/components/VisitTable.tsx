@@ -1,119 +1,172 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Eye, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { VisitItem } from "../types/VisitItem";
-import RowActions from "@/components/ui/RowActions";
 import { useVisitActions } from "../hooks/useVisitActions";
+import RowActions from "@/components/ui/RowActions";
 
 interface VisitTableProps {
   visits: VisitItem[];
+  loading?: boolean;
+  onView?: (visit: VisitItem) => void;
+  onEdit?: (visit: VisitItem) => void;
 }
 
-export const VisitTable = ({ visits }: VisitTableProps) => {
+export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTableProps) => {
+
   const { getVisitActions } = useVisitActions();
 
   const getStatusColor = (status: string) => {
-    const statusColors: Record<string, string> = {
-      scheduled: "bg-blue-100 text-blue-800 border-blue-200",
-      completed: "bg-green-100 text-green-800 border-green-200",
-      cancelled: "bg-red-100 text-red-800 border-red-200",
-      no_show: "bg-gray-100 text-gray-800 border-gray-200",
-      in_progress: "bg-yellow-100 text-yellow-800 border-yellow-200"
-    };
-    return statusColors[status] || "bg-gray-100 text-gray-800 border-gray-200";
+    switch (status.toLowerCase()) {
+      case 'open': return 'bg-green-100 text-green-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
+      case 'follow-up': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  const getPriorityColor = (priority: string) => {
-    const priorityColors: Record<string, string> = {
-      high: "bg-red-100 text-red-800 border-red-200",
-      medium: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      low: "bg-green-100 text-green-800 border-green-200"
-    };
-    return priorityColors[priority] || "bg-gray-100 text-gray-800 border-gray-200";
+  const getPaymentStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'partial': return 'bg-orange-100 text-orange-800';
+      case 'unpaid': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  if (visits.length === 0) {
-    return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">No visits found</p>
-      </Card>
-    );
-  }
+  const getVisitTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'routine': return 'bg-blue-100 text-blue-800';
+      case 'urgent': return 'bg-red-100 text-red-800';
+      case 'follow-up': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
-    <Card>
+    <div className="bg-white rounded-lg border overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Visit ID</TableHead>
             <TableHead>Patient</TableHead>
             <TableHead>Doctor</TableHead>
-            <TableHead>Date & Time</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Reason</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Visit Type</TableHead>
+            <TableHead>Payment</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {visits.map((visit) => (
-            <TableRow key={visit.id} className="hover:bg-muted/50">
-              <TableCell>
-                <div className="space-y-1">
-                  <div className="font-medium">{visit.patient?.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    ID: {visit.patient?.id}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="space-y-1">
-                  <div className="font-medium">{visit.doctor?.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {visit.doctor?.specialization}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="space-y-1">
-                  <div className="font-medium">
-                    {format(new Date(visit.scheduledDate), 'MMM dd, yyyy')}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {visit.scheduledTime}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge 
-                  variant="outline" 
-                  className={getStatusColor(visit.status)}
-                >
-                  {visit.status.replace('_', ' ').toUpperCase()}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge 
-                  variant="outline"
-                  className={getPriorityColor(visit.priority)}
-                >
-                  {visit.priority.toUpperCase()}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <span className="capitalize">{visit.visitType}</span>
-              </TableCell>
-              <TableCell className="text-right">
-                <RowActions 
-                  actions={getVisitActions(visit)}
-                  maxVisibleActions={2}
-                />
+          {loading ? (
+            Array(5).fill(0).map((_, index) => (
+              <TableRow key={`skeleton-${index}`}>
+                <TableCell className="py-4">
+                  <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-32 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-28 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-36 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="animate-pulse bg-gray-200 h-4 w-16 ml-auto rounded"></div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : visits.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+                No visits found
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            visits.map((visit) => (
+              <TableRow key={visit.id} className="hover:bg-gray-50">
+                <TableCell className="font-medium">{visit.id}</TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">{visit.patientName}</p>
+                    <p className="text-sm text-gray-500">
+                      {visit.patientAge}y, {visit.patientGender} • {visit.patientUid}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">{visit.doctorName}</p>
+                    <p className="text-sm text-gray-500">{visit.doctorSpecialization}</p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(visit.visitDate), 'MMM dd, yyyy')}
+                </TableCell>
+                <TableCell>
+                  <Badge className={getVisitTypeColor(visit.visitType)}>
+                    {visit.visitType}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="max-w-xs">
+                    <p className="truncate" title={visit.reasonForVisit}>
+                      {visit.reasonForVisit}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(visit.status)}>
+                    {visit.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {visit.paymentStatus ? (
+                    <div className="flex items-center gap-2">
+                      <Badge className={getPaymentStatusColor(visit.paymentStatus)}>
+                        {visit.paymentStatus}
+                      </Badge>
+                      {visit.paymentAmount && (
+                        <span className="text-xs text-gray-500">
+                          ₹{visit.paymentPaid || 0}/{visit.paymentAmount}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">N/A</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right space-x-2">
+                   <RowActions 
+                      actions={getVisitActions(visit)} 
+                      maxVisibleActions={2}
+                    />
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
-    </Card>
+    </div>
   );
 };
