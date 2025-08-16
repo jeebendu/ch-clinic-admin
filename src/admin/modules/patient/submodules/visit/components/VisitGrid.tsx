@@ -49,12 +49,12 @@ export const VisitGrid = ({ visits }: VisitGridProps) => {
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{format(new Date(visit.appointmentDateTime), 'MMM d, yyyy')}</span>
+              <span>{format(new Date(visit.createdTime), 'MMM d, yyyy')}</span>
             </div>
             
             <div className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>{format(new Date(visit.appointmentDateTime), 'h:mm a')}</span>
+              <span>{format(new Date(visit.createdTime), 'h:mm a')}</span>
             </div>
 
             {visit.patient.user?.phone && (
@@ -64,19 +64,7 @@ export const VisitGrid = ({ visits }: VisitGridProps) => {
               </div>
             )}
 
-            {visit.doctorBranch && (
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="truncate">{visit.doctorBranch.branch.name}</span>
-              </div>
-            )}
-
-            {visit.fees && (
-              <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
-                <DollarSign className="h-4 w-4" />
-                <span>₹{visit.fees}</span>
-              </div>
-            )}
+            
 
             {visit.notes && (
               <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">

@@ -12,7 +12,7 @@ interface VisitCalendarProps {
 export const VisitCalendar = ({ visits }: VisitCalendarProps) => {
   // Group visits by date
   const visitsByDate = visits.reduce((acc, visit) => {
-    const dateKey = format(new Date(visit.appointmentDateTime), 'yyyy-MM-dd');
+    const dateKey = format(new Date(visit.createdTime), 'yyyy-MM-dd');
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -66,7 +66,7 @@ export const VisitCalendar = ({ visits }: VisitCalendarProps) => {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          <span>{format(new Date(visit.appointmentDateTime), 'h:mm a')}</span>
+                          <span>{format(new Date(visit.createdTime), 'h:mm a')}</span>
                         </div>
                         {visit.patient.user?.phone && (
                           <div className="flex items-center gap-1">
@@ -76,12 +76,7 @@ export const VisitCalendar = ({ visits }: VisitCalendarProps) => {
                         )}
                       </div>
 
-                      {visit.doctorBranch && (
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{visit.doctorBranch.branch.name}</span>
-                        </div>
-                      )}
+                     
                     </div>
                     
                     <div className="text-right space-y-2">
@@ -91,11 +86,7 @@ export const VisitCalendar = ({ visits }: VisitCalendarProps) => {
                       >
                         {visit.status}
                       </Badge>
-                      {visit.fees && (
-                        <p className="text-sm font-semibold text-green-600">
-                          ₹{visit.fees}
-                        </p>
-                      )}
+                      
                     </div>
                   </div>
                 </CardContent>
