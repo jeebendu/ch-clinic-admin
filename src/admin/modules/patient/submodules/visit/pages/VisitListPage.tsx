@@ -6,12 +6,14 @@ import { Loader2 } from "lucide-react";
 import PageHeader from "@/admin/components/PageHeader";
 import { VisitList } from "../components/VisitList";
 import { VisitTable } from "../components/VisitTable";
+import { VisitCalendar } from "../components/VisitCalendar";
+import { VisitGrid } from "../components/VisitGrid";
 import { useAutoScroll } from "../hooks/useAutoScroll";
 import visitService from "../services/visitService";
 import { Visit } from "../types/Visit";
 
 const VisitListPage = () => {
-  const [viewMode, setViewMode] = useState<'list' | 'table'>('table');
+  const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +57,10 @@ const VisitListPage = () => {
   const totalElements = data?.pages[0]?.totalElements || 0;
 
   const handleViewModeToggle = () => {
-    setViewMode(prev => prev === 'list' ? 'table' : 'list');
+    const modes: Array<'list' | 'table' | 'calendar' | 'grid'> = ['table', 'list', 'calendar', 'grid'];
+    const currentIndex = modes.indexOf(viewMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setViewMode(modes[nextIndex]);
   };
 
   const handleSearchChange = (value: string) => {
@@ -84,6 +89,21 @@ const VisitListPage = () => {
     );
   }
 
+  const renderContent = () => {
+    switch (viewMode) {
+      case 'list':
+        return <VisitList visits={allVisits} />;
+      case 'table':
+        return <VisitTable visits={allVisits} />;
+      case 'calendar':
+        return <VisitCalendar visits={allVisits} />;
+      case 'grid':
+        return <VisitGrid visits={allVisits} />;
+      default:
+        return <VisitTable visits={allVisits} />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -103,11 +123,7 @@ const VisitListPage = () => {
         ref={scrollContainerRef}
         className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto"
       >
-        {viewMode === 'list' ? (
-          <VisitList visits={allVisits} />
-        ) : (
-          <VisitTable visits={allVisits} />
-        )}
+        {renderContent()}
 
         {/* Loading indicator */}
         {isFetchingNextPage && (
