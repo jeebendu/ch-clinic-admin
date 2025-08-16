@@ -1,9 +1,9 @@
 
-import React, { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Grid, List } from "lucide-react";
+import { useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import PageHeader from "@/admin/components/PageHeader";
 import { VisitList } from "../components/VisitList";
 import { VisitTable } from "../components/VisitTable";
 import { useAutoScroll } from "../hooks/useAutoScroll";
@@ -12,7 +12,7 @@ import { Visit } from "../types/Visit";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table'>('table');
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -21,26 +21,33 @@ const VisitListPage = () => {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
+    isError,
+    error,
+    refetch
   } = useInfiniteQuery({
     queryKey: ['visits', searchTerm],
-    queryFn: ({ pageParam = 0 }) => visitService.getVisits({
-      page: pageParam,
-      size: 20,
-      search: searchTerm
-    }),
-    getNextPageParam: (lastPage) => {
-      if (lastPage.last) return undefined;
-      return lastPage.number + 1;
+    queryFn: ({ pageParam = 0 }) => {
+      console.log('🔄 Fetching visits - page:', pageParam, 'search:', searchTerm);
+      return visitService.getAllVisits(pageParam, 10, searchTerm);
     },
     initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      console.log('📄 Getting next page param:', {
+        currentPage: lastPage.number,
+        hasNext: lastPage.hasNext,
+        totalPages: lastPage.totalPages
+      });
+      if (!lastPage.hasNext) return undefined;
+      return lastPage.number + 1;
+    },
   });
 
-  // Use auto-scroll hook
-  useAutoScroll({
-    hasNextPage,
+  // Enable auto-scroll with explicit rootRef
+  const { loadMoreRef } = useAutoScroll({
+    hasNextPage: hasNextPage || false,
     isFetchingNextPage,
     fetchNextPage,
-    rootRef: scrollContainerRef,
+    rootRef: scrollContainerRef
   });
 
   // Flatten all pages into a single array
@@ -51,80 +58,87 @@ const VisitListPage = () => {
     setViewMode(prev => prev === 'list' ? 'table' : 'list');
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
   };
 
-  const handleView = (visit: Visit) => {
-    console.log('View visit:', visit);
-    // Add view logic here
+  const handleRefresh = () => {
+    refetch();
   };
 
-  const handleEdit = (visit: Visit) => {
-    console.log('Edit visit:', visit);
-    // Add edit logic here
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading visits...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-red-600">Error loading visits: {error?.message}</p>
+        <Button onClick={() => refetch()}>Try Again</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Visits</h1>
-          <p className="text-muted-foreground">
-            {totalElements} total visits
-          </p>
-        </div>
-        
-        {/* View Toggle */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleViewModeToggle}
-          className="flex items-center gap-2"
-        >
-          {viewMode === 'list' ? <Grid className="h-4 w-4" /> : <List className="h-4 w-4" />}
-          {viewMode === 'list' ? 'Grid View' : 'List View'}
-        </Button>
-      </div>
+      <PageHeader
+        title="Patient Visits"
+        description="Manage patient visits and appointments"
+        viewMode={viewMode}
+        onViewModeToggle={handleViewModeToggle}
+        onRefreshClick={handleRefresh}
+        loadedElements={allVisits.length}
+        totalElements={totalElements}
+        onSearchChange={handleSearchChange}
+        searchValue={searchTerm}
+      />
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search visits..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      {/* Content */}
-      <div 
+      {/* Main content container with explicit height and overflow */}
+      <div
         ref={scrollContainerRef}
-        className="h-[calc(100vh-240px)] overflow-auto"
+        className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto"
       >
-        {viewMode === 'table' ? (
-          <VisitTable
-            visits={allVisits}
-            loading={isLoading}
-            onView={handleView}
-            onEdit={handleEdit}
-          />
+        {viewMode === 'list' ? (
+          <VisitList visits={allVisits} />
         ) : (
-          <VisitList
-            visits={allVisits}
-            loading={isLoading}
-            onView={handleView}
-            onEdit={handleEdit}
-          />
+          <VisitTable visits={allVisits} />
         )}
-        
+
+        {/* Loading indicator */}
         {isFetchingNextPage && (
           <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2">Loading more visits...</span>
+          </div>
+        )}
+
+        {/* End of results indicator */}
+        {!hasNextPage && allVisits.length > 0 && (
+          <div className="text-center py-4 text-muted-foreground">
+            <p>No more visits to load</p>
+            <p className="text-sm">Showing {allVisits.length} of {totalElements} visits</p>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {allVisits.length === 0 && !isLoading && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No visits found</p>
+          </div>
+        )}
+
+        {/* Sentinel: placed at the bottom to trigger auto-load when visible */}
+        {hasNextPage && (
+          <div
+            ref={loadMoreRef}
+            className="h-10 flex items-center justify-center bg-muted/20 rounded border-2 border-dashed border-muted-foreground/20"
+          >
+            <span className="text-xs text-muted-foreground">Load More Trigger Zone</span>
           </div>
         )}
       </div>
