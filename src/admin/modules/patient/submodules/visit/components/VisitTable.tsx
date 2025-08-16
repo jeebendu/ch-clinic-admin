@@ -1,13 +1,19 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye, Edit } from "lucide-react";
+import { format } from "date-fns";
 import { VisitItem } from "../types/VisitItem";
 
 interface VisitTableProps {
   visits: VisitItem[];
+  loading?: boolean;
+  onView?: (visit: VisitItem) => void;
+  onEdit?: (visit: VisitItem) => void;
 }
 
-export const VisitTable = ({ visits }: VisitTableProps) => {
+export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTableProps) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'open': return 'bg-green-100 text-green-800';
@@ -17,12 +23,21 @@ export const VisitTable = ({ visits }: VisitTableProps) => {
     }
   };
 
-  const getPaymentColor = (status?: string) => {
+  const getPaymentStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
       case 'paid': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'partial': return 'bg-orange-100 text-orange-800';
       case 'unpaid': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getVisitTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'routine': return 'bg-blue-100 text-blue-800';
+      case 'urgent': return 'bg-red-100 text-red-800';
+      case 'follow-up': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -166,4 +181,3 @@ export const VisitTable = ({ visits }: VisitTableProps) => {
     </div>
   );
 };
-

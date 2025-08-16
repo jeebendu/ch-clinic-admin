@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { UserCheck } from 'lucide-react';
-import { CheckInStatus } from '../../modules/appointments/types/PaymentFlow';
+
+type CheckInStatus = 'not_checked_in' | 'checked_in' | 'in_consultation' | 'completed';
 
 interface CheckInDialogProps {
   appointment: any;
