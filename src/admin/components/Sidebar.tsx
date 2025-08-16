@@ -21,13 +21,12 @@ interface SidebarProps {
 
 type UserRole = "Admin" | "Doctor" | "Staff";
 
-const navItems: NavItem[] = useMenuItems;
-
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   const userRole: UserRole = AuthService.getUserRole() as UserRole;
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
   const { tenant } = useTenant();
   const location = useLocation();
+  const navItems = useMenuItems();
 
   const toggleSubmenu = (label: string) => {
     setOpenSubmenus(prev => 
@@ -61,7 +60,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
     navItems.forEach(item => {
       if (item.submenu) {
         const hasActiveSubmenu = item.submenu.some(subItem => 
-          currentPath.includes(subItem.href)
+          currentPath.includes(subItem.href!)
         );
         
         if (hasActiveSubmenu && !openSubmenus.includes(item.label)) {
@@ -69,7 +68,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
         }
       }
     });
-  }, [location.pathname]);
+  }, [location.pathname, navItems]);
 
   const filteredNavItems = navItems.filter(item => 
     item.roles.includes(userRole)
@@ -134,7 +133,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
                       return (
                         <NavLink
                           key={subItem.href}
-                          to={subItem.href}
+                          to={subItem.href!}
                           className={({ isActive }) => cn(
                             "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent/10 transition-colors text-sm",
                             isActive && "bg-sidebar-accent/20", // Normalized active color

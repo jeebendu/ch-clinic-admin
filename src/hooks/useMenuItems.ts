@@ -3,21 +3,23 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import menuData from '../config/menuItems.json';
 import { NavItem } from '@/config/NavItems';
+import { getIcon } from '@/utils/iconUtils';
 
-export const useMenuItems = () => {
-  const [menuItems, setMenuItems] = useState<NavItem[]>(menuData);
+export const useMenuItems = (): NavItem[] => {
+  const [menuItems, setMenuItems] = useState<NavItem[]>([]);
   const location = useLocation();
 
   useEffect(() => {
-    const updateCurrentPath = (items: NavItem[]): NavItem[] => {
+    const transformMenuItems = (items: any[]): NavItem[] => {
       return items.map(item => ({
         ...item,
+        icon: getIcon(item.icon),
         current: location.pathname === item.href,
-        subMenu: item.submenu ? updateCurrentPath(item.submenu) : undefined
+        submenu: item.submenu ? transformMenuItems(item.submenu) : undefined
       }));
     };
 
-    setMenuItems(updateCurrentPath(menuData));
+    setMenuItems(transformMenuItems(menuData));
   }, [location.pathname]);
 
   return menuItems;
