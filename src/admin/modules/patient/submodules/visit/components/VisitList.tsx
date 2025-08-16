@@ -2,9 +2,12 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit } from "lucide-react";
+import { Eye, Edit, User, Calendar, Clock, DollarSign, CheckCircle, CreditCard, CalendarPlus, TestTube, Receipt } from "lucide-react";
 import { format } from "date-fns";
 import { VisitItem } from "../types/VisitItem";
+import { Card, CardContent } from "@/components/ui/card";
+import { Visit } from "../types/Visit";
+import RowActions, { RowAction } from "@/components/ui/RowActions";
 
 interface VisitListProps {
   visits: VisitItem[];
@@ -14,6 +17,59 @@ interface VisitListProps {
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, onView, onEdit }) => {
+
+  const getRowActions = (visit: Visit): RowAction[] => {
+    const actions: RowAction[] = [
+      {
+        label: "View",
+        icon: <Eye className="h-4 w-4" />,
+        onClick: () => handleVisitClick(visit),
+      },
+      {
+        label: "Edit",
+        icon: <Edit className="h-4 w-4" />,
+        onClick: () => handleEdit(visit),
+      },
+    ];
+
+    if (visit.status === 'open') {
+      actions.push({
+        label: "Close Visit",
+        icon: <CheckCircle className="h-4 w-4" />,
+        onClick: () => handleCloseVisit(visit),
+        variant: "default",
+      });
+    }
+
+    if (visit.paymentStatus === 'unpaid' || visit.paymentStatus === 'partial') {
+      actions.push({
+        label: "Take Payment",
+        icon: <CreditCard className="h-4 w-4" />,
+        onClick: () => handleTakePayment(visit),
+      });
+    }
+
+    actions.push(
+      {
+        label: "Schedule Follow-up",
+        icon: <CalendarPlus className="h-4 w-4" />,
+        onClick: () => handleScheduleFollowUp(visit),
+      },
+      {
+        label: "View Tests",
+        icon: <TestTube className="h-4 w-4" />,
+        onClick: () => handleViewTests(visit),
+      },
+      {
+        label: "Print Receipt",
+        icon: <Receipt className="h-4 w-4" />,
+        onClick: () => handlePrintReceipt(visit),
+      }
+    );
+
+    return actions;
+  };
+
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "open":
@@ -55,6 +111,46 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
     }
   };
 
+  
+  const handleVisitClick = (visit: Visit) => {
+   
+  };
+
+
+  // Action handlers
+  const handleEdit = (visit: Visit) => {
+    console.log("Edit visit:", visit.id);
+    // TODO: Implement edit functionality
+  };
+
+  const handleCloseVisit = (visit: Visit) => {
+    console.log("Close visit:", visit.id);
+    // TODO: Implement close visit functionality
+    //onVisitUpdate?.();
+  };
+
+  const handleTakePayment = (visit: Visit) => {
+    console.log("Take payment for visit:", visit.id);
+    // TODO: Implement payment functionality
+    //onVisitUpdate?.();
+  };
+
+  const handleScheduleFollowUp = (visit: Visit) => {
+    console.log("Schedule follow-up for visit:", visit.id);
+    // TODO: Implement follow-up scheduling
+  };
+
+  const handleViewTests = (visit: Visit) => {
+    console.log("View tests for visit:", visit.id);
+    // TODO: Implement view tests functionality
+  };
+
+  const handlePrintReceipt = (visit: Visit) => {
+    console.log("Print receipt for visit:", visit.id);
+    // TODO: Implement print receipt functionality
+  };
+
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -79,76 +175,97 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
     );
   }
 
+  
   return (
     <div className="space-y-3">
       {visits.map((visit) => (
-        <div key={visit.id} className="bg-white rounded-lg border p-4 hover:bg-gray-50 transition-colors">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold">#{visit.id}</span>
-                <Badge className={getVisitTypeColor(visit.visitType)}>{visit.visitType}</Badge>
-                <Badge className={getStatusColor(visit.status)}>{visit.status}</Badge>
-                {visit.paymentStatus && (
-                  <Badge className={getPaymentStatusColor(visit.paymentStatus)}>{visit.paymentStatus}</Badge>
-                )}
-              </div>
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">{visit.patientName}</span>{" "}
-                <span className="text-gray-400">•</span>{" "}
-                <span>
-                  {visit.patientAge}y, {visit.patientGender} • {visit.patientUid}
-                </span>
-              </div>
-              <div className="text-sm text-gray-600">
-                Doctor: <span className="font-medium">{visit.doctorName}</span>{" "}
-                <span className="text-gray-400">•</span>{" "}
-                <span className="text-gray-500">{visit.doctorSpecialization}</span>
-              </div>
-              <div className="text-sm text-gray-600">
-                Date:{" "}
-                <span className="font-medium">
-                  {format(new Date(visit.visitDate), "MMM dd, yyyy")}
-                </span>
-              </div>
-              {visit.reasonForVisit && (
-                <div className="text-sm text-gray-700 line-clamp-2">
-                  Reason: {visit.reasonForVisit}
-                </div>
-              )}
-              {visit.paymentAmount !== undefined && (
-                <div className="text-xs text-gray-500">
-                  ₹{visit.paymentPaid || 0}/{visit.paymentAmount}
-                </div>
-              )}
-            </div>
+        <Card 
+              key={visit.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleVisitClick(visit)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-3">
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-blue-600" />
+                          <span className="font-semibold text-lg">{visit.patientName}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <span>{visit.patientAge}y</span>
+                          <span>•</span>
+                          <span>{visit.patientGender}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={`text-xs ${getStatusColor(visit.status)}`}>
+                          {visit.status}
+                        </Badge>
+                        <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
+                          {visit.paymentStatus}
+                        </Badge>
+                      </div>
+                    </div>
 
-            {(onView || onEdit) && (
-              <div className="flex items-center gap-2 self-start md:self-center">
-                {onView && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onView(visit)}
-                    className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                )}
-                {onEdit && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(visit)}
-                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+                    {/* Second Row - Doctor & Date */}
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span>{format(new Date(visit.visitDate), 'MMM dd, yyyy')}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span>{format(new Date(visit.visitDate), 'HH:mm')}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <span>Dr. {visit.doctorName}</span>
+                        <span>•</span>
+                        <span>{visit.doctorSpecialization}</span>
+                      </div>
+                    </div>
+
+                    {/* Third Row - Visit Details */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm">
+                        <Badge variant="outline" className="text-xs">
+                          {visit.visitType}
+                        </Badge>
+                        <span className="text-muted-foreground truncate max-w-xs">
+                          {visit.reasonForVisit}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <span className="font-medium">₹{visit.paymentPaid || 0}</span>
+                        {visit.paymentAmount > 0 && (
+                          <span className="text-muted-foreground">/ ₹{visit.paymentAmount}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Reference Doctor if exists */}
+                    {visit.referralDoctorName && (
+                      <div className="text-xs text-muted-foreground">
+                        Referred by: {visit.referralDoctorName}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="ml-4">
+                    <RowActions 
+                      actions={getRowActions(visit)} 
+                      maxVisibleActions={2}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
       ))}
     </div>
   );
