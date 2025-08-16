@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import VisitForm, { VisitFormRef } from "./VisitForm";
@@ -16,9 +15,8 @@ const VisitFormDialog = ({ isOpen, onClose, onSave, visit }: VisitFormDialogProp
   const formRef = useRef<VisitFormRef>(null);
 
   const handleSuccess = (response: any) => {
-    console.log('Form success response:', response);
     // Check if the API response indicates success
-    if (response?.status === true || response?.id) {
+    if (response?.status === true) {
       // Close dialog and reload visit list on success
       onSave(response.data || response);
       onClose();
@@ -27,7 +25,6 @@ const VisitFormDialog = ({ isOpen, onClose, onSave, visit }: VisitFormDialogProp
   };
 
   const handleSaveClick = () => {
-    console.log('Save button clicked, submitting form...');
     formRef.current?.submitForm();
   };
 
@@ -49,13 +46,11 @@ const VisitFormDialog = ({ isOpen, onClose, onSave, visit }: VisitFormDialogProp
     </div>
   );
 
-  console.log('VisitFormDialog render:', { isOpen, visit: visit?.id });
-
   return (
     <FormDialog
       isOpen={isOpen}
       onClose={onClose}
-      title={visit ? `Edit Visit #${visit.id}` : "Add New Visit"}
+      title={visit ? "Edit Visit" : "Add New Visit"}
       footer={footerButtons}
       maxWidth="max-w-4xl"
     >
