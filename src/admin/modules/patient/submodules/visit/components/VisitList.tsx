@@ -93,12 +93,12 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-blue-600" />
-                          <span className="font-semibold text-lg">{visit.patientName}</span>
+                          <span className="font-semibold text-lg">{visit.patient.fullName } {visit.patient.lastname }</span>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>{visit.patientAge}y</span>
+                          <span>{visit.patient.age}y</span>
                           <span>•</span>
-                          <span>{visit.patientGender}</span>
+                          <span>{visit.patient.gender}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -116,17 +116,17 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Calendar className="h-4 w-4" />
-                          <span>{format(new Date(visit.visitDate), 'MMM dd, yyyy')}</span>
+                          <span>{format(new Date(visit.createdTime), 'MMM dd, yyyy')}</span>
                         </div>
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Clock className="h-4 w-4" />
-                          <span>{format(new Date(visit.visitDate), 'HH:mm')}</span>
+                          <span>{format(new Date(visit.createdTime), 'HH:mm')}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <span>Dr. {visit.doctorName}</span>
+                        <span>Dr. {visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</span>
                         <span>•</span>
-                        <span>{visit.doctorSpecialization}</span>
+                        <span>{visit.consultingDoctor.specializationList?.join(", ")}</span>
                       </div>
                     </div>
 
@@ -134,10 +134,10 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 text-sm">
                         <Badge variant="outline" className="text-xs">
-                          {visit.visitType}
+                          {visit.type}
                         </Badge>
-                        <span className="text-muted-foreground truncate max-w-xs">
-                          {visit.reasonForVisit}
+                        <span className="text-muted-foreground max-w-xs">
+                          {visit.complaints}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-sm">

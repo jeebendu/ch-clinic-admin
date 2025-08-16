@@ -2,43 +2,43 @@
 import { useState } from "react";
 import { Edit, Eye, Trash2, UserCheck, Calendar, FileText } from "lucide-react";
 import { RowAction } from "@/components/ui/RowActions";
-import { VisitItem } from "../types/VisitItem";
+import { Visit } from "../types/Visit";
 
 export const useVisitActions = () => {
-  const [selectedVisit, setSelectedVisit] = useState<VisitItem | null>(null);
+  const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
 
-  const handleViewDetails = (visit: VisitItem) => {
+  const handleViewDetails = (visit: Visit) => {
     console.log('Viewing visit details:', visit);
     setSelectedVisit(visit);
     // Add your view details logic here
   };
 
-  const handleEditVisit = (visit: VisitItem) => {
+  const handleEditVisit = (visit: Visit) => {
     console.log('Editing visit:', visit);
     // Add your edit logic here
   };
 
-  const handleDeleteVisit = (visit: VisitItem) => {
+  const handleDeleteVisit = (visit: Visit) => {
     console.log('Deleting visit:', visit);
     // Add your delete logic here
   };
 
-  const handleCheckIn = (visit: VisitItem) => {
+  const handleCheckIn = (visit: Visit) => {
     console.log('Checking in visit:', visit);
     // Add your check-in logic here
   };
 
-  const handleReschedule = (visit: VisitItem) => {
+  const handleReschedule = (visit: Visit) => {
     console.log('Rescheduling visit:', visit);
     // Add your reschedule logic here
   };
 
-  const handleViewPrescription = (visit: VisitItem) => {
+  const handleViewPrescription = (visit: Visit) => {
     console.log('Viewing prescription:', visit);
     // Add your prescription view logic here
   };
 
-  const getVisitActions = (visit: VisitItem): RowAction[] => {
+  const getVisitActions = (visit: Visit): RowAction[] => {
     const baseActions: RowAction[] = [
       {
         label: "View Details",

@@ -96,7 +96,7 @@ class VisitService {
     }
 
     const visits = response.content || [];
-    const normalizedVisits = visits.map(this.normalizeVisit);
+    const normalizedVisits = visits;
     
     const normalized = {
       content: normalizedVisits,
@@ -114,29 +114,7 @@ class VisitService {
     return normalized;
   }
 
-  private normalizeVisit(visit: any) {
-    const normalized = {
-      id: visit.id || Math.random().toString(),
-      patientName: visit.patient ? `${visit.patient.firstname || ''} ${visit.patient.lastname || ''}`.trim() : 'Unknown Patient',
-      patientAge: visit.patient?.age || 0,
-      patientGender: visit.patient?.gender || 'Unknown',
-      patientUid: visit.patient?.uid || 'N/A',
-      doctorName: visit.doctor ? `${visit.doctor.firstname || ''} ${visit.doctor.lastname || ''}`.trim() : 'Unknown Doctor',
-      doctorSpecialization: visit.doctor?.specialization || 'General',
-      visitDate: visit.scheduleDate || new Date().toISOString(),
-      visitType: visit.type || 'routine',
-      reasonForVisit: visit.notes || 'General consultation',
-      status: visit.status || 'open',
-      paymentStatus: visit.paymentStatus || 'pending',
-      paymentAmount: visit.paymentAmount || 0,
-      paymentPaid: visit.paymentPaid || 0,
-      notes: visit.notes,
-      referralDoctorName: visit.referralDoctorName || null
-    };
-    
-    console.log('Normalized visit:', normalized);
-    return normalized;
-  }
+  
 }
 
 export default new VisitService();

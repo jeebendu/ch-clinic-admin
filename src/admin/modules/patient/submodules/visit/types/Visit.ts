@@ -1,8 +1,14 @@
+import { Doctor } from "@/admin/modules/appointments/types/Doctor";
+import { Patient } from "../../../types/Patient";
+import { Branch } from "@/admin/modules/branch/types/Branch";
 
 export interface Visit {
   id?: number | string;
-  patient?: any;
-  doctor?: any;
+  branch?: Branch;
+  patient?: Patient;
+  referByDoctor?: Doctor;
+  consultingDoctor?: Doctor;
+  complaints?: string;
   scheduleDate?: string;
   type?: string;
   status?: string;
@@ -11,5 +17,6 @@ export interface Visit {
   paymentAmount?: number;
   paymentPaid?: number;
   referralDoctorName?: string | null;
-  [key: string]: any;
+  createdTime?: string;
+  //[key: string]: any;
 }
