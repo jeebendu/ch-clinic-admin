@@ -11,7 +11,7 @@ import { VisitItem } from "../types/VisitItem";
 import visitService from "../services/visitService";
 
 const VisitListPage = () => {
-  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'table'>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
