@@ -1,13 +1,13 @@
 
 import React from "react";
 import { Route, Routes } from "react-router-dom";
-import VisitList from "../components/VisitList";
+import EnhancedVisitListPage from "../pages/EnhancedVisitListPage";
 
 const VisitRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<VisitList />} />
-      <Route path="/list" element={<VisitList />} />
+      <Route path="/" element={<EnhancedVisitListPage />} />
+      <Route path="/list" element={<EnhancedVisitListPage />} />
     </Routes>
   );
 };
