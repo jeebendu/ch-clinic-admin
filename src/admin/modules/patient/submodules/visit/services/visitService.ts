@@ -2,6 +2,7 @@
 import http from "@/lib/JwtInterceptor";
 import { getEnvVariable } from "@/utils/envUtils";
 import { Visit } from "../types/Visit";
+
 const apiUrl = getEnvVariable('API_URL');
 
 class VisitService {
@@ -26,65 +27,62 @@ class VisitService {
     return http.post(`${apiUrl}/v1/schedule/saveOrUpdate`, schedule);
   }
 
-  // Client-side helper methods for VisitList
-  async getAllVisits() {
+  // New paginated API call
+  async getPaginatedVisits(pageNo: number = 0, pageSize: number = 10, searchCriteria: any = {}) {
     try {
-      const response = await this.list();
-      // Mock data transformation for now - adapt based on your actual API response
-      const visits = response.data || response || [];
-      
-      // Transform/normalize the data to match expected format
-      return this.normalizeVisits(visits);
+      const response = await http.post(`${apiUrl}/v1/schedule/list/paginated/${pageNo}/${pageSize}`, searchCriteria);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching visits:', error);
-      // Return mock data for development
-      return this.getMockVisits();
+      console.error('Error fetching paginated visits:', error);
+      throw error;
     }
   }
 
-  async searchVisits(searchTerm: string) {
-    const allVisits = await this.getAllVisits();
-    const term = searchTerm.toLowerCase();
-    
-    return allVisits.filter(visit => 
-      visit.patientName?.toLowerCase().includes(term) ||
-      visit.doctorName?.toLowerCase().includes(term) ||
-      visit.reasonForVisit?.toLowerCase().includes(term) ||
-      visit.id?.toString().includes(term)
-    );
+  // Client-side helper methods for VisitList
+  async getAllVisits(pageNo: number = 0, pageSize: number = 10, searchTerm?: string) {
+    try {
+      const searchCriteria = searchTerm ? { searchTerm } : {};
+      const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
+      
+      // Transform/normalize the data to match expected format
+      return this.normalizeVisitsResponse(response);
+    } catch (error) {
+      console.error('Error fetching visits:', error);
+      throw error;
+    }
   }
 
-  async filterVisits(filters: Record<string, string[]>) {
-    const allVisits = await this.getAllVisits();
-    
-    return allVisits.filter(visit => {
-      // Apply filters with AND logic across categories, OR within each category
-      for (const [filterKey, filterValues] of Object.entries(filters)) {
-        if (filterValues.length === 0) continue;
-        
-        let matches = false;
-        switch (filterKey) {
-          case 'status':
-            matches = filterValues.includes(visit.status);
-            break;
-          case 'visitType':
-            matches = filterValues.includes(visit.visitType);
-            break;
-          case 'paymentStatus':
-            matches = filterValues.includes(visit.paymentStatus);
-            break;
-          default:
-            matches = true;
-        }
-        
-        if (!matches) return false;
-      }
-      return true;
-    });
+  async searchVisits(searchTerm: string, pageNo: number = 0, pageSize: number = 10) {
+    const searchCriteria = { searchTerm };
+    const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
+    return this.normalizeVisitsResponse(response);
   }
 
-  private normalizeVisits(rawVisits: any[]) {
-    return rawVisits.map(visit => ({
+  async filterVisits(filters: Record<string, string[]>, pageNo: number = 0, pageSize: number = 10) {
+    const searchCriteria = { filters };
+    const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
+    return this.normalizeVisitsResponse(response);
+  }
+
+  private normalizeVisitsResponse(response: any) {
+    const visits = response.content || [];
+    const normalizedVisits = visits.map(this.normalizeVisit);
+    
+    return {
+      content: normalizedVisits,
+      totalElements: response.totalElements || 0,
+      totalPages: response.totalPages || 0,
+      size: response.size || 10,
+      number: response.number || 0,
+      first: response.first || true,
+      last: response.last || false,
+      hasNext: !response.last,
+      hasPrevious: !response.first
+    };
+  }
+
+  private normalizeVisit(visit: any) {
+    return {
       id: visit.id || Math.random().toString(),
       patientName: visit.patient?.firstname + ' ' + visit.patient?.lastname || 'Unknown Patient',
       patientAge: visit.patient?.age || 0,
@@ -96,53 +94,12 @@ class VisitService {
       visitType: visit.type || 'routine',
       reasonForVisit: visit.notes || 'General consultation',
       status: visit.status || 'open',
-      paymentStatus: 'pending',
-      paymentAmount: 0,
-      paymentPaid: 0,
+      paymentStatus: visit.paymentStatus || 'pending',
+      paymentAmount: visit.paymentAmount || 0,
+      paymentPaid: visit.paymentPaid || 0,
       notes: visit.notes,
-      referralDoctorName: null
-    }));
-  }
-
-  private getMockVisits() {
-    return [
-      {
-        id: '1',
-        patientName: 'John Doe',
-        patientAge: 35,
-        patientGender: 'Male',
-        patientUid: 'P001',
-        doctorName: 'Dr. Smith',
-        doctorSpecialization: 'Cardiology',
-        visitDate: new Date().toISOString(),
-        visitType: 'routine',
-        reasonForVisit: 'Regular checkup',
-        status: 'open',
-        paymentStatus: 'pending',
-        paymentAmount: 500,
-        paymentPaid: 0,
-        notes: 'Patient feeling well',
-        referralDoctorName: null
-      },
-      {
-        id: '2',
-        patientName: 'Jane Smith',
-        patientAge: 28,
-        patientGender: 'Female',
-        patientUid: 'P002',
-        doctorName: 'Dr. Johnson',
-        doctorSpecialization: 'Dermatology',
-        visitDate: new Date(Date.now() + 86400000).toISOString(),
-        visitType: 'follow-up',
-        reasonForVisit: 'Follow-up consultation',
-        status: 'follow-up',
-        paymentStatus: 'paid',
-        paymentAmount: 300,
-        paymentPaid: 300,
-        notes: 'Improvement noted',
-        referralDoctorName: null
-      }
-    ];
+      referralDoctorName: visit.referralDoctorName || null
+    };
   }
 }
 

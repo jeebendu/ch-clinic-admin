@@ -1,324 +1,248 @@
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import PageHeader from '@/admin/components/PageHeader';
-import FilterCard, { FilterOption } from '@/admin/components/FilterCard';
-import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Play, Pause, ArrowUp, ArrowDown, List, Grid, Calendar } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
-import visitService from '../services/visitService';
-import VisitTable from './VisitTable';
-import VisitCardRow from './VisitCardRow';
-import VisitCalendar from './VisitCalendar';
-import { useAutoScroll } from '../hooks/useAutoScroll';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { AdminLayout } from "@/admin/components/AdminLayout";
+import PageHeader from "@/admin/components/PageHeader";
+import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import visitService from "../services/visitService";
+import VisitTable from "./VisitTable";
+import VisitCardRow from "./VisitCardRow";
+import VisitCalendar from "./VisitCalendar";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { List, Grid, Calendar, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useBranchFilter } from "@/hooks/use-branch-filter";
 
 const VisitList = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'calendar'>(isMobile ? 'list' : 'grid');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [visitToDelete, setVisitToDelete] = useState<number | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { selectedBranch } = useBranchFilter();
 
-  // Auto scroll hook for card view only
   const {
-    containerRef,
-    isPaused,
-    isAtBottom,
-    setIsPaused,
-    scrollToTop,
-    scrollToBottom,
-    scrollToNext
-  } = useAutoScroll({
-    enabled: autoScrollEnabled && viewMode === 'list',
-    interval: 3000,
-    pauseOnHover: true,
-    scrollAmount: 150
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['visits-paginated', searchTerm, selectedBranch],
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await visitService.getAllVisits(pageParam, 20, searchTerm);
+      return response;
+    },
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNext ? lastPage.number + 1 : undefined;
+    },
+    initialPageParam: 0,
   });
 
-  // Filter options
-  const filterOptions: FilterOption[] = [
-    {
-      id: 'status',
-      label: 'Status',
-      options: [
-        { id: 'open', label: 'Open' },
-        { id: 'closed', label: 'Closed' },
-        { id: 'follow-up', label: 'Follow-up' }
-      ]
-    },
-    {
-      id: 'visitType',
-      label: 'Visit Type',
-      options: [
-        { id: 'routine', label: 'Routine' },
-        { id: 'follow-up', label: 'Follow-up' },
-        { id: 'emergency', label: 'Emergency' }
-      ]
-    },
-    {
-      id: 'paymentStatus',
-      label: 'Payment Status',
-      options: [
-        { id: 'paid', label: 'Paid' },
-        { id: 'partial', label: 'Partial' },
-        { id: 'pending', label: 'Pending' },
-        { id: 'unpaid', label: 'Unpaid' }
-      ]
+  // Auto-scroll functionality for list view only
+  const handleScroll = useCallback(() => {
+    if (viewMode !== 'list' || !contentRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+    const threshold = 200; // pixels from bottom
+    
+    if (scrollHeight - scrollTop - clientHeight < threshold && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  ];
+  }, [viewMode, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // Fetch visits data
-  const { data: visits = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['visits', searchTerm, selectedFilters],
-    queryFn: async () => {
-      if (searchTerm) {
-        return await visitService.searchVisits(searchTerm);
-      }
-      
-      const hasFilters = Object.values(selectedFilters).some(filters => filters.length > 0);
-      if (hasFilters) {
-        return await visitService.filterVisits(selectedFilters);
-      }
-      
-      return await visitService.getAllVisits();
-    },
-  });
+  useEffect(() => {
+    const container = contentRef.current;
+    if (viewMode === 'list' && container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll, viewMode]);
+
+  // Effect to refetch data when branch changes
+  useEffect(() => {
+    refetch();
+  }, [selectedBranch, refetch]);
+
+  // Flatten all pages into a single array
+  const allVisits = data?.pages.flatMap(page => page.content) || [];
+  const totalElements = data?.pages[0]?.totalElements || 0;
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
   };
 
-  const handleFilterChange = (filterId: string, optionId: string) => {
-    setSelectedFilters(prev => {
-      const currentFilters = prev[filterId] || [];
-      const isSelected = currentFilters.includes(optionId);
-      
-      return {
-        ...prev,
-        [filterId]: isSelected 
-          ? currentFilters.filter(id => id !== optionId)
-          : [...currentFilters, optionId]
-      };
-    });
+  const handleDeleteVisit = (id: number) => {
+    setVisitToDelete(id);
+    setDeleteDialogOpen(true);
   };
 
-  const handleClearFilters = () => {
-    setSelectedFilters({});
-    setSearchTerm('');
-  };
-
-  const toggleViewMode = () => {
-    // This is for the original two-state toggle in PageHeader
-    if (viewMode === 'list') {
-      setViewMode('grid');
-    } else {
-      setViewMode('list');
-    }
-    // Disable auto scroll when switching away from list view
-    if (viewMode === 'list') {
-      setAutoScrollEnabled(false);
-    }
-  };
-
-  const handleViewModeChange = (value: string) => {
-    if (value && ['list', 'grid', 'calendar'].includes(value)) {
-      setViewMode(value as 'list' | 'grid' | 'calendar');
-      // Disable auto scroll when switching away from list view
-      if (value !== 'list') {
-        setAutoScrollEnabled(false);
-      }
-    }
-  };
-
-  const toggleAutoScroll = () => {
-    if (viewMode !== 'list') {
+  const confirmDelete = async () => {
+    if (visitToDelete === null) return;
+    
+    try {
+      await visitService.deleteById(visitToDelete);
       toast({
-        title: "Auto-scroll unavailable",
-        description: "Auto-scroll is only available in card view.",
+        title: "Visit deleted",
+        description: "Visit has been successfully deleted.",
+        className: "bg-clinic-primary text-white"
+      });
+      refetch();
+      setDeleteDialogOpen(false);
+      setVisitToDelete(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete visit.",
         variant: "destructive",
       });
-      return;
-    }
-    setAutoScrollEnabled(!autoScrollEnabled);
-    if (autoScrollEnabled) {
-      setIsPaused(false);
     }
   };
 
   const handleViewVisit = (visit: any) => {
-    toast({
-      title: "View Visit",
-      description: `Opening visit ${visit.id} for ${visit.patientName}`,
-      className: "bg-clinic-primary text-white"
-    });
-    // Navigate to visit details page
+    console.log('View visit:', visit);
+    // Implement view logic
   };
 
   const handleEditVisit = (visit: any) => {
-    toast({
-      title: "Edit Visit",
-      description: `Editing visit ${visit.id} for ${visit.patientName}`,
-      className: "bg-clinic-primary text-white"
-    });
-    // Navigate to visit edit form
+    console.log('Edit visit:', visit);
+    // Implement edit logic
   };
 
+  const additionalActions = (
+    <div className="flex items-center gap-4">
+      <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'list' | 'grid' | 'calendar')}>
+        <ToggleGroupItem value="list" aria-label="List view">
+          <List className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="grid" aria-label="Grid view">
+          <Grid className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="calendar" aria-label="Calendar view">
+          <Calendar className="h-4 w-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => refetch()}
+        className="flex items-center gap-2"
+      >
+        <RefreshCw className="h-4 w-4" />
+        Refresh
+      </Button>
+    </div>
+  );
+
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Visits"
-        viewMode={viewMode === 'calendar' ? 'list' : viewMode}
-        onViewModeToggle={toggleViewMode}
-        onRefreshClick={() => refetch()}
-        onFilterToggle={() => setShowFilters(!showFilters)}
-        showFilter={showFilters}
-        loadedElements={visits.length}
-        totalElements={visits.length}
-        onSearchChange={handleSearchChange}
-        searchValue={searchTerm}
-        additionalActions={
-          <div className="flex items-center gap-2">
-            {/* Three-way view mode toggle */}
-            <ToggleGroup
-              type="single"
-              value={viewMode}
-              onValueChange={handleViewModeChange}
-              className="border rounded-md"
-            >
-              <ToggleGroupItem value="list" aria-label="List view" size="sm">
-                <List className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
-                <Grid className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="calendar" aria-label="Calendar view" size="sm">
-                <Calendar className="h-4 w-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-
-            {/* Auto-scroll controls for list view */}
-            {viewMode === 'list' && (
-              <>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={toggleAutoScroll}
-                  className={`rounded-full ${autoScrollEnabled ? 'bg-primary/10 text-primary' : ''}`}
-                >
-                  {autoScrollEnabled ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-                {autoScrollEnabled && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={scrollToTop}
-                      className="rounded-full text-gray-600"
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={scrollToBottom}
-                      className="rounded-full text-gray-600"
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        }
-      />
-
-      {showFilters && (
-        <FilterCard
-          searchTerm={searchTerm}
+    <>
+      <div className="space-y-4">
+        <PageHeader 
+          title="Visits"
+          showAddButton={true}
+          addButtonLabel="Add Visit"
+          onAddButtonClick={() => {/* Add visit form would go here */}}
+          loadedElements={allVisits.length}
+          totalElements={totalElements}
           onSearchChange={handleSearchChange}
-          filters={filterOptions}
-          selectedFilters={selectedFilters}
-          onFilterChange={handleFilterChange}
-          onClearFilters={handleClearFilters}
+          searchValue={searchTerm}
+          additionalActions={additionalActions}
         />
-      )}
 
-      {/* Auto-scroll status indicator */}
-      {autoScrollEnabled && viewMode === 'list' && (
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex items-center gap-2 text-blue-700">
-            <Play className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              Auto-scroll is {isPaused ? 'paused' : 'active'}
-            </span>
-            {isPaused && <span className="text-xs">(hover to pause)</span>}
+        {isLoading && allVisits.length === 0 ? (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Loading visits...</p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setAutoScrollEnabled(false)}
-            className="text-blue-600 hover:text-blue-700"
+        ) : error ? (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-destructive">Error loading visits. Please try again.</p>
+          </div>
+        ) : (
+          <div 
+            ref={viewMode === 'list' ? contentRef : undefined} 
+            className={viewMode === 'list' ? "overflow-auto max-h-[calc(100vh-180px)]" : ""}
           >
-            Stop
-          </Button>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading visits...</p>
-        </div>
-      ) : error ? (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-destructive">Error loading visits. Please try again.</p>
-        </div>
-      ) : (
-        <div 
-          ref={viewMode === 'list' ? containerRef : undefined}
-          className={`${
-            viewMode === 'list' 
-              ? 'max-h-[calc(100vh-280px)] overflow-y-auto' 
-              : 'overflow-auto max-h-[calc(100vh-200px)]'
-          }`}
-        >
-          {viewMode === 'grid' ? (
-            <VisitTable
-              visits={visits}
-              onView={handleViewVisit}
-              onEdit={handleEditVisit}
-              loading={isLoading}
-            />
-          ) : viewMode === 'calendar' ? (
-            <VisitCalendar
-              visits={visits}
-              onVisitClick={handleViewVisit}
-            />
-          ) : (
-            <div className="space-y-3">
-              {visits.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No visits found</p>
-                </div>
-              ) : (
-                visits.map((visit) => (
+            {viewMode === 'grid' && (
+              <VisitTable 
+                visits={allVisits} 
+                onView={handleViewVisit}
+                onEdit={handleEditVisit}
+                loading={isLoading}
+              />
+            )}
+            
+            {viewMode === 'list' && (
+              <div className="space-y-3">
+                {allVisits.map((visit) => (
                   <VisitCardRow
                     key={visit.id}
                     visit={visit}
                     onView={handleViewVisit}
                     onEdit={handleEditVisit}
                   />
-                ))
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+                ))}
+                {isFetchingNextPage && (
+                  <div className="flex items-center justify-center py-4">
+                    <p className="text-muted-foreground">Loading more visits...</p>
+                  </div>
+                )}
+                {!hasNextPage && allVisits.length > 0 && (
+                  <div className="flex items-center justify-center py-4">
+                    <p className="text-muted-foreground text-sm">No more visits to load</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {viewMode === 'calendar' && (
+              <VisitCalendar 
+                visits={allVisits}
+                onVisitClick={handleViewVisit}
+              />
+            )}
+          </div>
+        )}
+
+        {allVisits.length === 0 && !isLoading && (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">No visits found</p>
+          </div>
+        )}
+      </div>
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the visit
+              and remove all associated data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setVisitToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
