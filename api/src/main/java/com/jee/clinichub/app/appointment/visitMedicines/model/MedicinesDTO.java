@@ -40,6 +40,6 @@ public class MedicinesDTO {
         this.frequency=medicine.getFrequency();
         this.duration=medicine.getDuration();
         this.timings=medicine.getTimings();
-        this.instruction=medicine.getInstruction();
+        this.instruction=medicine.getInstructions();
     }
 }

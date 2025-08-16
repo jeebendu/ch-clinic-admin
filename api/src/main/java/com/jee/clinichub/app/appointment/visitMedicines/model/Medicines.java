@@ -49,7 +49,7 @@ public class Medicines extends Auditable<String>  implements Serializable{
     private String frequency;
     private String duration;
     private String timings;
-    private String instruction;
+    private String instructions;
     
 
     
@@ -68,7 +68,7 @@ public class Medicines extends Auditable<String>  implements Serializable{
         this.frequency=medicine.getFrequency();
         this.duration=medicine.getDuration();
         this.timings=medicine.getTimings();
-        this.instruction=medicine.getInstruction();
+        this.instructions=medicine.getInstruction();
     }
 
 }

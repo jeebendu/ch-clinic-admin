@@ -15,3 +15,15 @@ CREATE TABLE doctor_external (
     modified_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
+
+-- 1. Add the column
+ALTER TABLE patient_schedule ADD COLUMN branch_id BIGINT NOT NULL;
+
+
+-- 2. Add the foreign key constraint
+ALTER TABLE patient_schedule ADD CONSTRAINT fk_patient_schedule_branch FOREIGN KEY (branch_id) REFERENCES branch(id) ON UPDATE NO ACTION ON DELETE RESTRICT;
+
+
+
+ALTER TABLE visit_lab_order ADD COLUMN labtest_id INTEGER;
+ALTER TABLE visit_lab_order ADD CONSTRAINT visit_lab_order_labtest_fkey FOREIGN KEY (labtest_id) REFERENCES labtest (id) ON UPDATE NO ACTION ON DELETE SET NULL;

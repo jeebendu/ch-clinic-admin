@@ -1,5 +1,6 @@
 
 export interface Tenant {
+  description: any;
   logo: any;
   favIcon: any;
   title: string;

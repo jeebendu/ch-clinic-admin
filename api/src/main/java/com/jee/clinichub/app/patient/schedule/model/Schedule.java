@@ -138,7 +138,7 @@ public class Schedule extends Auditable<String> implements Serializable {
 		scheduleDto.getMedicines().forEach(item -> {
 			Medicines medicinesObj = new Medicines(item);
 			medicinesObj.setVisit(this);
-			this.medicines.add(medicinesObj);
+			//this.medicines.add(medicinesObj);
 		});
 
 		// For diagnosis

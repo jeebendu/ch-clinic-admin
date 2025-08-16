@@ -71,7 +71,7 @@ public class VisitMedicinServiceImpl implements VisitMedicinService {
         existing.setFrequency(dto.getFrequency());
         existing.setDuration(dto.getDuration());
         existing.setTimings(dto.getTimings());
-        existing.setInstruction(dto.getInstruction());
+        existing.setInstructions(dto.getInstruction());
         return existing;
     }
 

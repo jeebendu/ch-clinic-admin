@@ -202,7 +202,7 @@ public Medicines updateMedicine(Medicines medicine,MedicinesDTO dto){
 medicine.setDosage(dto.getDosage());
 medicine.setDuration(dto.getDuration());
 medicine.setFrequency(dto.getFrequency());
-medicine.setInstruction(dto.getInstruction());
+medicine.setInstructions(dto.getInstruction());
 medicine.setName(dto.getName());
 medicine.setTimings(dto.getTimings());
 	return medicine;

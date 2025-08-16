@@ -66,7 +66,7 @@ public class ScheduleDto {
 		this.postConsultationRemark = schedule.getPostConsultationRemark();
 		this.nextFollowUpDate = schedule.getNextFollowUpDate();
 		this.referByDoctor = new DoctorDto(schedule.getReferByDoctor());
-		this.appointment = new AppointmentsDto(schedule.getAppointment());
+		//this.appointment = new AppointmentsDto(schedule.getAppointment());
 		this.notes = schedule.getNotes();
 		this.status = schedule.getStatus();
 
