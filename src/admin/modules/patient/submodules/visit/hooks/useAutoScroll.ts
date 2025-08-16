@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 interface UseAutoScrollProps {
   hasNextPage: boolean;
@@ -7,38 +7,63 @@ interface UseAutoScrollProps {
   fetchNextPage: () => void;
 }
 
+/**
+ * useAutoScroll
+ * - Uses an IntersectionObserver on a bottom "sentinel" element.
+ * - Automatically detects the nearest scrollable container for correct root.
+ * - Prevents duplicate fetches while a request is in-flight.
+ * - Returns a ref callback to assign to a sentinel element at the end of the list.
+ */
 export const useAutoScroll = ({ hasNextPage, isFetchingNextPage, fetchNextPage }: UseAutoScrollProps) => {
   const isLoadingRef = useRef(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      // Prevent multiple simultaneous requests
-      if (isLoadingRef.current || !hasNextPage || isFetchingNextPage) {
-        return;
+  // Find nearest scrollable parent to use as IntersectionObserver root
+  const getScrollParent = (element: Element | null): Element | null => {
+    let parent: HTMLElement | null = element?.parentElement;
+    while (parent) {
+      const style = getComputedStyle(parent);
+      const overflowY = style.overflowY;
+      const canScroll = (overflowY === 'auto' || overflowY === 'scroll');
+      if (canScroll && parent.scrollHeight > parent.clientHeight) {
+        return parent;
       }
+      parent = parent.parentElement;
+    }
+    // Fallback to viewport
+    return null;
+  };
 
-      // Get scroll position
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
+  const loadMoreRef = useCallback((node: Element | null) => {
+    // Disconnect any existing observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (!node) return;
 
-      // Calculate if we're near the bottom (within 200px)
-      const isNearBottom = scrollTop + windowHeight >= documentHeight - 200;
+    const root = getScrollParent(node);
 
-      if (isNearBottom) {
-        console.log('Near bottom - fetching next page');
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (!first?.isIntersecting) return;
+
+        // Guard conditions
+        if (isLoadingRef.current || !hasNextPage || isFetchingNextPage) return;
+
+        console.log('Sentinel intersecting - fetching next page');
         isLoadingRef.current = true;
         fetchNextPage();
+      },
+      {
+        root, // auto-detected scroll container, or viewport
+        rootMargin: '0px 0px 300px 0px', // start loading a bit before reaching bottom
+        threshold: 0,
       }
-    };
+    );
 
-    // Add event listener
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    observerRef.current.observe(node);
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Reset loading flag when fetching completes
@@ -47,4 +72,16 @@ export const useAutoScroll = ({ hasNextPage, isFetchingNextPage, fetchNextPage }
       isLoadingRef.current = false;
     }
   }, [isFetchingNextPage]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  return { loadMoreRef };
 };
+

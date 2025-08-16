@@ -37,8 +37,8 @@ const VisitListPage = () => {
     },
   });
 
-  // Enable auto-scroll
-  useAutoScroll({
+  // Enable auto-scroll (returns a sentinel ref to attach at the bottom)
+  const { loadMoreRef } = useAutoScroll({
     hasNextPage: hasNextPage || false,
     isFetchingNextPage,
     fetchNextPage
@@ -121,9 +121,13 @@ const VisitListPage = () => {
             <p className="text-muted-foreground">No visits found</p>
           </div>
         )}
+
+        {/* Sentinel: placed at the bottom to trigger auto-load when visible */}
+        <div ref={loadMoreRef as unknown as React.Ref<HTMLDivElement>} className="h-1" />
       </div>
     </div>
   );
 };
 
 export default VisitListPage;
+
