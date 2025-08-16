@@ -2,11 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { NavItem } from "@/config/NavItems";
 import { useTenant } from "@/hooks/use-tenant";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { cn } from "@/lib/utils";
 import AuthService from "@/services/authService";
+import { getEnvVariable } from "@/utils/envUtils";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
 import {
   ChevronRight, PanelLeft, X
@@ -21,7 +21,10 @@ interface SidebarProps {
 
 type UserRole = "Admin" | "Doctor" | "Staff";
 
+const logoUrl = getEnvVariable('LOGO_URL');
+
 const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
+
   const userRole: UserRole = AuthService.getUserRole() as UserRole;
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
   const { tenant } = useTenant();
@@ -39,7 +42,7 @@ const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
   // Get tenant logo URL
   let tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
   if (!tenantLogoUrl) {
-    tenantLogoUrl = 'https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';
+    tenantLogoUrl = logoUrl;
   }
   console.log("Tenant Logo URL:", tenantLogoUrl);
 

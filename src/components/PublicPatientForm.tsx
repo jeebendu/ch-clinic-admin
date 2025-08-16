@@ -14,6 +14,7 @@ import PatientService from "@/admin/modules/patient/services/patientService";
 import DistrictService from "@/admin/modules/core/services/district/districtService";
 import { useTenant } from "@/hooks/use-tenant";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
+import { getEnvVariable } from "@/utils/envUtils";
 
 const publicPatientSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
@@ -29,6 +30,7 @@ const publicPatientSchema = z.object({
 });
 
 type PublicPatientFormData = z.infer<typeof publicPatientSchema>;
+const logoUrl = getEnvVariable('LOGO_URL');
 
 const PublicPatientForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);

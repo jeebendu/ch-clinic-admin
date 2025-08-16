@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import http from "@/lib/JwtInterceptor";
 import { loadSavedTheme } from "@/utils/themeUtils";
 import { EncryptionService } from "@/utils/encryptionService";
+import { getEnvVariable } from "@/utils/envUtils";
 
 // Form validation schema
 const resetPasswordSchema = z.object({
@@ -24,6 +25,7 @@ const resetPasswordSchema = z.object({
 });
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+const logoUrl = getEnvVariable('LOGO_URL');
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -97,8 +99,6 @@ const ResetPassword = () => {
       setIsLoading(false);
     }
   };
-
-  const logoUrl = 'https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">

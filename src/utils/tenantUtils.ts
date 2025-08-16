@@ -7,6 +7,7 @@ import { getEnvVariable } from "./envUtils";
 export const getTenantId = (): string => {
   const defaultTenant = getEnvVariable('DEFAULT_TENANT');
   
+  
   // In a browser environment
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
@@ -33,6 +34,7 @@ export const getTenantId = (): string => {
  * Gets the file URL for tenant assets
  */
 export const getTenantFileUrl = (fileName: string, type: 'logo' | 'favicon' | 'banner'): string => {
-  if (!fileName) return 'https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';
+  const logoUrl = getEnvVariable('LOGO_URL');
+  if (!fileName) return logoUrl;
   return `${getEnvVariable('BASE_URL')}/tenants/public/download?fileName=${fileName}&type=${type}`;
 };
