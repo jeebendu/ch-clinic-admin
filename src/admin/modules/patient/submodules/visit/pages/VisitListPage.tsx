@@ -134,7 +134,6 @@ const VisitListPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
         <PageHeader
           title="Patient Visits"
           description="Manage patient visits and appointments"
@@ -145,13 +144,12 @@ const VisitListPage = () => {
           totalElements={totalElements}
           onSearchChange={handleSearchChange}
           searchValue={searchTerm}
+          showAddButton={true}
+          addButtonLabel="New Visit"
+          onAddButtonClick={handleAddVisit}
         />
         
-        <Button onClick={handleAddVisit} className="ml-4">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Visit
-        </Button>
-      </div>
+     
 
       {/* Main content container with explicit height and overflow */}
       <div
