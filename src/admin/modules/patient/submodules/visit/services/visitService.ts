@@ -1,107 +1,141 @@
 
-import { VisitItem } from '../types/VisitItem';
+import http from "@/lib/JwtInterceptor";
+import { getEnvVariable } from "@/utils/envUtils";
+import { Visit } from "../types/Visit";
 
-interface PaginatedResponse<T> {
-  content: T[];
-  number: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-  hasNext: boolean;
-  first: boolean;
-  last: boolean;
-}
+const apiUrl = getEnvVariable('API_URL');
 
 class VisitService {
-  private baseUrl = '/api/v1/visits'; // Adjust this to match your API endpoint
 
-  async getAllVisits(
-    page: number = 0, 
-    size: number = 10, 
-    search: string = ''
-  ): Promise<PaginatedResponse<VisitItem>> {
+  list() {
+    return http.get(`${apiUrl}/v1/schedule/list`);
+  }
+
+  deleteById(id: number) {
+    return http.get(`${apiUrl}/v1/schedule/delete/id/${id}`);
+  }
+
+  listByPID(id: number) {
+    return http.get(`${apiUrl}/v1/schedule/list/PID/${id}`);
+  }
+
+  getById(id: number) {
+    return http.get(`${apiUrl}/v1/schedule/id/${id}`);
+  }
+
+  saveOrUpdate(schedule: Visit) {
+    return http.post(`${apiUrl}/v1/schedule/saveOrUpdate`, schedule);
+  }
+
+  // New paginated API call
+  async getPaginatedVisits(pageNo: number = 0, pageSize: number = 10, searchCriteria: any = {}) {
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        size: size.toString(),
-        ...(search && { search })
-      });
-
-      const response = await fetch(`${this.baseUrl}?${params}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any authentication headers if needed
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      console.log('Making API call to:', `${apiUrl}/v1/schedule/list/paginated/${pageNo}/${pageSize}`);
+      console.log('Search criteria:', searchCriteria);
       
-      // Transform the response to match our expected format
-      return {
-        content: data.content || [],
-        number: data.number || page,
-        size: data.size || size,
-        totalElements: data.totalElements || 0,
-        totalPages: data.totalPages || 0,
-        hasNext: !data.last && data.number < data.totalPages - 1,
-        first: data.first || page === 0,
-        last: data.last || false
-      };
+      const response = await http.post(`${apiUrl}/v1/schedule/list/paginated/${pageNo}/${pageSize}`, searchCriteria);
+      console.log('Raw API response:', response);
+      
+      return response.data;
     } catch (error) {
-      console.error('Error fetching visits:', error);
-      // Return mock data for development/testing
-      return this.getMockVisits(page, size, search);
+      console.error('Error fetching paginated visits:', error);
+      throw error;
     }
   }
 
-  private getMockVisits(page: number, size: number, search: string): PaginatedResponse<VisitItem> {
-    // Generate mock data for testing
-    const allMockVisits: VisitItem[] = Array.from({ length: 50 }, (_, index) => ({
-      id: index + 1,
-      uid: `VIS-${String(index + 1).padStart(6, '0')}`,
-      patientName: `Patient ${index + 1}`,
-      patientId: `PAT-${String(index + 1).padStart(6, '0')}`,
-      doctorName: `Dr. Smith ${index % 5 + 1}`,
-      visitDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      visitType: index % 3 === 0 ? 'Follow-up' : index % 3 === 1 ? 'New Patient' : 'Emergency',
-      status: index % 4 === 0 ? 'Completed' : index % 4 === 1 ? 'In Progress' : index % 4 === 2 ? 'Scheduled' : 'Cancelled',
-      complaints: `Complaint ${index + 1}`,
-      diagnosis: index % 2 === 0 ? `Diagnosis ${index + 1}` : undefined,
-      treatment: index % 3 === 0 ? `Treatment ${index + 1}` : undefined,
-      notes: `Visit notes for patient ${index + 1}`,
-      createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date().toISOString()
-    }));
+  // Client-side helper methods for VisitList
+  async getAllVisits(pageNo: number = 0, pageSize: number = 10, searchTerm?: string) {
+    try {
+      const searchCriteria: any = {};
+      
+      if (searchTerm && searchTerm.trim()) {
+        searchCriteria.patientName = searchTerm.trim();
+      }
+      
+      console.log('Getting all visits - Page:', pageNo, 'Size:', pageSize, 'Search:', searchTerm);
+      const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
+      
+      // Transform/normalize the data to match expected format
+      const normalized = this.normalizeVisitsResponse(response);
+      console.log('Normalized response:', normalized);
+      
+      return normalized;
+    } catch (error) {
+      console.error('Error fetching visits:', error);
+      throw error;
+    }
+  }
 
-    // Filter by search if provided
-    const filteredVisits = search 
-      ? allMockVisits.filter(visit => 
-          visit.patientName.toLowerCase().includes(search.toLowerCase()) ||
-          visit.doctorName.toLowerCase().includes(search.toLowerCase()) ||
-          visit.uid.toLowerCase().includes(search.toLowerCase())
-        )
-      : allMockVisits;
+  async searchVisits(searchTerm: string, pageNo: number = 0, pageSize: number = 10) {
+    const searchCriteria = { patientName: searchTerm };
+    const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
+    return this.normalizeVisitsResponse(response);
+  }
 
-    // Paginate
-    const startIndex = page * size;
-    const endIndex = startIndex + size;
-    const pageData = filteredVisits.slice(startIndex, endIndex);
+  async filterVisits(filters: Record<string, string[]>, pageNo: number = 0, pageSize: number = 10) {
+    const searchCriteria = { filters };
+    const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
+    return this.normalizeVisitsResponse(response);
+  }
 
-    return {
-      content: pageData,
-      number: page,
-      size: size,
-      totalElements: filteredVisits.length,
-      totalPages: Math.ceil(filteredVisits.length / size),
-      hasNext: endIndex < filteredVisits.length,
-      first: page === 0,
-      last: endIndex >= filteredVisits.length
+  private normalizeVisitsResponse(response: any) {
+    console.log('Normalizing response:', response);
+    
+    if (!response) {
+      return {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: 10,
+        number: 0,
+        first: true,
+        last: true,
+        hasNext: false,
+        hasPrevious: false
+      };
+    }
+
+    const visits = response.content || [];
+    const normalizedVisits = visits.map(this.normalizeVisit);
+    
+    const normalized = {
+      content: normalizedVisits,
+      totalElements: response.totalElements || 0,
+      totalPages: response.totalPages || 0,
+      size: response.size || 10,
+      number: response.number || 0,
+      first: response.first !== undefined ? response.first : true,
+      last: response.last !== undefined ? response.last : false,
+      hasNext: !response.last,
+      hasPrevious: !response.first
     };
+    
+    console.log('Normalized visits response:', normalized);
+    return normalized;
+  }
+
+  private normalizeVisit(visit: any) {
+    const normalized = {
+      id: visit.id || Math.random().toString(),
+      patientName: visit.patient ? `${visit.patient.firstname || ''} ${visit.patient.lastname || ''}`.trim() : 'Unknown Patient',
+      patientAge: visit.patient?.age || 0,
+      patientGender: visit.patient?.gender || 'Unknown',
+      patientUid: visit.patient?.uid || 'N/A',
+      doctorName: visit.doctor ? `${visit.doctor.firstname || ''} ${visit.doctor.lastname || ''}`.trim() : 'Unknown Doctor',
+      doctorSpecialization: visit.doctor?.specialization || 'General',
+      visitDate: visit.scheduleDate || new Date().toISOString(),
+      visitType: visit.type || 'routine',
+      reasonForVisit: visit.notes || 'General consultation',
+      status: visit.status || 'open',
+      paymentStatus: visit.paymentStatus || 'pending',
+      paymentAmount: visit.paymentAmount || 0,
+      paymentPaid: visit.paymentPaid || 0,
+      notes: visit.notes,
+      referralDoctorName: visit.referralDoctorName || null
+    };
+    
+    console.log('Normalized visit:', normalized);
+    return normalized;
   }
 }
 
