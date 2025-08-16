@@ -50,10 +50,9 @@ public class ScheduleController {
             @PathVariable int pageSize,
             @RequestBody(required = false) SearchSchedule search) {
         
-        Long branchId = BranchContextHolder.getCurrentBranch().getId();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         
-        return scheduleService.getAllSchedulesPaginated(pageable, branchId, search);
+        return scheduleService.getAllSchedulesPaginated(pageable, search);
     }
     
     @PostMapping(value="/refdr/list")

@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.jee.clinichub.app.appointment.appointments.model.Appointments;
@@ -252,6 +254,31 @@ public VisitDiagnosis updateDiagnosis(VisitDiagnosis vDiagnosis,VisitDiagnosisDt
 			vDiagnosis.setVisit(schedule);
 			return vDiagnosis;
 		}
+		
+		
+	 @Override
+	    public Page<ScheduleDto> getAllSchedulesPaginated(Pageable pageable, SearchSchedule search) {
+	        try {
+	            // Get current branch if branchId is not provided
+	            
+	                Branch currentBranch = BranchContextHolder.getCurrentBranch();
+	                
+	            // Extract search parameters
+	            Long doctorId = (search != null) ? search.getRefDrId(): null;
+	            String patientName = (search != null) ? null : null;
+
+	            // Use repository method with filters
+	            Page<Schedule> schedulePage = scheduleRepository.findSchedulesByBranchWithFilters(
+	            		currentBranch.getId(), doctorId, patientName, pageable);
+
+	            // Convert to DTO page
+	            return schedulePage.map(ScheduleDto::new);
+
+	        } catch (Exception e) {
+	            log.error("Error fetching paginated schedules: {}", e.getLocalizedMessage());
+	            throw new RuntimeException("Failed to fetch paginated schedules", e);
+	        }
+	    }
 
 	@Override
 	public List<ScheduleDto> getAllSchedules() {

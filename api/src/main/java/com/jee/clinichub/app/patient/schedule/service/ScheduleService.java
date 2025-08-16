@@ -23,7 +23,7 @@ public interface ScheduleService {
 
 	List<ScheduleDto> getAllSchedules();
 
-	Page<ScheduleDto> getAllSchedulesPaginated(Pageable pageable, Long branchId, SearchSchedule search);
+	Page<ScheduleDto> getAllSchedulesPaginated(Pageable pageable, SearchSchedule search);
 
 	Schedule getScheduleById(Long id);
 

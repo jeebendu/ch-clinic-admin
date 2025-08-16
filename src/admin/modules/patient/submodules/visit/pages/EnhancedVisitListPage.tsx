@@ -10,6 +10,7 @@ import VisitService from "../services/visitService";
 type ViewMode = 'list' | 'calendar';
 
 const EnhancedVisitListPage: React.FC = () => {
+  
   const [search, setSearch] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
     status: [],
@@ -26,7 +27,7 @@ const EnhancedVisitListPage: React.FC = () => {
   const { data: visitsData, refetch } = useQuery({
     queryKey: ["visits", "calendar", refreshTrigger],
     queryFn: async () => {
-      const resp = await VisitService.getAllVisits(0, 1000, "");
+      const resp = await VisitService.getAllVisits(0, 20, "");
       return resp;
     },
     staleTime: 30_000,
@@ -159,7 +160,7 @@ const EnhancedVisitListPage: React.FC = () => {
       )}
 
       {/* Content */}
-      <div className="flex-1 px-4 md:px-6 pb-6">
+      <div className="flex-1">
         {viewMode === 'list' ? (
           <EnhancedInfiniteVisitList
             searchTerm={search}
