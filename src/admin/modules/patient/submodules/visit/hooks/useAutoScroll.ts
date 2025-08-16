@@ -1,17 +1,26 @@
-import { useEffect } from "react";
 
-export function useAutoScroll(callback: () => void, deps: any[] = []) {
+import { useEffect, useCallback } from "react";
+
+export function useAutoScroll(
+  loadMore: () => void, 
+  isLoading: boolean, 
+  hasMore: boolean
+) {
+  const handleScroll = useCallback(() => {
+    if (isLoading || !hasMore) return;
+
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = window.innerHeight;
+    
+    // Load more when user is 200px from bottom
+    if (scrollTop + clientHeight >= scrollHeight - 200) {
+      loadMore();
+    }
+  }, [loadMore, isLoading, hasMore]);
+
   useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - 100
-      ) {
-        callback();
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, deps);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 }

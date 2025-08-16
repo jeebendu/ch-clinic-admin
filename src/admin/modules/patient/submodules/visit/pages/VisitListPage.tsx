@@ -1,64 +1,155 @@
-import React, { useEffect, useState } from "react";
+
+import React, { useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Visit } from "../types/Visit";
 import { useAutoScroll } from "../hooks/useAutoScroll";
 import visitService from "../services/visitService";
 import VisitTable from "../components/VisitTable";
-import VisitList from "../components/VisitList";
+import VisitCardList from "../components/VisitCardList";
+import PageHeader from "@/admin/components/PageHeader";
+import FilterCard from "@/admin/components/FilterCard";
 
 const VisitListPage: React.FC = () => {
-  const [visits, setVisits] = useState<Visit[]>([]);
+  const [view, setView] = useState<"list" | "table">("list");
   const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [view, setView] = useState<"table" | "list">("table");
+  const [allVisits, setAllVisits] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
+  const [showFilter, setShowFilter] = useState(false);
 
-  const fetchVisits = async () => {
-    if (loading || !hasMore) return;
-    setLoading(true);
-    const response = await visitService.getPaginatedVisits(page, 20);
-    setVisits(prev => [...prev, ...response]);
-    setHasMore(response.length > 0);
-    setLoading(false);
-  };
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['visits', page, searchTerm, selectedFilters],
+    queryFn: async () => {
+      console.log('Fetching visits for page:', page);
+      const response = await visitService.getAllVisits(page, 20, searchTerm);
+      
+      if (page === 0) {
+        setAllVisits(response.content || []);
+      } else {
+        setAllVisits(prev => [...prev, ...(response.content || [])]);
+      }
+      
+      return response;
+    },
+    enabled: true
+  });
 
-  useEffect(() => {
-    fetchVisits();
-  }, [page]);
-
-  useAutoScroll(() => {
-    if (!loading && hasMore) {
+  const loadMore = useCallback(() => {
+    if (!isLoading && data && !data.last) {
+      console.log('Loading more visits, current page:', page);
       setPage(prev => prev + 1);
     }
-  }, [loading, hasMore]);
+  }, [isLoading, data, page]);
+
+  const hasMore = data ? !data.last : true;
+
+  useAutoScroll(loadMore, isLoading, hasMore);
+
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+    setPage(0);
+    setAllVisits([]);
+  };
+
+  const handleFilterChange = (filterId: string, optionId: string) => {
+    setSelectedFilters(prev => {
+      const current = prev[filterId] || [];
+      const updated = current.includes(optionId)
+        ? current.filter(id => id !== optionId)
+        : [...current, optionId];
+      return { ...prev, [filterId]: updated };
+    });
+    setPage(0);
+    setAllVisits([]);
+  };
+
+  const handleClearFilters = () => {
+    setSelectedFilters({});
+    setSearchTerm("");
+    setPage(0);
+    setAllVisits([]);
+  };
+
+  const handleViewModeToggle = () => {
+    setView(prev => prev === "list" ? "table" : "list");
+  };
+
+  const handleVisitClick = (visit: any) => {
+    console.log('Visit clicked:', visit);
+  };
+
+  const handleVisitView = (visit: any) => {
+    console.log('View visit:', visit);
+  };
+
+  const handleVisitEdit = (visit: any) => {
+    console.log('Edit visit:', visit);
+  };
+
+  const filterOptions = [
+    {
+      id: 'status',
+      label: 'Status',
+      options: [
+        { id: 'open', label: 'Open' },
+        { id: 'closed', label: 'Closed' },
+        { id: 'follow-up', label: 'Follow-up' }
+      ]
+    }
+  ];
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-bold">Visits</h2>
-        <div>
-          <button
-            className={`px-4 py-2 mr-2 rounded ${view === "table" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-            onClick={() => setView("table")}
-          >
-            Table View
-          </button>
-          <button
-            className={`px-4 py-2 rounded ${view === "list" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-            onClick={() => setView("list")}
-          >
-            List View
-          </button>
-        </div>
-      </div>
+    <div className="h-full flex flex-col">
+      <PageHeader
+        title="Visits"
+        onViewModeToggle={handleViewModeToggle}
+        viewMode={view}
+        onRefreshClick={() => {
+          setPage(0);
+          setAllVisits([]);
+          refetch();
+        }}
+        onFilterToggle={() => setShowFilter(!showFilter)}
+        showFilter={showFilter}
+        loadedElements={allVisits.length}
+        totalElements={data?.totalElements || 0}
+        onSearchChange={handleSearchChange}
+        searchValue={searchTerm}
+      />
 
-      {view === "table" ? (
-        <VisitTable visits={visits} />
-      ) : (
-        <VisitList visits={visits} />
+      {showFilter && (
+        <FilterCard
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+          filters={filterOptions}
+          selectedFilters={selectedFilters}
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+        />
       )}
 
-      {loading && <p className="text-center mt-4">Loading...</p>}
-      {!hasMore && <p className="text-center mt-4">No more visits</p>}
+      <div className="flex-1 overflow-hidden">
+        {view === "table" ? (
+          <VisitTable
+            visits={allVisits}
+            isLoading={isLoading && page === 0}
+            loadingMore={isLoading && page > 0}
+            onVisitClick={handleVisitClick}
+            onVisitView={handleVisitView}
+            onVisitEdit={handleVisitEdit}
+          />
+        ) : (
+          <VisitCardList
+            visits={allVisits}
+            isLoading={isLoading && page === 0}
+            loadingMore={isLoading && page > 0}
+            onVisitClick={handleVisitClick}
+            onVisitView={handleVisitView}
+            onVisitEdit={handleVisitEdit}
+            containerRef={React.createRef()}
+          />
+        )}
+      </div>
     </div>
   );
 };
