@@ -1,43 +1,28 @@
 
-import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { 
-  Home, 
-  Users,
-  Calendar,
-  Settings,
-  Clock,
-  CalendarDays,
-  Building2,
-  UserCircle,
-  FileBox,
-  UserCog,
-  PanelLeft,
-  X,
-  Package,
-  UserPlus,
-  MessageSquare,
-  ArrowDownRightFromCircle,
-  Settings2Icon,
-  ShoppingBasket,
-  Truck,
-  ChevronRight,
-  FileText,
-  BarChart2,
-  Ear,
-  FlaskConical,
-  Plus,
-  ClipboardList,
-  TestTube2,
-  Library
-} from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
-import AuthService from "@/services/authService";
 import { useTenant } from "@/hooks/use-tenant";
+import { cn } from "@/lib/utils";
+import AuthService from "@/services/authService";
 import { getTenantFileUrl } from "@/utils/tenantUtils";
+import {
+  BarChart2,
+  Building2,
+  Calendar,
+  ChevronRight,
+  FlaskConical,
+  Home,
+  MessageSquare,
+  PanelLeft,
+  Settings,
+  UserCircle,
+  UserCog,
+  Users,
+  X
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -66,6 +51,14 @@ const navItems: NavItem[] = [
     href: "/admin/dashboard/admin", 
     roles: ["Admin"] 
   },
+
+  { 
+    icon: <Users className="h-5 w-5" />, 
+    label: "Visits", 
+    href: "/admin/patients/visits", 
+    roles: ["Admin", "Doctor", "Staff"] 
+  },
+
   { 
     icon: <Calendar className="h-5 w-5" />, 
     label: "Appointments", 
