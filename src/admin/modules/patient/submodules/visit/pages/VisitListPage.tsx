@@ -26,12 +26,16 @@ const VisitListPage = () => {
   } = useInfiniteQuery({
     queryKey: ['visits', searchTerm],
     queryFn: ({ pageParam = 0 }) => {
-      console.log('Fetching visits - page:', pageParam, 'search:', searchTerm);
+      console.log('🔄 Fetching visits - page:', pageParam, 'search:', searchTerm);
       return visitService.getAllVisits(pageParam, 10, searchTerm);
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
-      console.log('Getting next page param:', lastPage);
+      console.log('📄 Getting next page param:', {
+        currentPage: lastPage.number,
+        hasNext: lastPage.hasNext,
+        totalPages: lastPage.totalPages
+      });
       if (!lastPage.hasNext) return undefined;
       return lastPage.number + 1;
     },
@@ -47,6 +51,14 @@ const VisitListPage = () => {
   // Flatten all pages into a single array
   const allVisits: VisitItem[] = data?.pages.flatMap(page => page.content) || [];
   const totalElements = data?.pages[0]?.totalElements || 0;
+
+  console.log('📊 VisitListPage render:', {
+    allVisitsCount: allVisits.length,
+    totalElements,
+    hasNextPage,
+    isFetchingNextPage,
+    pagesLoaded: data?.pages.length || 0
+  });
 
   const handleViewModeToggle = () => {
     setViewMode(prev => prev === 'list' ? 'table' : 'list');
@@ -92,8 +104,8 @@ const VisitListPage = () => {
         searchValue={searchTerm}
       />
 
-      {/* Main content container */}
-      <div className="space-y-4">
+      {/* Main content container with explicit height and overflow */}
+      <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
         {viewMode === 'list' ? (
           <VisitList visits={allVisits} />
         ) : (
@@ -111,7 +123,8 @@ const VisitListPage = () => {
         {/* End of results indicator */}
         {!hasNextPage && allVisits.length > 0 && (
           <div className="text-center py-4 text-muted-foreground">
-            No more visits to load
+            <p>No more visits to load</p>
+            <p className="text-sm">Showing {allVisits.length} of {totalElements} visits</p>
           </div>
         )}
 
@@ -123,11 +136,17 @@ const VisitListPage = () => {
         )}
 
         {/* Sentinel: placed at the bottom to trigger auto-load when visible */}
-        <div ref={loadMoreRef as unknown as React.Ref<HTMLDivElement>} className="h-1" />
+        {hasNextPage && (
+          <div 
+            ref={loadMoreRef as unknown as React.Ref<HTMLDivElement>} 
+            className="h-10 flex items-center justify-center bg-muted/20 rounded border-2 border-dashed border-muted-foreground/20"
+          >
+            <span className="text-xs text-muted-foreground">Load More Trigger Zone</span>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default VisitListPage;
-
