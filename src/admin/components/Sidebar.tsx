@@ -1,322 +1,188 @@
 
-import { Fragment, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline';
-import { NavLink } from 'react-router-dom';
-import { ChevronRightIcon } from '@heroicons/react/20/solid';
-import { useMenuItems, MenuItem } from '../../hooks/useMenuItems';
-import { getIcon } from '../../utils/iconUtils';
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { NavItem } from "@/config/NavItems";
+import { useTenant } from "@/hooks/use-tenant";
+import { useMenuItems } from "@/hooks/useMenuItems";
+import { cn } from "@/lib/utils";
+import AuthService from "@/services/authService";
+import { getTenantFileUrl } from "@/utils/tenantUtils";
+import {
+  ChevronRight, PanelLeft, X
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 
 interface SidebarProps {
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
+  onClose?: () => void;
+  collapsed?: boolean;
 }
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
-  const menuItems = useMenuItems();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+type UserRole = "Admin" | "Doctor" | "Staff";
 
-  const toggleExpanded = (itemName: string) => {
-    setExpandedItems(prev => 
-      prev.includes(itemName) 
-        ? prev.filter(name => name !== itemName)
-        : [...prev, itemName]
+const navItems: NavItem[] = useMenuItems;
+
+const Sidebar = ({ onClose, collapsed }: SidebarProps) => {
+  const userRole: UserRole = AuthService.getUserRole() as UserRole;
+  const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
+  const { tenant } = useTenant();
+  const location = useLocation();
+
+  const toggleSubmenu = (label: string) => {
+    setOpenSubmenus(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
     );
   };
 
-  const SidebarContent = () => (
-    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
-      <div className="flex h-16 shrink-0 items-center">
-        <img
-          className="h-8 w-auto"
-          src="/logo.svg"
-          alt="ClinicHub"
-        />
-        <span className="ml-2 text-xl font-semibold text-gray-900">ClinicHub</span>
-      </div>
-      <nav className="flex flex-1 flex-col">
-        <ul role="list" className="flex flex-1 flex-col gap-y-7">
-          <li>
-            <ul role="list" className="-mx-2 space-y-1">
-              {menuItems.map((item) => (
-                <li key={item.name}>
-                  {!item.subMenu ? (
-                    <NavLink
-                      to={item.href}
-                      className={({ isActive }) =>
-                        classNames(
-                          isActive
-                            ? 'bg-gray-50 text-indigo-600'
-                            : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                          'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                        )
-                      }
-                    >
-                      {({ isActive }) => {
-                        const IconComponent = getIcon(item.icon);
-                        return (
-                          <>
-                            <IconComponent
-                              className={classNames(
-                                isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
-                                'h-6 w-6 shrink-0'
-                              )}
-                              aria-hidden="true"
-                            />
-                            {item.name}
-                          </>
-                        );
-                      }}
-                    </NavLink>
-                  ) : (
-                    <div>
-                      <button
-                        onClick={() => toggleExpanded(item.name)}
-                        className={classNames(
-                          'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                          'group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm leading-6 font-semibold'
-                        )}
-                      >
-                        {(() => {
-                          const IconComponent = getIcon(item.icon);
-                          return (
-                            <>
-                              <IconComponent
-                                className="text-gray-400 group-hover:text-indigo-600 h-6 w-6 shrink-0"
-                                aria-hidden="true"
-                              />
-                              <span className="flex-1">{item.name}</span>
-                              <ChevronRightIcon
-                                className={classNames(
-                                  expandedItems.includes(item.name) ? 'rotate-90 text-gray-500' : 'text-gray-400',
-                                  'ml-auto h-5 w-5 shrink-0'
-                                )}
-                                aria-hidden="true"
-                              />
-                            </>
-                          );
-                        })()}
-                      </button>
-                      {expandedItems.includes(item.name) && (
-                        <ul className="mt-1 px-2">
-                          {item.subMenu?.map((subItem) => (
-                            <li key={subItem.name}>
-                              <NavLink
-                                to={subItem.href}
-                                className={({ isActive }) =>
-                                  classNames(
-                                    isActive
-                                      ? 'bg-gray-50 text-indigo-600'
-                                      : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                                    'group flex gap-x-3 rounded-md p-2 pl-9 text-sm leading-6'
-                                  )
-                                }
-                              >
-                                {({ isActive }) => {
-                                  const SubIconComponent = getIcon(subItem.icon);
-                                  return (
-                                    <>
-                                      <SubIconComponent
-                                        className={classNames(
-                                          isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
-                                          'h-4 w-4 shrink-0'
-                                        )}
-                                        aria-hidden="true"
-                                      />
-                                      {subItem.name}
-                                    </>
-                                  );
-                                }}
-                              </NavLink>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </li>
-        </ul>
-      </nav>
-    </div>
+  // Get tenant logo URL
+  let tenantLogoUrl = tenant?.logo ? getTenantFileUrl(tenant.logo, 'logo') : '';
+  if (!tenantLogoUrl) {
+    tenantLogoUrl = 'https://res.cloudinary.com/dzxuxfagt/image/upload/h_100/assets/logo.png';
+  }
+  console.log("Tenant Logo URL:", tenantLogoUrl);
+
+  useEffect(() => {
+    const handleQuickForm = () => {
+      document.dispatchEvent(new CustomEvent('open-quick-form'));
+    };
+    
+    document.addEventListener('open-quick-form', handleQuickForm);
+    return () => {
+      document.removeEventListener('open-quick-form', handleQuickForm);
+    };
+  }, []);
+
+  // Auto-open submenu based on current route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    navItems.forEach(item => {
+      if (item.submenu) {
+        const hasActiveSubmenu = item.submenu.some(subItem => 
+          currentPath.includes(subItem.href)
+        );
+        
+        if (hasActiveSubmenu && !openSubmenus.includes(item.label)) {
+          setOpenSubmenus(prev => [...prev, item.label]);
+        }
+      }
+    });
+  }, [location.pathname]);
+
+  const filteredNavItems = navItems.filter(item => 
+    item.roles.includes(userRole)
   );
 
   return (
-    <>
-      {/* Mobile sidebar */}
-      <Transition.Root show={sidebarOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
-          <Transition.Child
-            as={Fragment}
-            enter="transition-opacity ease-linear duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity ease-linear duration-300"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-900/80" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 flex">
-            <Transition.Child
-              as={Fragment}
-              enter="transition ease-in-out duration-300 transform"
-              enterFrom="-translate-x-full"
-              enterTo="translate-x-0"
-              leave="transition ease-in-out duration-300 transform"
-              leaveFrom="translate-x-0"
-              leaveTo="-translate-x-full"
-            >
-              <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-in-out duration-300"
-                  enterFrom="opacity-0"
-                  enterTo="opacity-100"
-                  leave="ease-in-out duration-300"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
-                    <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
-                      <span className="sr-only">Close sidebar</span>
-                      <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                    </button>
-                  </div>
-                </Transition.Child>
-                <SidebarContent />
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </Dialog>
-      </Transition.Root>
-
-      {/* Static sidebar for desktop */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
-          <div className="flex h-16 shrink-0 items-center">
-            <img
-              className="h-8 w-auto"
-              src="/logo.svg"
-              alt="ClinicHub"
+    <aside className={cn(
+      "text-sidebar-foreground h-full transition-all duration-300 flex flex-col",
+      collapsed ? "w-[70px]" : "w-64"
+    )}>
+      <div className="p-3 flex-none border-b flex items-center">
+        {tenantLogoUrl && (
+          <div className={cn(
+            "flex items-center",
+            collapsed ? "justify-center w-full" : ""
+          )}>
+            <img 
+              src={tenantLogoUrl} 
+              alt={tenant?.title || 'Tenant Logo'} 
+              className={cn("h-8 w-auto", collapsed ? "mx-auto" : "")}
             />
-            <span className="ml-2 text-xl font-semibold text-gray-900">ClinicHub</span>
           </div>
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-              <li>
-                <ul role="list" className="-mx-2 space-y-1">
-                  {menuItems.map((item) => (
-                    <li key={item.name}>
-                      {!item.subMenu ? (
-                        <NavLink
-                          to={item.href}
-                          className={({ isActive }) =>
-                            classNames(
-                              isActive
-                                ? 'bg-gray-50 text-indigo-600'
-                                : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                              'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                            )
-                          }
-                        >
-                          {({ isActive }) => {
-                            const IconComponent = getIcon(item.icon);
-                            return (
-                              <>
-                                <IconComponent
-                                  className={classNames(
-                                    isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
-                                    'h-6 w-6 shrink-0'
-                                  )}
-                                  aria-hidden="true"
-                                />
-                                {item.name}
-                              </>
-                            );
-                          }}
-                        </NavLink>
-                      ) : (
-                        <div>
-                          <button
-                            onClick={() => toggleExpanded(item.name)}
-                            className={classNames(
-                              'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                              'group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm leading-6 font-semibold'
-                            )}
-                          >
-                            {(() => {
-                              const IconComponent = getIcon(item.icon);
-                              return (
-                                <>
-                                  <IconComponent
-                                    className="text-gray-400 group-hover:text-indigo-600 h-6 w-6 shrink-0"
-                                    aria-hidden="true"
-                                  />
-                                  <span className="flex-1">{item.name}</span>
-                                  <ChevronRightIcon
-                                    className={classNames(
-                                      expandedItems.includes(item.name) ? 'rotate-90 text-gray-500' : 'text-gray-400',
-                                      'ml-auto h-5 w-5 shrink-0'
-                                    )}
-                                    aria-hidden="true"
-                                  />
-                                </>
-                              );
-                            })()}
-                          </button>
-                          {expandedItems.includes(item.name) && (
-                            <ul className="mt-1 px-2">
-                              {item.subMenu?.map((subItem) => (
-                                <li key={subItem.name}>
-                                  <NavLink
-                                    to={subItem.href}
-                                    className={({ isActive }) =>
-                                      classNames(
-                                        isActive
-                                          ? 'bg-gray-50 text-indigo-600'
-                                          : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                                        'group flex gap-x-3 rounded-md p-2 pl-9 text-sm leading-6'
-                                      )
-                                    }
-                                  >
-                                    {({ isActive }) => {
-                                      const SubIconComponent = getIcon(subItem.icon);
-                                      return (
-                                        <>
-                                          <SubIconComponent
-                                            className={classNames(
-                                              isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
-                                              'h-4 w-4 shrink-0'
-                                            )}
-                                            aria-hidden="true"
-                                          />
-                                          {subItem.name}
-                                        </>
-                                      );
-                                    }}
-                                  </NavLink>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        )}
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="md:hidden text-sidebar-foreground ml-auto"
+        >
+          <X className="h-5 w-5" />
+        </Button>
       </div>
-    </>
+
+      <ScrollArea className="flex-1">
+        <nav>
+          {filteredNavItems.map((item) => (
+            <React.Fragment key={item.label}>
+              {item.submenu ? (
+                <Collapsible
+                  open={openSubmenus.includes(item.label)}
+                  onOpenChange={() => toggleSubmenu(item.label)}
+                >
+                  <CollapsibleTrigger className={cn(
+                    "flex w-full items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                    openSubmenus.includes(item.label) && "bg-sidebar-accent text-sidebar-accent-foreground",
+                    collapsed && "justify-center"
+                  )}>
+                    <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
+                    {!collapsed && (
+                      <>
+                        <span className="flex-1 text-left">{item.label}</span>
+                        <ChevronRight className={cn(
+                          "h-4 w-4 transition-transform",
+                          openSubmenus.includes(item.label) && "rotate-90"
+                        )} />
+                      </>
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    {!collapsed && item.submenu.map(subItem => {
+                      return (
+                        <NavLink
+                          key={subItem.href}
+                          to={subItem.href}
+                          className={({ isActive }) => cn(
+                            "flex items-center px-4 py-2 pl-12 text-sidebar-foreground hover:bg-sidebar-accent/10 transition-colors text-sm",
+                            isActive && "bg-sidebar-accent/20", // Normalized active color
+                            "text-left" // Ensure left alignment
+                          )}
+                          onClick={onClose}
+                        >
+                          {subItem.label}
+                        </NavLink>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+              ) : (
+                <NavLink
+                  to={item.href!}
+                  className={({ isActive }) => cn(
+                    "flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors",
+                    isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-l-4 border-sidebar-primary",
+                    !isActive && "border-l-4 border-transparent",
+                    collapsed && "justify-center"
+                  )}
+                  onClick={(e) => {
+                    if (item.onClick) {
+                      e.preventDefault();
+                      item.onClick();
+                    }
+                    
+                    if (window.innerWidth < 768 && onClose) {
+                      onClose();
+                    }
+                  }}
+                >
+                  <span className={cn("", collapsed ? "mr-0" : "mr-3")}>{item.icon}</span>
+                  {!collapsed && <span>{item.label}</span>}
+                  {!collapsed && (item.label.includes("Dashboard") || item.label === "Appointments" || item.label === "Doctors" || item.label === "Patients") && (
+                    <span className="ml-auto">
+                      <PanelLeft className="h-4 w-4 rotate-180" />
+                    </span>
+                  )}
+                </NavLink>
+              )}
+            </React.Fragment>
+          ))}
+        </nav>
+      </ScrollArea>
+    </aside>
   );
-}
+};
+
+export default Sidebar;

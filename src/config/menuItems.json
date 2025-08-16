@@ -1,61 +1,235 @@
-
-{
-  "mainMenu": [
-    {
-      "name": "Dashboard",
-      "href": "/admin",
-      "icon": "LayoutDashboard",
-      "current": false
-    },
-    {
-      "name": "Patient",
-      "href": "/admin/patient",
-      "icon": "Users",
-      "current": false,
-      "subMenu": [
-        {
-          "name": "Patient List",
-          "href": "/admin/patient",
-          "icon": "Users",
-          "current": false
-        },
-        {
-          "name": "Visits",
-          "href": "/admin/patient/visits",
-          "icon": "FileText",
-          "current": false
-        }
-      ]
-    },
-    {
-      "name": "Doctor",
-      "href": "/admin/doctor",
-      "icon": "UserCheck",
-      "current": false
-    },
-    {
-      "name": "Appointment",
-      "href": "/admin/appointment",
-      "icon": "Calendar",
-      "current": false
-    },
-    {
-      "name": "Queue",
-      "href": "/admin/queue",
-      "icon": "Clock",
-      "current": false
-    },
-    {
-      "name": "Reports",
-      "href": "/admin/reports",
-      "icon": "BarChart3",
-      "current": false
-    },
-    {
-      "name": "Settings",
-      "href": "/admin/settings",
-      "icon": "Cog",
-      "current": false
-    }
-  ]
-}
+[
+  {
+    "icon": "Home",
+    "label": "Admin Dashboard",
+    "href": "/admin/dashboard/admin",
+    "roles": [
+      "Admin"
+    ]
+  },
+  {
+    "icon": "Users",
+    "label": "Visits",
+    "href": "/admin/patients/visits",
+    "roles": [
+      "Admin",
+      "Doctor",
+      "Staff"
+    ]
+  },
+  {
+    "icon": "Calendar",
+    "label": "Appointments",
+    "href": "/admin/appointments",
+    "roles": [
+      "Admin",
+      "Doctor",
+      "Staff"
+    ]
+  },
+  {
+    "icon": "Users",
+    "label": "Patients",
+    "href": "/admin/patients",
+    "roles": [
+      "Admin",
+      "Doctor",
+      "Staff"
+    ]
+  },
+  {
+    "icon": "Users",
+    "label": "Queue",
+    "href": "/admin/queue",
+    "roles": [
+      "Admin",
+      "Doctor",
+      "Staff"
+    ]
+  },
+  {
+    "icon": "UserCircle",
+    "label": "Doctors",
+    "roles": [
+      "Admin"
+    ],
+    "submenu": [
+      {
+        "label": "Doctor List",
+        "href": "/admin/doctor",
+        "roles": [
+          "Admin"
+        ]
+      },
+      {
+        "label": "Speciality",
+        "href": "/admin/doctor/speciality",
+        "roles": [
+          "Admin"
+        ]
+      },
+      {
+        "label": "Medical Council",
+        "href": "/admin/medical-council",
+        "roles": [
+          "Admin"
+        ]
+      },
+      {
+        "label": "Degree",
+        "href": "/admin/medical-degree",
+        "roles": [
+          "Admin"
+        ]
+      }
+    ]
+  },
+  {
+    "icon": "FlaskConical",
+    "label": "Lab",
+    "roles": [
+      "Admin",
+      "Doctor",
+      "Staff"
+    ],
+    "submenu": [
+      {
+        "label": "Dashboard",
+        "href": "/admin/lab/dashboard",
+        "roles": [
+          "Admin",
+          "Doctor",
+          "Staff"
+        ]
+      },
+      {
+        "label": "New Lab Order",
+        "href": "/admin/lab/new-order",
+        "roles": [
+          "Admin",
+          "Doctor",
+          "Staff"
+        ]
+      },
+      {
+        "label": "Orders",
+        "href": "/admin/lab/orders",
+        "roles": [
+          "Admin",
+          "Doctor",
+          "Staff"
+        ]
+      },
+      {
+        "label": "Reports",
+        "href": "/admin/lab/reports",
+        "roles": [
+          "Admin",
+          "Doctor",
+          "Staff"
+        ]
+      },
+      {
+        "label": "Test Catalog",
+        "href": "/admin/lab/test-catalog",
+        "roles": [
+          "Admin"
+        ]
+      },
+      {
+        "label": "Settings",
+        "href": "/admin/lab/settings",
+        "roles": [
+          "Admin"
+        ]
+      }
+    ]
+  },
+  {
+    "icon": "BarChart2",
+    "label": "Reports",
+    "roles": [
+      "Admin"
+    ],
+    "submenu": [
+      {
+        "label": "Referral Doctor",
+        "href": "/admin/reports/referral-doctor",
+        "roles": [
+          "Admin"
+        ]
+      }
+    ]
+  },
+  {
+    "icon": "UserCog",
+    "label": "Users",
+    "roles": [
+      "Admin"
+    ],
+    "submenu": [
+      {
+        "label": "User List",
+        "href": "/admin/users",
+        "roles": [
+          "Admin"
+        ]
+      },
+      {
+        "label": "Roles",
+        "href": "/admin/users/roles",
+        "roles": [
+          "Admin"
+        ]
+      },
+      {
+        "label": "Login History",
+        "href": "/admin/users/login-history",
+        "roles": [
+          "Admin"
+        ]
+      },
+      {
+        "label": "Clinic Profile",
+        "href": "/clinic-profile",
+        "roles": [
+          "Admin"
+        ]
+      }
+    ]
+  },
+  {
+    "icon": "Building2",
+    "label": "Branches",
+    "href": "/admin/branch",
+    "roles": [
+      "Admin"
+    ]
+  },
+  {
+    "icon": "MessageSquare",
+    "label": "Enquiries",
+    "href": "/admin/enquiry",
+    "roles": [
+      "Admin",
+      "Doctor",
+      "Staff"
+    ]
+  },
+  {
+    "icon": "Settings",
+    "label": "Config",
+    "roles": [
+      "Admin"
+    ],
+    "submenu": [
+      {
+        "label": "Services",
+        "href": "/admin/service",
+        "roles": [
+          "Admin"
+        ]
+      }
+    ]
+  }
+]
