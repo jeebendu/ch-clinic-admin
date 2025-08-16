@@ -93,7 +93,7 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-blue-600" />
-                          <span className="font-semibold text-lg">{visit.patient.fullName } {visit.patient.lastname }</span>
+                          <span className="font-semibold text-lg">{visit.patient.firstname } {visit.patient.lastname }</span>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <span>{visit.patient.age}y</span>
