@@ -43,6 +43,7 @@ const VisitListPage: React.FC = () => {
 
   const hasMore = data ? !data.last : true;
 
+  // Enable auto-scroll
   useAutoScroll(loadMore, isLoading, hasMore);
 
   const handleSearchChange = (term: string) => {
