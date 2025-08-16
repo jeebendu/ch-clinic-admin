@@ -1,26 +1,193 @@
+import React, { useState, useMemo } from "react";
+import PageHeader from "@/admin/components/PageHeader";
+import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
+import VisitCalendar from "../components/VisitCalendar";
+import { useQuery } from "@tanstack/react-query";
+import VisitService from "../services/visitService";
+import EnhancedInfiniteVisitList from "../components/VisitList";
+import VisitList from "../components/VisitList";
 
-import React, { useState } from "react";
-import InfiniteVisitList from "../components/InfiniteVisitList";
+type ViewMode = 'list' | 'table' | 'calendar';
 
 const VisitListPage: React.FC = () => {
+  
   const [search, setSearch] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+    status: [],
+    paymentStatus: [],
+    visitType: [],
+    doctor: [],
+    dateRange: []
+  });
+  const [showFilter, setShowFilter] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Fetch visits for calendar view and stats
+  const { data: visitsData, refetch } = useQuery({
+    queryKey: ["visits", "calendar", refreshTrigger],
+    queryFn: async () => {
+      const resp = await VisitService.getAllVisits(0, 20, "");
+      return resp;
+    },
+    staleTime: 30_000,
+  });
+
+  const visits = visitsData?.content || [];
+  const totalVisits = visitsData?.totalElements || 0;
+  const loadedVisits = visits.length;
+
+  const filterOptions: FilterOption[] = useMemo(() => [
+    {
+      id: "status",
+      label: "Status",
+      options: [
+        { id: "open", label: "Open" },
+        { id: "closed", label: "Closed" },
+        { id: "follow-up", label: "Follow-up" }
+      ]
+    },
+    {
+      id: "paymentStatus", 
+      label: "Payment",
+      options: [
+        { id: "paid", label: "Paid" },
+        { id: "partial", label: "Partial" },
+        { id: "pending", label: "Pending" },
+        { id: "unpaid", label: "Unpaid" }
+      ]
+    },
+    {
+      id: "visitType",
+      label: "Visit Type", 
+      options: [
+        { id: "routine", label: "Routine" },
+        { id: "follow-up", label: "Follow-up" },
+        { id: "emergency", label: "Emergency" }
+      ]
+    },
+    {
+      id: "dateRange",
+      label: "Date Range",
+      options: [
+        { id: "today", label: "Today" },
+        { id: "yesterday", label: "Yesterday" },
+        { id: "this-week", label: "This Week" },
+        { id: "last-week", label: "Last Week" },
+        { id: "this-month", label: "This Month" },
+        { id: "last-month", label: "Last Month" }
+      ]
+    }
+  ], []);
+
+  const handleFilterChange = (filterId: string, optionId: string) => {
+    setSelectedFilters(prev => {
+      const current = prev[filterId] || [];
+      const isSelected = current.includes(optionId);
+      
+      return {
+        ...prev,
+        [filterId]: isSelected 
+          ? current.filter(id => id !== optionId)
+          : [...current, optionId]
+      };
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedFilters({
+      status: [],
+      paymentStatus: [],
+      visitType: [],
+      doctor: [],
+      dateRange: []
+    });
+    setSearch("");
+  };
+
+  const handleViewModeToggle = () => {
+    setViewMode(prev => {
+      if (prev === 'list') return 'table';
+      if (prev === 'table') return 'calendar';
+      return 'list';
+    });
+  };
+
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+    refetch();
+  };
+
+  const handleVisitUpdate = () => {
+    handleRefresh();
+  };
+
+  const handleVisitClick = (visit: any) => {
+    console.log("Visit clicked:", visit);
+    // TODO: Implement visit detail view
+  };
+
+  const handleVisitView = (visit: any) => {
+    console.log("View visit:", visit);
+    // TODO: Implement visit view
+  };
+
+  const handleVisitEdit = (visit: any) => {
+    console.log("Edit visit:", visit);
+    // TODO: Implement visit edit
+  };
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-xl font-semibold">Visits</h1>
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by patient name..."
-            className="h-9 w-[260px] rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <PageHeader
+        title="Visits"
+        onViewModeToggle={handleViewModeToggle}
+        onRefreshClick={handleRefresh}
+        onFilterToggle={() => setShowFilter(!showFilter)}
+        showFilter={showFilter}
+        loadedElements={loadedVisits}
+        totalElements={totalVisits}
+        onSearchChange={setSearch}
+        searchValue={search}
+        showAddButton={true}
+        addButtonLabel="New Visit"
+        onAddButtonClick={() => {
+          console.log("Add new visit clicked");
+          // TODO: Implement new visit creation
+        }}
+      />
+
+      {/* Filter Card */}
+      {showFilter && (
+        <div className="px-4 md:px-6">
+          <FilterCard
+            searchTerm={search}
+            onSearchChange={setSearch}
+            filters={filterOptions}
+            selectedFilters={selectedFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
           />
         </div>
-      </div>
+      )}
 
-      <InfiniteVisitList searchTerm={search} pageSize={20} />
+      {/* Content */}
+      <div className="flex-1">
+        {viewMode === 'calendar' ? (
+          <VisitCalendar
+            visits={visits}
+            onVisitClick={handleVisitClick}
+          />
+        ) : (
+          <VisitList
+            searchTerm={search}
+            selectedFilters={selectedFilters}
+            pageSize={20}
+            viewMode={viewMode}
+          />
+        )}
+      </div>
     </div>
   );
 };

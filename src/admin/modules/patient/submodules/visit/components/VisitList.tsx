@@ -1,285 +1,476 @@
-
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { AdminLayout } from "@/admin/components/AdminLayout";
-import PageHeader from "@/admin/components/PageHeader";
-import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import visitService from "../services/visitService";
-import VisitTable from "./VisitTable";
-import VisitCardRow from "./VisitCardRow";
-import VisitCalendar from "./VisitCalendar";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { List, Grid, Calendar, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useBranchFilter } from "@/hooks/use-branch-filter";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Calendar,
+  Clock,
+  User,
+  Stethoscope,
+  DollarSign,
+  FileText,
+  Play,
+  Pause, ChevronUp,
+  ChevronDown,
+  Eye,
+  Edit
+} from "lucide-react";
+import { format } from "date-fns";
+import VisitService from "../services/visitService";
+import { useAutoScroll } from "../hooks/useAutoScroll";
 
-const VisitList = () => {
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'calendar'>(isMobile ? 'list' : 'grid');
-  const [searchTerm, setSearchTerm] = useState("");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [visitToDelete, setVisitToDelete] = useState<number | null>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const { selectedBranch } = useBranchFilter();
+type Visit = {
+  id: string | number;
+  patientId: string | number;
+  patientName: string;
+  doctorName: string;
+  visitDate: string;
+  status: string;
+  paymentStatus: string;
+  visitType: string;
+  chiefComplaint?: string;
+};
+
+type PaginatedVisits = {
+  content: Visit[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  hasNext: boolean;
+  hasPrevious: boolean;
+};
+
+type ViewMode = 'list' | 'table';
+
+interface EnhancedInfiniteVisitListProps {
+  searchTerm?: string;
+  selectedFilters?: Record<string, string[]>;
+  pageSize?: number;
+  className?: string;
+  viewMode?: ViewMode;
+}
+
+const VisitList: React.FC<EnhancedInfiniteVisitListProps> = ({
+  searchTerm = "",
+  selectedFilters = {},
+  pageSize = 20,
+  className = "",
+  viewMode = 'list'
+}) => {
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
+  const [showDetailDrawer, setShowDetailDrawer] = useState(false);
+
+  // Auto-scroll hook - apply to both views
+  const {
+    containerRef,
+    isPaused,
+    isAtBottom,
+    setIsPaused,
+    scrollToTop,
+    scrollToBottom,
+    scrollToNext
+  } = useAutoScroll({
+    enabled: true,
+    interval: 3000,
+    pauseOnHover: true,
+    scrollAmount: 200
+  });
+
+  const queryKey = useMemo(() => [
+    "visits", 
+    "infinite", 
+    { searchTerm, selectedFilters, pageSize }
+  ], [searchTerm, selectedFilters, pageSize]);
 
   const {
     data,
     isLoading,
+    isError,
     error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch
-  } = useInfiniteQuery({
-    queryKey: ['visits-paginated', searchTerm, selectedBranch],
+    refetch,
+    isFetching,
+  } = useInfiniteQuery<PaginatedVisits>({
+    queryKey,
     queryFn: async ({ pageParam = 0 }) => {
-      console.log('Fetching visits page:', pageParam, 'searchTerm:', searchTerm, 'branch:', selectedBranch);
-      const response = await visitService.getAllVisits(pageParam, 20, searchTerm);
-      console.log('Visits response:', response);
-      return response;
-    },
-    getNextPageParam: (lastPage) => {
-      console.log('Last page:', lastPage);
-      const hasNext = lastPage && !lastPage.last && lastPage.number < (lastPage.totalPages - 1);
-      console.log('Has next page:', hasNext, 'Current page:', lastPage?.number, 'Total pages:', lastPage?.totalPages);
-      return hasNext ? (lastPage.number + 1) : undefined;
+      console.log("[VisitList] fetching page:", pageParam, "search:", searchTerm);
+      const resp = await VisitService.getAllVisits(pageParam as number, pageSize, searchTerm);
+      return resp;
     },
     initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const next = lastPage?.hasNext ? lastPage.number + 1 : undefined;
+      console.log("[VisitList] getNextPageParam ->", next, { lastPage });
+      return next;
+    },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    meta: {
+      onError: (err: unknown) => {
+        console.error("[VisitList] query error:", err);
+      },
+    },
   });
 
-  // Improved scroll handler with better debugging
-  const handleScroll = useCallback(() => {
-    if (viewMode !== 'list' || !contentRef.current) {
-      console.log('Scroll handler skipped - viewMode:', viewMode, 'contentRef exists:', !!contentRef.current);
-      return;
-    }
-    
-    const container = contentRef.current;
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const threshold = 200;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    
-    console.log('Scroll metrics:', {
-      scrollTop,
-      scrollHeight,
-      clientHeight,
-      distanceFromBottom,
-      threshold,
-      hasNextPage,
-      isFetchingNextPage
-    });
-    
-    if (distanceFromBottom < threshold && hasNextPage && !isFetchingNextPage) {
-      console.log('Triggering fetchNextPage');
-      fetchNextPage();
-    }
-  }, [viewMode, hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  // Set up scroll listener for list view
   useEffect(() => {
-    const container = contentRef.current;
-    if (viewMode === 'list' && container) {
-      console.log('Adding scroll listener');
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      return () => {
-        console.log('Removing scroll listener');
-        container.removeEventListener('scroll', handleScroll);
-      };
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting) {
+          console.log("[VisitList] sentinel intersecting; hasNextPage:", hasNextPage, "isFetchingNextPage:", isFetchingNextPage);
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: "200px 0px",
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const visits: Visit[] = useMemo(() => {
+    const all = data?.pages?.flatMap((p) => p.content || []) ?? [];
+    return all;
+  }, [data]);
+
+  const handleVisitClick = (visit: Visit) => {
+    setSelectedVisit(visit);
+    setShowDetailDrawer(true);
+  };
+
+  const handleViewVisit = (visit: Visit) => {
+    console.log("View visit:", visit);
+    handleVisitClick(visit);
+  };
+
+  const handleEditVisit = (visit: Visit) => {
+    console.log("Edit visit:", visit);
+  };
+
+  const handleDeleteVisit = (visit: Visit) => {
+    console.log("Delete visit:", visit);
+  };
+
+  const getStatusColor = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case 'open': return 'bg-green-100 text-green-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
+      case 'follow-up': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-  }, [handleScroll, viewMode]);
-
-  // Effect to refetch data when branch changes
-  useEffect(() => {
-    console.log('Branch changed, refetching data. New branch:', selectedBranch);
-    refetch();
-  }, [selectedBranch, refetch]);
-
-  // Flatten all pages into a single array
-  const allVisits = data?.pages.flatMap(page => page.content) || [];
-  const totalElements = data?.pages[0]?.totalElements || 0;
-
-  console.log('All visits count:', allVisits.length, 'Total elements:', totalElements);
-
-  const handleSearchChange = (value: string) => {
-    console.log('Search term changed:', value);
-    setSearchTerm(value);
   };
 
-  const handleDeleteVisit = (id: number) => {
-    setVisitToDelete(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (visitToDelete === null) return;
-    
-    try {
-      await visitService.deleteById(visitToDelete);
-      toast({
-        title: "Visit deleted",
-        description: "Visit has been successfully deleted.",
-        className: "bg-clinic-primary text-white"
-      });
-      refetch();
-      setDeleteDialogOpen(false);
-      setVisitToDelete(null);
-    } catch (error) {
-      console.error('Delete error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete visit.",
-        variant: "destructive",
-      });
+  const getPaymentStatusColor = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'partial': return 'bg-yellow-100 text-yellow-800';
+      case 'pending': return 'bg-orange-100 text-orange-800';
+      case 'unpaid': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const handleViewVisit = (visit: any) => {
-    console.log('View visit:', visit);
-    // Implement view logic
-  };
+  if (isLoading) {
+    return (
+      <div className={`w-full flex items-center justify-center py-10 ${className}`}>
+        <span className="text-muted-foreground">Loading visits...</span>
+      </div>
+    );
+  }
 
-  const handleEditVisit = (visit: any) => {
-    console.log('Edit visit:', visit);
-    // Implement edit logic
-  };
-
-  const additionalActions = (
-    <div className="flex items-center gap-4">
-      <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'list' | 'grid' | 'calendar')}>
-        <ToggleGroupItem value="list" aria-label="List view">
-          <List className="h-4 w-4" />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="grid" aria-label="Grid view">
-          <Grid className="h-4 w-4" />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="calendar" aria-label="Calendar view">
-          <Calendar className="h-4 w-4" />
-        </ToggleGroupItem>
-      </ToggleGroup>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => {
-          console.log('Manual refresh triggered');
-          refetch();
-        }}
-        className="flex items-center gap-2"
-      >
-        <RefreshCw className="h-4 w-4" />
-        Refresh
-      </Button>
-    </div>
-  );
+  if (isError) {
+    return (
+      <div className={`w-full flex flex-col items-center justify-center gap-2 py-10 ${className}`}>
+        <div className="text-destructive">Failed to load visits.</div>
+        <button
+          className="px-3 py-1.5 rounded-md border text-sm hover:bg-accent"
+          onClick={() => refetch()}
+        >
+          Retry
+        </button>
+        <pre className="text-xs opacity-60">{String((error as Error)?.message ?? error)}</pre>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="space-y-4">
-        <PageHeader 
-          title="Visits"
-          showAddButton={true}
-          addButtonLabel="Add Visit"
-          onAddButtonClick={() => {/* Add visit form would go here */}}
-          loadedElements={allVisits.length}
-          totalElements={totalElements}
-          onSearchChange={handleSearchChange}
-          searchValue={searchTerm}
-          additionalActions={additionalActions}
-        />
-
-        {isLoading && allVisits.length === 0 ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading visits...</p>
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading visits: {error.message}</p>
-            <Button onClick={() => refetch()} className="ml-2">Retry</Button>
-          </div>
-        ) : (
-          <div 
-            ref={viewMode === 'list' ? contentRef : undefined} 
-            className={viewMode === 'list' ? "overflow-auto max-h-[calc(100vh-180px)] border rounded-md" : ""}
+    <div className={`w-full ${className}`}>
+      {/* Auto-scroll Controls */}
+      <div className="flex items-center justify-between mb-4 px-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsPaused(!isPaused)}
+            className="flex items-center gap-2"
           >
-            {viewMode === 'grid' && (
-              <VisitTable 
-                visits={allVisits} 
-                onView={handleViewVisit}
-                onEdit={handleEditVisit}
-                loading={isLoading}
-              />
-            )}
-            
-            {viewMode === 'list' && (
-              <div className="space-y-3 p-4">
-                {allVisits.map((visit) => (
-                  <VisitCardRow
-                    key={visit.id}
-                    visit={visit}
-                    onView={handleViewVisit}
-                    onEdit={handleEditVisit}
-                  />
-                ))}
-                {isFetchingNextPage && (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-clinic-primary"></div>
-                      <p className="text-muted-foreground">Loading more visits...</p>
+            {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+            {isPaused ? 'Resume' : 'Pause'} Auto-scroll
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={scrollToTop}
+            className="flex items-center gap-2"
+          >
+            <ChevronUp className="h-4 w-4" />
+            Top
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={scrollToBottom}
+            className="flex items-center gap-2"
+          >
+            <ChevronDown className="h-4 w-4" />
+            Bottom
+          </Button>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {visits.length} visits • {isPaused ? 'Paused' : 'Auto-scrolling'}
+          {isAtBottom && ' • At bottom'}
+        </div>
+      </div>
+
+      {/* Content with unified auto-scroll container */}
+      <ScrollArea
+        ref={containerRef}
+        className="h-[calc(100vh-16rem)] w-full"
+      >
+        {viewMode === 'list' ? (
+          // List View
+          <div className="space-y-4 p-4">
+            {visits.map((visit) => (
+              <Card 
+                key={visit.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-primary/20"
+                onClick={() => handleVisitClick(visit)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    {/* Main Info */}
+                    <div className="flex-1 space-y-3">
+                      {/* Header Row */}
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-primary" />
+                          <span className="font-semibold text-lg">{visit.patientName}</span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          ID: {visit.patientId}
+                        </Badge>
+                        <Badge className={getStatusColor(visit.status)}>
+                          {visit.status}
+                        </Badge>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Dr. {visit.doctorName}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>{format(new Date(visit.visitDate), 'MMM dd, yyyy')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>{format(new Date(visit.visitDate), 'hh:mm a')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          <Badge className={getPaymentStatusColor(visit.paymentStatus)}>
+                            {visit.paymentStatus}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">{visit.visitType}</span>
+                        </div>
+                      </div>
+
+                      {/* Chief Complaint */}
+                      {visit.chiefComplaint && (
+                        <div className="mt-3 p-3 bg-muted/50 rounded-md">
+                          <p className="text-sm">
+                            <span className="font-medium">Chief Complaint: </span>
+                            {visit.chiefComplaint}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 lg:flex-col lg:items-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewVisit(visit);
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditVisit(visit);
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit
+                      </Button>
                     </div>
                   </div>
-                )}
-                {!hasNextPage && allVisits.length > 0 && (
-                  <div className="flex items-center justify-center py-4">
-                    <p className="text-muted-foreground text-sm">No more visits to load</p>
-                  </div>
-                )}
-                {allVisits.length === 0 && !isLoading && (
-                  <div className="flex items-center justify-center py-8">
-                    <p className="text-muted-foreground">No visits found</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {viewMode === 'calendar' && (
-              <VisitCalendar 
-                visits={allVisits}
-                onVisitClick={handleViewVisit}
-              />
-            )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          // Table View
+          <div className="p-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Patient</TableHead>
+                  <TableHead>Doctor</TableHead>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Visit Type</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead>Chief Complaint</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visits.map((visit) => (
+                  <TableRow 
+                    key={visit.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleVisitClick(visit)}
+                  >
+                    <TableCell className="font-medium">
+                      <div>
+                        <div className="font-semibold">{visit.patientName}</div>
+                        <div className="text-sm text-muted-foreground">ID: {visit.patientId}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Dr. {visit.doctorName}</TableCell>
+                    <TableCell>
+                      <div>
+                        <div>{format(new Date(visit.visitDate), 'MMM dd, yyyy')}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {format(new Date(visit.visitDate), 'hh:mm a')}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{visit.visitType}</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(visit.status)}>
+                        {visit.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getPaymentStatusColor(visit.paymentStatus)}>
+                        {visit.paymentStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-xs">
+                      <div className="truncate text-sm">
+                        {visit.chiefComplaint || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewVisit(visit);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditVisit(visit);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
-      </div>
+
+        {visits.length === 0 && !isFetching && (
+          <div className="flex items-center justify-center py-10">
+            <span className="text-muted-foreground">No visits found</span>
+          </div>
+        )}
+
+        {/* Load More state */}
+        <div className="flex items-center justify-center py-4">
+          {isFetchingNextPage ? (
+            <span className="text-sm text-muted-foreground">Loading more...</span>
+          ) : hasNextPage ? (
+            <button
+              onClick={() => fetchNextPage()}
+              className="px-3 py-1.5 rounded-md border text-sm hover:bg-accent"
+            >
+              Load more
+            </button>
+          ) : (
+            <span className="text-sm text-muted-foreground">No more results</span>
+          )}
+        </div>
+
+        {/* Sentinel for IntersectionObserver */}
+        <div ref={sentinelRef} className="h-1 w-full" />
+      </ScrollArea>
+
       
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the visit
-              and remove all associated data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setVisitToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    </div>
   );
 };
 
