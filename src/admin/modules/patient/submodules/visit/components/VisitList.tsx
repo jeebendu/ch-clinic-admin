@@ -3,7 +3,6 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { User, Calendar, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
-import { VisitItem } from "../types/VisitItem";
 import { Card, CardContent } from "@/components/ui/card";
 import { Visit } from "../types/Visit";
 import RowActions from "@/components/ui/RowActions";
@@ -11,10 +10,10 @@ import { useVisitActions } from "../hooks/useVisitActions";
 
 
 interface VisitListProps {
-  visits: VisitItem[];
+  visits: Visit[];
   loading?: boolean;
-  onView?: (visit: VisitItem) => void;
-  onEdit?: (visit: VisitItem) => void;
+  onView?: (visit: Visit) => void;
+  onEdit?: (visit: Visit) => void;
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, onView, onEdit }) => {

@@ -1,18 +1,16 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Eye, Edit } from "lucide-react";
 import { format } from "date-fns";
-import { VisitItem } from "../types/VisitItem";
 import { useVisitActions } from "../hooks/useVisitActions";
 import RowActions from "@/components/ui/RowActions";
+import { Visit } from "../types/Visit";
 
 interface VisitTableProps {
-  visits: VisitItem[];
+  visits: Visit[];
   loading?: boolean;
-  onView?: (visit: VisitItem) => void;
-  onEdit?: (visit: VisitItem) => void;
+  onView?: (visit: Visit) => void;
+  onEdit?: (visit: Visit) => void;
 }
 
 export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTableProps) => {

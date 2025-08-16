@@ -7,8 +7,8 @@ import PageHeader from "@/admin/components/PageHeader";
 import { VisitList } from "../components/VisitList";
 import { VisitTable } from "../components/VisitTable";
 import { useAutoScroll } from "../hooks/useAutoScroll";
-import { VisitItem } from "../types/VisitItem";
 import visitService from "../services/visitService";
+import { Visit } from "../types/Visit";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table'>('table');
@@ -51,7 +51,7 @@ const VisitListPage = () => {
   });
 
   // Flatten all pages into a single array
-  const allVisits: VisitItem[] = data?.pages.flatMap(page => page.content) || [];
+  const allVisits: Visit[] = data?.pages.flatMap(page => page.content) || [];
   const totalElements = data?.pages[0]?.totalElements || 0;
 
   const handleViewModeToggle = () => {
