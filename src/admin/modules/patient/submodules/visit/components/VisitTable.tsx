@@ -11,8 +11,6 @@ interface VisitTableProps {
   visits: any[];
   isLoading: boolean;
   loadingMore: boolean;
-  hasNextPage: boolean;
-  onLoadMore: () => void;
   onVisitClick: (visit: any) => void;
   onVisitView: (visit: any) => void;
   onVisitEdit: (visit: any) => void;
@@ -23,8 +21,6 @@ const VisitTable: React.FC<VisitTableProps> = ({
   visits,
   isLoading,
   loadingMore,
-  hasNextPage,
-  onLoadMore,
   onVisitClick,
   onVisitView,
   onVisitEdit,
@@ -154,28 +150,12 @@ const VisitTable: React.FC<VisitTableProps> = ({
           </Table>
         </div>
 
-        {hasNextPage && (
+        {loadingMore && (
           <div className="flex justify-center mt-6">
-            <Button
-              onClick={onLoadMore}
-              disabled={loadingMore}
-              variant="outline"
-            >
-              {loadingMore ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                  Loading more...
-                </div>
-              ) : (
-                'Load More'
-              )}
-            </Button>
-          </div>
-        )}
-
-        {!hasNextPage && visits.length > 0 && (
-          <div className="text-center mt-6 py-4 text-muted-foreground">
-            No more visits to load
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <span className="text-muted-foreground">Loading more visits...</span>
+            </div>
           </div>
         )}
 

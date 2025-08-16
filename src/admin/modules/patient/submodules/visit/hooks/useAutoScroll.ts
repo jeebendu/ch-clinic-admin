@@ -6,13 +6,19 @@ interface UseAutoScrollOptions {
   interval?: number;
   pauseOnHover?: boolean;
   scrollAmount?: number;
+  onLoadMore?: () => void;
+  hasNextPage?: boolean;
+  loadingMore?: boolean;
 }
 
 export const useAutoScroll = ({
   enabled = false,
   interval = 3000,
   pauseOnHover = true,
-  scrollAmount = 100
+  scrollAmount = 100,
+  onLoadMore,
+  hasNextPage = false,
+  loadingMore = false
 }: UseAutoScrollOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -23,6 +29,12 @@ export const useAutoScroll = ({
 
     const container = containerRef.current;
     const { scrollTop, scrollHeight, clientHeight } = container;
+    
+    // Check if near bottom and can load more
+    if (scrollTop + clientHeight >= scrollHeight - 200 && hasNextPage && !loadingMore && onLoadMore) {
+      onLoadMore();
+      return;
+    }
     
     // If at bottom, scroll to top
     if (scrollTop + clientHeight >= scrollHeight - 10) {
@@ -49,7 +61,7 @@ export const useAutoScroll = ({
         clearInterval(intervalRef.current);
       }
     };
-  }, [enabled, isPaused, interval, scrollAmount]);
+  }, [enabled, isPaused, interval, scrollAmount, hasNextPage, loadingMore]);
 
   // Handle pause on hover
   useEffect(() => {

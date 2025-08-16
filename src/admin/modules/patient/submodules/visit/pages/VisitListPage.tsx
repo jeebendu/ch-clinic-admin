@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/admin/components/PageHeader";
@@ -27,14 +26,6 @@ const VisitListPage: React.FC = () => {
   const [allVisits, setAllVisits] = useState<any[]>([]);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-
-  // Auto-scroll hook - only enabled for list and table views
-  const autoScroll = useAutoScroll({
-    enabled: viewMode !== 'calendar',
-    interval: 2000,
-    pauseOnHover: true,
-    scrollAmount: 150
-  });
 
   // Fetch visits data
   const { data: visitsData, isLoading, refetch } = useQuery({
@@ -83,6 +74,17 @@ const VisitListPage: React.FC = () => {
       setPage(prev => prev + 1);
     }
   }, [loadingMore, hasNextPage, isLoading]);
+
+  // Auto-scroll hook with infinite loading
+  const autoScroll = useAutoScroll({
+    enabled: viewMode !== 'calendar',
+    interval: 2000,
+    pauseOnHover: true,
+    scrollAmount: 150,
+    onLoadMore: loadMoreVisits,
+    hasNextPage,
+    loadingMore
+  });
 
   const filterOptions: FilterOption[] = useMemo(() => [
     {
@@ -225,8 +227,6 @@ const VisitListPage: React.FC = () => {
             visits={allVisits}
             isLoading={isLoading}
             loadingMore={loadingMore}
-            hasNextPage={hasNextPage}
-            onLoadMore={loadMoreVisits}
             onVisitClick={handleVisitClick}
             onVisitView={handleVisitView}
             onVisitEdit={handleVisitEdit}
@@ -237,8 +237,6 @@ const VisitListPage: React.FC = () => {
             visits={allVisits}
             isLoading={isLoading}
             loadingMore={loadingMore}
-            hasNextPage={hasNextPage}
-            onLoadMore={loadMoreVisits}
             onVisitClick={handleVisitClick}
             onVisitView={handleVisitView}
             onVisitEdit={handleVisitEdit}
