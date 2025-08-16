@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import PageHeader from "@/admin/components/PageHeader";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
@@ -175,18 +176,26 @@ const EnhancedVisitListPage: React.FC = () => {
 
       {/* Content */}
       <div className="flex-1">
-        {viewMode === 'calendar' ? (
-          <VisitCalendar
-            visits={visits}
-            onVisitClick={handleVisitClick}
-          />
-        ) : (
+        {viewMode === 'list' ? (
           <EnhancedInfiniteVisitList
             searchTerm={search}
             selectedFilters={selectedFilters}
             pageSize={20}
-            viewMode={viewMode}
             onVisitUpdate={handleVisitUpdate}
+          />
+        ) : viewMode === 'table' ? (
+          <div className="p-4 md:p-6">
+            <VisitTable
+              visits={visits}
+              onView={handleVisitView}
+              onEdit={handleVisitEdit}
+              loading={false}
+            />
+          </div>
+        ) : (
+          <VisitCalendar
+            visits={visits}
+            onVisitClick={handleVisitClick}
           />
         )}
       </div>
