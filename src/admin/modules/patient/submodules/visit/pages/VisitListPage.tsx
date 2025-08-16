@@ -1,16 +1,17 @@
-import React, { useState, useMemo } from "react";
+
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/admin/components/PageHeader";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
 import VisitCalendar from "../components/VisitCalendar";
-import { useQuery } from "@tanstack/react-query";
 import VisitService from "../services/visitService";
-import EnhancedInfiniteVisitList from "../components/VisitList";
-import VisitList from "../components/VisitList";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import VisitCardList from "../components/VisitCardList";
+import VisitTable from "../components/VisitTable";
 
 type ViewMode = 'list' | 'table' | 'calendar';
 
 const VisitListPage: React.FC = () => {
-  
   const [search, setSearch] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
     status: [],
@@ -22,20 +23,89 @@ const VisitListPage: React.FC = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [page, setPage] = useState(0);
+  const [allVisits, setAllVisits] = useState<any[]>([]);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // Fetch visits for calendar view and stats
-  const { data: visitsData, refetch } = useQuery({
-    queryKey: ["visits", "calendar", refreshTrigger],
+  // Auto-scroll configuration
+  const autoScrollConfig = {
+    enabled: true,
+    interval: 3000,
+    pauseOnHover: true,
+    scrollAmount: 100
+  };
+
+  const {
+    containerRef,
+    isPaused,
+    isAtBottom,
+    setIsPaused,
+    scrollToTop,
+    scrollToBottom,
+    scrollToNext
+  } = useAutoScroll(autoScrollConfig);
+
+  // Fetch initial visits data
+  const { data: visitsData, isLoading, refetch } = useQuery({
+    queryKey: ["visits", "paginated", page, search, selectedFilters, refreshTrigger],
     queryFn: async () => {
-      const resp = await VisitService.getAllVisits(0, 20, "");
-      return resp;
+      console.log('Fetching visits - Page:', page, 'Search:', search);
+      const searchCriteria: any = {};
+      
+      if (search && search.trim()) {
+        searchCriteria.patientName = search.trim();
+      }
+
+      // Add filter criteria
+      Object.entries(selectedFilters).forEach(([key, values]) => {
+        if (values.length > 0) {
+          searchCriteria[key] = values;
+        }
+      });
+
+      const response = await VisitService.getPaginatedVisits(page, 20, searchCriteria);
+      return response;
     },
     staleTime: 30_000,
   });
 
-  const visits = visitsData?.content || [];
-  const totalVisits = visitsData?.totalElements || 0;
-  const loadedVisits = visits.length;
+  // Update visits list when new data arrives
+  useEffect(() => {
+    if (visitsData) {
+      console.log('Received visits data:', visitsData);
+      if (page === 0) {
+        // First page - replace all visits
+        setAllVisits(visitsData.content || []);
+      } else {
+        // Additional pages - append to existing visits
+        setAllVisits(prev => [...prev, ...(visitsData.content || [])]);
+      }
+      setHasNextPage(!visitsData.last);
+      setLoadingMore(false);
+    }
+  }, [visitsData, page]);
+
+  // Reset to first page when search or filters change
+  useEffect(() => {
+    setPage(0);
+    setAllVisits([]);
+  }, [search, selectedFilters]);
+
+  const loadMoreVisits = useCallback(() => {
+    if (!loadingMore && hasNextPage && !isLoading) {
+      console.log('Loading more visits...');
+      setLoadingMore(true);
+      setPage(prev => prev + 1);
+    }
+  }, [loadingMore, hasNextPage, isLoading]);
+
+  // Auto-scroll to next when reaching bottom and more data available
+  useEffect(() => {
+    if (isAtBottom && hasNextPage && !loadingMore) {
+      loadMoreVisits();
+    }
+  }, [isAtBottom, hasNextPage, loadingMore, loadMoreVisits]);
 
   const filterOptions: FilterOption[] = useMemo(() => [
     {
@@ -114,6 +184,8 @@ const VisitListPage: React.FC = () => {
   };
 
   const handleRefresh = () => {
+    setPage(0);
+    setAllVisits([]);
     setRefreshTrigger(prev => prev + 1);
     refetch();
   };
@@ -136,6 +208,9 @@ const VisitListPage: React.FC = () => {
     console.log("Edit visit:", visit);
     // TODO: Implement visit edit
   };
+
+  const totalVisits = visitsData?.totalElements || 0;
+  const loadedVisits = allVisits.length;
 
   return (
     <div className="flex flex-col h-full">
@@ -176,15 +251,46 @@ const VisitListPage: React.FC = () => {
       <div className="flex-1">
         {viewMode === 'calendar' ? (
           <VisitCalendar
-            visits={visits}
+            visits={allVisits}
             onVisitClick={handleVisitClick}
           />
+        ) : viewMode === 'table' ? (
+          <VisitTable
+            visits={allVisits}
+            isLoading={isLoading}
+            loadingMore={loadingMore}
+            hasNextPage={hasNextPage}
+            onLoadMore={loadMoreVisits}
+            onVisitClick={handleVisitClick}
+            onVisitView={handleVisitView}
+            onVisitEdit={handleVisitEdit}
+            containerRef={containerRef}
+            autoScrollControls={{
+              isPaused,
+              setIsPaused,
+              scrollToTop,
+              scrollToBottom,
+              scrollToNext
+            }}
+          />
         ) : (
-          <VisitList
-            searchTerm={search}
-            selectedFilters={selectedFilters}
-            pageSize={20}
-            viewMode={viewMode}
+          <VisitCardList
+            visits={allVisits}
+            isLoading={isLoading}
+            loadingMore={loadingMore}
+            hasNextPage={hasNextPage}
+            onLoadMore={loadMoreVisits}
+            onVisitClick={handleVisitClick}
+            onVisitView={handleVisitView}
+            onVisitEdit={handleVisitEdit}
+            containerRef={containerRef}
+            autoScrollControls={{
+              isPaused,
+              setIsPaused,
+              scrollToTop,
+              scrollToBottom,
+              scrollToNext
+            }}
           />
         )}
       </div>
