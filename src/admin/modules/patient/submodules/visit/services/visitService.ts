@@ -2,6 +2,7 @@
 import http from "@/lib/JwtInterceptor";
 import { getEnvVariable } from "@/utils/envUtils";
 import { Visit } from "../types/Visit";
+import { VisitFilter } from "../types/VisitFilter";
 
 const apiUrl = getEnvVariable('API_URL');
 
@@ -27,7 +28,7 @@ class VisitService {
     return http.post(`${apiUrl}/v1/schedule/saveOrUpdate`, schedule);
   }
 
-  // New paginated API call
+  // New paginated API call with filters
   async getPaginatedVisits(pageNo: number = 0, pageSize: number = 10, searchCriteria: any = {}) {
     try {
       console.log('Making API call to:', `${apiUrl}/v1/schedule/list/paginated/${pageNo}/${pageSize}`);
@@ -43,16 +44,37 @@ class VisitService {
     }
   }
 
-  // Client-side helper methods for VisitList
-  async getAllVisits(pageNo: number = 0, pageSize: number = 10, searchTerm?: string) {
+  // Client-side helper methods for VisitList with filters
+  async getAllVisits(pageNo: number = 0, pageSize: number = 10, filters: VisitFilter = {}) {
     try {
       const searchCriteria: any = {};
       
-      if (searchTerm && searchTerm.trim()) {
-        searchCriteria.patientName = searchTerm.trim();
+      if (filters.patientName && filters.patientName.trim()) {
+        searchCriteria.patientName = filters.patientName.trim();
       }
       
-      console.log('Getting all visits - Page:', pageNo, 'Size:', pageSize, 'Search:', searchTerm);
+      if (filters.doctorName && filters.doctorName.trim()) {
+        searchCriteria.doctorName = filters.doctorName.trim();
+      }
+      
+      if (filters.status && filters.status.length > 0) {
+        searchCriteria.status = filters.status;
+      }
+      
+      if (filters.visitType && filters.visitType.length > 0) {
+        searchCriteria.visitType = filters.visitType;
+      }
+      
+      if (filters.dateRange) {
+        if (filters.dateRange.from) {
+          searchCriteria.fromDate = filters.dateRange.from;
+        }
+        if (filters.dateRange.to) {
+          searchCriteria.toDate = filters.dateRange.to;
+        }
+      }
+      
+      console.log('Getting all visits - Page:', pageNo, 'Size:', pageSize, 'Filters:', filters);
       const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
       
       // Transform/normalize the data to match expected format
@@ -67,15 +89,12 @@ class VisitService {
   }
 
   async searchVisits(searchTerm: string, pageNo: number = 0, pageSize: number = 10) {
-    const searchCriteria = { patientName: searchTerm };
-    const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
-    return this.normalizeVisitsResponse(response);
+    const filters: VisitFilter = { patientName: searchTerm };
+    return this.getAllVisits(pageNo, pageSize, filters);
   }
 
-  async filterVisits(filters: Record<string, string[]>, pageNo: number = 0, pageSize: number = 10) {
-    const searchCriteria = { filters };
-    const response = await this.getPaginatedVisits(pageNo, pageSize, searchCriteria);
-    return this.normalizeVisitsResponse(response);
+  async filterVisits(filters: VisitFilter, pageNo: number = 0, pageSize: number = 10) {
+    return this.getAllVisits(pageNo, pageSize, filters);
   }
 
   private normalizeVisitsResponse(response: any) {
@@ -113,8 +132,6 @@ class VisitService {
     console.log('Normalized visits response:', normalized);
     return normalized;
   }
-
-  
 }
 
 export default new VisitService();
