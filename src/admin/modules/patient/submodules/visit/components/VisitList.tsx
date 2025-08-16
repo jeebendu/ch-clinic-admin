@@ -1,27 +1,29 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import PageHeader from '@/admin/components/PageHeader';
 import FilterCard, { FilterOption } from '@/admin/components/FilterCard';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, RotateCcw, ArrowUp, ArrowDown } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Play, Pause, ArrowUp, ArrowDown, List, Grid, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import visitService from '../services/visitService';
 import VisitTable from './VisitTable';
 import VisitCardRow from './VisitCardRow';
+import VisitCalendar from './VisitCalendar';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 
 const VisitList = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>(isMobile ? 'list' : 'grid');
+  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'calendar'>(isMobile ? 'list' : 'grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(false);
 
-  // Auto scroll hook for card view
+  // Auto scroll hook for card view only
   const {
     containerRef,
     isPaused,
@@ -110,15 +112,30 @@ const VisitList = () => {
   };
 
   const toggleViewMode = () => {
-    setViewMode(viewMode === 'list' ? 'grid' : 'list');
-    // Disable auto scroll when switching to table view
+    // This is for the original two-state toggle in PageHeader
+    if (viewMode === 'list') {
+      setViewMode('grid');
+    } else {
+      setViewMode('list');
+    }
+    // Disable auto scroll when switching away from list view
     if (viewMode === 'list') {
       setAutoScrollEnabled(false);
     }
   };
 
+  const handleViewModeChange = (value: string) => {
+    if (value && ['list', 'grid', 'calendar'].includes(value)) {
+      setViewMode(value as 'list' | 'grid' | 'calendar');
+      // Disable auto scroll when switching away from list view
+      if (value !== 'list') {
+        setAutoScrollEnabled(false);
+      }
+    }
+  };
+
   const toggleAutoScroll = () => {
-    if (viewMode === 'grid') {
+    if (viewMode !== 'list') {
       toast({
         title: "Auto-scroll unavailable",
         description: "Auto-scroll is only available in card view.",
@@ -154,7 +171,7 @@ const VisitList = () => {
     <div className="space-y-4">
       <PageHeader
         title="Visits"
-        viewMode={viewMode}
+        viewMode={viewMode === 'calendar' ? 'list' : viewMode}
         onViewModeToggle={toggleViewMode}
         onRefreshClick={() => refetch()}
         onFilterToggle={() => setShowFilters(!showFilters)}
@@ -165,6 +182,25 @@ const VisitList = () => {
         searchValue={searchTerm}
         additionalActions={
           <div className="flex items-center gap-2">
+            {/* Three-way view mode toggle */}
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={handleViewModeChange}
+              className="border rounded-md"
+            >
+              <ToggleGroupItem value="list" aria-label="List view" size="sm">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
+                <Grid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="calendar" aria-label="Calendar view" size="sm">
+                <Calendar className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            {/* Auto-scroll controls for list view */}
             {viewMode === 'list' && (
               <>
                 <Button
@@ -256,6 +292,11 @@ const VisitList = () => {
               onView={handleViewVisit}
               onEdit={handleEditVisit}
               loading={isLoading}
+            />
+          ) : viewMode === 'calendar' ? (
+            <VisitCalendar
+              visits={visits}
+              onVisitClick={handleViewVisit}
             />
           ) : (
             <div className="space-y-3">
