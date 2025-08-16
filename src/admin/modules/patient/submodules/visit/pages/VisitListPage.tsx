@@ -135,7 +135,7 @@ const VisitListPage = () => {
         {/* Sentinel: placed at the bottom to trigger auto-load when visible */}
         {hasNextPage && (
           <div
-            ref={loadMoreRef as unknown as React.Ref<HTMLDivElement>}
+            ref={loadMoreRef}
             className="h-10 flex items-center justify-center bg-muted/20 rounded border-2 border-dashed border-muted-foreground/20"
           >
             <span className="text-xs text-muted-foreground">Load More Trigger Zone</span>

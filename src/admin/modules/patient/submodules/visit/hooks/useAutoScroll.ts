@@ -5,7 +5,7 @@ interface UseAutoScrollProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
-  rootRef?: RefObject<Element | null>;
+  rootRef?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -20,7 +20,7 @@ export const useAutoScroll = ({ hasNextPage, isFetchingNextPage, fetchNextPage, 
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Find nearest scrollable parent to use as IntersectionObserver root
-  const getScrollParent = (element: Element | null): Element | null => {
+  const getScrollParent = (element: HTMLElement | null): HTMLElement | null => {
     if (!element) return null;
     let parent: HTMLElement | null = element.parentElement;
     while (parent) {
@@ -35,7 +35,7 @@ export const useAutoScroll = ({ hasNextPage, isFetchingNextPage, fetchNextPage, 
     return null;
   };
 
-  const loadMoreRef = useCallback((node: Element | null) => {
+  const loadMoreRef: React.RefCallback<HTMLDivElement> = useCallback((node: HTMLDivElement | null) => {
     // Disconnect any existing observer
     if (observerRef.current) {
       observerRef.current.disconnect();
@@ -44,7 +44,7 @@ export const useAutoScroll = ({ hasNextPage, isFetchingNextPage, fetchNextPage, 
     if (!node) return;
 
     // Prefer explicit rootRef if provided and current
-    const explicitRoot = rootRef?.current as Element | null | undefined;
+    const explicitRoot = rootRef?.current as HTMLElement | null | undefined;
     const root = explicitRoot ?? getScrollParent(node);
 
     observerRef.current = new IntersectionObserver(
