@@ -28,36 +28,24 @@ const VisitListPage: React.FC = () => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Auto-scroll configuration
-  const autoScrollConfig = {
-    enabled: true,
-    interval: 3000,
+  // Auto-scroll hook - only enabled for list and table views
+  const autoScroll = useAutoScroll({
+    enabled: viewMode !== 'calendar',
+    interval: 2000,
     pauseOnHover: true,
-    scrollAmount: 100
-  };
+    scrollAmount: 150
+  });
 
-  const {
-    containerRef,
-    isPaused,
-    isAtBottom,
-    setIsPaused,
-    scrollToTop,
-    scrollToBottom,
-    scrollToNext
-  } = useAutoScroll(autoScrollConfig);
-
-  // Fetch initial visits data
+  // Fetch visits data
   const { data: visitsData, isLoading, refetch } = useQuery({
     queryKey: ["visits", "paginated", page, search, selectedFilters, refreshTrigger],
     queryFn: async () => {
-      console.log('Fetching visits - Page:', page, 'Search:', search);
       const searchCriteria: any = {};
       
       if (search && search.trim()) {
         searchCriteria.patientName = search.trim();
       }
 
-      // Add filter criteria
       Object.entries(selectedFilters).forEach(([key, values]) => {
         if (values.length > 0) {
           searchCriteria[key] = values;
@@ -70,15 +58,12 @@ const VisitListPage: React.FC = () => {
     staleTime: 30_000,
   });
 
-  // Update visits list when new data arrives
+  // Update visits when data arrives
   useEffect(() => {
     if (visitsData) {
-      console.log('Received visits data:', visitsData);
       if (page === 0) {
-        // First page - replace all visits
         setAllVisits(visitsData.content || []);
       } else {
-        // Additional pages - append to existing visits
         setAllVisits(prev => [...prev, ...(visitsData.content || [])]);
       }
       setHasNextPage(!visitsData.last);
@@ -86,7 +71,7 @@ const VisitListPage: React.FC = () => {
     }
   }, [visitsData, page]);
 
-  // Reset to first page when search or filters change
+  // Reset on search/filter changes
   useEffect(() => {
     setPage(0);
     setAllVisits([]);
@@ -94,18 +79,10 @@ const VisitListPage: React.FC = () => {
 
   const loadMoreVisits = useCallback(() => {
     if (!loadingMore && hasNextPage && !isLoading) {
-      console.log('Loading more visits...');
       setLoadingMore(true);
       setPage(prev => prev + 1);
     }
   }, [loadingMore, hasNextPage, isLoading]);
-
-  // Auto-scroll to next when reaching bottom and more data available
-  useEffect(() => {
-    if (isAtBottom && hasNextPage && !loadingMore) {
-      loadMoreVisits();
-    }
-  }, [isAtBottom, hasNextPage, loadingMore, loadMoreVisits]);
 
   const filterOptions: FilterOption[] = useMemo(() => [
     {
@@ -190,23 +167,16 @@ const VisitListPage: React.FC = () => {
     refetch();
   };
 
-  const handleVisitUpdate = () => {
-    handleRefresh();
-  };
-
   const handleVisitClick = (visit: any) => {
     console.log("Visit clicked:", visit);
-    // TODO: Implement visit detail view
   };
 
   const handleVisitView = (visit: any) => {
     console.log("View visit:", visit);
-    // TODO: Implement visit view
   };
 
   const handleVisitEdit = (visit: any) => {
     console.log("Edit visit:", visit);
-    // TODO: Implement visit edit
   };
 
   const totalVisits = visitsData?.totalElements || 0;
@@ -214,7 +184,6 @@ const VisitListPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <PageHeader
         title="Visits"
         onViewModeToggle={handleViewModeToggle}
@@ -229,11 +198,9 @@ const VisitListPage: React.FC = () => {
         addButtonLabel="New Visit"
         onAddButtonClick={() => {
           console.log("Add new visit clicked");
-          // TODO: Implement new visit creation
         }}
       />
 
-      {/* Filter Card */}
       {showFilter && (
         <div className="px-4 md:px-6">
           <FilterCard
@@ -247,7 +214,6 @@ const VisitListPage: React.FC = () => {
         </div>
       )}
 
-      {/* Content */}
       <div className="flex-1">
         {viewMode === 'calendar' ? (
           <VisitCalendar
@@ -264,14 +230,7 @@ const VisitListPage: React.FC = () => {
             onVisitClick={handleVisitClick}
             onVisitView={handleVisitView}
             onVisitEdit={handleVisitEdit}
-            containerRef={containerRef}
-            autoScrollControls={{
-              isPaused,
-              setIsPaused,
-              scrollToTop,
-              scrollToBottom,
-              scrollToNext
-            }}
+            containerRef={autoScroll.containerRef}
           />
         ) : (
           <VisitCardList
@@ -283,14 +242,7 @@ const VisitListPage: React.FC = () => {
             onVisitClick={handleVisitClick}
             onVisitView={handleVisitView}
             onVisitEdit={handleVisitEdit}
-            containerRef={containerRef}
-            autoScrollControls={{
-              isPaused,
-              setIsPaused,
-              scrollToTop,
-              scrollToBottom,
-              scrollToNext
-            }}
+            containerRef={autoScroll.containerRef}
           />
         )}
       </div>

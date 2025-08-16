@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 
 interface UseAutoScrollOptions {
   enabled: boolean;
-  interval?: number; // in milliseconds
+  interval?: number;
   pauseOnHover?: boolean;
-  scrollAmount?: number; // pixels to scroll each time
+  scrollAmount?: number;
 }
 
 export const useAutoScroll = ({
@@ -16,17 +16,7 @@ export const useAutoScroll = ({
 }: UseAutoScrollOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [isAtBottom, setIsAtBottom] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const checkIfAtBottom = () => {
-    if (!containerRef.current) return false;
-    
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const atBottom = scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
-    setIsAtBottom(atBottom);
-    return atBottom;
-  };
 
   const scrollToNext = () => {
     if (!containerRef.current || isPaused) return;
@@ -43,20 +33,7 @@ export const useAutoScroll = ({
     }
   };
 
-  const scrollToTop = () => {
-    if (containerRef.current) {
-      containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const scrollToBottom = () => {
-    if (containerRef.current) {
-      const { scrollHeight } = containerRef.current;
-      containerRef.current.scrollTo({ top: scrollHeight, behavior: 'smooth' });
-    }
-  };
-
-  // Start/stop auto scroll
+  // Auto scroll effect
   useEffect(() => {
     if (enabled && !isPaused) {
       intervalRef.current = setInterval(scrollToNext, interval);
@@ -74,36 +51,25 @@ export const useAutoScroll = ({
     };
   }, [enabled, isPaused, interval, scrollAmount]);
 
-  // Handle mouse events for pause on hover
+  // Handle pause on hover
   useEffect(() => {
     const container = containerRef.current;
     if (!container || !pauseOnHover) return;
 
     const handleMouseEnter = () => setIsPaused(true);
     const handleMouseLeave = () => setIsPaused(false);
-    const handleScroll = () => checkIfAtBottom();
 
     container.addEventListener('mouseenter', handleMouseEnter);
     container.addEventListener('mouseleave', handleMouseLeave);
-    container.addEventListener('scroll', handleScroll);
-
-    // Initial check
-    checkIfAtBottom();
 
     return () => {
       container.removeEventListener('mouseenter', handleMouseEnter);
       container.removeEventListener('mouseleave', handleMouseLeave);
-      container.removeEventListener('scroll', handleScroll);
     };
   }, [pauseOnHover]);
 
   return {
     containerRef,
-    isPaused,
-    isAtBottom,
-    setIsPaused,
-    scrollToTop,
-    scrollToBottom,
-    scrollToNext
+    isPaused
   };
 };

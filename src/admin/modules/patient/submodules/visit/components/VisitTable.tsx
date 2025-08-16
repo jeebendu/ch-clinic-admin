@@ -4,16 +4,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Play, Pause, ArrowUp, ArrowDown, Eye, Edit } from 'lucide-react';
+import { Eye, Edit } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-
-interface AutoScrollControls {
-  isPaused: boolean;
-  setIsPaused: (paused: boolean) => void;
-  scrollToTop: () => void;
-  scrollToBottom: () => void;
-  scrollToNext: () => void;
-}
 
 interface VisitTableProps {
   visits: any[];
@@ -25,7 +17,6 @@ interface VisitTableProps {
   onVisitView: (visit: any) => void;
   onVisitEdit: (visit: any) => void;
   containerRef: React.RefObject<HTMLDivElement>;
-  autoScrollControls: AutoScrollControls;
 }
 
 const VisitTable: React.FC<VisitTableProps> = ({
@@ -37,11 +28,8 @@ const VisitTable: React.FC<VisitTableProps> = ({
   onVisitClick,
   onVisitView,
   onVisitEdit,
-  containerRef,
-  autoScrollControls
+  containerRef
 }) => {
-  const { isPaused, setIsPaused, scrollToTop, scrollToBottom } = autoScrollControls;
-
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'open': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
@@ -82,155 +70,122 @@ const VisitTable: React.FC<VisitTableProps> = ({
   }
 
   return (
-    <div className="relative h-full">
-      {/* Auto-scroll Controls */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setIsPaused(!isPaused)}
-          className="h-8 w-8 bg-white shadow-md"
-        >
-          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={scrollToTop}
-          className="h-8 w-8 bg-white shadow-md"
-        >
-          <ArrowUp className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={scrollToBottom}
-          className="h-8 w-8 bg-white shadow-md"
-        >
-          <ArrowDown className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <ScrollArea className="h-full">
-        <div ref={containerRef} className="p-4 md:p-6">
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Patient</TableHead>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead>Actions</TableHead>
+    <ScrollArea className="h-full">
+      <div ref={containerRef} className="p-4 md:p-6">
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Patient</TableHead>
+                <TableHead>Doctor</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visits.map((visit, index) => (
+                <TableRow
+                  key={`${visit.id}-${index}`}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => onVisitClick(visit)}
+                >
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{visit.patientName || 'Unknown'}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {visit.patientAge}y, {visit.patientGender}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{visit.doctorName || 'Unknown'}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {visit.doctorSpecialization}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{formatDate(visit.visitDate)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="capitalize">
+                      {visit.visitType || 'routine'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(visit.status)}>
+                      {visit.status || 'open'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getPaymentStatusColor(visit.paymentStatus)}>
+                      {visit.paymentStatus || 'pending'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onVisitView(visit);
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onVisitEdit(visit);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visits.map((visit, index) => (
-                  <TableRow
-                    key={`${visit.id}-${index}`}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => onVisitClick(visit)}
-                  >
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{visit.patientName || 'Unknown'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {visit.patientAge}y, {visit.patientGender}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{visit.doctorName || 'Unknown'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {visit.doctorSpecialization}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(visit.visitDate)}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {visit.visitType || 'routine'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(visit.status)}>
-                        {visit.status || 'open'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getPaymentStatusColor(visit.paymentStatus)}>
-                        {visit.paymentStatus || 'pending'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onVisitView(visit);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onVisitEdit(visit);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Load More Button */}
-          {hasNextPage && (
-            <div className="flex justify-center mt-6">
-              <Button
-                onClick={onLoadMore}
-                disabled={loadingMore}
-                variant="outline"
-              >
-                {loadingMore ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                    Loading more...
-                  </div>
-                ) : (
-                  'Load More'
-                )}
-              </Button>
-            </div>
-          )}
-
-          {/* No more data indicator */}
-          {!hasNextPage && visits.length > 0 && (
-            <div className="text-center mt-6 py-4 text-muted-foreground">
-              No more visits to load
-            </div>
-          )}
-
-          {/* Empty state */}
-          {visits.length === 0 && !isLoading && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No visits found</p>
-            </div>
-          )}
+              ))}
+            </TableBody>
+          </Table>
         </div>
-      </ScrollArea>
-    </div>
+
+        {hasNextPage && (
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={onLoadMore}
+              disabled={loadingMore}
+              variant="outline"
+            >
+              {loadingMore ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  Loading more...
+                </div>
+              ) : (
+                'Load More'
+              )}
+            </Button>
+          </div>
+        )}
+
+        {!hasNextPage && visits.length > 0 && (
+          <div className="text-center mt-6 py-4 text-muted-foreground">
+            No more visits to load
+          </div>
+        )}
+
+        {visits.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No visits found</p>
+          </div>
+        )}
+      </div>
+    </ScrollArea>
   );
 };
 
