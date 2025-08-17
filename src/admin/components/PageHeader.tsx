@@ -9,7 +9,7 @@ interface PageHeaderProps {
   title: string;
   description?: string;
   onViewModeToggle?: () => void;
-  viewMode?: 'list' | 'calendar' | 'grid';
+  viewMode?: 'list' | 'calendar' | 'grid' | 'table';
   showAddButton?: boolean;
   addButtonLabel?: string;
   onAddButtonClick?: () => void;

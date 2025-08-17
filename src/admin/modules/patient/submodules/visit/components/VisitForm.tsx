@@ -67,7 +67,6 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(({ visit, onSuccess, 
   const [loading, setLoading] = useState(false);
 
   const defaultValues: Partial<FormValues> = {
-    branch: visit?.branch,
     patient: visit?.patient,
     referByDoctor: visit?.referByDoctor,
     consultingDoctor: visit?.consultingDoctor,
@@ -131,39 +130,7 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(({ visit, onSuccess, 
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Branch</Label>
-            <Controller
-              control={form.control}
-              name="branch"
-              render={({ field }) => (
-                <Select
-                  value={field.value?.id?.toString() || ""}
-                  onValueChange={(value) => {
-                    if (value === "none") {
-                      field.onChange(undefined);
-                    } else {
-                      const selectedBranch = mockBranches.find(b => b.id?.toString() === value);
-                      field.onChange(selectedBranch);
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select branch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No branch selected</SelectItem>
-                    {mockBranches.map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id?.toString() || ""}>
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-
+          
           <div className="space-y-2">
             <Label>Patient</Label>
             <Controller
