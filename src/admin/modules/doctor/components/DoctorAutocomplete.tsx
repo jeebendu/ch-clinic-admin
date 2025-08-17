@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -28,15 +27,36 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [popoverWidth, setPopoverWidth] = useState<number | undefined>(undefined);
+
+  // Keep popover width equal to the input width
+  useEffect(() => {
+    const updateWidth = () => {
+      if (inputRef.current) {
+        setPopoverWidth(inputRef.current.offsetWidth);
+      }
+    };
+    updateWidth();
+
+    // Track input size changes
+    const ro = new ResizeObserver(updateWidth);
+    if (inputRef.current) ro.observe(inputRef.current);
+    window.addEventListener('resize', updateWidth);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateWidth);
+    };
+  }, []);
 
   // Load all doctors on component mount
   useEffect(() => {
     const loadDoctors = async () => {
       setLoading(true);
       try {
-        const doctors = await DoctorService.findAllDoctors();
-        setDoctors(response);
-        setFilteredDoctors(response);
+        const result = await DoctorService.findAllDoctors();
+        setDoctors(result);
+        setFilteredDoctors(result);
       } catch (error) {
         console.error('Error loading doctors:', error);
         setDoctors([]);
@@ -77,12 +97,15 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     onSelect(doctor);
     setSearchValue(`${doctor.firstname} ${doctor.lastname}`);
     setOpen(false);
+    // keep focus on input after selection for better UX
+    requestAnimationFrame(() => inputRef.current?.focus());
   };
 
   const handleClear = () => {
     onSelect(null);
     setSearchValue("");
     setOpen(false);
+    requestAnimationFrame(() => inputRef.current?.focus());
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,6 +131,20 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     setOpen(true);
   };
 
+  // Pressing Enter selects the first visible doctor instead of closing
+  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // prevent form submit / popover toggle
+      if (filteredDoctors.length > 0) {
+        handleSelect(filteredDoctors[0]);
+      }
+    }
+    // optional: Escape to close
+    if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -120,12 +157,14 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
             onChange={handleInputChange}
             onClick={handleInputClick}
             onFocus={handleInputFocus}
+            onKeyDown={handleKeyDown}
+            autoComplete="off"
             className={cn("pr-10", className)}
           />
           <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         </div>
       </PopoverTrigger>
-      <PopoverContent className="p-0" style={{ width: inputRef.current?.offsetWidth }}>
+      <PopoverContent className="p-0" style={{ width: popoverWidth }}>
         <Command>
           <CommandList>
             {loading ? (
