@@ -13,9 +13,11 @@ import {
 } from "@/components/form";
 import PatientPicker from "@/admin/modules/patient/components/PatientPicker";
 import QuickPatientFormDialog from "@/admin/components/dialogs/QuickPatientFormDialog";
+import DoctorAutocomplete from "@/admin/modules/doctor/components/DoctorAutocomplete";
 import visitService from "../services/visitService";
 import { Visit } from "../types/Visit";
 import { Patient } from "@/admin/modules/patient/types/Patient";
+import { Doctor } from "@/admin/modules/doctor/types/Doctor";
 import { useToast } from "@/hooks/use-toast";
 
 const visitSchema = z.object({
@@ -47,6 +49,8 @@ interface VisitFormProps {
 const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
   ({ visit, onSuccess, onError, showSubmitButton = true }, ref) => {
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+    const [selectedReferralDoctor, setSelectedReferralDoctor] = useState<Doctor | null>(null);
+    const [selectedConsultingDoctor, setSelectedConsultingDoctor] = useState<Doctor | null>(null);
     const [showQuickPatientDialog, setShowQuickPatientDialog] = useState(false);
     const { toast } = useToast();
     
@@ -67,6 +71,8 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
     useEffect(() => {
       if (visit) {
         setSelectedPatient(visit.patient || null);
+        setSelectedReferralDoctor(visit.referByDoctor || null);
+        setSelectedConsultingDoctor(visit.consultingDoctor || null);
         form.reset({
           patient: visit.patient ? { id: visit.patient.id } : null,
           complaints: visit.complaints || "",
@@ -103,6 +109,8 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
           ...data,
           id: visit?.id,
           patient: selectedPatient,
+          referByDoctor: selectedReferralDoctor,
+          consultingDoctor: selectedConsultingDoctor,
         };
 
         const response = await visitService.saveOrUpdate(visitData);
@@ -148,6 +156,8 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
       resetForm: () => {
         form.reset();
         setSelectedPatient(null);
+        setSelectedReferralDoctor(null);
+        setSelectedConsultingDoctor(null);
       },
     }));
 
@@ -164,6 +174,23 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
             </FormSection>
 
             <FormSection title="Visit Details">
+              <FormRow columns={2}>
+                <DoctorAutocomplete
+                  selectedDoctor={selectedReferralDoctor}
+                  onDoctorSelect={setSelectedReferralDoctor}
+                  placeholder="Search referral doctor..."
+                  allowExternal={true}
+                  label="Referral Doctor"
+                />
+                <DoctorAutocomplete
+                  selectedDoctor={selectedConsultingDoctor}
+                  onDoctorSelect={setSelectedConsultingDoctor}
+                  placeholder="Search consulting doctor..."
+                  allowExternal={false}
+                  label="Consulting Doctor"
+                />
+              </FormRow>
+
               <FormRow columns={2}>
                 <InputField
                   control={form.control}
@@ -197,8 +224,8 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
                 <InputField
                   control={form.control}
                   name="referralDoctorName"
-                  label="Referral Doctor"
-                  placeholder="Optional referral doctor name"
+                  label="Referral Doctor Name (Manual)"
+                  placeholder="Optional manual referral doctor name"
                 />
               </FormRow>
 

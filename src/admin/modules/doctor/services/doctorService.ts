@@ -1,101 +1,86 @@
-import http from "@/lib/JwtInterceptor";
+
 import { Doctor } from "../types/Doctor";
-import { isProduction } from "@/utils/envUtils";
-import { PaginatedResponse } from "@/types/common";
-import { DoctorsFilter } from "../hooks/useDoctors";
-import axios from "axios";
-import uploadHttp from "@/lib/uploadHttp";
 
-const DoctorService = {
-  getAllDoctors: async (): Promise<Doctor[]> => {
-    try {
-      const response = await http.get<Doctor[]>('/v1/doctor/list');
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching doctors:", error);
-      throw error;
-    }
-  },
+interface DoctorSearchParams {
+  searchTerm: string;
+  external?: boolean;
+  pageNo: number;
+  pageSize: number;
+}
 
-
-  
-
-    getDoctorBranchByDoctorAndBranchId: async (drId: number,branchId: number) => {
-    const response = await http.get(`/v1/doctor/doctor-branch/${drId}/${branchId}`);
-    return response.data;
-  },
-
-  getById: async (id: number): Promise<Doctor> => {
-    const response = await http.get<Doctor>(`/v1/doctor/id/${id}`);
-    return response.data;
-  },
-
-  saveOrUpdateDoctor: async (doctor: Doctor): Promise<any> => {
-    try {
-      const response = await http.post<any>('/v1/doctor/saveOrUpdate', doctor);
-      return response.data;
-    } catch (error) {
-      console.error("Error creating doctor:", error);
-      throw error;
-    }
-  },
-
-  saveOrUpdate: async (doctor: FormData): Promise<any> => {
-    try {
-      const response = await uploadHttp.post('/v1/doctor/saveOrUpdate', doctor);
-      // console.log(response.status, response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Error saving doctor:", error);
-      throw error;
-    }
-  },
-
-  delete: async (id: number): Promise<void> => {
-    await http.delete(`/v1/doctor/id/${id}`);
-  },
-
-  deleteById: async (id: number): Promise<any> => {
-    try {
-      const response = await http.delete(`/v1/doctor/id/${id}`);
-      return { status: true };
-    } catch (error) {
-      console.error("Error deleting doctor:", error);
-      return { status: false };
-    }
-  },
-
-  publishDoctorOnline: async (id: number) => {
-    return await http.get(`/v1/doctor/publish-online/doctor/${id}`);
-  },
-
-  fetchPaginated: async (
-    page: number,
-    size: number,
-    filter: DoctorsFilter
-  ): Promise<PaginatedResponse<Doctor>> => {
-    const filterObj: any = {
-      value: filter.searchTerm || null,
-      doctorType: filter.doctorType || null,
-      specializationId: filter.specialization || null,
-    }
-
-    const response = await http.post<PaginatedResponse<Doctor>>(
-      `/v1/doctor/admin/filter/${page}/${size}`,
-      filterObj
-    );
-    return response.data;
-  },
-  doctorbranchFilter: async (specialIds: Number[]) => {
-    const response = await http.post(
-      `/v1/doctor/doctor-branch/filter`,
+class DoctorService {
+  async searchDoctors(params: DoctorSearchParams) {
+    // Mock implementation - replace with actual API call
+    const mockDoctors: Doctor[] = [
       {
-        specializationList: specialIds
+        id: 1,
+        uid: "DOC001",
+        firstname: "John",
+        lastname: "Smith",
+        email: "john.smith@example.com",
+        phone: "+1234567890",
+        qualification: "MBBS, MD",
+        desgination: "Cardiologist",
+        expYear: 10,
+        gender: 1,
+        specializationList: [{ id: 1, name: "Cardiology" }],
+        external: false,
+        online: false,
+        imageUrl: ""
+      },
+      {
+        id: 2,
+        uid: "DOC002",
+        firstname: "Sarah",
+        lastname: "Johnson",
+        email: "sarah.johnson@example.com",
+        phone: "+1234567891",
+        qualification: "MBBS, MS",
+        desgination: "Surgeon",
+        expYear: 8,
+        gender: 2,
+        specializationList: [{ id: 2, name: "Surgery" }],
+        external: false,
+        online: false,
+        imageUrl: ""
+      },
+      {
+        id: 3,
+        uid: "DOC003",
+        firstname: "Michael",
+        lastname: "Brown",
+        email: "michael.brown@example.com",
+        phone: "+1234567892",
+        qualification: "MBBS",
+        desgination: "General Practitioner",
+        expYear: 15,
+        gender: 1,
+        specializationList: [{ id: 3, name: "General Medicine" }],
+        external: true,
+        online: false,
+        imageUrl: ""
       }
-    );
-    return response.data;
+    ];
 
+    // Filter by search term
+    const filtered = mockDoctors.filter(doctor => {
+      const fullName = `${doctor.firstname} ${doctor.lastname}`.toLowerCase();
+      const searchLower = params.searchTerm.toLowerCase();
+      const matchesName = fullName.includes(searchLower);
+      const matchesExternal = params.external ? true : !doctor.external;
+      return matchesName && matchesExternal;
+    });
+
+    return {
+      data: {
+        content: filtered,
+        totalElements: filtered.length,
+        totalPages: 1,
+        size: params.pageSize,
+        number: params.pageNo
+      }
+    };
   }
-};
+}
 
-export default DoctorService;
+export default new DoctorService();
