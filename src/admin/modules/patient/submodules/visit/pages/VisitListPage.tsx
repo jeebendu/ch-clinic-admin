@@ -1,345 +1,265 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Eye, CreditCard, Edit, Trash2, FileText } from 'lucide-react';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import PageHeader from "@/admin/components/PageHeader";
+import { VisitList } from "../components/VisitList";
+import { VisitTable } from "../components/VisitTable";
+import { VisitCalendar } from "../components/VisitCalendar";
+import { VisitGrid } from "../components/VisitGrid";
+import { VisitDetailsModal } from "../components/VisitDetailsModal";
+import VisitFormDialog from "../components/VisitFormDialog";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { useVisitActions } from "../hooks/useVisitActions";
+import visitService from "../services/visitService";
+import { Visit } from "../types/Visit";
+import VisitFilterCard from "../components/VisitFilterCard";
+import { useVisitFilters } from "../hooks/useVisitFilters";
+import { VisitFilter } from "../types/VisitFilter";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { CalendarIcon } from "@radix-ui/react-icons"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import { DateRange } from "react-day-picker"
-import { addDays } from "date-fns";
+const VisitListPage = () => {
+  const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [currentFilters, setCurrentFilters] = useState<VisitFilter>({});
 
-import { Visit } from '../types/Visit';
-import { getAllVisits } from '../services/visitService';
-import { Doctor } from '@/admin/modules/doctor/types/Doctor';
-import { getAllDoctors } from '@/admin/modules/doctor/services/doctorService';
-import { Patient } from '@/admin/modules/patient/types/Patient';
-import { getAllPatients } from '@/admin/modules/patient/services/patientService';
-import RowActions from '@/components/ui/RowActions';
-import PaymentDialog from '../components/PaymentDialog';
-import ReportsDialog from '@/admin/components/dialogs/ReportsDialog';
-
-const VisitListPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [visits, setVisits] = useState<Visit[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDoctor, setSelectedDoctor] = useState<string>('');
-  const [selectedPatient, setSelectedPatient] = useState<string>('');
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: addDays(new Date(), 30),
-  })
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
+  // Page-level modal state management
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const visitsData = await getAllVisits();
-      setVisits(visitsData);
+  const {
+    // Keep the hook for other actions that haven't been moved yet
+  } = useVisitActions();
 
-      const doctorsData = await getAllDoctors();
-      setDoctors(doctorsData);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['visits', searchTerm],
+    queryFn: ({ pageParam = 0 }) => {
+      console.log('🔄 Fetching visits - page:', pageParam, 'search:', searchTerm);
+      return visitService.getAllVisits(pageParam, 10, searchTerm);
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      console.log('📄 Getting next page param:', {
+        currentPage: lastPage.number,
+        hasNext: lastPage.hasNext,
+        totalPages: lastPage.totalPages
+      });
+      if (!lastPage.hasNext) return undefined;
+      return lastPage.number + 1;
+    },
+  });
 
-      const patientsData = await getAllPatients();
-      setPatients(patientsData);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to fetch visits');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  // Visit filters hook
+  const {
+    filterState,
+    updateSearchTerm,
+    updateFilter,
+    updateDateRange,
+    clearFilters
+  } = useVisitFilters((filters: VisitFilter) => {
+    setCurrentFilters(filters);
+    setPage(0); // Reset to first page when filters change
+  });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  // Enable auto-scroll with explicit rootRef
+  const { loadMoreRef } = useAutoScroll({
+    hasNextPage: hasNextPage || false,
+    isFetchingNextPage,
+    fetchNextPage,
+    rootRef: scrollContainerRef
+  });
 
-  const handleCreate = () => {
-    navigate('/admin/visits/new');
+  // Flatten all pages into a single array
+  const allVisits: Visit[] = data?.pages.flatMap(page => page.content) || [];
+  const totalElements = data?.pages[0]?.totalElements || 0;
+
+  // Page-level handlers
+  const handleEditVisit = (visit: Visit) => {
+    console.log('Editing visit at page level:', visit);
+    setSelectedVisit(visit);
+    setEditDialogOpen(true);
   };
 
   const handleViewDetails = (visit: Visit) => {
-    navigate(`/admin/visits/${visit.id}`);
-  };
-
-  const handleEdit = (visit: Visit) => {
-    navigate(`/admin/visits/edit/${visit.id}`);
-  };
-
-  const handleDelete = async (visit: Visit) => {
-    // Implement delete logic here
-    console.log('Delete visit:', visit.id);
-  };
-
-  const handleViewPayment = (visit: Visit) => {
+    console.log('Viewing visit details at page level:', visit);
     setSelectedVisit(visit);
-    setPaymentDialogOpen(true);
+    setDetailsModalOpen(true);
   };
 
-  const handleViewReports = (visit: Visit) => {
-    setSelectedVisit(visit);
-    setReportsDialogOpen(true);
+  const handleViewModeToggle = () => {
+    const modes: Array<'list' | 'table' | 'calendar' | 'grid'> = ['table', 'list', 'calendar', 'grid'];
+    const currentIndex = modes.indexOf(viewMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setViewMode(modes[nextIndex]);
   };
 
-  const handleClosePaymentDialog = () => {
-    setPaymentDialogOpen(false);
-    setSelectedVisit(null);
-    fetchData();
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
   };
 
-  const handleCloseReportsDialog = () => {
-    setReportsDialogOpen(false);
-    setSelectedVisit(null);
+  const handleRefresh = () => {
+    refetch();
   };
 
-  const filteredVisits = visits.filter(visit => {
-    const searchRegex = new RegExp(searchQuery, 'i');
-    const doctorFilter = selectedDoctor ? visit.doctorId === selectedDoctor : true;
-    const patientFilter = selectedPatient ? visit.patientId === selectedPatient : true;
-    const dateFilter = date?.from && date?.to ?
-      new Date(visit.appointmentDate) >= date.from && new Date(visit.appointmentDate) <= date.to :
-      true;
+  const handleAddVisit = () => {
+    setAddDialogOpen(true);
+  };
 
-    return searchRegex.test(visit.patientName) && doctorFilter && patientFilter && dateFilter;
-  });
+  const handleVisitSave = (visit?: Visit) => {
+    // Refresh the visit list after save
+    refetch();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading visits...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-red-600">Error loading visits: {error?.message}</p>
+        <Button onClick={() => refetch()}>Try Again</Button>
+      </div>
+    );
+  }
+
+  const renderContent = () => {
+    switch (viewMode) {
+      case 'list':
+        return <VisitList visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
+      case 'table':
+        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
+      case 'calendar':
+        return <VisitCalendar visits={allVisits} />;
+      case 'grid':
+        return <VisitGrid visits={allVisits} />;
+      default:
+        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Visits</h2>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Visit
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Input
-          type="text"
-          placeholder="Search patient..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+        <PageHeader
+          title="Patient Visits"
+          description="Manage patient visits and appointments"
+          viewMode={viewMode}
+          onViewModeToggle={handleViewModeToggle}
+          onRefreshClick={handleRefresh}
+          loadedElements={allVisits.length}
+          totalElements={totalElements}
+          onSearchChange={handleSearchChange}
+          searchValue={searchTerm}
+          showAddButton={true}
+          addButtonLabel="New Visit"
+          onAddButtonClick={handleAddVisit}
+          showFilter={true}
+          onFilterToggle={() => setShowFilter(!showFilter)}
         />
 
-        <Select onValueChange={setSelectedDoctor}>
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by Doctor" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Doctors</SelectItem>
-            {doctors.map(doctor => (
-              <SelectItem key={doctor.id} value={doctor.id}>
-                {doctor.firstName} {doctor.lastName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {showFilter && (
+          <VisitFilterCard
+            searchTerm={filterState.searchTerm}
+            onSearchChange={updateSearchTerm}
+            selectedFilters={filterState.selectedFilters}
+            onFilterChange={updateFilter}
+            onClearFilters={clearFilters}
+            dateRange={filterState.dateRange}
+            onDateRangeChange={updateDateRange}
+          />
+        )}
 
-        <Select onValueChange={setSelectedPatient}>
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by Patient" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Patients</SelectItem>
-            {patients.map(patient => (
-              <SelectItem key={patient.id} value={patient.id}>
-                {patient.firstName} {patient.lastName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Main content container with explicit height and overflow */}
+      <div
+        ref={scrollContainerRef}
+        className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto"
+      >
+        {renderContent()}
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-[280px] justify-start text-left font-normal",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date?.from ? (
-                date.to ? (
-                  `${format(date.from, "LLL dd, y")} - ${format(date.to, "LLL dd, y")}`
-                ) : (
-                  format(date.from, "LLL dd, y")
-                )
-              ) : (
-                <span>Pick a date</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center" side="bottom">
-            <Calendar
-              mode="range"
-              defaultMonth={date?.from}
-              selected={date}
-              onSelect={setDate}
-              numberOfMonths={2}
-              pagedNavigation
-            />
-          </PopoverContent>
-        </Popover>
+        {/* Loading indicator */}
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2">Loading more visits...</span>
+          </div>
+        )}
+
+        {/* End of results indicator */}
+        {!hasNextPage && allVisits.length > 0 && (
+          <div className="text-center py-4 text-muted-foreground">
+            <p>No more visits to load</p>
+            <p className="text-sm">Showing {allVisits.length} of {totalElements} visits</p>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {allVisits.length === 0 && !isLoading && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No visits found</p>
+          </div>
+        )}
+
+        {/* Sentinel: placed at the bottom to trigger auto-load when visible */}
+        {hasNextPage && (
+          <div
+            ref={loadMoreRef}
+            className="h-10 flex items-center justify-center bg-muted/20 rounded border-2 border-dashed border-muted-foreground/20"
+          >
+            <span className="text-xs text-muted-foreground">Load More Trigger Zone</span>
+          </div>
+        )}
       </div>
 
-      <VisitList 
-        visits={filteredVisits}
-        isLoading={isLoading}
-        onViewPayment={handleViewPayment}
-        onViewReports={handleViewReports}
+      {/* Add Visit Dialog */}
+      <VisitFormDialog
+        isOpen={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        onSave={handleVisitSave}
       />
 
-      {selectedVisit && (
-        <PaymentDialog
-          visit={selectedVisit}
-          isOpen={paymentDialogOpen}
-          onClose={handleClosePaymentDialog}
-        />
-      )}
+      {/* Edit Visit Dialog - Using page-level state */}
+      <VisitFormDialog
+        isOpen={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        onSave={handleVisitSave}
+        visit={selectedVisit}
+      />
 
-      {selectedVisit && (
-        <ReportsDialog
-          visit={selectedVisit}
-          isOpen={reportsDialogOpen}
-          onClose={handleCloseReportsDialog}
-        />
-      )}
-    </div>
-  );
-};
-
-interface VisitListProps {
-  visits: Visit[];
-  isLoading: boolean;
-  onViewPayment: (visit: Visit) => void;
-  onViewReports: (visit: Visit) => void;
-}
-
-const VisitList: React.FC<VisitListProps> = ({ 
-  visits, 
-  isLoading,
-  onViewPayment,
-  onViewReports
-}) => {
-  const navigate = useNavigate();
-
-  const handleViewDetails = (visit: Visit) => {
-    navigate(`/admin/visits/${visit.id}`);
-  };
-
-  const handleEdit = (visit: Visit) => {
-    navigate(`/admin/visits/edit/${visit.id}`);
-  };
-
-  const handleDelete = async (visit: Visit) => {
-    // Implement delete logic here
-    console.log('Delete visit:', visit.id);
-  };
-
-  const getRowActions = (visit: Visit): RowAction[] => [
-    {
-      label: "View Details",
-      icon: <Eye className="h-4 w-4" />,
-      onClick: () => handleViewDetails(visit)
-    },
-    {
-      label: "View Payment",
-      icon: <CreditCard className="h-4 w-4" />,
-      onClick: () => onViewPayment(visit)
-    },
-    {
-      label: "View Reports",
-      icon: <FileText className="h-4 w-4" />,
-      onClick: () => onViewReports(visit)
-    },
-    {
-      label: "Edit",
-      icon: <Edit className="h-4 w-4" />,
-      onClick: () => handleEdit(visit)
-    },
-    {
-      label: "Delete",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: () => handleDelete(visit),
-      confirm: true,
-      confirmTitle: "Delete Visit",
-      confirmDescription: "Are you sure you want to delete this visit? This action cannot be undone.",
-      variant: "destructive"
-    }
-  ];
-
-  return (
-    <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Patient</TableHead>
-            <TableHead>Doctor</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Time</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center">Loading...</TableCell>
-            </TableRow>
-          ) : visits.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center">No visits found.</TableCell>
-            </TableRow>
-          ) : (
-            visits.map(visit => (
-              <TableRow key={visit.id}>
-                <TableCell>{visit.patientName}</TableCell>
-                <TableCell>{visit.doctorName}</TableCell>
-                <TableCell>{visit.appointmentDate}</TableCell>
-                <TableCell>{visit.appointmentTime}</TableCell>
-                <TableCell>{visit.status}</TableCell>
-                <TableCell className="text-right">
-                  <RowActions actions={getRowActions(visit)} />
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={6}>
-              {visits.length} Visits
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+      {/* Visit Details Modal - Using page-level state */}
+      <VisitDetailsModal
+        isOpen={detailsModalOpen}
+        onClose={() => setDetailsModalOpen(false)}
+        visit={selectedVisit}
+        onEdit={(visit) => {
+          setDetailsModalOpen(false);
+          handleEditVisit(visit);
+        }}
+        onGenerateInvoice={(visit) => {
+          console.log('Generate invoice for:', visit.id);
+        }}
+        onViewPrescription={(visit) => {
+          console.log('View prescription for:', visit.id);
+        }}
+      />
     </div>
   );
 };
