@@ -10,9 +10,9 @@ import { useQueueCount } from '@/hooks/useQueueData';
 const FloatingQueueButton: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Only fetch count for the floating button - no date filter needed for count
+  // Only fetch count for the floating button
   const { data: queueCount = 0, isLoading } = useQueueCount({
-    // Count API typically doesn't need date filter, but if it does, you can add it here
+    // Add any default params if needed
   });
 
   return (
@@ -41,7 +41,7 @@ const FloatingQueueButton: React.FC = () => {
         </div>
       </Button>
 
-      {/* Queue Drawer - fetches its own data when opened */}
+      {/* Queue Drawer - will fetch its own data when opened */}
       <QueueDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
