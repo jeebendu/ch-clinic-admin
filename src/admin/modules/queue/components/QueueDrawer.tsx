@@ -158,9 +158,7 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
   const queueItems = queueResponse?.queue_items || [];
   
   // Filter active items only
-  const activeItems = queueItems.filter(item => 
-    item.status !== 'completed' && item.status !== 'cancelled'
-  );
+  const activeItems = queueItems
   
   const sortedItems = activeItems.sort((a, b) => {
     // Sort by status first (in_consultation, then waiting), then by actual_sequence
