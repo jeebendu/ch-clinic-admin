@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, Receipt, CreditCard, Plus, FileText } from 'lucide-react';
 import { Visit } from '../../types/Visit';
-import PaymentDialog from '../dialog/PaymentDialog';
+import PaymentDialog from './PaymentDialog';
 
 interface VisitPaymentProps {
   visit: Visit;
