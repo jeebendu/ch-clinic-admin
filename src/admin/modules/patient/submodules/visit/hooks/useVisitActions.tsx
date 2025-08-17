@@ -166,6 +166,12 @@ export const useVisitActions = () => {
         icon: <Edit className="h-4 w-4" />,
         onClick: () => handleEditVisit(visit),
         variant: "default"
+      },
+      {
+        label: "View Reports",
+        icon: <BarChart3 className="h-4 w-4" />,
+        onClick: () => handleViewReports(visit),
+        variant: "default"
       }
     ];
 
