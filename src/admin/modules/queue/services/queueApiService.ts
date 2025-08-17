@@ -6,17 +6,7 @@ import { getEnvVariable } from '@/utils/envUtils';
 const API_BASE_URL = getEnvVariable('API_URL');
 
 class QueueApiService {
-  private getHeaders(branchId?: number) {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    
-    if (branchId) {
-      headers['X-Branch-ID'] = branchId.toString();
-    }
-    
-    return headers;
-  }
+
 
   async getLiveQueue(params: QueueApiParams = {}): Promise<QueueResponseDto> {
     const { branch_id, date, sort_by = 'actual_sequence', limit } = params;
@@ -28,8 +18,7 @@ class QueueApiService {
     if (limit) queryParams.append('limit', limit.toString());
 
     const response = await axios.get<QueueResponseDto>(
-      `${API_BASE_URL}/api/queue/live?${queryParams.toString()}`,
-      { headers: this.getHeaders(branch_id) }
+      `${API_BASE_URL}/v1/queue/live?${queryParams.toString()}`
     );
 
     return response.data;
@@ -43,8 +32,7 @@ class QueueApiService {
     if (date) queryParams.append('date', date);
 
     const response = await axios.get<QueueResponseDto>(
-      `${API_BASE_URL}/api/queue/preview?${queryParams.toString()}`,
-      { headers: this.getHeaders(branch_id) }
+      `${API_BASE_URL}/v1/queue/preview?${queryParams.toString()}`
     );
 
     return response.data;
@@ -58,8 +46,7 @@ class QueueApiService {
     if (date) queryParams.append('date', date);
 
     const response = await axios.get<number>(
-      `${API_BASE_URL}/api/queue/count?${queryParams.toString()}`,
-      { headers: this.getHeaders(branch_id) }
+      `${API_BASE_URL}/v1/queue/count?${queryParams.toString()}`
     );
 
     return response.data;
