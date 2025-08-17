@@ -16,7 +16,7 @@ import {
 import { Visit } from '../../types/Visit';
 
 interface VisitReportDialogProps {
-  visit: Visit;
+  visit: Visit | null; // allow null to prevent runtime crashes
   isOpen: boolean;
   onClose: () => void;
 }
@@ -41,7 +41,7 @@ const VisitReportDialog: React.FC<VisitReportDialogProps> = ({
       id: '1',
       type: 'consultation',
       title: 'Consultation Report',
-      date: visit.scheduleDate || new Date().toISOString(),
+      date: visit?.scheduleDate || new Date().toISOString(),
       status: 'completed',
       size: '2.4 MB'
     },
@@ -49,7 +49,7 @@ const VisitReportDialog: React.FC<VisitReportDialogProps> = ({
       id: '2',
       type: 'prescription',
       title: 'Prescription',
-      date: visit.scheduleDate || new Date().toISOString(),
+      date: visit?.scheduleDate || new Date().toISOString(),
       status: 'completed',
       size: '1.2 MB'
     },
@@ -57,7 +57,7 @@ const VisitReportDialog: React.FC<VisitReportDialogProps> = ({
       id: '3',
       type: 'lab',
       title: 'Lab Results',
-      date: visit.scheduleDate || new Date().toISOString(),
+      date: visit?.scheduleDate || new Date().toISOString(),
       status: 'pending'
     }
   ]);
@@ -126,26 +126,26 @@ const VisitReportDialog: React.FC<VisitReportDialogProps> = ({
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Patient:</span>
                   <span className="font-medium">
-                    {visit.patient?.firstName} {visit.patient?.lastName}
+                    {visit?.patient?.firstName} {visit?.patient?.lastName}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Date:</span>
                   <span className="font-medium">
-                    {visit.scheduleDate ? new Date(visit.scheduleDate).toLocaleDateString() : 'N/A'}
+                    {visit?.scheduleDate ? new Date(visit.scheduleDate).toLocaleDateString() : 'N/A'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Stethoscope className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Doctor:</span>
                   <span className="font-medium">
-                    {visit.consultingDoctor?.firstname} {visit.consultingDoctor?.lastname}
+                    {visit?.consultingDoctor?.firstname} {visit?.consultingDoctor?.lastname}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Status:</span>
-                  {getStatusBadge(visit.status || 'pending')}
+                  {getStatusBadge(visit?.status || 'pending')}
                 </div>
               </div>
             </CardContent>
