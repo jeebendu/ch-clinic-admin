@@ -23,11 +23,12 @@ import { Visit } from "../types/Visit";
 export const useVisitActions = () => {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
   const handleViewDetails = (visit: Visit) => {
     console.log('Viewing visit details:', visit);
     setSelectedVisit(visit);
-    // Add your view details logic here
+    setDetailsModalOpen(true);
   };
 
   const handleMarkPayment = (visit: Visit) => {
@@ -241,6 +242,8 @@ export const useVisitActions = () => {
     setSelectedVisit,
     editDialogOpen,
     setEditDialogOpen,
+    detailsModalOpen,
+    setDetailsModalOpen,
     getPrimaryVisitActions,
     getSecondaryVisitActions,
     getVisitActions,

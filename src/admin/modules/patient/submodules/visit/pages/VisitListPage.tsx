@@ -8,6 +8,7 @@ import { VisitList } from "../components/VisitList";
 import { VisitTable } from "../components/VisitTable";
 import { VisitCalendar } from "../components/VisitCalendar";
 import { VisitGrid } from "../components/VisitGrid";
+import { VisitDetailsModal } from "../components/VisitDetailsModal";
 import VisitFormDialog from "../components/VisitFormDialog";
 import { useAutoScroll } from "../hooks/useAutoScroll";
 import { useVisitActions } from "../hooks/useVisitActions";
@@ -31,6 +32,8 @@ const VisitListPage = () => {
     selectedVisit,
     editDialogOpen,
     setEditDialogOpen,
+    detailsModalOpen,
+    setDetailsModalOpen,
   } = useVisitActions();
 
   const {
@@ -171,8 +174,6 @@ const VisitListPage = () => {
             onDateRangeChange={updateDateRange}
           />
         )}
-        
-     
 
       {/* Main content container with explicit height and overflow */}
       <div
@@ -228,6 +229,23 @@ const VisitListPage = () => {
         onClose={() => setEditDialogOpen(false)}
         onSave={handleVisitSave}
         visit={selectedVisit}
+      />
+
+      {/* Visit Details Modal */}
+      <VisitDetailsModal
+        isOpen={detailsModalOpen}
+        onClose={() => setDetailsModalOpen(false)}
+        visit={selectedVisit}
+        onEdit={(visit) => {
+          setDetailsModalOpen(false);
+          setEditDialogOpen(true);
+        }}
+        onGenerateInvoice={(visit) => {
+          console.log('Generate invoice for:', visit.id);
+        }}
+        onViewPrescription={(visit) => {
+          console.log('View prescription for:', visit.id);
+        }}
       />
     </div>
   );
