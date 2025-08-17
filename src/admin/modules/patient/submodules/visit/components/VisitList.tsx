@@ -8,7 +8,6 @@ import { Visit } from "../types/Visit";
 import RowActions from "@/components/ui/RowActions";
 import { useVisitActions } from "../hooks/useVisitActions";
 
-
 interface VisitListProps {
   visits: Visit[];
   loading?: boolean;
@@ -18,7 +17,7 @@ interface VisitListProps {
 
 export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, onView, onEdit }) => {
 
-  const { getVisitActions } = useVisitActions();
+  const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -51,7 +50,6 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
   const handleVisitClick = (visit: Visit) => {
   };
 
-
   if (loading) {
     return (
       <div className="space-y-3">
@@ -76,7 +74,11 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
     );
   }
 
-  
+  const allActions = (visit: Visit) => [
+    ...getPrimaryVisitActions(visit),
+    ...getSecondaryVisitActions(visit)
+  ];
+
   return (
     <div className="space-y-3">
       {visits.map((visit) => (
@@ -160,8 +162,8 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
                   {/* Actions */}
                   <div className="ml-4">
                     <RowActions 
-                      actions={getVisitActions(visit)} 
-                      maxVisibleActions={2}
+                      actions={allActions(visit)} 
+                      maxVisibleActions={5}
                     />
                   </div>
                 </div>

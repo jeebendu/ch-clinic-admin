@@ -15,7 +15,7 @@ interface VisitTableProps {
 
 export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTableProps) => {
 
-  const { getVisitActions } = useVisitActions();
+  const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -58,7 +58,8 @@ export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTab
             <TableHead>Reason</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Payment</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-center">Quick Actions</TableHead>
+            <TableHead className="text-center">More</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -89,14 +90,17 @@ export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTab
                 <TableCell>
                   <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
                 </TableCell>
-                <TableCell className="text-right">
-                  <div className="animate-pulse bg-gray-200 h-4 w-16 ml-auto rounded"></div>
+                <TableCell className="text-center">
+                  <div className="animate-pulse bg-gray-200 h-4 w-32 mx-auto rounded"></div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="animate-pulse bg-gray-200 h-4 w-8 mx-auto rounded"></div>
                 </TableCell>
               </TableRow>
             ))
           ) : visits.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+              <TableCell colSpan={10} className="text-center py-6 text-muted-foreground">
                 No visits found
               </TableCell>
             </TableRow>
@@ -154,11 +158,17 @@ export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTab
                     <span className="text-gray-400">N/A</span>
                   )}
                 </TableCell>
-                <TableCell className="text-right space-x-2">
-                   <RowActions 
-                      actions={getVisitActions(visit)} 
-                      maxVisibleActions={2}
-                    />
+                <TableCell className="text-center">
+                  <RowActions 
+                    actions={getPrimaryVisitActions(visit)} 
+                    maxVisibleActions={5}
+                  />
+                </TableCell>
+                <TableCell className="text-center">
+                  <RowActions 
+                    actions={getSecondaryVisitActions(visit)} 
+                    maxVisibleActions={0}
+                  />
                 </TableCell>
               </TableRow>
             ))
