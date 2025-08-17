@@ -1,3 +1,4 @@
+
 import { useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -10,13 +11,13 @@ import { VisitGrid } from "../components/VisitGrid";
 import { VisitDetailsModal } from "../components/VisitDetailsModal";
 import VisitFormDialog from "../components/VisitFormDialog";
 import { useAutoScroll } from "../hooks/useAutoScroll";
-import { useVisitActions } from "../hooks/useVisitActions";
 import visitService from "../services/visitService";
 import { Visit } from "../types/Visit";
 import VisitFilterCard from "../components/VisitFilterCard";
 import { useVisitFilters } from "../hooks/useVisitFilters";
 import { VisitFilter } from "../types/VisitFilter";
 import PaymentDialog from "../components/PaymentDialog";
+import { RowAction } from "@/components/ui/data-table-row-actions";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
@@ -28,17 +29,11 @@ const VisitListPage = () => {
   const [size, setSize] = useState(10);
   const [currentFilters, setCurrentFilters] = useState<VisitFilter>({});
 
-  const {
-    selectedVisit,
-    editDialogOpen,
-    setEditDialogOpen,
-    detailsModalOpen,
-    setDetailsModalOpen,
-    paymentDialogOpen,
-    setPaymentDialogOpen,
-    handleAddPayment,
-    handleCreateInvoice,
-  } = useVisitActions();
+  // Modal states lifted from useVisitActions
+  const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
   const {
     data,
@@ -91,6 +86,64 @@ const VisitListPage = () => {
   const allVisits: Visit[] = data?.pages.flatMap(page => page.content) || [];
   const totalElements = data?.pages[0]?.totalElements || 0;
 
+  // Modal action handlers
+  const handleOpenDetails = (visit: Visit) => {
+    console.log('Opening details modal for visit:', visit.id);
+    setSelectedVisit(visit);
+    setDetailsModalOpen(true);
+  };
+
+  const handleOpenEdit = (visit: Visit) => {
+    console.log('Opening edit dialog for visit:', visit.id);
+    setSelectedVisit(visit);
+    setEditDialogOpen(true);
+  };
+
+  const handleOpenPayment = (visit: Visit) => {
+    console.log('Opening payment dialog for visit:', visit.id);
+    setSelectedVisit(visit);
+    setPaymentDialogOpen(true);
+  };
+
+  const handleAddPayment = async (visitId: string, amount: number, method: string, notes?: string) => {
+    try {
+      console.log('Adding payment:', { visitId, amount, method, notes });
+      // TODO: Implement payment addition logic
+      refetch();
+      setPaymentDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to add payment:', error);
+    }
+  };
+
+  const handleCreateInvoice = async (visitId: string) => {
+    try {
+      console.log('Creating invoice for visit:', visitId);
+      // TODO: Implement invoice creation logic
+    } catch (error) {
+      console.error('Failed to create invoice:', error);
+    }
+  };
+
+  // Action builders for components
+  const getPrimaryVisitActions = (visit: Visit): RowAction[] => [
+    {
+      label: "View Details",
+      onClick: () => handleOpenDetails(visit),
+    },
+  ];
+
+  const getSecondaryVisitActions = (visit: Visit): RowAction[] => [
+    {
+      label: "Edit",
+      onClick: () => handleOpenEdit(visit),
+    },
+    {
+      label: "Add Payment",
+      onClick: () => handleOpenPayment(visit),
+    },
+  ];
+
   const handleViewModeToggle = () => {
     const modes: Array<'list' | 'table' | 'calendar' | 'grid'> = ['table', 'list', 'calendar', 'grid'];
     const currentIndex = modes.indexOf(viewMode);
@@ -136,15 +189,33 @@ const VisitListPage = () => {
   const renderContent = () => {
     switch (viewMode) {
       case 'list':
-        return <VisitList visits={allVisits} />;
+        return (
+          <VisitList 
+            visits={allVisits} 
+            getPrimaryActions={getPrimaryVisitActions}
+            getSecondaryActions={getSecondaryVisitActions}
+          />
+        );
       case 'table':
-        return <VisitTable visits={allVisits} />;
+        return (
+          <VisitTable 
+            visits={allVisits} 
+            getPrimaryActions={getPrimaryVisitActions}
+            getSecondaryActions={getSecondaryVisitActions}
+          />
+        );
       case 'calendar':
         return <VisitCalendar visits={allVisits} />;
       case 'grid':
         return <VisitGrid visits={allVisits} />;
       default:
-        return <VisitTable visits={allVisits} />;
+        return (
+          <VisitTable 
+            visits={allVisits} 
+            getPrimaryActions={getPrimaryVisitActions}
+            getSecondaryActions={getSecondaryVisitActions}
+          />
+        );
     }
   };
 
@@ -242,6 +313,7 @@ const VisitListPage = () => {
         visit={selectedVisit}
         onEdit={(visit) => {
           setDetailsModalOpen(false);
+          setSelectedVisit(visit);
           setEditDialogOpen(true);
         }}
         onGenerateInvoice={(visit) => {
