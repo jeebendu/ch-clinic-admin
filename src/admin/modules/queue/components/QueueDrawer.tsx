@@ -5,20 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { QueueItem } from '@/admin/modules/queue/types/Queue';
-import { formatDistance } from 'date-fns';
+import { QueueItemDto } from '@/admin/modules/queue/types/QueueApi';
+import { useQueueData } from '@/hooks/useQueueData';
 
 interface QueueDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  queueItems: QueueItem[];
-  isLoading: boolean;
-  waitingCount: number;
-  inConsultationCount: number;
+  branchId: string;
 }
 
 const QueuePatientItem: React.FC<{ 
-  item: QueueItem; 
+  item: QueueItemDto; 
   sequenceNumber: number;
 }> = ({ item, sequenceNumber }) => {
   const getStatusBadge = () => {
@@ -42,18 +39,30 @@ const QueuePatientItem: React.FC<{
           </Badge>
         );
       default:
-        return null;
+        return (
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+            {item.status}
+          </Badge>
+        );
     }
   };
 
-  const getWaitingTime = () => {
-    const startTime = item.checkedInTime || item.createdTime;
-    return formatDistance(new Date(startTime), new Date(), { addSuffix: false });
+  const formatWaitingTime = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
   };
 
-  const getPatientName = () => {
-    const { firstname, lastname } = item.patient;
-    return `${firstname} ${lastname.charAt(0)}.`;
+  const formatEstimatedTime = (estimatedTime: string) => {
+    const date = new Date(estimatedTime);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
   };
 
   return (
@@ -65,25 +74,21 @@ const QueuePatientItem: React.FC<{
         </div>
         
         <div className="flex-1 min-w-0">
-          {/* Patient Name */}
+          {/* Patient Info */}
           <p className="text-sm font-medium text-gray-900 truncate">
-            {getPatientName()}
+            Patient #{item.patient_id}
           </p>
           
-          {/* Waiting Time */}
+          {/* Waiting Time and Estimated Time */}
           <div className="flex items-center space-x-2 mt-1">
             <Clock className="h-3 w-3 text-gray-400" />
             <span className="text-xs text-gray-500">
-              waiting {getWaitingTime()}
+              waiting {formatWaitingTime(item.waiting_minutes)}
             </span>
-            {item.estimatedWaitTime && (
-              <>
-                <span className="text-xs text-gray-300">•</span>
-                <span className="text-xs text-gray-500">
-                  ~{item.estimatedWaitTime}m
-                </span>
-              </>
-            )}
+            <span className="text-xs text-gray-300">•</span>
+            <span className="text-xs text-gray-500">
+              ~{formatEstimatedTime(item.estimated_consultation_time)}
+            </span>
           </div>
         </div>
       </div>
@@ -99,26 +104,41 @@ const QueuePatientItem: React.FC<{
 export const QueueDrawer: React.FC<QueueDrawerProps> = ({
   isOpen,
   onClose,
-  queueItems,
-  isLoading,
-  waitingCount,
-  inConsultationCount
+  branchId
 }) => {
   const [showAll, setShowAll] = useState(false);
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+
+  // Fetch queue data
+  const { data: queueResponse, isLoading } = useQueueData({
+    branch_id: parseInt(branchId),
+    date: today,
+    sort_by: 'actual_sequence',
+    limit: showAll ? undefined : 10,
+    enabled: isOpen,
+  });
+
+  const queueItems = queueResponse?.queue_items || [];
   
-  // Filter and sort queue items
+  // Filter active items only
   const activeItems = queueItems.filter(item => 
     item.status === 'waiting' || item.status === 'in_consultation'
   );
   
   const sortedItems = activeItems.sort((a, b) => {
-    // Sort by status first (in_consultation, then waiting), then by priority
+    // Sort by status first (in_consultation, then waiting), then by actual_sequence
     if (a.status !== b.status) {
       if (a.status === 'in_consultation') return -1;
       if (b.status === 'in_consultation') return 1;
     }
-    return a.priority - b.priority;
+    return a.actual_sequence - b.actual_sequence;
   });
+
+  // Calculate counts
+  const waitingCount = queueItems.filter(item => item.status === 'waiting').length;
+  const inConsultationCount = queueItems.filter(item => item.status === 'in_consultation').length;
 
   const displayItems = showAll ? sortedItems : sortedItems.slice(0, 4);
 
@@ -177,7 +197,12 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
         {/* Queue List */}
         <ScrollArea className="flex-1 max-h-[calc(100vh-180px)]">
           <div className="divide-y divide-gray-100">
-            {displayItems.length === 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="h-4 w-4 bg-clinic-primary rounded-full animate-pulse mr-2" />
+                <span className="text-sm text-gray-500">Loading queue...</span>
+              </div>
+            ) : displayItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <Users className="h-12 w-12 text-gray-300 mb-3" />
                 <p className="text-sm">No patients in queue</p>
@@ -185,7 +210,7 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
             ) : (
               displayItems.map((item, index) => (
                 <QueuePatientItem
-                  key={item.id}
+                  key={item.patient_schedule_id}
                   item={item}
                   sequenceNumber={index + 1}
                 />
@@ -201,6 +226,7 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
               variant="outline"
               onClick={() => setShowAll(!showAll)}
               className="w-full"
+              disabled={isLoading}
             >
               <Eye className="h-4 w-4 mr-2" />
               {showAll ? 'Show Less' : `View All (${sortedItems.length})`}
