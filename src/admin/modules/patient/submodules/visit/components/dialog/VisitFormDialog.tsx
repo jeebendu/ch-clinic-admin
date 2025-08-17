@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import VisitForm, { VisitFormRef } from "./VisitForm";
 import FormDialog from "@/components/ui/form-dialog";
-import { Visit } from "../types/Visit";
+import { Visit } from "../../types/Visit";
+import VisitForm, { VisitFormRef } from "../form/VisitForm";
 
 interface VisitFormDialogProps {
   isOpen: boolean;

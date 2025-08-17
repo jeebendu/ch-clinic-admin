@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from '@/components/ui/dialog';
 import FormDialog from '@/components/ui/form-dialog';
 import { DollarSign, Plus, Trash2, Receipt, CreditCard } from 'lucide-react';
-import { Visit } from '../types/Visit';
+import { Visit } from '../../types/Visit';
 
 interface PaymentDialogProps {
   visit: Visit;

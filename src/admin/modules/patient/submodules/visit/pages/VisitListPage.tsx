@@ -3,19 +3,19 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import PageHeader from "@/admin/components/PageHeader";
-import { VisitList } from "../components/VisitList";
-import { VisitTable } from "../components/VisitTable";
-import { VisitCalendar } from "../components/VisitCalendar";
-import { VisitGrid } from "../components/VisitGrid";
-import { VisitDetailsModal } from "../components/VisitDetailsModal";
-import VisitFormDialog from "../components/VisitFormDialog";
 import { useAutoScroll } from "../hooks/useAutoScroll";
 import { useVisitActions } from "../hooks/useVisitActions";
 import visitService from "../services/visitService";
 import { Visit } from "../types/Visit";
-import VisitFilterCard from "../components/VisitFilterCard";
 import { useVisitFilters } from "../hooks/useVisitFilters";
 import { VisitFilter } from "../types/VisitFilter";
+import { VisitList } from "../components/list/VisitList";
+import { VisitTable } from "../components/list/VisitTable";
+import { VisitCalendar } from "../components/list/VisitCalendar";
+import { VisitGrid } from "../components/list/VisitGrid";
+import VisitFilterCard from "../components/list/VisitFilterCard";
+import VisitFormDialog from "../components/dialog/VisitFormDialog";
+import { VisitDetailsModal } from "../components/dialog/VisitDetailsModal";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');

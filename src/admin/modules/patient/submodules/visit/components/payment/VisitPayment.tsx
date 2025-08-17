@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, Receipt, CreditCard, Plus, FileText } from 'lucide-react';
-import { Visit } from '../types/Visit';
-import PaymentDialog from '@/admin/components/dialogs/PaymentDialog';
+import { Visit } from '../../types/Visit';
+import PaymentDialog from '../dialog/PaymentDialog';
 
 interface VisitPaymentProps {
   visit: Visit;

@@ -1,9 +1,9 @@
 
 import { Calendar, Clock, User, MapPin, Phone } from "lucide-react";
-import { Visit } from "../types/Visit";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { Visit } from "../../types/Visit";
 
 interface VisitCalendarProps {
   visits: Visit[];

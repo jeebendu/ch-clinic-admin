@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Visit } from "../types/Visit";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -19,6 +18,7 @@ import {
   UserCheck,
   AlertCircle
 } from "lucide-react";
+import { Visit } from "../../types/Visit";
 
 interface VisitDetailsContentProps {
   visit: Visit;

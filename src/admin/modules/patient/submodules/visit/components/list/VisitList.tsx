@@ -3,10 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { User, Calendar, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
-import { Visit } from "../types/Visit";
 import RowActions from "@/components/ui/RowActions";
-import { useVisitActions } from "../hooks/useVisitActions";
-import PaymentDialog from "./PaymentDialog";
+import { Visit } from "../../types/Visit";
+import PaymentDialog from "../dialog/PaymentDialog";
 
 interface VisitListProps {
   visits: Visit[];

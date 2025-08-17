@@ -1,10 +1,10 @@
 
 import React from "react";
 import FormDialog from "@/components/ui/form-dialog";
-import { VisitDetailsContent } from "./VisitDetailsContent";
-import { Visit } from "../types/Visit";
 import { Button } from "@/components/ui/button";
 import { Edit, Receipt, FileText, X } from "lucide-react";
+import { Visit } from "../../types/Visit";
+import { VisitDetailsContent } from "../details/VisitDetailsContent";
 
 interface VisitDetailsModalProps {
   isOpen: boolean;

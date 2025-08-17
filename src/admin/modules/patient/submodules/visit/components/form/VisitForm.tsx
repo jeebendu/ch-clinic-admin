@@ -15,13 +15,13 @@ import {
 import PatientPicker from "@/admin/modules/patient/components/PatientPicker";
 import QuickPatientFormDialog from "@/admin/components/dialogs/QuickPatientFormDialog";
 import DoctorAutocomplete from "@/admin/modules/doctor/components/DoctorAutocomplete";
-import visitService from "../services/visitService";
-import { Visit } from "../types/Visit";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import { Doctor } from "@/admin/modules/doctor/types/Doctor";
 import { useToast } from "@/hooks/use-toast";
 import SelectField from "@/components/form/SelectField";
-import { VISIT_TYPE_OPTIONS } from "../types/VisitFilter";
+import { Visit } from "../../types/Visit";
+import visitService from "../../services/visitService";
+import { VISIT_TYPE_OPTIONS } from "../../types/VisitFilter";
 
 const visitSchema = z.object({
   patient: z.object({
@@ -162,14 +162,14 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
 
         const response = await visitService.saveOrUpdate(visitData);
         
-        if (response?.data?.status === true || response?.status === true) {
+        if (response?.data?.status === true) {
           toast({
             title: "Success",
             description: visit ? "Visit updated successfully" : "Visit created successfully",
           });
           onSuccess(response.data || response);
         } else {
-          const errorMessage = response?.data?.message || response?.message || "Failed to save visit";
+          const errorMessage = response?.data?.message|| "Failed to save visit";
           toast({
             title: "Error",
             description: errorMessage,

@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import FilterCard, { FilterOption } from "@/admin/components/FilterCard";
-import { VISIT_STATUS_OPTIONS, VISIT_TYPE_OPTIONS } from "../types/VisitFilter";
 import { cn } from "@/lib/utils";
+import { VISIT_STATUS_OPTIONS, VISIT_TYPE_OPTIONS } from "../../types/VisitFilter";
 
 interface VisitFilterCardProps {
   searchTerm: string;

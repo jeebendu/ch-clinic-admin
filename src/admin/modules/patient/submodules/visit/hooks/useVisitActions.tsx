@@ -1,11 +1,11 @@
 
 import { useState } from "react";
-import { 
-  Edit, 
-  Eye, 
-  Trash2, 
-  UserCheck, 
-  Calendar, 
+import {
+  Edit,
+  Eye,
+  Trash2,
+  UserCheck,
+  Calendar,
   FileText,
   DollarSign,
   Receipt,
@@ -14,8 +14,7 @@ import {
   Pill,
   CalendarPlus,
   StickyNote,
-  Share,
-  MoreHorizontal
+  Share
 } from "lucide-react";
 import { RowAction } from "@/components/ui/RowActions";
 import { Visit } from "../types/Visit";
@@ -131,27 +130,9 @@ export const useVisitActions = () => {
         variant: "default"
       },
       {
-        label: "Prescription",
-        icon: <Pill className="h-4 w-4" />,
-        onClick: () => handlePrescription(visit),
-        variant: "default"
-      },
-      {
         label: "Follow-up Visit",
         icon: <CalendarPlus className="h-4 w-4" />,
         onClick: () => handleFollowUpVisit(visit),
-        variant: "default"
-      },
-      {
-        label: "Add Notes",
-        icon: <StickyNote className="h-4 w-4" />,
-        onClick: () => handleAddNotes(visit),
-        variant: "default"
-      },
-      {
-        label: "Share",
-        icon: <Share className="h-4 w-4" />,
-        onClick: () => handleShare(visit),
         variant: "default"
       },
       {

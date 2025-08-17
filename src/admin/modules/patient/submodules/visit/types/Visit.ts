@@ -6,7 +6,7 @@ export interface Visit {
   id?: number | string;
   branch?: Branch;
   patient?: Patient;
-  referByDoctor?: Doctor;
+  referByDoctor: Doctor;
   consultingDoctor?: Doctor;
   complaints?: string;
   scheduleDate?: string;

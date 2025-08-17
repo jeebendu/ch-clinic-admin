@@ -1,10 +1,10 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { useVisitActions } from "../hooks/useVisitActions";
 import RowActions from "@/components/ui/RowActions";
-import { Visit } from "../types/Visit";
-import PaymentDialog from "./PaymentDialog";
+import { Visit } from "../../types/Visit";
+import { useVisitActions } from "../../hooks/useVisitActions";
+import PaymentDialog from "../dialog/PaymentDialog";
 
 interface VisitTableProps {
   visits: Visit[];

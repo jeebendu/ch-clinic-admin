@@ -1,9 +1,9 @@
 
 import { Calendar, Clock, User, MapPin, Phone, DollarSign } from "lucide-react";
-import { Visit } from "../types/Visit";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { Visit } from "../../types/Visit";
 
 interface VisitGridProps {
   visits: Visit[];

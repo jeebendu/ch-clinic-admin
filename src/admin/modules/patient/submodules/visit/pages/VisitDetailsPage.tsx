@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { VisitDetailsContent } from "../components/VisitDetailsContent";
 import { Visit } from "../types/Visit";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit, Receipt, FileText, Loader2 } from "lucide-react";
@@ -26,7 +25,7 @@ const VisitDetailsPage: React.FC = () => {
       try {
         setLoading(true);
         // Mock fetch - replace with actual service call
-        const visitData = await visitService.getVisitById(visitId);
+        const visitData = (await visitService.getById(visitId)).data;
         setVisit(visitData);
       } catch (err) {
         setError("Failed to fetch visit details");
