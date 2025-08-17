@@ -36,7 +36,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
         </div>
       }
       footer={footerButtons}
-      maxWidth="max-w-[90vh]"
+      maxWidth="w-[80%]"
       maxHeight="max-h-[90vh]"
     >
       <VisitPayment visit={visit} />
