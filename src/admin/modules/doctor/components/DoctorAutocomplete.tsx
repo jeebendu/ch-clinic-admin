@@ -4,28 +4,24 @@ import { Search, User, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import DoctorService from "../services/doctorService";
 import { Doctor } from "../types/Doctor";
-import doctorService from "../services/doctorService";
+import { useToast } from "@/hooks/use-toast";
 
 interface DoctorAutocompleteProps {
   selectedDoctor: Doctor | null;
   onDoctorSelect: (doctor: Doctor | null) => void;
-  placeholder?: string;
   disabled?: boolean;
-  allowExternal?: boolean;
-  label?: string;
-  className?: string;
+  placeholder?: string;
+  allowExternal?: boolean; // If true, shows external doctors, if false only internal
 }
 
 const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
   selectedDoctor,
   onDoctorSelect,
-  placeholder = "Search doctor by name...",
   disabled = false,
-  allowExternal = false,
-  label = "Doctor",
-  className = "",
+  placeholder = "Search doctor by name...",
+  allowExternal = true
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
@@ -34,6 +30,7 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
   const [showResults, setShowResults] = useState(false);
   const skipNextSearchRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Load all doctors once on component mount
@@ -41,16 +38,14 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     const loadDoctors = async () => {
       setIsLoading(true);
       try {
-        const response = await doctorService.findAllDoctors();
-        if (response) {
-          setAllDoctors(response);
-        }
+        const doctors = await DoctorService.getAllDoctors();
+        setAllDoctors(doctors);
       } catch (error) {
         console.error("Error loading doctors:", error);
         toast({
           title: "Error",
-          description: "Failed to load doctors",
-          variant: "destructive",
+          description: "Failed to load doctors. Please try again.",
+          variant: "destructive"
         });
       } finally {
         setIsLoading(false);
@@ -58,10 +53,11 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     };
 
     loadDoctors();
-  }, []);
+  }, [toast]);
 
-  // Filter doctors based on search term
+  // Filter doctors based on search term and allowExternal flag
   useEffect(() => {
+    // Skip search if flag is set (after doctor selection)
     if (skipNextSearchRef.current) {
       skipNextSearchRef.current = false;
       return;
@@ -84,7 +80,6 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
       const fullName = `${doctor.firstname} ${doctor.lastname}`.toLowerCase();
       const searchLower = searchTerm.toLowerCase();
       
-      // Filter by name, qualification, or specialization
       const matchesName = fullName.includes(searchLower);
       const matchesQualification = doctor.qualification?.toLowerCase().includes(searchLower);
       const matchesSpecialization = doctor.specializationList?.some(
@@ -96,6 +91,16 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
 
     setFilteredDoctors(filtered);
   }, [searchTerm, allDoctors, allowExternal]);
+
+  // Update search term when doctor is selected
+  useEffect(() => {
+    if (selectedDoctor) {
+      const doctorName = `${selectedDoctor.firstname} ${selectedDoctor.lastname}`;
+      setSearchTerm(doctorName);
+    } else {
+      setSearchTerm("");
+    }
+  }, [selectedDoctor]);
 
   const handleInputClick = () => {
     if (!disabled && !selectedDoctor) {
@@ -122,7 +127,8 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     
     // Set flag to skip next search and update search term to doctor name
     skipNextSearchRef.current = true;
-    setSearchTerm(`${doctor.firstname} ${doctor.lastname}`);
+    const doctorName = `${doctor.firstname} ${doctor.lastname}`;
+    setSearchTerm(doctorName);
   };
 
   const handleClearSelection = () => {
@@ -151,19 +157,19 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
   };
 
   const formatDoctorInfo = (doctor: Doctor) => {
-    const specialization = doctor.specializationList?.[0]?.name || "";
-    return `${doctor.firstname} ${doctor.lastname}${specialization ? ` - ${specialization}` : ""}`;
+    const specializations = doctor.specializationList?.map(s => s.name).join(', ') || '';
+    const qualification = doctor.qualification || '';
+    const details = [qualification, specializations].filter(Boolean).join(' • ');
+    
+    return {
+      name: `${doctor.firstname} ${doctor.lastname}`,
+      details
+    };
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      {label && (
-        <label className="text-sm font-medium text-gray-700">
-          {label}
-        </label>
-      )}
-      
-      <div className="relative">
+    <div ref={containerRef} className="relative w-full">
+      <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -174,7 +180,7 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
             onClick={handleInputClick}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            disabled={disabled || !!selectedDoctor}
+            disabled={disabled}
             className="pl-10 pr-8"
           />
           {!selectedDoctor && !disabled && (
@@ -184,62 +190,48 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
             <button
               type="button"
               onClick={handleClearSelection}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               disabled={disabled}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer"
             >
               ×
             </button>
           )}
         </div>
-
-        {/* Selected Doctor Display */}
-        {selectedDoctor && (
-          <div className="mt-2">
-            <Badge variant="secondary" className="flex items-center gap-2 w-fit">
-              <User className="h-3 w-3" />
-              <span>{formatDoctorInfo(selectedDoctor)}</span>
-              {!disabled && (
-                <button
-                  type="button"
-                  onClick={handleClearSelection}
-                  className="ml-1 text-gray-500 hover:text-gray-700"
-                >
-                  ×
-                </button>
-              )}
-            </Badge>
-          </div>
-        )}
       </div>
 
       {/* Search Results */}
       {showResults && filteredDoctors.length > 0 && !selectedDoctor && (
-        <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
+        <Card className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto shadow-lg">
           <CardContent className="p-0">
             {filteredDoctors.map((doctor) => {
-              const displayInfo = formatDoctorInfo(doctor);
+              const info = formatDoctorInfo(doctor);
               return (
                 <div
                   key={doctor.id}
                   className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center gap-3"
                   onClick={() => handleDoctorSelect(doctor)}
                 >
-                  <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">
-                      {displayInfo}
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <User className="h-4 w-4 text-blue-600" />
                     </div>
-                    {doctor.qualification && (
-                      <div className="text-xs text-gray-500 truncate">
-                        {doctor.qualification}
-                      </div>
-                    )}
-                    {doctor.external && (
-                      <Badge variant="outline" className="text-xs mt-1">
-                        External
-                      </Badge>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900">{info.name}</div>
+                    {info.details && (
+                      <div className="text-sm text-gray-500">{info.details}</div>
                     )}
                   </div>
+                  {doctor.external && (
+                    <Badge variant="outline" className="text-xs">
+                      External
+                    </Badge>
+                  )}
+                  {!doctor.external && (
+                    <Badge variant="secondary" className="text-xs">
+                      Internal
+                    </Badge>
+                  )}
                 </div>
               );
             })}
@@ -247,18 +239,9 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
         </Card>
       )}
 
-      {/* Loading */}
-      {isLoading && (
-        <Card className="absolute z-10 w-full mt-1">
-          <CardContent className="p-4 text-center text-gray-500">
-            <div className="text-sm">Loading doctors...</div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* No Results */}
       {showResults && filteredDoctors.length === 0 && !isLoading && !selectedDoctor && (
-        <Card className="absolute z-10 w-full mt-1">
+        <Card className="absolute z-50 w-full mt-1 shadow-lg">
           <CardContent className="p-4 text-center text-gray-500">
             <div className="text-sm">
               {searchTerm.length >= 2 ? `No doctors found for "${searchTerm}"` : "No doctors available"}
@@ -268,6 +251,53 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Selected Doctor Display */}
+      {selectedDoctor && (
+        <Card className="mt-2 bg-blue-50 border-blue-200">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <div className="font-medium text-blue-900">
+                  {formatDoctorInfo(selectedDoctor).name}
+                </div>
+                <div className="text-sm text-blue-700">
+                  {formatDoctorInfo(selectedDoctor).details}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedDoctor.external ? (
+                  <Badge variant="outline" className="text-xs">
+                    External
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs">
+                    Internal
+                  </Badge>
+                )}
+                <button
+                  type="button"
+                  onClick={handleClearSelection}
+                  disabled={disabled}
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                >
+                  Change
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-sm text-gray-500 text-center py-2">
+          Loading doctors...
+        </div>
       )}
     </div>
   );
