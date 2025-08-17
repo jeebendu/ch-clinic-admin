@@ -99,7 +99,7 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(({ visit, onSuccess }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 overflow-auto max-h-[calc(100vh-200px)]">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormSection title="Patient Information" description="Basic patient details for the visit">
           <FormRow columns={2}>
             <InputField

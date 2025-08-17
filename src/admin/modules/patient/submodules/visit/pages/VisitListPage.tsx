@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import PageHeader from "@/admin/components/PageHeader";
 import { VisitList } from "../components/VisitList";
 import { VisitTable } from "../components/VisitTable";
@@ -13,12 +13,19 @@ import { useAutoScroll } from "../hooks/useAutoScroll";
 import { useVisitActions } from "../hooks/useVisitActions";
 import visitService from "../services/visitService";
 import { Visit } from "../types/Visit";
+import VisitFilterCard from "../components/VisitFilterCard";
+import { useVisitFilters } from "../hooks/useVisitFilters";
+import { VisitFilter } from "../types/VisitFilter";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [currentFilters, setCurrentFilters] = useState<VisitFilter>({});
 
   const {
     selectedVisit,
@@ -51,6 +58,18 @@ const VisitListPage = () => {
       if (!lastPage.hasNext) return undefined;
       return lastPage.number + 1;
     },
+  });
+
+    // Visit filters hook
+  const {
+    filterState,
+    updateSearchTerm,
+    updateFilter,
+    updateDateRange,
+    clearFilters
+  } = useVisitFilters((filters: VisitFilter) => {
+    setCurrentFilters(filters);
+    setPage(0); // Reset to first page when filters change
   });
 
   // Enable auto-scroll with explicit rootRef
@@ -137,7 +156,21 @@ const VisitListPage = () => {
           showAddButton={true}
           addButtonLabel="New Visit"
           onAddButtonClick={handleAddVisit}
+          showFilter={true}
+          onFilterToggle={() => setShowFilter(!showFilter)}
         />
+
+        {showFilter && (
+          <VisitFilterCard
+            searchTerm={filterState.searchTerm}
+            onSearchChange={updateSearchTerm}
+            selectedFilters={filterState.selectedFilters}
+            onFilterChange={updateFilter}
+            onClearFilters={clearFilters}
+            dateRange={filterState.dateRange}
+            onDateRangeChange={updateDateRange}
+          />
+        )}
         
      
 
