@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Users, Clock, Eye } from 'lucide-react';
+import { X, Users, Clock, Eye, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -65,6 +65,17 @@ const QueuePatientItem: React.FC<{
     });
   };
 
+  const formatPatientName = () => {
+    return item.patient_name || `Patient #${item.patient_id}`;
+  };
+
+  const formatPatientDetails = () => {
+    const details = [];
+    if (item.patient_age) details.push(`${item.patient_age}y`);
+    if (item.patient_gender) details.push(item.patient_gender);
+    return details.join(' • ');
+  };
+
   return (
     <div className="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <div className="flex items-center space-x-3 flex-1">
@@ -76,11 +87,28 @@ const QueuePatientItem: React.FC<{
         <div className="flex-1 min-w-0">
           {/* Patient Info */}
           <p className="text-sm font-medium text-gray-900 truncate">
-            Patient #{item.patient_id}
+            {formatPatientName()}
           </p>
           
+          {/* Patient Details - Age and Gender */}
+          {formatPatientDetails() && (
+            <p className="text-xs text-gray-600 mb-1">
+              {formatPatientDetails()}
+            </p>
+          )}
+          
+          {/* Mobile Number */}
+          {item.patient_mobile && (
+            <div className="flex items-center space-x-1 mb-1">
+              <Phone className="h-3 w-3 text-gray-400" />
+              <span className="text-xs text-gray-600">
+                {item.patient_mobile}
+              </span>
+            </div>
+          )}
+          
           {/* Waiting Time and Estimated Time */}
-          <div className="flex items-center space-x-2 mt-1">
+          <div className="flex items-center space-x-2">
             <Clock className="h-3 w-3 text-gray-400" />
             <span className="text-xs text-gray-500">
               waiting {formatWaitingTime(item.waiting_minutes)}

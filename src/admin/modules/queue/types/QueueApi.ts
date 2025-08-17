@@ -4,6 +4,10 @@ export interface QueueItemDto {
   consulting_doctor_id: number;
   branch_id: number;
   patient_id: number;
+  patient_name?: string;
+  patient_age?: number;
+  patient_gender?: string;
+  patient_mobile?: string;
   checkin_time: string;
   planned_sequence: number;
   actual_sequence: number;
