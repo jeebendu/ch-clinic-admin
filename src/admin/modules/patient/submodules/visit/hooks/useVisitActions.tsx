@@ -23,6 +23,7 @@ export const useVisitActions = () => {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const handleViewDetails = (visit: Visit) => {
     console.log('Viewing visit details:', visit);
@@ -44,6 +45,8 @@ export const useVisitActions = () => {
 
   const handleViewReports = (visit: Visit) => {
     console.log('Viewing reports for visit:', visit);
+    setSelectedVisit(visit);
+    setReportDialogOpen(true);
   };
 
   const handleEditVisit = (visit: Visit) => {
@@ -213,6 +216,8 @@ export const useVisitActions = () => {
     setEditDialogOpen,
     paymentDialogOpen,
     setPaymentDialogOpen,
+    reportDialogOpen,
+    setReportDialogOpen,
     getPrimaryVisitActions,
     getSecondaryVisitActions,
     getVisitActions,
