@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Search, Plus, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,11 +26,26 @@ const PatientPicker: React.FC<PatientPickerProps> = ({
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const skipNextSearchRef = useRef(false);
   const { toast } = useToast();
 
   // Search patients by mobile number
   const searchPatients = async (term: string) => {
+    // Skip search if flag is set (after patient selection)
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
+
     if (!term.trim() || term.length < 3) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    // Only search if the term looks like a phone number (digits, +, -, spaces)
+    const phoneRegex = /^[\d+\-\s()]+$/;
+    if (!phoneRegex.test(term.replace(/\s/g, ''))) {
       setSearchResults([]);
       setShowResults(false);
       return;
@@ -67,13 +82,28 @@ const PatientPicker: React.FC<PatientPickerProps> = ({
   const handlePatientSelect = (patient: Patient) => {
     onPatientSelect(patient);
     setShowResults(false);
-    setSearchTerm(`${patient.firstname} ${patient.lastname} - ${patient.user?.phone || patient.mobile}`);
+    
+    // Set flag to skip next search and update search term to phone only
+    skipNextSearchRef.current = true;
+    const phone = patient.user?.phone || patient.mobile || '';
+    setSearchTerm(phone);
   };
 
   const handleClearSelection = () => {
     onPatientSelect(null);
     setSearchTerm("");
     setShowResults(false);
+    skipNextSearchRef.current = false;
+  };
+
+  const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // If we're clearing the search and have a selected patient, clear the selection
+    if (!value && selectedPatient) {
+      handleClearSelection();
+    }
   };
 
   const formatPatientInfo = (patient: Patient) => {
@@ -93,10 +123,10 @@ const PatientPicker: React.FC<PatientPickerProps> = ({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search patient by mobile number..."
+            placeholder={selectedPatient ? "Selected patient" : "Search patient by mobile number..."}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            disabled={disabled}
+            onChange={handleSearchTermChange}
+            disabled={disabled || !!selectedPatient}
             className="pl-10"
           />
           {selectedPatient && (
@@ -125,7 +155,7 @@ const PatientPicker: React.FC<PatientPickerProps> = ({
       </div>
 
       {/* Search Results */}
-      {showResults && searchResults.length > 0 && (
+      {showResults && searchResults.length > 0 && !selectedPatient && (
         <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
           <CardContent className="p-0">
             {searchResults.map((patient) => {
@@ -158,7 +188,7 @@ const PatientPicker: React.FC<PatientPickerProps> = ({
       )}
 
       {/* No Results */}
-      {showResults && searchResults.length === 0 && !isSearching && searchTerm.length >= 3 && (
+      {showResults && searchResults.length === 0 && !isSearching && searchTerm.length >= 3 && !selectedPatient && (
         <Card className="absolute z-10 w-full mt-1">
           <CardContent className="p-4 text-center text-gray-500">
             <div className="text-sm">No patients found for "{searchTerm}"</div>
