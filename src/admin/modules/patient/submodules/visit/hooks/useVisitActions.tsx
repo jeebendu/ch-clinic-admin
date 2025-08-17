@@ -1,5 +1,5 @@
 
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { 
   Edit, 
   Eye, 
@@ -15,84 +15,12 @@ import {
   CalendarPlus,
   StickyNote,
   Share,
+  MoreHorizontal
 } from "lucide-react";
 import { RowAction } from "@/components/ui/RowActions";
 import { Visit } from "../types/Visit";
-import { useVisitActionsContext } from "../context/VisitActionsContext";
 
-// First, try to use shared context so multiple components share the same state.
-// If no provider is present, fall back to local state (previous behavior).
 export const useVisitActions = () => {
-  const ctx = useVisitActionsContext();
-  if (ctx) {
-    // Enhance context-provided action descriptors with icons when requested here.
-    const getPrimaryVisitActions = (visit: Visit): RowAction[] => {
-      const actions = ctx.getPrimaryVisitActions(visit);
-      return [
-        { ...actions[0], icon: <Eye className="h-4 w-4" /> },
-        { ...actions[1], icon: <DollarSign className="h-4 w-4" /> },
-        { ...actions[2], icon: <Receipt className="h-4 w-4" /> },
-        { ...actions[3], icon: <FlaskConical className="h-4 w-4" /> },
-        { ...actions[4], icon: <BarChart3 className="h-4 w-4" /> },
-      ] as RowAction[];
-    };
-
-    const getSecondaryVisitActions = (visit: Visit): RowAction[] => {
-      const actions = ctx.getSecondaryVisitActions(visit);
-      return [
-        { ...actions[0], icon: <Edit className="h-4 w-4" /> },
-        { ...actions[1], icon: <Pill className="h-4 w-4" /> },
-        { ...actions[2], icon: <CalendarPlus className="h-4 w-4" /> },
-        { ...actions[3], icon: <StickyNote className="h-4 w-4" /> },
-        { ...actions[4], icon: <Share className="h-4 w-4" /> },
-        { ...actions[5], icon: <Trash2 className="h-4 w-4" /> },
-      ] as RowAction[];
-    };
-
-    const getVisitActions = (visit: Visit): RowAction[] => {
-      const actions = ctx.getVisitActions(visit);
-      // Map icons to corresponding entries by label
-      return actions.map((a) => {
-        switch (a.label) {
-          case "View Details": return { ...a, icon: <Eye className="h-4 w-4" /> } as RowAction;
-          case "Edit": return { ...a, icon: <Edit className="h-4 w-4" /> } as RowAction;
-          case "Check In": return { ...a, icon: <UserCheck className="h-4 w-4" /> } as RowAction;
-          case "Reschedule": return { ...a, icon: <Calendar className="h-4 w-4" /> } as RowAction;
-          case "View Prescription": return { ...a, icon: <FileText className="h-4 w-4" /> } as RowAction;
-          case "Delete": return { ...a, icon: <Trash2 className="h-4 w-4" /> } as RowAction;
-          default: return a as RowAction;
-        }
-      });
-    };
-
-    return {
-      selectedVisit: ctx.selectedVisit,
-      setSelectedVisit: ctx.setSelectedVisit,
-      editDialogOpen: ctx.editDialogOpen,
-      setEditDialogOpen: ctx.setEditDialogOpen,
-      detailsModalOpen: ctx.detailsModalOpen,
-      setDetailsModalOpen: ctx.setDetailsModalOpen,
-      getPrimaryVisitActions,
-      getSecondaryVisitActions,
-      getVisitActions,
-      handleViewDetails: ctx.handleViewDetails,
-      handleMarkPayment: ctx.handleMarkPayment,
-      handleGenerateInvoice: ctx.handleGenerateInvoice,
-      handleAddLabOrder: ctx.handleAddLabOrder,
-      handleViewReports: ctx.handleViewReports,
-      handleEditVisit: ctx.handleEditVisit,
-      handlePrescription: ctx.handlePrescription,
-      handleFollowUpVisit: ctx.handleFollowUpVisit,
-      handleAddNotes: ctx.handleAddNotes,
-      handleShare: ctx.handleShare,
-      handleDeleteVisit: ctx.handleDeleteVisit,
-      handleCheckIn: ctx.handleCheckIn,
-      handleReschedule: ctx.handleReschedule,
-      handleViewPrescription: ctx.handleViewPrescription
-    };
-  }
-
-  // Fallback: original local-state implementation (used when no provider is rendered above)
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -105,18 +33,22 @@ export const useVisitActions = () => {
 
   const handleMarkPayment = (visit: Visit) => {
     console.log('Mark/Add payment for visit:', visit);
+    // Add your payment logic here
   };
 
   const handleGenerateInvoice = (visit: Visit) => {
     console.log('Generating invoice for visit:', visit);
+    // Add your invoice generation logic here
   };
 
   const handleAddLabOrder = (visit: Visit) => {
     console.log('Adding lab order for visit:', visit);
+    // Add your lab order logic here
   };
 
   const handleViewReports = (visit: Visit) => {
     console.log('Viewing reports for visit:', visit);
+    // Add your reports logic here
   };
 
   const handleEditVisit = (visit: Visit) => {
@@ -127,37 +59,45 @@ export const useVisitActions = () => {
 
   const handlePrescription = (visit: Visit) => {
     console.log('Managing prescription for visit:', visit);
+    // Add your prescription logic here
   };
 
   const handleFollowUpVisit = (visit: Visit) => {
     console.log('Creating follow-up visit:', visit);
+    // Add your follow-up visit logic here
   };
 
   const handleAddNotes = (visit: Visit) => {
     console.log('Adding notes to visit:', visit);
+    // Add your notes logic here
   };
 
   const handleShare = (visit: Visit) => {
     console.log('Sharing visit via WhatsApp/SMS/Email:', visit);
+    // Add your share logic here
   };
 
   const handleDeleteVisit = (visit: Visit) => {
     console.log('Deleting visit:', visit);
+    // Add your delete logic here
   };
 
   const handleCheckIn = (visit: Visit) => {
     console.log('Checking in visit:', visit);
+    // Add your check-in logic here
   };
 
   const handleReschedule = (visit: Visit) => {
     console.log('Rescheduling visit:', visit);
+    // Add your reschedule logic here
   };
 
   const handleViewPrescription = (visit: Visit) => {
     console.log('Viewing prescription:', visit);
+    // Add your prescription view logic here
   };
 
-  // Builders (with icons)
+  // Primary actions (always visible - 5 actions)
   const getPrimaryVisitActions = (visit: Visit): RowAction[] => {
     return [
       {
@@ -193,6 +133,7 @@ export const useVisitActions = () => {
     ];
   };
 
+  // Secondary actions (in More menu)
   const getSecondaryVisitActions = (visit: Visit): RowAction[] => {
     const secondaryActions: RowAction[] = [
       {
@@ -239,6 +180,7 @@ export const useVisitActions = () => {
     return secondaryActions;
   };
 
+  // Legacy method for backward compatibility
   const getVisitActions = (visit: Visit): RowAction[] => {
     const baseActions: RowAction[] = [
       {
@@ -255,6 +197,7 @@ export const useVisitActions = () => {
       }
     ];
 
+    // Add conditional actions based on visit status
     if (visit.status === 'scheduled') {
       baseActions.push({
         label: "Check In",
@@ -280,6 +223,7 @@ export const useVisitActions = () => {
       });
     }
 
+    // Delete action (always last)
     baseActions.push({
       label: "Delete",
       icon: <Trash2 className="h-4 w-4" />,

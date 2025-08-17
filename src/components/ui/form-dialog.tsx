@@ -31,7 +31,7 @@ const FormDialog = ({
   mobileDrawer = true 
 }: FormDialogProps) => {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`${maxWidth} ${maxHeight}`} mobileDrawer={mobileDrawer}>
         {title && (
           <DialogHeader className="border-b pb-4">

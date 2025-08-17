@@ -17,9 +17,8 @@ import { Visit } from "../types/Visit";
 import VisitFilterCard from "../components/VisitFilterCard";
 import { useVisitFilters } from "../hooks/useVisitFilters";
 import { VisitFilter } from "../types/VisitFilter";
-import { VisitActionsProvider } from "../context/VisitActionsContext";
 
-const VisitListPageInner = () => {
+const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -64,7 +63,7 @@ const VisitListPageInner = () => {
     },
   });
 
-  // Visit filters hook
+    // Visit filters hook
   const {
     filterState,
     updateSearchTerm,
@@ -147,34 +146,34 @@ const VisitListPageInner = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Patient Visits"
-        description="Manage patient visits and appointments"
-        viewMode={viewMode}
-        onViewModeToggle={handleViewModeToggle}
-        onRefreshClick={handleRefresh}
-        loadedElements={allVisits.length}
-        totalElements={totalElements}
-        onSearchChange={handleSearchChange}
-        searchValue={searchTerm}
-        showAddButton={true}
-        addButtonLabel="New Visit"
-        onAddButtonClick={handleAddVisit}
-        showFilter={true}
-        onFilterToggle={() => setShowFilter(!showFilter)}
-      />
-
-      {showFilter && (
-        <VisitFilterCard
-          searchTerm={filterState.searchTerm}
-          onSearchChange={updateSearchTerm}
-          selectedFilters={filterState.selectedFilters}
-          onFilterChange={updateFilter}
-          onClearFilters={clearFilters}
-          dateRange={filterState.dateRange}
-          onDateRangeChange={updateDateRange}
+        <PageHeader
+          title="Patient Visits"
+          description="Manage patient visits and appointments"
+          viewMode={viewMode}
+          onViewModeToggle={handleViewModeToggle}
+          onRefreshClick={handleRefresh}
+          loadedElements={allVisits.length}
+          totalElements={totalElements}
+          onSearchChange={handleSearchChange}
+          searchValue={searchTerm}
+          showAddButton={true}
+          addButtonLabel="New Visit"
+          onAddButtonClick={handleAddVisit}
+          showFilter={true}
+          onFilterToggle={() => setShowFilter(!showFilter)}
         />
-      )}
+
+        {showFilter && (
+          <VisitFilterCard
+            searchTerm={filterState.searchTerm}
+            onSearchChange={updateSearchTerm}
+            selectedFilters={filterState.selectedFilters}
+            onFilterChange={updateFilter}
+            onClearFilters={clearFilters}
+            dateRange={filterState.dateRange}
+            onDateRangeChange={updateDateRange}
+          />
+        )}
 
       {/* Main content container with explicit height and overflow */}
       <div
@@ -249,14 +248,6 @@ const VisitListPageInner = () => {
         }}
       />
     </div>
-  );
-};
-
-const VisitListPage = () => {
-  return (
-    <VisitActionsProvider>
-      <VisitListPageInner />
-    </VisitActionsProvider>
   );
 };
 
