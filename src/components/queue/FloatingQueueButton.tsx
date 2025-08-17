@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { QueueDrawer } from './QueueDrawer';
+import { QueueDrawer } from '@/admin/modules/queue/components/QueueDrawer';
 import { useQueueData } from '@/hooks/useQueueData';
 import { useBranchFilter } from '@/hooks/use-branch-filter';
 

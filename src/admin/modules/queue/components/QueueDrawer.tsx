@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Users, Clock, Eye, Phone } from 'lucide-react';
+import { X, Users, Clock, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -53,12 +53,16 @@ const QueuePatientItem: React.FC<{
   };
 
   const formatEstimatedTime = (estimatedTime: string) => {
-    const date = new Date(estimatedTime);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    });
+    try {
+      const date = new Date(estimatedTime);
+      return date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      });
+    } catch {
+      return estimatedTime;
+    }
   };
 
   return (
@@ -70,40 +74,32 @@ const QueuePatientItem: React.FC<{
         </div>
         
         <div className="flex-1 min-w-0">
-          {/* Patient Info */}
-          <div className="flex items-center space-x-2 mb-1">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {item.patient_name || `Patient #${item.patient_id}`}
-            </p>
+          {/* Patient Name */}
+          <p className="text-sm font-medium text-gray-900 truncate">
+            {item.patient_name || `Patient #${item.patient_id}`}
+          </p>
+          
+          {/* Patient Details */}
+          <div className="flex items-center space-x-2 mt-1 text-xs text-gray-500">
             {item.patient_age && (
               <>
-                <span className="text-xs text-gray-300">•</span>
-                <span className="text-xs text-gray-600">{item.patient_age}y</span>
+                <span>{item.patient_age}y</span>
+                <span className="text-gray-300">•</span>
               </>
             )}
             {item.patient_gender && (
               <>
-                <span className="text-xs text-gray-300">•</span>
-                <span className="text-xs text-gray-600 capitalize">{item.patient_gender}</span>
+                <span className="capitalize">{item.patient_gender}</span>
+                <span className="text-gray-300">•</span>
               </>
+            )}
+            {item.patient_mobile && (
+              <span className="font-mono">{item.patient_mobile}</span>
             )}
           </div>
           
-          {/* Mobile Number */}
-          {item.patient_mobile && (
-            <div className="flex items-center space-x-1 mb-1">
-              <Phone className="h-3 w-3 text-gray-400" />
-              <a 
-                href={`tel:${item.patient_mobile}`}
-                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                {item.patient_mobile}
-              </a>
-            </div>
-          )}
-          
           {/* Waiting Time and Estimated Time */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-1">
             <Clock className="h-3 w-3 text-gray-400" />
             <span className="text-xs text-gray-500">
               waiting {formatWaitingTime(item.waiting_minutes)}
@@ -132,34 +128,19 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
   const [showAll, setShowAll] = useState(false);
 
   // Get today's date
-  //const today = new Date().toISOString().split('T')[0];
-  const today = new Date("2025-08-14").toISOString().split("T")[0];
+  const today = new Date().toISOString().split('T')[0];
 
-  // Fetch preview data (first 4 items)
-  const { data: previewResponse, isLoading: previewLoading } = useQueueData({
+  // Fetch queue data
+  const { data: queueResponse, isLoading } = useQueueData({
     branch_id: parseInt(branchId),
     date: today,
     sort_by: 'actual_sequence',
-    limit: 4,
-    enabled: isOpen && !showAll,
+    limit: showAll ? undefined : 10,
+    enabled: isOpen && !!branchId,
   });
 
-  // Fetch full queue data when showing all items
-  const { data: fullQueueResponse, isLoading: fullLoading } = useQueueData({
-    branch_id: parseInt(branchId),
-    date: today,
-    sort_by: 'actual_sequence',
-    enabled: isOpen && showAll,
-  });
-
-  // Determine which data to use
-  const queueResponse = showAll ? fullQueueResponse : previewResponse;
-  const isLoading = showAll ? fullLoading : previewLoading;
   const queueItems = queueResponse?.queue_items || [];
-
-  console.log("QueueDrawer - API Response:", queueResponse);
-  console.log("QueueDrawer - Queue Items:", queueItems);
-
+  
   // Filter and sort queue items - active items only
   const activeItems = queueItems.filter(item => 
     item.status === 'waiting' || item.status === 'in_consultation'
@@ -174,7 +155,6 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
     return a.actual_sequence - b.actual_sequence;
   });
 
-  // Calculate counts
   const waitingCount = activeItems.filter(item => item.status === 'waiting').length;
   const inConsultationCount = activeItems.filter(item => item.status === 'in_consultation').length;
 
@@ -230,61 +210,57 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
           </div>
         </div>
 
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-clinic-primary"></div>
+        {/* Queue List */}
+        <ScrollArea className="flex-1 max-h-[calc(100vh-180px)]">
+          <div className="divide-y divide-gray-100">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                <div className="h-8 w-8 bg-clinic-primary rounded-full animate-pulse mb-3" />
+                <p className="text-sm">Loading queue...</p>
+              </div>
+            ) : sortedItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                <Users className="h-12 w-12 text-gray-300 mb-3" />
+                <p className="text-sm">No patients in queue</p>
+              </div>
+            ) : (
+              sortedItems.map((item, index) => (
+                <QueuePatientItem
+                  key={item.patient_schedule_id}
+                  item={item}
+                  sequenceNumber={index + 1}
+                />
+              ))
+            )}
           </div>
-        ) : (
-          <>
-            {/* Queue List */}
-            <ScrollArea className="flex-1 max-h-[calc(100vh-180px)]">
-              <div className="divide-y divide-gray-100">
-                {sortedItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                    <Users className="h-12 w-12 text-gray-300 mb-3" />
-                    <p className="text-sm">No patients in queue</p>
-                  </div>
-                ) : (
-                  sortedItems.map((item, index) => (
-                    <QueuePatientItem
-                      key={item.patient_schedule_id}
-                      item={item}
-                      sequenceNumber={index + 1}
-                    />
-                  ))
-                )}
-              </div>
-            </ScrollArea>
+        </ScrollArea>
 
-            {/* Footer */}
-            {!showAll && queueItems.length >= 4 && (
-              <div className="p-4 border-t border-gray-200 bg-white">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAll(true)}
-                  className="w-full"
-                  disabled={fullLoading}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  {fullLoading ? 'Loading...' : 'View All'}
-                </Button>
-              </div>
-            )}
-            
-            {showAll && (
-              <div className="p-4 border-t border-gray-200 bg-white">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAll(false)}
-                  className="w-full"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Show Less
-                </Button>
-              </div>
-            )}
-          </>
+        {/* Footer */}
+        {!showAll && sortedItems.length >= 10 && (
+          <div className="p-4 border-t border-gray-200 bg-white">
+            <Button
+              variant="outline"
+              onClick={() => setShowAll(true)}
+              className="w-full"
+              disabled={isLoading}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View All
+            </Button>
+          </div>
+        )}
+        
+        {showAll && (
+          <div className="p-4 border-t border-gray-200 bg-white">
+            <Button
+              variant="outline"
+              onClick={() => setShowAll(false)}
+              className="w-full"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Show Less
+            </Button>
+          </div>
         )}
       </div>
     </>
