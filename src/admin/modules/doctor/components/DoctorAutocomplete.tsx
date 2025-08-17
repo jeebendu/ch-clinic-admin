@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, User } from "lucide-react";
+import { Search, User, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,7 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const skipNextSearchRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Load all doctors once on component mount
@@ -66,13 +67,20 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
       return;
     }
 
-    if (!searchTerm.trim() || searchTerm.length < 2) {
-      setFilteredDoctors([]);
-      setShowResults(false);
+    // Filter all doctors based on allowExternal flag
+    const availableDoctors = allDoctors.filter(doctor => {
+      if (!allowExternal && doctor.external) {
+        return false;
+      }
+      return true;
+    });
+
+    if (!searchTerm.trim()) {
+      setFilteredDoctors(availableDoctors);
       return;
     }
 
-    const filtered = allDoctors.filter((doctor) => {
+    const filtered = availableDoctors.filter((doctor) => {
       const fullName = `${doctor.firstname} ${doctor.lastname}`.toLowerCase();
       const searchLower = searchTerm.toLowerCase();
       
@@ -83,17 +91,30 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
         spec => spec.name.toLowerCase().includes(searchLower)
       );
 
-      // If allowExternal is false, only show internal doctors
-      if (!allowExternal && doctor.external) {
-        return false;
-      }
-
       return matchesName || matchesQualification || matchesSpecialization;
     });
 
     setFilteredDoctors(filtered);
-    setShowResults(true);
   }, [searchTerm, allDoctors, allowExternal]);
+
+  const handleInputClick = () => {
+    if (!disabled && !selectedDoctor) {
+      setShowResults(true);
+    }
+  };
+
+  const handleInputFocus = () => {
+    if (!disabled && !selectedDoctor) {
+      setShowResults(true);
+    }
+  };
+
+  const handleInputBlur = () => {
+    // Delay hiding results to allow for click events
+    setTimeout(() => {
+      setShowResults(false);
+    }, 200);
+  };
 
   const handleDoctorSelect = (doctor: Doctor) => {
     onDoctorSelect(doctor);
@@ -109,6 +130,9 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     setSearchTerm("");
     setShowResults(false);
     skipNextSearchRef.current = false;
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +142,11 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     // If we're clearing the search and have a selected doctor, clear the selection
     if (!value && selectedDoctor) {
       handleClearSelection();
+    }
+    
+    // Show results when typing
+    if (!selectedDoctor) {
+      setShowResults(true);
     }
   };
 
@@ -138,12 +167,19 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
+            ref={inputRef}
             placeholder={selectedDoctor ? "Selected doctor" : placeholder}
             value={searchTerm}
             onChange={handleSearchTermChange}
+            onClick={handleInputClick}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             disabled={disabled || !!selectedDoctor}
-            className="pl-10"
+            className="pl-10 pr-8"
           />
+          {!selectedDoctor && !disabled && (
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+          )}
           {selectedDoctor && (
             <button
               type="button"
@@ -221,10 +257,12 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
       )}
 
       {/* No Results */}
-      {showResults && filteredDoctors.length === 0 && !isLoading && searchTerm.length >= 2 && !selectedDoctor && (
+      {showResults && filteredDoctors.length === 0 && !isLoading && !selectedDoctor && (
         <Card className="absolute z-10 w-full mt-1">
           <CardContent className="p-4 text-center text-gray-500">
-            <div className="text-sm">No doctors found for "{searchTerm}"</div>
+            <div className="text-sm">
+              {searchTerm.length >= 2 ? `No doctors found for "${searchTerm}"` : "No doctors available"}
+            </div>
             {!allowExternal && (
               <div className="text-xs mt-1">Only internal doctors are shown</div>
             )}
