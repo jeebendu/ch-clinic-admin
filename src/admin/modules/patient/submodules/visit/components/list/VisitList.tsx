@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { User, Calendar, Clock, DollarSign } from "lucide-react";
@@ -7,6 +8,7 @@ import RowActions from "@/components/ui/RowActions";
 import { Visit } from "../../types/Visit";
 import { useVisitActions } from "../../hooks/useVisitActions";
 import PaymentDialog from "../payment/PaymentDialog";
+import VisitReportDialog from "../report/VisitReportDialog";
 
 interface VisitListProps {
   visits: Visit[];
@@ -33,7 +35,9 @@ export const VisitList: React.FC<VisitListProps> = ({
     getSecondaryVisitActions,
     selectedVisit,
     paymentDialogOpen,
-    setPaymentDialogOpen
+    setPaymentDialogOpen,
+    reportDialogOpen,
+    setReportDialogOpen
   } = useVisitActions();
 
   const getStatusColor = (status: string) => {
@@ -230,6 +234,13 @@ export const VisitList: React.FC<VisitListProps> = ({
       <PaymentDialog
         isOpen={paymentDialogOpen}
         onClose={() => setPaymentDialogOpen(false)}
+        visit={selectedVisit}
+      />
+
+      {/* Reports Dialog */}
+      <VisitReportDialog
+        isOpen={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
         visit={selectedVisit}
       />
     </>
