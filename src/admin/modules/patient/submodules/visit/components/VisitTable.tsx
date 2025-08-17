@@ -11,9 +11,16 @@ interface VisitTableProps {
   loading?: boolean;
   onView?: (visit: Visit) => void;
   onEdit?: (visit: Visit) => void;
+  onEditVisit?: (visit: Visit) => void; // Page-level edit handler
 }
 
-export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTableProps) => {
+export const VisitTable = ({ 
+  visits, 
+  loading = false, 
+  onView, 
+  onEdit,
+  onEditVisit 
+}: VisitTableProps) => {
 
   const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
 
@@ -43,6 +50,24 @@ export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTab
       case 'follow-up': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // Override the edit action in getSecondaryVisitActions if onEditVisit is provided
+  const getCustomizedSecondaryActions = (visit: Visit) => {
+    const actions = getSecondaryVisitActions(visit);
+    
+    if (onEditVisit) {
+      // Find and override the edit action
+      const editActionIndex = actions.findIndex(action => action.label === "Edit Visit");
+      if (editActionIndex !== -1) {
+        actions[editActionIndex] = {
+          ...actions[editActionIndex],
+          onClick: () => onEditVisit(visit)
+        };
+      }
+    }
+    
+    return actions;
   };
 
   return (
@@ -166,7 +191,7 @@ export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTab
                 </TableCell>
                 <TableCell className="text-center">
                   <RowActions 
-                    actions={getSecondaryVisitActions(visit)} 
+                    actions={getCustomizedSecondaryActions(visit)} 
                     maxVisibleActions={0}
                   />
                 </TableCell>

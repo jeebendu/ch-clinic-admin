@@ -28,10 +28,11 @@ const VisitListPage = () => {
   const [size, setSize] = useState(10);
   const [currentFilters, setCurrentFilters] = useState<VisitFilter>({});
 
+  // Page-level edit state management
+  const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
   const {
-    selectedVisit,
-    editDialogOpen,
-    setEditDialogOpen,
     detailsModalOpen,
     setDetailsModalOpen,
   } = useVisitActions();
@@ -63,7 +64,7 @@ const VisitListPage = () => {
     },
   });
 
-    // Visit filters hook
+  // Visit filters hook
   const {
     filterState,
     updateSearchTerm,
@@ -86,6 +87,13 @@ const VisitListPage = () => {
   // Flatten all pages into a single array
   const allVisits: Visit[] = data?.pages.flatMap(page => page.content) || [];
   const totalElements = data?.pages[0]?.totalElements || 0;
+
+  // Page-level edit handlers
+  const handleEditVisit = (visit: Visit) => {
+    console.log('Editing visit at page level:', visit);
+    setSelectedVisit(visit);
+    setEditDialogOpen(true);
+  };
 
   const handleViewModeToggle = () => {
     const modes: Array<'list' | 'table' | 'calendar' | 'grid'> = ['table', 'list', 'calendar', 'grid'];
@@ -132,15 +140,15 @@ const VisitListPage = () => {
   const renderContent = () => {
     switch (viewMode) {
       case 'list':
-        return <VisitList visits={allVisits} />;
+        return <VisitList visits={allVisits} onEditVisit={handleEditVisit} />;
       case 'table':
-        return <VisitTable visits={allVisits} />;
+        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} />;
       case 'calendar':
         return <VisitCalendar visits={allVisits} />;
       case 'grid':
         return <VisitGrid visits={allVisits} />;
       default:
-        return <VisitTable visits={allVisits} />;
+        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} />;
     }
   };
 
@@ -223,7 +231,7 @@ const VisitListPage = () => {
         onSave={handleVisitSave}
       />
 
-      {/* Edit Visit Dialog */}
+      {/* Edit Visit Dialog - Now using page-level state */}
       <VisitFormDialog
         isOpen={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
@@ -238,7 +246,7 @@ const VisitListPage = () => {
         visit={selectedVisit}
         onEdit={(visit) => {
           setDetailsModalOpen(false);
-          setEditDialogOpen(true);
+          handleEditVisit(visit);
         }}
         onGenerateInvoice={(visit) => {
           console.log('Generate invoice for:', visit.id);

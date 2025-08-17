@@ -13,9 +13,16 @@ interface VisitListProps {
   loading?: boolean;
   onView?: (visit: Visit) => void;
   onEdit?: (visit: Visit) => void;
+  onEditVisit?: (visit: Visit) => void; // Page-level edit handler
 }
 
-export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, onView, onEdit }) => {
+export const VisitList: React.FC<VisitListProps> = ({ 
+  visits, 
+  loading = false, 
+  onView, 
+  onEdit,
+  onEditVisit 
+}) => {
 
   const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
 
@@ -74,10 +81,24 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
     );
   }
 
-  const allActions = (visit: Visit) => [
-    ...getPrimaryVisitActions(visit),
-    ...getSecondaryVisitActions(visit)
-  ];
+  // Override the edit action in getPrimaryVisitActions if onEditVisit is provided
+  const getCustomizedActions = (visit: Visit) => {
+    const primaryActions = getPrimaryVisitActions(visit);
+    const secondaryActions = getSecondaryVisitActions(visit);
+
+    if (onEditVisit) {
+      // Find and override the edit action in secondary actions
+      const editActionIndex = secondaryActions.findIndex(action => action.label === "Edit Visit");
+      if (editActionIndex !== -1) {
+        secondaryActions[editActionIndex] = {
+          ...secondaryActions[editActionIndex],
+          onClick: () => onEditVisit(visit)
+        };
+      }
+    }
+
+    return [...primaryActions, ...secondaryActions];
+  };
 
   return (
     <div className="space-y-3">
@@ -162,7 +183,7 @@ export const VisitList: React.FC<VisitListProps> = ({ visits, loading = false, o
                   {/* Actions */}
                   <div className="ml-4">
                     <RowActions 
-                      actions={allActions(visit)} 
+                      actions={getCustomizedActions(visit)} 
                       maxVisibleActions={5}
                     />
                   </div>
