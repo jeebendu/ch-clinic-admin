@@ -1,11 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar, X, Phone, Clock, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { DatePicker } from '@/components/ui/date-picker';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface QueueItem {
   id: string;
@@ -68,12 +71,29 @@ const QueueDrawer: React.FC<QueueDrawerProps> = ({ isOpen, onClose }) => {
           <div className="space-y-2">
             <label className="text-sm font-medium">Date</label>
             <div className="flex gap-2">
-              <DatePicker
-                value={selectedDate}
-                onChange={(date) => date && setSelectedDate(date)}
-                placeholder="Select date"
-                className="flex-1"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "flex-1 justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : <span>Select date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
               <Button 
                 variant="outline" 
                 size="sm"
