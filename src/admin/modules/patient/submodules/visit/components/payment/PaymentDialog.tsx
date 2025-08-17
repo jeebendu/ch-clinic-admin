@@ -1,26 +1,31 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
-import { Visit } from '../../types/Visit';
-import FormDialog from '@/components/ui/form-dialog';
-import VisitPayment from './VisitPayment';
+import React from "react";
+import FormDialog from "@/admin/components/dialogs/FormDialog";
+import { Button } from "@/components/ui/button";
+import { Visit } from "../../types/Visit";
+import PaymentForm from "./PaymentForm";
 
 interface PaymentDialogProps {
-  visit: Visit | null;
   isOpen: boolean;
   onClose: () => void;
+  visit: Visit;
+  outstandingAmount?: number;
 }
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
-  visit,
   isOpen,
-  onClose
+  onClose,
+  visit,
+  outstandingAmount = 0
 }) => {
+  const handlePaymentSuccess = () => {
+    onClose();
+  };
+
   const footerButtons = (
-    <div className="flex justify-end gap-2">
+    <div className="flex gap-2">
       <Button variant="outline" onClick={onClose}>
-        Close
+        Cancel
       </Button>
     </div>
   );
@@ -29,17 +34,16 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     <FormDialog
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Visit Reports
-        </div>
-      }
+      title="Collect Payment"
       footer={footerButtons}
       maxWidth="w-[80%]"
       maxHeight="max-h-[90vh]"
     >
-      <VisitPayment visit={visit} />
+      <PaymentForm 
+        visit={visit} 
+        outstandingAmount={outstandingAmount}
+        onSuccess={handlePaymentSuccess}
+      />
     </FormDialog>
   );
 };
