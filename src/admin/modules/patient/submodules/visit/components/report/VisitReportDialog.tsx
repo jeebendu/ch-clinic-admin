@@ -32,11 +32,11 @@ const VisitReportDialog: React.FC<VisitReportDialogProps> = ({
       title={
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Visit Reports
+          Visit Reports - {visit?.patient?.firstName} {visit?.patient?.lastName}
         </div>
       }
       footer={footerButtons}
-      maxWidth="w-[80%]"
+      maxWidth="max-w-6xl"
       maxHeight="max-h-[90vh]"
     >
       <ReportContent visit={visit} />

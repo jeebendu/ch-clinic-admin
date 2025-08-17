@@ -1,64 +1,73 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
   Download, 
   Calendar, 
   User, 
   Stethoscope,
-  ClipboardList
+  ClipboardList,
+  Plus,
+  Eye,
+  TestTube,
+  Headphones,
+  FileAudio,
+  Speaker,
+  FileImage,
+  FileBarChart,
+  Pill,
+  Loader2
 } from 'lucide-react';
 import { Visit } from '../../types/Visit';
+import { PatientReport } from '../../../../types/PatientReport';
+import { patientReportService } from '../../../../services/patientReportService';
+import ReportSelectorDialog from '../../../../components/ReportSelectorDialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface ReportContentProps {
   visit: Visit | null;
 }
 
-interface ReportItem {
-  id: string;
-  type: string;
-  title: string;
-  date: string;
-  status: 'completed' | 'pending' | 'in_progress';
-  size?: string;
-}
-
 const ReportContent: React.FC<ReportContentProps> = ({ visit }) => {
-  // Mock report data - in real implementation, this would come from API
-  const [reports] = useState<ReportItem[]>([
-    {
-      id: '1',
-      type: 'consultation',
-      title: 'Consultation Report',
-      date: visit?.scheduleDate || new Date().toISOString(),
-      status: 'completed',
-      size: '2.4 MB'
-    },
-    {
-      id: '2',
-      type: 'prescription',
-      title: 'Prescription',
-      date: visit?.scheduleDate || new Date().toISOString(),
-      status: 'completed',
-      size: '1.2 MB'
-    },
-    {
-      id: '3',
-      type: 'lab',
-      title: 'Lab Results',
-      date: visit?.scheduleDate || new Date().toISOString(),
-      status: 'pending'
-    }
-  ]);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [reports, setReports] = useState<PatientReport[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showReportSelector, setShowReportSelector] = useState(false);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      if (!visit?.id) return;
+      
+      try {
+        setLoading(true);
+        const reportsData = await patientReportService.getReportsByVisitId(visit.id.toString());
+        setReports(reportsData);
+      } catch (error) {
+        console.error('Error fetching reports:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch reports",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [visit?.id, toast]);
 
   const getStatusBadge = (status: string) => {
     const variants = {
       completed: 'bg-green-100 text-green-800',
       pending: 'bg-yellow-100 text-yellow-800',
-      in_progress: 'bg-blue-100 text-blue-800'
+      in_progress: 'bg-blue-100 text-blue-800',
+      draft: 'bg-gray-100 text-gray-800'
     };
     
     return (
@@ -68,23 +77,83 @@ const ReportContent: React.FC<ReportContentProps> = ({ visit }) => {
     );
   };
 
-  const getReportIcon = (type: string) => {
-    switch (type) {
+  const getReportIcon = (reportType: string) => {
+    switch (reportType.toLowerCase()) {
+      case 'audiometry':
+        return <Headphones className="h-4 w-4" />;
+      case 'bera':
+        return <FileAudio className="h-4 w-4" />;
+      case 'abr':
+        return <Speaker className="h-4 w-4" />;
+      case 'speech':
+        return <FileText className="h-4 w-4" />;
+      case 'laboratory':
+        return <TestTube className="h-4 w-4" />;
+      case 'dental':
+        return <Pill className="h-4 w-4" />;
+      case 'radiography':
+        return <FileImage className="h-4 w-4" />;
+      case 'general':
+        return <FileBarChart className="h-4 w-4" />;
       case 'consultation':
         return <Stethoscope className="h-4 w-4" />;
       case 'prescription':
         return <ClipboardList className="h-4 w-4" />;
-      case 'lab':
-        return <FileText className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }
   };
 
-  const handleDownload = (reportId: string) => {
-    // Mock download functionality
-    console.log(`Downloading report: ${reportId}`);
+  const getReportTypeColor = (reportType: string) => {
+    switch (reportType.toLowerCase()) {
+      case 'audiometry':
+        return 'bg-blue-100 text-blue-800';
+      case 'bera':
+        return 'bg-purple-100 text-purple-800';
+      case 'abr':
+        return 'bg-violet-100 text-violet-800';
+      case 'speech':
+        return 'bg-indigo-100 text-indigo-800';
+      case 'laboratory':
+        return 'bg-amber-100 text-amber-800';
+      case 'dental':
+        return 'bg-emerald-100 text-emerald-800';
+      case 'radiography':
+        return 'bg-green-100 text-green-800';
+      case 'general':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
+
+  const handleViewReport = (report: PatientReport) => {
+    // Navigate to report view page based on report type
+    const reportType = report.reportType.toLowerCase();
+    navigate(`/admin/patients/report/view/${reportType}/${report.id}`);
+  };
+
+  const handleDownload = (reportId: string) => {
+    // Mock download functionality - replace with actual implementation
+    console.log(`Downloading report: ${reportId}`);
+    toast({
+      title: "Download Started",
+      description: "Report download has been initiated",
+    });
+  };
+
+  const handleAddReport = () => {
+    setShowReportSelector(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading reports...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -127,7 +196,13 @@ const ReportContent: React.FC<ReportContentProps> = ({ visit }) => {
       {/* Reports List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Available Reports</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-lg">Available Reports</CardTitle>
+            <Button onClick={handleAddReport} size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              Add Report
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -137,27 +212,44 @@ const ReportContent: React.FC<ReportContentProps> = ({ visit }) => {
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
                 <div className="flex items-center gap-3">
-                  {getReportIcon(report.type)}
+                  {getReportIcon(report.reportType)}
                   <div>
-                    <div className="font-medium">{report.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(report.date).toLocaleDateString()}
-                      {report.size && ` • ${report.size}`}
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="font-medium">{report.reportType}</div>
+                      <Badge className={getReportTypeColor(report.reportType)}>
+                        #{report.reportno}
+                      </Badge>
                     </div>
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(report.createdTime).toLocaleDateString()}
+                      {report.modifiedTime && report.modifiedTime !== report.createdTime && (
+                        <span> • Updated: {new Date(report.modifiedTime).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                    {(report.impression || report.recommendation) && (
+                      <div className="text-sm text-muted-foreground mt-1 max-w-md truncate">
+                        {report.impression || report.recommendation}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {getStatusBadge(report.status)}
-                  {report.status === 'completed' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(report.id)}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Download
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewReport(report)}
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownload(report.id.toString())}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Download
+                  </Button>
                 </div>
               </div>
             ))}
@@ -167,18 +259,43 @@ const ReportContent: React.FC<ReportContentProps> = ({ visit }) => {
             <div className="text-center py-8 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>No reports available for this visit</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={handleAddReport}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add First Report
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Actions */}
-      <div className="flex justify-end gap-2 pt-4 border-t">
-        <Button disabled={reports.filter(r => r.status === 'completed').length === 0}>
-          <Download className="h-4 w-4 mr-1" />
-          Download All
-        </Button>
-      </div>
+      {reports.length > 0 && (
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          <Button 
+            variant="outline"
+            onClick={handleAddReport}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Report
+          </Button>
+          <Button disabled={reports.length === 0}>
+            <Download className="h-4 w-4 mr-1" />
+            Download All
+          </Button>
+        </div>
+      )}
+
+      {/* Report Selector Dialog */}
+      <ReportSelectorDialog
+        open={showReportSelector}
+        onOpenChange={setShowReportSelector}
+        patientId={visit?.patient?.id?.toString() || ''}
+        visitId={visit?.id?.toString()}
+      />
     </div>
   );
 };
