@@ -41,8 +41,8 @@ public class QueueService {
         Long totalCount = queueRepository.countByBranchIdAndDate(branchId, date);
 
         List<QueueItemDto> queueItemDtos = queueItems.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+                .map(QueueItemDto::toDto)
+                .toList();
 
         return new QueueResponseDto(
                 totalCount,
@@ -57,23 +57,7 @@ public class QueueService {
         return getQueueData(branchId, date, "actual_sequence", 4);
     }
 
-    private QueueItemDto convertToDto(LiveVisitQueue entity) {
-        Long waitingMinutes = calculateWaitingMinutes(entity.getCheckinTime());
-        String status = determineStatus(entity);
-
-        return new QueueItemDto(
-                entity.getPatientScheduleId(),
-                entity.getConsultingDoctorId(),
-                entity.getBranchId(),
-                entity.getPatientId(),
-                entity.getCheckinTime(),
-                entity.getPlannedSequence(),
-                entity.getActualSequence(),
-                entity.getEstimatedConsultationTime(),
-                waitingMinutes,
-                status
-        );
-    }
+   
 
     private Long calculateWaitingMinutes(LocalDateTime checkinTime) {
         if (checkinTime == null) {

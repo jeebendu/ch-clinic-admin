@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jee.clinichub.app.branch.context.BranchContextHolder;
+import com.jee.clinichub.app.branch.model.Branch;
 import com.jee.clinichub.app.patient.queue.dto.QueueResponseDto;
 import com.jee.clinichub.app.patient.queue.service.QueueService;
 
@@ -19,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/queue")
+@RequestMapping("/v1/queue")
 @CrossOrigin(origins = "*")
 public class QueueController {
 
@@ -28,29 +30,16 @@ public class QueueController {
 
     @GetMapping("/live")
     public ResponseEntity<QueueResponseDto> getLiveQueue(
-            @RequestParam(name = "branch_id", required = false) Long branchId,
             @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(name = "sort_by", required = false, defaultValue = "actual_sequence") String sortBy,
-            @RequestParam(name = "limit", required = false) Integer limit,
-            @RequestHeader(name = "X-Branch-ID", required = false) String headerBranchId) {
+            @RequestParam(name = "limit", required = false) Integer limit) {
 
-        // Use branch_id from parameter, fallback to header
-        Long effectiveBranchId = branchId;
-        if (effectiveBranchId == null && headerBranchId != null) {
-            try {
-                effectiveBranchId = Long.parseLong(headerBranchId);
-            } catch (NumberFormatException e) {
-                return ResponseEntity.badRequest().build();
-            }
-        }
+        
 
         // Default to today if no date provided
         LocalDate effectiveDate = date != null ? date : LocalDate.now();
 
-        // Validate branch_id
-        if (effectiveBranchId == null) {
-            return ResponseEntity.badRequest().build();
-        }
+        Branch branch = BranchContextHolder.getCurrentBranch();
 
         // Validate sort_by parameter
         if (!"actual_sequence".equals(sortBy) && !"checkin_time".equals(sortBy)) {
@@ -58,7 +47,7 @@ public class QueueController {
         }
 
         try {
-            QueueResponseDto response = queueService.getQueueData(effectiveBranchId, effectiveDate, sortBy, limit);
+            QueueResponseDto response = queueService.getQueueData(branch.getId(), effectiveDate, sortBy, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();

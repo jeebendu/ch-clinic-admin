@@ -1,18 +1,17 @@
 
 package com.jee.clinichub.app.patient.queue.dto;
 
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.jee.clinichub.app.patient.queue.entity.LiveVisitQueue;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Builder
 public class QueueItemDto {
 
     @JsonProperty("patient_schedule_id")
@@ -26,6 +25,18 @@ public class QueueItemDto {
 
     @JsonProperty("patient_id")
     private Long patientId;
+
+    @JsonProperty("patient_name")
+    private String patientName;
+
+    @JsonProperty("patient_age")
+    private Integer patientAge;
+
+    @JsonProperty("patient_gender")
+    private String patientGender;
+
+    @JsonProperty("patient_mobile")
+    private String patientMobile;
 
     @JsonProperty("checkin_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -46,5 +57,26 @@ public class QueueItemDto {
 
     @JsonProperty("status")
     private String status;
-
+    
+    
+ // Convert Entity -> DTO
+    public static QueueItemDto toDto(LiveVisitQueue entity) {
+        return QueueItemDto.builder()
+                .patientScheduleId(entity.getPatientScheduleId())
+                .consultingDoctorId(entity.getConsultingDoctorId())
+                .branchId(entity.getBranchId())
+                .patientId(entity.getPatientId())
+                .patientName(entity.getPatientName())
+                .patientAge(entity.getPatientAge())
+                .patientGender(entity.getPatientGender())
+                .patientMobile(entity.getPatientMobile())
+                .checkinTime(entity.getCheckinTime())
+                .plannedSequence(entity.getPlannedSequence())
+                .actualSequence(entity.getActualSequence())
+                .estimatedConsultationTime(entity.getEstimatedConsultationTime())
+                .build();
+    }
+    
+    
 }
+
