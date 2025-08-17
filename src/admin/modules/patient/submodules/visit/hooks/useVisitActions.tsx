@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { 
   Edit, 
@@ -36,17 +37,14 @@ export const useVisitActions = () => {
 
   const handleGenerateInvoice = (visit: Visit) => {
     console.log('Generating invoice for visit:', visit);
-    // Add your invoice generation logic here
   };
 
   const handleAddLabOrder = (visit: Visit) => {
     console.log('Adding lab order for visit:', visit);
-    // Add your lab order logic here
   };
 
   const handleViewReports = (visit: Visit) => {
     console.log('Viewing reports for visit:', visit);
-    // Add your reports logic here
   };
 
   const handleEditVisit = (visit: Visit) => {
@@ -57,42 +55,34 @@ export const useVisitActions = () => {
 
   const handlePrescription = (visit: Visit) => {
     console.log('Managing prescription for visit:', visit);
-    // Add your prescription logic here
   };
 
   const handleFollowUpVisit = (visit: Visit) => {
     console.log('Creating follow-up visit:', visit);
-    // Add your follow-up visit logic here
   };
 
   const handleAddNotes = (visit: Visit) => {
     console.log('Adding notes to visit:', visit);
-    // Add your notes logic here
   };
 
   const handleShare = (visit: Visit) => {
     console.log('Sharing visit via WhatsApp/SMS/Email:', visit);
-    // Add your share logic here
   };
 
   const handleDeleteVisit = (visit: Visit) => {
     console.log('Deleting visit:', visit);
-    // Add your delete logic here
   };
 
   const handleCheckIn = (visit: Visit) => {
     console.log('Checking in visit:', visit);
-    // Add your check-in logic here
   };
 
   const handleReschedule = (visit: Visit) => {
     console.log('Rescheduling visit:', visit);
-    // Add your reschedule logic here
   };
 
   const handleViewPrescription = (visit: Visit) => {
     console.log('Viewing prescription:', visit);
-    // Add your prescription view logic here
   };
 
   // Primary actions (always visible - 5 actions)
