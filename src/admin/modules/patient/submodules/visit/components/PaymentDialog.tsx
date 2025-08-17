@@ -1,247 +1,408 @@
 
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { 
-  CreditCard, 
-  Banknote, 
-  Smartphone, 
-  Plus, 
-  FileText, 
-  Download, 
-  Eye 
-} from "lucide-react";
-import { Visit } from "../types/Visit";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Visit } from '@/admin/modules/patient/submodules/visit/types/Visit';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Receipt, CreditCard, Trash2 } from 'lucide-react';
 
-interface PaymentDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  visit: Visit | null;
+interface PaymentOrderItem {
+  id: string;
+  type: 'consultation' | 'lab' | 'report' | 'medicine' | 'procedure';
+  item: string;
+  amount: number;
+  status: 'paid' | 'pending' | 'partial';
 }
 
-const PaymentDialog: React.FC<PaymentDialogProps> = ({
-  isOpen,
-  onClose,
-  visit
-}) => {
-  const [activeTab, setActiveTab] = useState<'payments' | 'invoices'>('payments');
+interface PaymentTransaction {
+  id: string;
+  date: string;
+  amount: number;
+  mode: 'cash' | 'upi' | 'card' | 'bank_transfer' | 'insurance';
+  collectedBy: string;
+  reference?: string;
+}
 
-  if (!visit) return null;
+interface PaymentDialogProps {
+  visit: Visit;
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-  // Mock payment data
-  const payments = [
+const PaymentDialog: React.FC<PaymentDialogProps> = ({ visit, isOpen, onClose }) => {
+  // Payment Order Items
+  const [orderItems, setOrderItems] = useState<PaymentOrderItem[]>([
     {
-      id: 1,
+      id: '1',
+      type: 'consultation',
+      item: 'Consultation',
       amount: 500,
-      method: 'cash',
-      status: 'completed',
-      transactionId: 'TXN001',
-      date: new Date(),
-      notes: 'Consultation fee'
+      status: 'paid'
     },
     {
-      id: 2,
-      amount: 200,
-      method: 'upi',
-      status: 'pending',
-      transactionId: 'TXN002',
-      date: new Date(),
-      notes: 'Medicine payment'
-    }
-  ];
-
-  // Mock invoice data
-  const invoices = [
+      id: '2',
+      type: 'lab',
+      item: 'Blood Test',
+      amount: 300,
+      status: 'pending'
+    },
     {
-      id: 1,
-      invoiceNumber: 'INV-001',
-      total: 1000,
-      paid: 500,
-      balance: 500,
-      status: 'partial',
-      date: new Date(),
-      items: [
-        { description: 'Consultation', amount: 500 },
-        { description: 'Medicine', amount: 300 },
-        { description: 'Lab Test', amount: 200 }
-      ]
+      id: '3',
+      type: 'lab',
+      item: 'X-Ray',
+      amount: 700,
+      status: 'pending'
     }
-  ];
+  ]);
 
-  const getPaymentIcon = (method: string) => {
-    switch (method.toLowerCase()) {
-      case 'cash':
-        return <Banknote className="h-4 w-4" />;
-      case 'card':
-        return <CreditCard className="h-4 w-4" />;
-      case 'upi':
-        return <Smartphone className="h-4 w-4" />;
-      default:
-        return <CreditCard className="h-4 w-4" />;
+  // Payment Transactions
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([
+    {
+      id: '1',
+      date: '16-Aug-25',
+      amount: 500,
+      mode: 'cash',
+      collectedBy: 'Staff A',
+      reference: ''
+    },
+    {
+      id: '2',
+      date: '17-Aug-25',
+      amount: 1000,
+      mode: 'upi',
+      collectedBy: 'Staff A',
+      reference: 'UPI12345'
+    }
+  ]);
+
+  // New transaction form
+  const [newTransaction, setNewTransaction] = useState({
+    amount: '',
+    mode: 'cash' as const,
+    collectedBy: '',
+    reference: ''
+  });
+
+  // New order item form
+  const [newOrderItem, setNewOrderItem] = useState({
+    type: 'consultation' as const,
+    item: '',
+    amount: ''
+  });
+
+  const totalDue = orderItems.reduce((sum, item) => sum + item.amount, 0);
+  const totalPaid = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const balance = totalDue - totalPaid;
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      paid: 'bg-green-100 text-green-800',
+      partial: 'bg-yellow-100 text-yellow-800',
+      pending: 'bg-red-100 text-red-800'
+    };
+    
+    return (
+      <Badge className={variants[status as keyof typeof variants] || variants.pending}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
+  const getModeDisplay = (mode: string) => {
+    const modeMap = {
+      cash: 'Cash',
+      upi: 'UPI',
+      card: 'Card',
+      bank_transfer: 'Bank Transfer',
+      insurance: 'Insurance'
+    };
+    return modeMap[mode as keyof typeof modeMap] || mode;
+  };
+
+  const addOrderItem = () => {
+    if (newOrderItem.item && newOrderItem.amount) {
+      const item: PaymentOrderItem = {
+        id: Date.now().toString(),
+        type: newOrderItem.type,
+        item: newOrderItem.item,
+        amount: parseFloat(newOrderItem.amount),
+        status: 'pending'
+      };
+      setOrderItems([...orderItems, item]);
+      setNewOrderItem({ type: 'consultation', item: '', amount: '' });
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'paid':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'partial':
-        return 'bg-orange-100 text-orange-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const addTransaction = () => {
+    if (newTransaction.amount && newTransaction.collectedBy) {
+      const transaction: PaymentTransaction = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleDateString('en-GB', { 
+          day: '2-digit', 
+          month: 'short', 
+          year: '2-digit' 
+        }),
+        amount: parseFloat(newTransaction.amount),
+        mode: newTransaction.mode,
+        collectedBy: newTransaction.collectedBy,
+        reference: newTransaction.reference
+      };
+      setTransactions([...transactions, transaction]);
+      setNewTransaction({ amount: '', mode: 'cash', collectedBy: '', reference: '' });
     }
+  };
+
+  const removeOrderItem = (id: string) => {
+    setOrderItems(orderItems.filter(item => item.id !== id));
+  };
+
+  const removeTransaction = (id: string) => {
+    setTransactions(transactions.filter(transaction => transaction.id !== id));
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            Payment & Invoice Management - {visit.patient.firstname} {visit.patient.lastname}
+          <DialogTitle className="flex items-center gap-2">
+            <Receipt className="h-5 w-5" />
+            Payment Management - Visit #{visit.id}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[70vh] overflow-hidden">
-          {/* Left Side - Payment Orders */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Payment Orders</h3>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Payment
-              </Button>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Payment Order (Line Items) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span>Payment Order (Line Items)</span>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const section = document.getElementById('add-order-item');
+                    section?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Item
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orderItems.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.item}</TableCell>
+                      <TableCell className="capitalize">{item.type}</TableCell>
+                      <TableCell>₹{item.amount}</TableCell>
+                      <TableCell>{getStatusBadge(item.status)}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeOrderItem(item.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-            <div className="space-y-3 overflow-y-auto max-h-[calc(70vh-120px)]">
-              {payments.map((payment) => (
-                <Card key={payment.id} className="border-l-4 border-l-blue-500">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        {getPaymentIcon(payment.method)}
-                        <span className="font-medium">₹{payment.amount}</span>
-                      </div>
-                      <Badge className={`${getStatusColor(payment.status)} text-xs`}>
-                        {payment.status}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <div className="flex justify-between">
-                        <span>Method:</span>
-                        <span className="capitalize">{payment.method}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Transaction ID:</span>
-                        <span>{payment.transactionId}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Date:</span>
-                        <span>{payment.date.toLocaleDateString()}</span>
-                      </div>
-                      {payment.notes && (
-                        <div className="flex justify-between">
-                          <span>Notes:</span>
-                          <span>{payment.notes}</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div className="text-lg font-semibold">Total Due: ₹{totalDue}</div>
+              </div>
 
-              {payments.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  No payments found
+              {/* Add Order Item Form */}
+              <div id="add-order-item" className="mt-6 p-4 border rounded-lg">
+                <h4 className="font-medium mb-3">Add New Item</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <Label>Type</Label>
+                    <Select 
+                      value={newOrderItem.type} 
+                      onValueChange={(value: any) => setNewOrderItem({...newOrderItem, type: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="consultation">Consultation</SelectItem>
+                        <SelectItem value="lab">Lab</SelectItem>
+                        <SelectItem value="report">Report</SelectItem>
+                        <SelectItem value="medicine">Medicine</SelectItem>
+                        <SelectItem value="procedure">Procedure</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Item</Label>
+                    <Input
+                      value={newOrderItem.item}
+                      onChange={(e) => setNewOrderItem({...newOrderItem, item: e.target.value})}
+                      placeholder="e.g., Blood Test"
+                    />
+                  </div>
+                  <div>
+                    <Label>Amount</Label>
+                    <Input
+                      type="number"
+                      value={newOrderItem.amount}
+                      onChange={(e) => setNewOrderItem({...newOrderItem, amount: e.target.value})}
+                      placeholder="0"
+                    />
+                  </div>
+                  <Button onClick={addOrderItem} className="w-full">
+                    Add Item
+                  </Button>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Right Side - Invoices */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Invoices</h3>
-              <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                <FileText className="h-4 w-4 mr-2" />
-                Create Invoice
-              </Button>
-            </div>
+          {/* Payment Transactions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span>Payments (Transactions)</span>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const section = document.getElementById('add-transaction');
+                    section?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Payment
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Mode</TableHead>
+                    <TableHead>Collected By</TableHead>
+                    <TableHead>Reference</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell>{transaction.date}</TableCell>
+                      <TableCell>₹{transaction.amount}</TableCell>
+                      <TableCell>{getModeDisplay(transaction.mode)}</TableCell>
+                      <TableCell>{transaction.collectedBy}</TableCell>
+                      <TableCell>{transaction.reference || '-'}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeTransaction(transaction.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-            <div className="space-y-3 overflow-y-auto max-h-[calc(70vh-120px)]">
-              {invoices.map((invoice) => (
-                <Card key={invoice.id} className="border-l-4 border-l-green-500">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-base">{invoice.invoiceNumber}</CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          {invoice.date.toLocaleDateString()}
-                        </p>
-                      </div>
-                      <Badge className={`${getStatusColor(invoice.status)} text-xs`}>
-                        {invoice.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    <div className="space-y-2 mb-3">
-                      <div className="flex justify-between text-sm">
-                        <span>Total:</span>
-                        <span className="font-medium">₹{invoice.total}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Paid:</span>
-                        <span className="text-green-600">₹{invoice.paid}</span>
-                      </div>
-                      <div className="flex justify-between text-sm font-medium">
-                        <span>Balance:</span>
-                        <span className="text-red-600">₹{invoice.balance}</span>
-                      </div>
-                    </div>
-
-                    <Separator className="my-2" />
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Items:</p>
-                      {invoice.items.map((item, index) => (
-                        <div key={index} className="flex justify-between text-xs">
-                          <span>{item.description}</span>
-                          <span>₹{item.amount}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex gap-2 mt-3">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Download className="h-3 w-3 mr-1" />
-                        Download
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {invoices.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  No invoices found
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Total Paid: ₹{totalPaid}</span>
                 </div>
-              )}
-            </div>
-          </div>
+                <div className={`flex justify-between text-lg font-semibold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  <span>Balance: ₹{balance}</span>
+                </div>
+              </div>
+
+              {/* Add Transaction Form */}
+              <div id="add-transaction" className="mt-6 p-4 border rounded-lg">
+                <h4 className="font-medium mb-3">Add New Payment</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <Label>Amount</Label>
+                    <Input
+                      type="number"
+                      value={newTransaction.amount}
+                      onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label>Payment Mode</Label>
+                    <Select 
+                      value={newTransaction.mode} 
+                      onValueChange={(value: any) => setNewTransaction({...newTransaction, mode: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="upi">UPI</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="insurance">Insurance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Collected By</Label>
+                    <Input
+                      value={newTransaction.collectedBy}
+                      onChange={(e) => setNewTransaction({...newTransaction, collectedBy: e.target.value})}
+                      placeholder="Staff name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Reference Number (Optional)</Label>
+                    <Input
+                      value={newTransaction.reference}
+                      onChange={(e) => setNewTransaction({...newTransaction, reference: e.target.value})}
+                      placeholder="Transaction ID, cheque no, etc."
+                    />
+                  </div>
+                  <Button onClick={addTransaction} className="w-full">
+                    <CreditCard className="h-4 w-4 mr-1" />
+                    Add Payment
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-6">
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+          <Button>
+            Save Changes
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
