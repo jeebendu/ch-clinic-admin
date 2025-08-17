@@ -1,33 +1,15 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Visit } from '@/admin/modules/patient/submodules/visit/types/Visit';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Receipt, CreditCard, Trash2 } from 'lucide-react';
-
-interface PaymentOrderItem {
-  id: string;
-  type: 'consultation' | 'lab' | 'report' | 'medicine' | 'procedure';
-  item: string;
-  amount: number;
-  status: 'paid' | 'pending' | 'partial';
-}
-
-interface PaymentTransaction {
-  id: string;
-  date: string;
-  amount: number;
-  mode: 'cash' | 'upi' | 'card' | 'bank_transfer' | 'insurance';
-  collectedBy: string;
-  reference?: string;
-}
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from '@/components/ui/dialog';
+import FormDialog from '@/components/ui/form-dialog';
+import { DollarSign, Plus, Trash2, Receipt, CreditCard } from 'lucide-react';
+import { Visit } from '../types/Visit';
 
 interface PaymentDialogProps {
   visit: Visit;
@@ -35,76 +17,86 @@ interface PaymentDialogProps {
   onClose: () => void;
 }
 
+interface PaymentOrderItem {
+  id: string;
+  type: string;
+  description: string;
+  amount: number;
+  status: 'pending' | 'paid';
+}
+
+interface PaymentTransaction {
+  id: string;
+  amount: number;
+  mode: string;
+  date: string;
+  collectedBy: string;
+  referenceNumber?: string;
+}
+
 const PaymentDialog: React.FC<PaymentDialogProps> = ({ visit, isOpen, onClose }) => {
-  // Payment Order Items
   const [orderItems, setOrderItems] = useState<PaymentOrderItem[]>([
     {
       id: '1',
       type: 'consultation',
-      item: 'Consultation',
+      description: 'Consultation',
       amount: 500,
       status: 'paid'
     },
     {
       id: '2',
       type: 'lab',
-      item: 'Blood Test',
+      description: 'Blood Test',
       amount: 300,
       status: 'pending'
     },
     {
       id: '3',
       type: 'lab',
-      item: 'X-Ray',
+      description: 'X-Ray',
       amount: 700,
       status: 'pending'
     }
   ]);
 
-  // Payment Transactions
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([
     {
       id: '1',
-      date: '16-Aug-25',
       amount: 500,
       mode: 'cash',
+      date: '16-Aug-25',
       collectedBy: 'Staff A',
-      reference: ''
+      referenceNumber: ''
     },
     {
       id: '2',
-      date: '17-Aug-25',
       amount: 1000,
       mode: 'upi',
+      date: '17-Aug-25',
       collectedBy: 'Staff A',
-      reference: 'UPI12345'
+      referenceNumber: 'UPI12345'
     }
   ]);
 
-  // New transaction form
-  const [newTransaction, setNewTransaction] = useState({
-    amount: '',
-    mode: 'cash' as const,
-    collectedBy: '',
-    reference: ''
-  });
-
-  // New order item form
-  const [newOrderItem, setNewOrderItem] = useState({
-    type: 'consultation' as const,
-    item: '',
-    amount: ''
-  });
+  const [addItemOpen, setAddItemOpen] = useState(false);
+  const [addPaymentOpen, setAddPaymentOpen] = useState(false);
 
   const totalDue = orderItems.reduce((sum, item) => sum + item.amount, 0);
   const totalPaid = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
   const balance = totalDue - totalPaid;
 
+  const handleRemoveItem = (id: string) => {
+    setOrderItems(items => items.filter(item => item.id !== id));
+  };
+
+  const handleRemoveTransaction = (id: string) => {
+    setTransactions(transactions => transactions.filter(t => t.id !== id));
+  };
+
   const getStatusBadge = (status: string) => {
     const variants = {
       paid: 'bg-green-100 text-green-800',
-      partial: 'bg-yellow-100 text-yellow-800',
-      pending: 'bg-red-100 text-red-800'
+      pending: 'bg-yellow-100 text-yellow-800'
     };
     
     return (
@@ -114,80 +106,45 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ visit, isOpen, onClose })
     );
   };
 
-  const getModeDisplay = (mode: string) => {
-    const modeMap = {
-      cash: 'Cash',
-      upi: 'UPI',
-      card: 'Card',
-      bank_transfer: 'Bank Transfer',
-      insurance: 'Insurance'
-    };
-    return modeMap[mode as keyof typeof modeMap] || mode;
-  };
-
-  const addOrderItem = () => {
-    if (newOrderItem.item && newOrderItem.amount) {
-      const item: PaymentOrderItem = {
-        id: Date.now().toString(),
-        type: newOrderItem.type,
-        item: newOrderItem.item,
-        amount: parseFloat(newOrderItem.amount),
-        status: 'pending'
-      };
-      setOrderItems([...orderItems, item]);
-      setNewOrderItem({ type: 'consultation', item: '', amount: '' });
-    }
-  };
-
-  const addTransaction = () => {
-    if (newTransaction.amount && newTransaction.collectedBy) {
-      const transaction: PaymentTransaction = {
-        id: Date.now().toString(),
-        date: new Date().toLocaleDateString('en-GB', { 
-          day: '2-digit', 
-          month: 'short', 
-          year: '2-digit' 
-        }),
-        amount: parseFloat(newTransaction.amount),
-        mode: newTransaction.mode,
-        collectedBy: newTransaction.collectedBy,
-        reference: newTransaction.reference
-      };
-      setTransactions([...transactions, transaction]);
-      setNewTransaction({ amount: '', mode: 'cash', collectedBy: '', reference: '' });
-    }
-  };
-
-  const removeOrderItem = (id: string) => {
-    setOrderItems(orderItems.filter(item => item.id !== id));
-  };
-
-  const removeTransaction = (id: string) => {
-    setTransactions(transactions.filter(transaction => transaction.id !== id));
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5" />
-            Payment Management - Visit 
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <FormDialog
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Payment Management"
+        maxWidth="max-w-4xl"
+      >
+        <div className="space-y-6">
+          {/* Payment Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Total Due</div>
+              <div className="text-2xl font-bold">₹{totalDue}</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Total Paid</div>
+              <div className="text-2xl font-bold text-green-600">₹{totalPaid}</div>
+            </div>
+            <div className={`p-4 rounded-lg ${balance > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
+              <div className="text-sm text-muted-foreground">Balance</div>
+              <div className={`text-2xl font-bold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                ₹{balance}
+              </div>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Payment Order (Line Items) */}
+          {/* Payment Order (Line Items) - Top Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center justify-between">
-                <span>Payment Order (Line Items)</span>
-                <Button
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Payment Order (Line Items)
+                </div>
+                <Button 
+                  onClick={() => setAddItemOpen(true)}
                   size="sm"
-                  onClick={() => {
-                    const section = document.getElementById('add-order-item');
-                    section?.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Item
@@ -195,100 +152,63 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ visit, isOpen, onClose })
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orderItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.item}</TableCell>
-                      <TableCell className="capitalize">{item.type}</TableCell>
-                      <TableCell>₹{item.amount}</TableCell>
-                      <TableCell>{getStatusBadge(item.status)}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeOrderItem(item.id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="text-lg font-semibold">Total Due: ₹{totalDue}</div>
-              </div>
-
-              {/* Add Order Item Form */}
-              <div id="add-order-item" className="mt-6 p-4 border rounded-lg">
-                <h4 className="font-medium mb-3">Add New Item</h4>
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <Label>Type</Label>
-                    <Select 
-                      value={newOrderItem.type} 
-                      onValueChange={(value: any) => setNewOrderItem({...newOrderItem, type: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="consultation">Consultation</SelectItem>
-                        <SelectItem value="lab">Lab</SelectItem>
-                        <SelectItem value="report">Report</SelectItem>
-                        <SelectItem value="medicine">Medicine</SelectItem>
-                        <SelectItem value="procedure">Procedure</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Item</Label>
-                    <Input
-                      value={newOrderItem.item}
-                      onChange={(e) => setNewOrderItem({...newOrderItem, item: e.target.value})}
-                      placeholder="e.g., Blood Test"
-                    />
-                  </div>
-                  <div>
-                    <Label>Amount</Label>
-                    <Input
-                      type="number"
-                      value={newOrderItem.amount}
-                      onChange={(e) => setNewOrderItem({...newOrderItem, amount: e.target.value})}
-                      placeholder="0"
-                    />
-                  </div>
-                  <Button onClick={addOrderItem} className="w-full">
-                    Add Item
-                  </Button>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Item</th>
+                      <th className="text-left py-2">Type</th>
+                      <th className="text-right py-2">Amount</th>
+                      <th className="text-center py-2">Status</th>
+                      <th className="text-center py-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orderItems.map((item) => (
+                      <tr key={item.id} className="border-b">
+                        <td className="py-3">{item.description}</td>
+                        <td className="py-3 capitalize">{item.type}</td>
+                        <td className="py-3 text-right font-medium">₹{item.amount}</td>
+                        <td className="py-3 text-center">
+                          {getStatusBadge(item.status)}
+                        </td>
+                        <td className="py-3 text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 font-bold">
+                      <td colSpan={2} className="py-3">Total Due:</td>
+                      <td className="py-3 text-right text-lg">₹{totalDue}</td>
+                      <td colSpan={2}></td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </CardContent>
           </Card>
 
-          {/* Payment Transactions */}
+          {/* Payments (Transactions) - Bottom Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center justify-between">
-                <span>Payments (Transactions)</span>
-                <Button
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Payments (Transactions)
+                </div>
+                <Button 
+                  onClick={() => setAddPaymentOpen(true)}
                   size="sm"
-                  onClick={() => {
-                    const section = document.getElementById('add-transaction');
-                    section?.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  className="bg-green-600 hover:bg-green-700"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Payment
@@ -296,114 +216,279 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ visit, isOpen, onClose })
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Mode</TableHead>
-                    <TableHead>Collected By</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell>{transaction.date}</TableCell>
-                      <TableCell>₹{transaction.amount}</TableCell>
-                      <TableCell>{getModeDisplay(transaction.mode)}</TableCell>
-                      <TableCell>{transaction.collectedBy}</TableCell>
-                      <TableCell>{transaction.reference || '-'}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeTransaction(transaction.id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
-                <div className="flex justify-between text-lg font-semibold">
-                  <span>Total Paid: ₹{totalPaid}</span>
-                </div>
-                <div className={`flex justify-between text-lg font-semibold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  <span>Balance: ₹{balance}</span>
-                </div>
-              </div>
-
-              {/* Add Transaction Form */}
-              <div id="add-transaction" className="mt-6 p-4 border rounded-lg">
-                <h4 className="font-medium mb-3">Add New Payment</h4>
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <Label>Amount</Label>
-                    <Input
-                      type="number"
-                      value={newTransaction.amount}
-                      onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label>Payment Mode</Label>
-                    <Select 
-                      value={newTransaction.mode} 
-                      onValueChange={(value: any) => setNewTransaction({...newTransaction, mode: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="upi">UPI</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                        <SelectItem value="insurance">Insurance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Collected By</Label>
-                    <Input
-                      value={newTransaction.collectedBy}
-                      onChange={(e) => setNewTransaction({...newTransaction, collectedBy: e.target.value})}
-                      placeholder="Staff name"
-                    />
-                  </div>
-                  <div>
-                    <Label>Reference Number (Optional)</Label>
-                    <Input
-                      value={newTransaction.reference}
-                      onChange={(e) => setNewTransaction({...newTransaction, reference: e.target.value})}
-                      placeholder="Transaction ID, cheque no, etc."
-                    />
-                  </div>
-                  <Button onClick={addTransaction} className="w-full">
-                    <CreditCard className="h-4 w-4 mr-1" />
-                    Add Payment
-                  </Button>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Date</th>
+                      <th className="text-right py-2">Amount</th>
+                      <th className="text-left py-2">Mode</th>
+                      <th className="text-left py-2">Collected By</th>
+                      <th className="text-left py-2">Reference</th>
+                      <th className="text-center py-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((transaction) => (
+                      <tr key={transaction.id} className="border-b">
+                        <td className="py-3">{transaction.date}</td>
+                        <td className="py-3 text-right font-medium">₹{transaction.amount}</td>
+                        <td className="py-3 capitalize">{transaction.mode}</td>
+                        <td className="py-3">{transaction.collectedBy}</td>
+                        <td className="py-3">{transaction.referenceNumber || '-'}</td>
+                        <td className="py-3 text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveTransaction(transaction.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 font-bold">
+                      <td className="py-3">Total Paid:</td>
+                      <td className="py-3 text-right text-lg">₹{totalPaid}</td>
+                      <td colSpan={4}></td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </CardContent>
           </Card>
         </div>
+      </FormDialog>
 
-        <div className="flex justify-end gap-2 mt-6">
+      <AddItemDialog
+        isOpen={addItemOpen}
+        onClose={() => setAddItemOpen(false)}
+        onAdd={(item) => {
+          setOrderItems(items => [...items, { ...item, id: Date.now().toString() }]);
+          setAddItemOpen(false);
+        }}
+      />
+
+      <AddPaymentDialog
+        isOpen={addPaymentOpen}
+        onClose={() => setAddPaymentOpen(false)}
+        onAdd={(payment) => {
+          setTransactions(transactions => [...transactions, { ...payment, id: Date.now().toString() }]);
+          setAddPaymentOpen(false);
+        }}
+      />
+    </>
+  );
+};
+
+// Add Item Dialog Component
+const AddItemDialog: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onAdd: (item: Omit<PaymentOrderItem, 'id'>) => void;
+}> = ({ isOpen, onClose, onAdd }) => {
+  const [description, setDescription] = useState('');
+  const [type, setType] = useState('');
+  const [amount, setAmount] = useState('');
+  const [status, setStatus] = useState<'pending' | 'paid'>('pending');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (description && type && amount) {
+      onAdd({
+        description,
+        type,
+        amount: parseFloat(amount),
+        status
+      });
+      // Reset form
+      setDescription('');
+      setType('');
+      setAmount('');
+      setStatus('pending');
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Line Item</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="description">Item Description</Label>
+              <Input
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g., Consultation, Blood Test"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="type">Type</Label>
+              <Select value={type} onValueChange={setType} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="consultation">Consultation</SelectItem>
+                  <SelectItem value="lab">Lab</SelectItem>
+                  <SelectItem value="pharmacy">Pharmacy</SelectItem>
+                  <SelectItem value="procedure">Procedure</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="amount">Amount (₹)</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select value={status} onValueChange={(value: 'pending' | 'paid') => setStatus(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </form>
+        </DialogBody>
+        <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Close
+            Cancel
           </Button>
-          <Button>
-            Save Changes
+          <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700">
+            Add Item
           </Button>
-        </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Add Payment Dialog Component
+const AddPaymentDialog: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onAdd: (payment: Omit<PaymentTransaction, 'id'>) => void;
+}> = ({ isOpen, onClose, onAdd }) => {
+  const [amount, setAmount] = useState('');
+  const [mode, setMode] = useState('');
+  const [collectedBy, setCollectedBy] = useState('');
+  const [referenceNumber, setReferenceNumber] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (amount && mode && collectedBy) {
+      onAdd({
+        amount: parseFloat(amount),
+        mode,
+        collectedBy,
+        referenceNumber,
+        date: new Date().toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: '2-digit'
+        })
+      });
+      // Reset form
+      setAmount('');
+      setMode('');
+      setCollectedBy('');
+      setReferenceNumber('');
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Payment</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="amount">Amount (₹)</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="mode">Payment Mode</Label>
+              <Select value={mode} onValueChange={setMode} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="upi">UPI</SelectItem>
+                  <SelectItem value="card">Card</SelectItem>
+                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="cheque">Cheque</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="collectedBy">Collected By</Label>
+              <Input
+                id="collectedBy"
+                value={collectedBy}
+                onChange={(e) => setCollectedBy(e.target.value)}
+                placeholder="Staff name"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="referenceNumber">Reference Number (Optional)</Label>
+              <Input
+                id="referenceNumber"
+                value={referenceNumber}
+                onChange={(e) => setReferenceNumber(e.target.value)}
+                placeholder="Transaction ID, Cheque number, etc."
+              />
+            </div>
+          </form>
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">
+            Add Payment
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
