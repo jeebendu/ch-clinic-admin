@@ -3,60 +3,51 @@ import React, { useState } from 'react';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { QueueDrawer } from '@/admin/modules/queue/components/QueueDrawer';
-import { useQueueData } from '@/hooks/useQueueData';
-import { useBranchFilter } from '@/hooks/use-branch-filter';
+import { useQueueCount } from '@/hooks/useQueueData';
 
-export const FloatingQueueButton: React.FC = () => {
+const FloatingQueueButton: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { selectedBranch } = useBranchFilter();
 
-  // Get today's date
-  const today = new Date().toISOString().split('T')[0];
-
-  // Fetch queue count for the floating button
-  const { data: queueResponse } = useQueueData({
-    branch_id: selectedBranch ? parseInt(selectedBranch) : undefined,
-    date: today,
-    sort_by: 'actual_sequence',
-    limit: 50, // Get more data for accurate counts
-    enabled: !!selectedBranch,
+  // Only fetch count for the floating button
+  const { data: queueCount = 0, isLoading } = useQueueCount({
+    // Add any default params if needed
   });
-
-  const queueItems = queueResponse?.queue_items || [];
-  const activeCount = queueItems.filter(item => 
-    item.status === 'waiting' || item.status === 'in_consultation'
-  ).length;
-
-  if (!selectedBranch) {
-    return null;
-  }
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-30">
-        <Button
-          onClick={() => setIsDrawerOpen(true)}
-          className="relative bg-clinic-primary hover:bg-clinic-primary/90 text-white rounded-full h-14 w-14 shadow-lg hover:shadow-xl transition-all duration-200"
-          size="sm"
-        >
-          <Users className="h-6 w-6" />
-          {activeCount > 0 && (
+      {/* Floating Button */}
+      <Button
+        onClick={() => setIsDrawerOpen(true)}
+        className={cn(
+          "fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg",
+          "bg-clinic-primary hover:bg-clinic-secondary text-white",
+          "transition-all duration-300 hover:scale-110",
+          "md:h-16 md:w-16"
+        )}
+        disabled={isLoading}
+      >
+        <div className="flex flex-col items-center">
+          <Users className="h-5 w-5 md:h-6 md:w-6" />
+          {queueCount > 0 && (
             <Badge 
               variant="destructive" 
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs font-bold"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs"
             >
-              {activeCount > 99 ? '99+' : activeCount}
+              {queueCount}
             </Badge>
           )}
-        </Button>
-      </div>
+        </div>
+      </Button>
 
+      {/* Queue Drawer - will fetch its own data when opened */}
       <QueueDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        branchId={selectedBranch}
       />
     </>
   );
 };
+
+export default FloatingQueueButton;
