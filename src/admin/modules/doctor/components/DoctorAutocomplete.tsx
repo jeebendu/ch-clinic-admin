@@ -94,18 +94,19 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
   }, [value]);
 
   const handleSelect = (doctor: Doctor) => {
+    console.log('Selecting doctor:', doctor);
     onSelect(doctor);
     setSearchValue(`${doctor.firstname} ${doctor.lastname}`);
     setOpen(false);
     // keep focus on input after selection for better UX
-    requestAnimationFrame(() => inputRef.current?.focus());
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const handleClear = () => {
     onSelect(null);
     setSearchValue("");
     setOpen(false);
-    requestAnimationFrame(() => inputRef.current?.focus());
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,15 +132,15 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     setOpen(true);
   };
 
-  // Pressing Enter selects the first visible doctor instead of closing
+  // Pressing Enter selects the first visible doctor
   const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // prevent form submit / popover toggle
+      e.preventDefault();
       if (filteredDoctors.length > 0) {
         handleSelect(filteredDoctors[0]);
       }
     }
-    // optional: Escape to close
+    // Escape to close
     if (e.key === 'Escape') {
       setOpen(false);
     }
@@ -164,8 +165,8 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
           <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         </div>
       </PopoverTrigger>
-      <PopoverContent className="p-0" style={{ width: popoverWidth }}>
-        <Command>
+      <PopoverContent className="p-0 z-50" style={{ width: popoverWidth }}>
+        <Command shouldFilter={false}>
           <CommandList>
             {loading ? (
               <CommandEmpty>Loading doctors...</CommandEmpty>
@@ -176,8 +177,10 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
                 {filteredDoctors.map((doctor) => (
                   <CommandItem
                     key={doctor.id}
-                    value={`${doctor.firstname} ${doctor.lastname}`}
-                    onSelect={() => handleSelect(doctor)}
+                    onSelect={(currentValue) => {
+                      console.log('Command item selected:', currentValue);
+                      handleSelect(doctor);
+                    }}
                     className="cursor-pointer"
                   >
                     <Check
@@ -204,7 +207,10 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
                   </CommandItem>
                 ))}
                 {value && (
-                  <CommandItem onSelect={handleClear} className="cursor-pointer text-red-600">
+                  <CommandItem 
+                    onSelect={() => handleClear()} 
+                    className="cursor-pointer text-red-600"
+                  >
                     Clear selection
                   </CommandItem>
                 )}
