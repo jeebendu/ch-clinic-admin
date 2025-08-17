@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Doctor } from '../types/Doctor';
-import { DoctorService } from '../services/doctorService';
+import DoctorService from '../services/doctorService';
 
 interface DoctorAutocompleteProps {
   value?: Doctor | null;
