@@ -1,6 +1,7 @@
+
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, Clock, DollarSign } from "lucide-react";
+import { User, Calendar, Clock, DollarSign, Stethoscope, UserCheck } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Visit } from "../types/Visit";
@@ -137,92 +138,127 @@ export const VisitList: React.FC<VisitListProps> = ({
       <div className="space-y-3">
         {visits.map((visit) => (
           <Card 
-              key={visit.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => handleVisitClick(visit)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 space-y-3">
-                    {/* Header Row */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-blue-600" />
-                          <span className="font-semibold text-md">{visit.patient.firstname } {visit.patient.lastname }</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>{visit.patient.age}y</span>
-                          <span>•</span>
-                          <span>{visit.patient.gender}</span>
-                        </div>
-                      </div>
+            key={visit.id} 
+            className="hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => handleVisitClick(visit)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 space-y-4">
+                  {/* Header Row - Patient Info */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
-                        <Badge className={`text-xs ${getStatusColor(visit.status)}`}>
-                          {visit.status}
-                        </Badge>
-                        <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
-                          {visit.paymentStatus}
-                        </Badge>
+                        <User className="h-4 w-4 text-blue-600" />
+                        <span className="font-semibold text-md">{visit.patient?.firstname} {visit.patient?.lastname}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <span>{visit.patient?.age}y</span>
+                        <span>•</span>
+                        <span>{visit.patient?.gender}</span>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={`text-xs ${getStatusColor(visit.status)}`}>
+                        {visit.status}
+                      </Badge>
+                    </div>
+                  </div>
 
-                    {/* Second Row - Doctor & Date */}
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>{format(new Date(visit.createdTime), 'MMM dd, yyyy')}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span>{format(new Date(visit.createdTime), 'HH:mm')}</span>
-                        </div>
+                  {/* Visit Details Row */}
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        <span>{format(new Date(visit.createdTime), 'MMM dd, yyyy')}</span>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <span>Dr. {visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</span>
-                        <span>•</span>
-                        <span>{visit.consultingDoctor.specializationList?.join(", ")}</span>
+                        <Clock className="h-4 w-4" />
+                        <span>{format(new Date(visit.createdTime), 'HH:mm')}</span>
                       </div>
+                      <Badge variant="outline" className="text-xs">
+                        {visit.type}
+                      </Badge>
                     </div>
+                  </div>
 
-                    {/* Third Row - Visit Details */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm">
-                        <Badge variant="outline" className="text-xs">
-                          {visit.type}
-                        </Badge>
-                        <span className="text-muted-foreground max-w-xs">
-                          {visit.complaints}
-                        </span>
+                  {/* Complaints */}
+                  {visit.complaints && (
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Complaints: </span>
+                      <span>{visit.complaints}</span>
+                    </div>
+                  )}
+
+                  {/* Doctor Information Section */}
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                    <div className="text-xs text-blue-600 uppercase tracking-wide font-medium mb-2">
+                      Doctor Information
+                    </div>
+                    <div className="space-y-2">
+                      {/* Consulting Doctor */}
+                      <div className="flex items-center gap-2">
+                        <Stethoscope className="h-4 w-4 text-blue-600" />
+                        <div>
+                          <span className="font-medium text-sm">
+                            Dr. {visit.consultingDoctor?.firstname} {visit.consultingDoctor?.lastname}
+                          </span>
+                          {visit.consultingDoctor?.specializationList && (
+                            <span className="text-xs text-muted-foreground ml-2">
+                              • {visit.consultingDoctor.specializationList.map(s => s.name).join(", ")}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-sm">
+                      
+                      {/* Referral Doctor */}
+                      {(visit.referByDoctor || visit.referralDoctorName) && (
+                        <div className="flex items-center gap-2">
+                          <UserCheck className="h-4 w-4 text-green-600" />
+                          <div>
+                            <span className="text-xs text-green-600 uppercase tracking-wide">Referred by: </span>
+                            <span className="text-sm">
+                              {visit.referByDoctor 
+                                ? `Dr. ${visit.referByDoctor.firstname} ${visit.referByDoctor.lastname}`
+                                : visit.referralDoctorName
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Payment Section */}
+                  <div className="bg-green-50 rounded-lg p-3 border border-green-100">
+                    <div className="text-xs text-green-600 uppercase tracking-wide font-medium mb-2">
+                      Payment Information
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
                         <DollarSign className="h-4 w-4 text-green-600" />
-                        <span className="font-medium">₹{visit.paymentPaid || 0}</span>
+                        <span className="font-medium text-sm">₹{visit.paymentPaid || 0}</span>
                         {visit.paymentAmount > 0 && (
-                          <span className="text-muted-foreground">/ ₹{visit.paymentAmount}</span>
+                          <span className="text-muted-foreground text-sm">/ ₹{visit.paymentAmount}</span>
                         )}
                       </div>
+                      <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
+                        {visit.paymentStatus || 'pending'}
+                      </Badge>
                     </div>
-
-                    {/* Reference Doctor if exists */}
-                    {visit.referralDoctorName && (
-                      <div className="text-xs text-muted-foreground">
-                        Referred by: {visit.referralDoctorName}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="ml-4">
-                    <RowActions 
-                      actions={getCustomizedActions(visit)} 
-                      maxVisibleActions={5}
-                    />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Actions */}
+                <div className="ml-4">
+                  <RowActions 
+                    actions={getCustomizedActions(visit)} 
+                    maxVisibleActions={5}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
@@ -235,3 +271,4 @@ export const VisitList: React.FC<VisitListProps> = ({
     </>
   );
 };
+
