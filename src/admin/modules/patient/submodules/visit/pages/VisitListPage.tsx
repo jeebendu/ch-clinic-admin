@@ -1,4 +1,3 @@
-
 import { useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -28,13 +27,13 @@ const VisitListPage = () => {
   const [size, setSize] = useState(10);
   const [currentFilters, setCurrentFilters] = useState<VisitFilter>({});
 
-  // Page-level edit state management
+  // Page-level modal state management
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
   const {
-    detailsModalOpen,
-    setDetailsModalOpen,
+    // Keep the hook for other actions that haven't been moved yet
   } = useVisitActions();
 
   const {
@@ -88,11 +87,17 @@ const VisitListPage = () => {
   const allVisits: Visit[] = data?.pages.flatMap(page => page.content) || [];
   const totalElements = data?.pages[0]?.totalElements || 0;
 
-  // Page-level edit handlers
+  // Page-level handlers
   const handleEditVisit = (visit: Visit) => {
     console.log('Editing visit at page level:', visit);
     setSelectedVisit(visit);
     setEditDialogOpen(true);
+  };
+
+  const handleViewDetails = (visit: Visit) => {
+    console.log('Viewing visit details at page level:', visit);
+    setSelectedVisit(visit);
+    setDetailsModalOpen(true);
   };
 
   const handleViewModeToggle = () => {
@@ -140,15 +145,15 @@ const VisitListPage = () => {
   const renderContent = () => {
     switch (viewMode) {
       case 'list':
-        return <VisitList visits={allVisits} onEditVisit={handleEditVisit} />;
+        return <VisitList visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
       case 'table':
-        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} />;
+        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
       case 'calendar':
         return <VisitCalendar visits={allVisits} />;
       case 'grid':
         return <VisitGrid visits={allVisits} />;
       default:
-        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} />;
+        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
     }
   };
 
@@ -231,7 +236,7 @@ const VisitListPage = () => {
         onSave={handleVisitSave}
       />
 
-      {/* Edit Visit Dialog - Now using page-level state */}
+      {/* Edit Visit Dialog - Using page-level state */}
       <VisitFormDialog
         isOpen={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
@@ -239,7 +244,7 @@ const VisitListPage = () => {
         visit={selectedVisit}
       />
 
-      {/* Visit Details Modal */}
+      {/* Visit Details Modal - Using page-level state */}
       <VisitDetailsModal
         isOpen={detailsModalOpen}
         onClose={() => setDetailsModalOpen(false)}

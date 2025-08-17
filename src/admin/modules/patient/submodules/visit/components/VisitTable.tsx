@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -12,6 +11,7 @@ interface VisitTableProps {
   onView?: (visit: Visit) => void;
   onEdit?: (visit: Visit) => void;
   onEditVisit?: (visit: Visit) => void; // Page-level edit handler
+  onViewDetails?: (visit: Visit) => void; // Page-level view details handler
 }
 
 export const VisitTable = ({ 
@@ -19,7 +19,8 @@ export const VisitTable = ({
   loading = false, 
   onView, 
   onEdit,
-  onEditVisit 
+  onEditVisit,
+  onViewDetails 
 }: VisitTableProps) => {
 
   const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
@@ -52,12 +53,29 @@ export const VisitTable = ({
     }
   };
 
-  // Override the edit action in getSecondaryVisitActions if onEditVisit is provided
+  // Override actions based on page-level handlers
+  const getCustomizedPrimaryActions = (visit: Visit) => {
+    const actions = getPrimaryVisitActions(visit);
+    
+    // Override view details action if page-level handler provided
+    if (onViewDetails) {
+      const viewDetailsIndex = actions.findIndex(action => action.label === "View Details");
+      if (viewDetailsIndex !== -1) {
+        actions[viewDetailsIndex] = {
+          ...actions[viewDetailsIndex],
+          onClick: () => onViewDetails(visit)
+        };
+      }
+    }
+    
+    return actions;
+  };
+
   const getCustomizedSecondaryActions = (visit: Visit) => {
     const actions = getSecondaryVisitActions(visit);
     
+    // Override edit action if page-level handler provided
     if (onEditVisit) {
-      // Find and override the edit action
       const editActionIndex = actions.findIndex(action => action.label === "Edit Visit");
       if (editActionIndex !== -1) {
         actions[editActionIndex] = {
@@ -185,7 +203,7 @@ export const VisitTable = ({
                 </TableCell>
                 <TableCell className="text-center">
                   <RowActions 
-                    actions={getPrimaryVisitActions(visit)} 
+                    actions={getCustomizedPrimaryActions(visit)} 
                     maxVisibleActions={5}
                   />
                 </TableCell>

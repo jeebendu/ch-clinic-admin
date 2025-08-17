@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { User, Calendar, Clock, DollarSign } from "lucide-react";
@@ -14,6 +13,7 @@ interface VisitListProps {
   onView?: (visit: Visit) => void;
   onEdit?: (visit: Visit) => void;
   onEditVisit?: (visit: Visit) => void; // Page-level edit handler
+  onViewDetails?: (visit: Visit) => void; // Page-level view details handler
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ 
@@ -21,7 +21,8 @@ export const VisitList: React.FC<VisitListProps> = ({
   loading = false, 
   onView, 
   onEdit,
-  onEditVisit 
+  onEditVisit,
+  onViewDetails 
 }) => {
 
   const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
@@ -81,13 +82,24 @@ export const VisitList: React.FC<VisitListProps> = ({
     );
   }
 
-  // Override the edit action in getPrimaryVisitActions if onEditVisit is provided
+  // Override actions based on page-level handlers
   const getCustomizedActions = (visit: Visit) => {
     const primaryActions = getPrimaryVisitActions(visit);
     const secondaryActions = getSecondaryVisitActions(visit);
 
+    // Override view details action if page-level handler provided
+    if (onViewDetails) {
+      const viewDetailsIndex = primaryActions.findIndex(action => action.label === "View Details");
+      if (viewDetailsIndex !== -1) {
+        primaryActions[viewDetailsIndex] = {
+          ...primaryActions[viewDetailsIndex],
+          onClick: () => onViewDetails(visit)
+        };
+      }
+    }
+
+    // Override edit action if page-level handler provided
     if (onEditVisit) {
-      // Find and override the edit action in secondary actions
       const editActionIndex = secondaryActions.findIndex(action => action.label === "Edit Visit");
       if (editActionIndex !== -1) {
         secondaryActions[editActionIndex] = {
