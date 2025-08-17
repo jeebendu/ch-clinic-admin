@@ -38,7 +38,7 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     const loadDoctors = async () => {
       setIsLoading(true);
       try {
-        const doctors = await DoctorService.getAllDoctors();
+        const doctors = await DoctorService.findAllDoctors();
         setAllDoctors(doctors);
       } catch (error) {
         console.error("Error loading doctors:", error);
