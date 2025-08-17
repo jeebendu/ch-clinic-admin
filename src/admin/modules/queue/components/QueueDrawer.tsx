@@ -1,201 +1,293 @@
 
-import React, { useState, useEffect } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import React, { useState } from 'react';
+import { X, Users, Clock, Eye, Phone, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon, Phone, Clock, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { useQueueService } from '../services/queueService';
-import { Appointment } from '../../appointments/types/Appointment';
+import { QueueItemDto } from '@/admin/modules/queue/types/QueueApi';
+import { useQueueData } from '@/hooks/useQueueData';
 
 interface QueueDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  branchId: string;
 }
 
-export const QueueDrawer: React.FC<QueueDrawerProps> = ({ isOpen, onClose }) => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const { data: queueData, isLoading, refetch } = useQueueService.useGetQueue({
-    date: format(selectedDate, 'yyyy-MM-dd')
-  });
-
-  useEffect(() => {
-    if (isOpen) {
-      refetch();
-    }
-  }, [isOpen, selectedDate, refetch]);
-
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date);
-      setDatePickerOpen(false);
-    }
-  };
-
-  const handleTodayClick = () => {
-    setSelectedDate(new Date());
-    setDatePickerOpen(false);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
+const QueuePatientItem: React.FC<{ 
+  item: QueueItemDto; 
+  sequenceNumber: number;
+}> = ({ item, sequenceNumber }) => {
+  const getStatusBadge = () => {
+    const status = item.status?.toLowerCase() || 'waiting';
+    switch (status) {
       case 'waiting':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            Waiting
+          </Badge>
+        );
+      case 'in_consultation':
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            In Consultation
+          </Badge>
+        );
+      case 'no_show':
+        return (
+          <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+            No-Show
+          </Badge>
+        );
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return (
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+            {status}
+          </Badge>
+        );
     }
   };
 
-  const calculateAge = (dob: string): number => {
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+  const formatWaitingTime = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes}m`;
     }
-    
-    return age;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
   };
 
-  const formatPatientDetails = (patient: any): string => {
-    if (!patient) return '';
-    
-    const age = patient.dob ? calculateAge(patient.dob) : patient.age || '';
-    const gender = patient.gender ? patient.gender.charAt(0).toUpperCase() : '';
-    
-    return `${age}${gender ? ` ${gender}` : ''}`;
+  const formatEstimatedTime = (estimatedTime: string) => {
+    const date = new Date(estimatedTime);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  };
+
+  const handlePhoneCall = (phoneNumber: string) => {
+    if (phoneNumber) {
+      window.open(`tel:${phoneNumber}`, '_self');
+    }
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-none">
-        <SheetHeader className="border-b pb-4">
-          <SheetTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Queue Management
-          </SheetTitle>
-        </SheetHeader>
-
-        <div className="py-4">
-          {/* Date Filter */}
-          <div className="flex items-center gap-2 mb-6">
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-[240px] justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-            
-            <Button
-              variant="outline"
-              onClick={handleTodayClick}
-              className="px-4"
-            >
-              Today
-            </Button>
+    <div className="flex flex-col p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors space-y-3">
+      <div className="flex items-start justify-between">
+        {/* Sequence Number and Patient Name */}
+        <div className="flex items-start space-x-3 flex-1">
+          <div className="flex-shrink-0 w-8 h-8 bg-clinic-primary/10 text-clinic-primary rounded-full flex items-center justify-center text-sm font-medium">
+            {sequenceNumber}
           </div>
-
-          {/* Queue List */}
-          <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          
+          <div className="flex-1 min-w-0">
+            {/* Patient Name */}
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-semibold text-gray-900">
+                {item.patient_name || `Patient #${item.patient_id}`}
+              </p>
+              {getStatusBadge()}
+            </div>
+            
+            {/* Patient Details */}
+            <div className="mt-1 space-y-1">
+              <div className="flex items-center space-x-4 text-xs text-gray-600">
+                {item.patient_age && (
+                  <span>Age: {item.patient_age}</span>
+                )}
+                {item.patient_gender && (
+                  <span>Gender: {item.patient_gender}</span>
+                )}
               </div>
-            ) : queueData?.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No appointments found for {format(selectedDate, 'PPP')}
-              </div>
-            ) : (
-              queueData?.map((appointment: Appointment, index: number) => (
-                <div
-                  key={appointment.id}
-                  className="border rounded-lg p-4 bg-card hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-semibold text-primary">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{appointment.patient?.firstname} {appointment.patient?.lastname}</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {formatPatientDetails(appointment.patient)}
-                        </div>
-                      </div>
-                    </div>
-                    <span className={cn(
-                      "px-2 py-1 rounded-full text-xs font-medium border",
-                      getStatusColor(appointment.status)
-                    )}>
-                      {appointment.status?.replace('_', ' ').toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Time:</span>
-                      <div className="font-medium">
-                        {appointment.slot?.startTime || 'N/A'}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Doctor:</span>
-                      <div className="font-medium">
-                        Dr. {appointment.doctorBranch?.doctor?.firstname} {appointment.doctorBranch?.doctor?.lastname}
-                      </div>
-                    </div>
-                  </div>
-
-                  {appointment.patient?.user?.phone && (
-                    <div className="mt-3 pt-3 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => window.open(`tel:${appointment.patient.user.phone}`)}
-                      >
-                        <Phone className="h-4 w-4 mr-2" />
-                        {appointment.patient.user.phone}
-                      </Button>
-                    </div>
-                  )}
+              
+              {/* Mobile Number with Call Button */}
+              {item.patient_mobile && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-600">Mobile:</span>
+                  <button
+                    onClick={() => handlePhoneCall(item.patient_mobile)}
+                    className="flex items-center space-x-1 text-xs text-clinic-primary hover:text-clinic-primary/80 transition-colors"
+                  >
+                    <Phone className="h-3 w-3" />
+                    <span>{item.patient_mobile}</span>
+                  </button>
                 </div>
-              ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Timing Information */}
+      <div className="flex items-center justify-between text-xs text-gray-500 bg-gray-50 px-3 py-2 rounded">
+        <div className="flex items-center space-x-2">
+          <Clock className="h-3 w-3" />
+          <span>Waiting: {formatWaitingTime(item.waiting_minutes)}</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span>Est. Time: {formatEstimatedTime(item.estimated_consultation_time)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const QueueDrawer: React.FC<QueueDrawerProps> = ({
+  isOpen,
+  onClose,
+  branchId
+}) => {
+  const [showAll, setShowAll] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Default to today's date in YYYY-MM-DD format
+    return new Date().toISOString().split('T')[0];
+  });
+
+  // Fetch queue data
+  const { data: queueResponse, isLoading } = useQueueData({
+    branch_id: parseInt(branchId),
+    date: selectedDate,
+    sort_by: 'actual_sequence',
+    limit: showAll ? undefined : 10,
+    enabled: isOpen,
+  });
+
+  const queueItems = queueResponse?.queue_items || [];
+  
+  // Filter active items only
+  const activeItems = queueItems
+  
+  const sortedItems = activeItems.sort((a, b) => {
+    // Sort by status first (in_consultation, then waiting), then by actual_sequence
+    if (a.status !== b.status) {
+      if (a.status === 'in_consultation') return -1;
+      if (b.status === 'in_consultation') return 1;
+    }
+    return a.actual_sequence - b.actual_sequence;
+  });
+
+  // Calculate counts
+  const waitingCount = queueItems.filter(item => item.status === 'waiting').length;
+  const inConsultationCount = queueItems.filter(item => item.status === 'in_consultation').length;
+
+  const displayItems = showAll ? sortedItems : sortedItems.slice(0, 4);
+
+  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(event.target.value);
+  };
+
+  return (
+    <>
+      {/* Overlay */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/20 transition-opacity z-40",
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={onClose}
+      />
+      
+      {/* Drawer */}
+      <div 
+        className={cn(
+          "fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-50",
+          "transform transition-transform duration-300 ease-in-out",
+          isOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center space-x-2">
+            <Users className="h-5 w-5 text-clinic-primary" />
+            <h2 className="text-lg font-semibold text-gray-900">Live Queue</h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-8 w-8 p-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Date Filter */}
+        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-4 w-4 text-gray-500" />
+            <Label htmlFor="queue-date" className="text-sm font-medium text-gray-700">
+              Date:
+            </Label>
+            <Input
+              id="queue-date"
+              type="date"
+              value={selectedDate}
+              onChange={handleDateChange}
+              className="flex-1 h-8 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-600">
+                <span className="font-medium text-green-700">{waitingCount}</span> waiting
+              </span>
+              <span className="text-gray-600">
+                <span className="font-medium text-blue-700">{inConsultationCount}</span> in consultation
+              </span>
+            </div>
+            {isLoading && (
+              <div className="h-2 w-2 bg-clinic-primary rounded-full animate-pulse" />
             )}
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+
+        {/* Queue List */}
+        <ScrollArea className="flex-1 max-h-[calc(100vh-240px)]">
+          <div className="divide-y divide-gray-100">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="h-4 w-4 bg-clinic-primary rounded-full animate-pulse mr-2" />
+                <span className="text-sm text-gray-500">Loading queue...</span>
+              </div>
+            ) : displayItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                <Users className="h-12 w-12 text-gray-300 mb-3" />
+                <p className="text-sm">No patients in queue for {selectedDate}</p>
+              </div>
+            ) : (
+              displayItems.map((item, index) => (
+                <QueuePatientItem
+                  key={item.patient_schedule_id}
+                  item={item}
+                  sequenceNumber={index + 1}
+                />
+              ))
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Footer */}
+        {sortedItems.length > 4 && (
+          <div className="p-4 border-t border-gray-200 bg-white">
+            <Button
+              variant="outline"
+              onClick={() => setShowAll(!showAll)}
+              className="w-full"
+              disabled={isLoading}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              {showAll ? 'Show Less' : `View All (${sortedItems.length})`}
+            </Button>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
