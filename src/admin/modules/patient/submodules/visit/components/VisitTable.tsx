@@ -12,6 +12,7 @@ interface VisitTableProps {
   onEdit?: (visit: Visit) => void;
   onEditVisit?: (visit: Visit) => void; // Page-level edit handler
   onViewDetails?: (visit: Visit) => void; // Page-level view details handler
+  onMarkPayment?: (visit: Visit) => void; // Page-level payment handler
 }
 
 export const VisitTable = ({ 
@@ -20,7 +21,8 @@ export const VisitTable = ({
   onView, 
   onEdit,
   onEditVisit,
-  onViewDetails 
+  onViewDetails,
+  onMarkPayment
 }: VisitTableProps) => {
 
   const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
@@ -64,6 +66,17 @@ export const VisitTable = ({
         actions[viewDetailsIndex] = {
           ...actions[viewDetailsIndex],
           onClick: () => onViewDetails(visit)
+        };
+      }
+    }
+
+    // Override payment action if page-level handler provided
+    if (onMarkPayment) {
+      const paymentActionIndex = actions.findIndex(action => action.label === "Mark Payment");
+      if (paymentActionIndex !== -1) {
+        actions[paymentActionIndex] = {
+          ...actions[paymentActionIndex],
+          onClick: () => onMarkPayment(visit)
         };
       }
     }

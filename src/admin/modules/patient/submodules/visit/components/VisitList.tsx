@@ -14,6 +14,7 @@ interface VisitListProps {
   onEdit?: (visit: Visit) => void;
   onEditVisit?: (visit: Visit) => void; // Page-level edit handler
   onViewDetails?: (visit: Visit) => void; // Page-level view details handler
+  onMarkPayment?: (visit: Visit) => void; // Page-level payment handler
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ 
@@ -22,7 +23,8 @@ export const VisitList: React.FC<VisitListProps> = ({
   onView, 
   onEdit,
   onEditVisit,
-  onViewDetails 
+  onViewDetails,
+  onMarkPayment
 }) => {
 
   const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
@@ -105,6 +107,17 @@ export const VisitList: React.FC<VisitListProps> = ({
         secondaryActions[editActionIndex] = {
           ...secondaryActions[editActionIndex],
           onClick: () => onEditVisit(visit)
+        };
+      }
+    }
+
+    // Override payment action if page-level handler provided
+    if (onMarkPayment) {
+      const paymentActionIndex = primaryActions.findIndex(action => action.label === "Mark Payment");
+      if (paymentActionIndex !== -1) {
+        primaryActions[paymentActionIndex] = {
+          ...primaryActions[paymentActionIndex],
+          onClick: () => onMarkPayment(visit)
         };
       }
     }
