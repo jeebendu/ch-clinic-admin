@@ -9,7 +9,8 @@ import {
   InputField, 
   PhoneField, 
   FormRow,
-  FormSection 
+  FormSection, 
+  TextAreaField
 } from "@/components/form";
 import PatientPicker from "@/admin/modules/patient/components/PatientPicker";
 import QuickPatientFormDialog from "@/admin/components/dialogs/QuickPatientFormDialog";
@@ -19,6 +20,8 @@ import { Visit } from "../types/Visit";
 import { Patient } from "@/admin/modules/patient/types/Patient";
 import { Doctor } from "@/admin/modules/doctor/types/Doctor";
 import { useToast } from "@/hooks/use-toast";
+import SelectField from "@/components/form/SelectField";
+import { VISIT_TYPE_OPTIONS } from "../types/VisitFilter";
 
 const visitSchema = z.object({
   patient: z.object({
@@ -30,6 +33,7 @@ const visitSchema = z.object({
   status: z.string().default("Scheduled"),
   notes: z.string().optional(),
   referralDoctorName: z.string().optional(),
+  historyOf:z.string().optional(),
 });
 
 type VisitFormData = z.infer<typeof visitSchema>;
@@ -45,6 +49,7 @@ interface VisitFormProps {
   onError?: (error: string) => void;
   showSubmitButton?: boolean;
 }
+
 
 const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
   ({ visit, onSuccess, onError, showSubmitButton = true }, ref) => {
@@ -64,6 +69,7 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
         status: "Scheduled",
         notes: "",
         referralDoctorName: "",
+        historyOf: "",
       },
     });
 
@@ -192,49 +198,32 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
               </FormRow>
 
               <FormRow columns={2}>
-                <InputField
-                  control={form.control}
-                  name="scheduleDate"
-                  label="Schedule Date"
-                  type="datetime-local"
-                  required
-                />
-                <InputField
+                <SelectField
                   control={form.control}
                   name="type"
                   label="Visit Type"
+                  options={VISIT_TYPE_OPTIONS}
                   required
                 />
+          
               </FormRow>
 
-              <InputField
+              <TextAreaField
                 control={form.control}
                 name="complaints"
                 label="Complaints"
-                required
-                placeholder="Describe the patient's complaints..."
+                rows={4}
+                placeholder="Enter patient complaints and symptoms..."
               />
 
-              <FormRow columns={2}>
-                <InputField
-                  control={form.control}
-                  name="status"
-                  label="Status"
-                />
-                <InputField
-                  control={form.control}
-                  name="referralDoctorName"
-                  label="Referral Doctor Name (Manual)"
-                  placeholder="Optional manual referral doctor name"
-                />
-              </FormRow>
-
-              <InputField
+              <TextAreaField
                 control={form.control}
-                name="notes"
-                label="Additional Notes"
-                placeholder="Any additional notes about the visit..."
+                name="historyOf"
+                label="History Of"
+                rows={4}
+                placeholder="Enter patient History..."
               />
+
             </FormSection>
 
             {showSubmitButton && (
