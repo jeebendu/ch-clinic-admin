@@ -1,275 +1,153 @@
 
-import React, { forwardRef, useImperativeHandle, useState, useEffect } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Form } from "@/components/ui/form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { 
-  InputField, 
-  PhoneField, 
-  FormRow,
-  FormSection 
-} from "@/components/form";
-import PatientPicker from "@/admin/modules/patient/components/PatientPicker";
-import QuickPatientFormDialog from "@/admin/components/dialogs/QuickPatientFormDialog";
-import DoctorAutocomplete from "@/admin/modules/doctor/components/DoctorAutocomplete";
-import visitService from "../services/visitService";
+import { Form } from "@/components/ui/form";
+import TextField from "@/components/form/TextField";
+import TextAreaField from "@/components/form/TextAreaField";
+import SelectField from "@/components/form/SelectField";
+import DoctorSelectField from "@/components/form/DoctorSelectField";
+import NumberField from "@/components/form/NumberField";
 import { Visit } from "../types/Visit";
-import { Patient } from "@/admin/modules/patient/types/Patient";
 import { Doctor } from "@/admin/modules/doctor/types/Doctor";
-import { useToast } from "@/hooks/use-toast";
 
 const visitSchema = z.object({
-  patient: z.object({
-    id: z.number(),
-  }).nullable(),
-  complaints: z.string().min(1, "Complaints are required"),
-  scheduleDate: z.string().min(1, "Schedule date is required"),
   type: z.string().min(1, "Visit type is required"),
-  status: z.string().default("Scheduled"),
+  referByDoctor: z.any().optional(),
+  consultingDoctor: z.any().optional(),
+  complaints: z.string().optional(),
   notes: z.string().optional(),
-  referralDoctorName: z.string().optional(),
+  paymentStatus: z.string().optional(),
+  paymentAmount: z.number().optional(),
+  paymentPaid: z.number().optional(),
 });
 
 type VisitFormData = z.infer<typeof visitSchema>;
 
-export interface VisitFormRef {
-  submitForm: () => void;
-  resetForm: () => void;
-}
-
 interface VisitFormProps {
-  visit?: Visit | null;
-  onSuccess: (response: any) => void;
-  onError?: (error: string) => void;
-  showSubmitButton?: boolean;
+  visit?: Visit;
+  onSubmit: (data: VisitFormData) => void;
+  onCancel: () => void;
+  loading?: boolean;
 }
 
-const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
-  ({ visit, onSuccess, onError, showSubmitButton = true }, ref) => {
-    const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-    const [selectedReferralDoctor, setSelectedReferralDoctor] = useState<Doctor | null>(null);
-    const [selectedConsultingDoctor, setSelectedConsultingDoctor] = useState<Doctor | null>(null);
-    const [showQuickPatientDialog, setShowQuickPatientDialog] = useState(false);
-    const { toast } = useToast();
-    
-    const form = useForm<VisitFormData>({
-      resolver: zodResolver(visitSchema),
-      defaultValues: {
-        patient: null,
-        complaints: "",
-        scheduleDate: "",
-        type: "Consultation",
-        status: "Scheduled",
-        notes: "",
-        referralDoctorName: "",
-      },
-    });
+const visitTypeOptions = [
+  { value: "routine", label: "Routine" },
+  { value: "follow-up", label: "Follow-up" },
+  { value: "emergency", label: "Emergency" },
+  { value: "consultation", label: "Consultation" },
+];
 
-    // Load visit data when editing
-    useEffect(() => {
-      if (visit) {
-        setSelectedPatient(visit.patient || null);
-        setSelectedReferralDoctor(visit.referByDoctor || null);
-        setSelectedConsultingDoctor(visit.consultingDoctor || null);
-        form.reset({
-          patient: visit.patient ? { id: visit.patient.id } : null,
-          complaints: visit.complaints || "",
-          scheduleDate: visit.scheduleDate || "",
-          type: visit.type || "Consultation",
-          status: visit.status || "Scheduled",
-          notes: visit.notes || "",
-          referralDoctorName: visit.referralDoctorName || "",
-        });
-      }
-    }, [visit, form]);
+const paymentStatusOptions = [
+  { value: "paid", label: "Paid" },
+  { value: "partial", label: "Partial" },
+  { value: "pending", label: "Pending" },
+  { value: "unpaid", label: "Unpaid" },
+];
 
-    // Update form when patient is selected
-    useEffect(() => {
-      if (selectedPatient) {
-        form.setValue("patient", { id: selectedPatient.id });
-      } else {
-        form.setValue("patient", null);
-      }
-    }, [selectedPatient, form]);
+const VisitForm: React.FC<VisitFormProps> = ({
+  visit,
+  onSubmit,
+  onCancel,
+  loading = false,
+}) => {
+  const form = useForm<VisitFormData>({
+    resolver: zodResolver(visitSchema),
+    defaultValues: {
+      type: visit?.type || "",
+      referByDoctor: visit?.referByDoctor || null,
+      consultingDoctor: visit?.consultingDoctor || null,
+      complaints: visit?.complaints || "",
+      notes: visit?.notes || "",
+      paymentStatus: visit?.paymentStatus || "",
+      paymentAmount: visit?.paymentAmount || undefined,
+      paymentPaid: visit?.paymentPaid || undefined,
+    },
+  });
 
-    const onSubmit = async (data: VisitFormData) => {
-      if (!selectedPatient) {
-        toast({
-          title: "Error",
-          description: "Please select a patient",
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleSubmit = (data: VisitFormData) => {
+    onSubmit(data);
+  };
 
-      try {
-        const visitData = {
-          ...data,
-          id: visit?.id,
-          patient: selectedPatient,
-          referByDoctor: selectedReferralDoctor,
-          consultingDoctor: selectedConsultingDoctor,
-        };
+  return (
+    <div className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SelectField
+              control={form.control}
+              name="type"
+              label="Visit Type"
+              options={visitTypeOptions}
+              required
+            />
 
-        const response = await visitService.saveOrUpdate(visitData);
-        
-        if (response?.data?.status === true || response?.status === true) {
-          toast({
-            title: "Success",
-            description: visit ? "Visit updated successfully" : "Visit created successfully",
-          });
-          onSuccess(response.data || response);
-        } else {
-          const errorMessage = response?.data?.message || response?.message || "Failed to save visit";
-          toast({
-            title: "Error",
-            description: errorMessage,
-            variant: "destructive",
-          });
-          onError?.(errorMessage);
-        }
-      } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error.message || "Failed to save visit";
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        onError?.(errorMessage);
-      }
-    };
+            <DoctorSelectField
+              control={form.control}
+              name="consultingDoctor"
+              label="Consulting Doctor"
+            />
 
-    const handlePatientCreated = (patient: Patient) => {
-      setSelectedPatient(patient);
-      toast({
-        title: "Success",
-        description: "Patient created and selected for visit",
-      });
-    };
+            <DoctorSelectField
+              control={form.control}
+              name="referByDoctor"
+              label="Referral Doctor"
+            />
 
-    useImperativeHandle(ref, () => ({
-      submitForm: () => {
-        form.handleSubmit(onSubmit)();
-      },
-      resetForm: () => {
-        form.reset();
-        setSelectedPatient(null);
-        setSelectedReferralDoctor(null);
-        setSelectedConsultingDoctor(null);
-      },
-    }));
+            <SelectField
+              control={form.control}
+              name="paymentStatus"
+              label="Payment Status"
+              options={paymentStatusOptions}
+            />
 
-    return (
-      <>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormSection title="Patient Selection">
-              <PatientPicker
-                selectedPatient={selectedPatient}
-                onPatientSelect={setSelectedPatient}
-                onAddNewPatient={() => setShowQuickPatientDialog(true)}
-              />
-            </FormSection>
+            <NumberField
+              control={form.control}
+              name="paymentAmount"
+              label="Payment Amount"
+              min={0}
+              step={0.01}
+            />
 
-            <FormSection title="Visit Details">
-              <FormRow columns={2}>
-                <DoctorAutocomplete
-                  selectedDoctor={selectedReferralDoctor}
-                  onDoctorSelect={setSelectedReferralDoctor}
-                  placeholder="Search referral doctor..."
-                  allowExternal={true}
-                  label="Referral Doctor"
-                />
-                <DoctorAutocomplete
-                  selectedDoctor={selectedConsultingDoctor}
-                  onDoctorSelect={setSelectedConsultingDoctor}
-                  placeholder="Search consulting doctor..."
-                  allowExternal={false}
-                  label="Consulting Doctor"
-                />
-              </FormRow>
+            <NumberField
+              control={form.control}
+              name="paymentPaid"
+              label="Payment Paid"
+              min={0}
+              step={0.01}
+            />
+          </div>
 
-              <FormRow columns={2}>
-                <InputField
-                  control={form.control}
-                  name="scheduleDate"
-                  label="Schedule Date"
-                  type="datetime-local"
-                  required
-                />
-                <InputField
-                  control={form.control}
-                  name="type"
-                  label="Visit Type"
-                  required
-                />
-              </FormRow>
+          <TextAreaField
+            control={form.control}
+            name="complaints"
+            label="Complaints"
+            rows={4}
+            placeholder="Enter patient complaints and symptoms..."
+          />
 
-              <InputField
-                control={form.control}
-                name="complaints"
-                label="Complaints"
-                required
-                placeholder="Describe the patient's complaints..."
-              />
+          <TextAreaField
+            control={form.control}
+            name="notes"
+            label="Notes"
+            rows={3}
+            placeholder="Additional notes..."
+          />
 
-              <FormRow columns={2}>
-                <InputField
-                  control={form.control}
-                  name="status"
-                  label="Status"
-                />
-                <InputField
-                  control={form.control}
-                  name="referralDoctorName"
-                  label="Referral Doctor Name (Manual)"
-                  placeholder="Optional manual referral doctor name"
-                />
-              </FormRow>
-
-              <InputField
-                control={form.control}
-                name="notes"
-                label="Additional Notes"
-                placeholder="Any additional notes about the visit..."
-              />
-            </FormSection>
-
-            {showSubmitButton && (
-              <div className="flex justify-end space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => form.reset()}
-                >
-                  Reset
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={form.formState.isSubmitting}
-                >
-                  {form.formState.isSubmitting 
-                    ? "Saving..." 
-                    : visit ? "Update Visit" : "Create Visit"
-                  }
-                </Button>
-              </div>
-            )}
-          </form>
-        </Form>
-
-        <QuickPatientFormDialog
-          isOpen={showQuickPatientDialog}
-          onClose={() => setShowQuickPatientDialog(false)}
-          onSave={handlePatientCreated}
-        />
-      </>
-    );
-  }
-);
-
-VisitForm.displayName = "VisitForm";
+          <div className="flex justify-end space-x-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : visit ? "Update Visit" : "Create Visit"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+};
 
 export default VisitForm;
