@@ -1,351 +1,267 @@
-import React, { useState, useEffect } from "react";
+import { useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  Calendar,
-  User,
-  Stethoscope,
-  List,
-  Grid,
-  Download,
-  RefreshCw
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
+import PageHeader from "@/admin/components/PageHeader";
 import { VisitList } from "../components/VisitList";
 import { VisitTable } from "../components/VisitTable";
+import { VisitCalendar } from "../components/VisitCalendar";
+import { VisitGrid } from "../components/VisitGrid";
+import { VisitDetailsModal } from "../components/VisitDetailsModal";
+import VisitFormDialog from "../components/VisitFormDialog";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { useVisitActions } from "../hooks/useVisitActions";
+import visitService from "../services/visitService";
 import { Visit } from "../types/Visit";
-import PaymentDialog from "../components/PaymentDialog";
+import VisitFilterCard from "../components/VisitFilterCard";
+import { useVisitFilters } from "../hooks/useVisitFilters";
+import { VisitFilter } from "../types/VisitFilter";
 
-export const VisitListPage = () => {
-  const [visits, setVisits] = useState<Visit[]>([]);
-  const [filteredVisits, setFilteredVisits] = useState<Visit[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [paymentFilter, setPaymentFilter] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"list" | "table">("list");
+const VisitListPage = () => {
+  const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [currentFilters, setCurrentFilters] = useState<VisitFilter>({});
+
+  // Page-level modal state management
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
-  // Mock data - replace with actual API call
-  const mockVisits: Visit[] = [
-    {
-      id: "1",
-      patient: {
-        id: "1",
-        firstname: "John",
-        lastname: "Doe",
-        age: 35,
-        gender: "Male",
-        uid: "PAT001"
-      },
-      consultingDoctor: {
-        id: "1",
-        firstname: "Dr. Sarah",
-        lastname: "Wilson",
-        specializationList: ["Cardiology"]
-      },
-      complaints: "Chest pain and shortness of breath",
-      scheduleDate: "2024-01-15",
-      type: "Routine",
-      status: "Open",
-      paymentStatus: "Partial",
-      paymentAmount: 1000,
-      paymentPaid: 600,
-      createdTime: "2024-01-15T09:00:00Z"
+  const {
+    // Keep the hook for other actions that haven't been moved yet
+  } = useVisitActions();
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['visits', searchTerm],
+    queryFn: ({ pageParam = 0 }) => {
+      console.log('🔄 Fetching visits - page:', pageParam, 'search:', searchTerm);
+      return visitService.getAllVisits(pageParam, 10, searchTerm);
     },
-    {
-      id: "2",
-      patient: {
-        id: "2",
-        firstname: "Jane",
-        lastname: "Smith",
-        age: 28,
-        gender: "Female",
-        uid: "PAT002"
-      },
-      consultingDoctor: {
-        id: "2",
-        firstname: "Dr. Michael",
-        lastname: "Brown",
-        specializationList: ["Dermatology"]
-      },
-      complaints: "Skin rash and itching",
-      scheduleDate: "2024-01-15",
-      type: "Follow-up",
-      status: "Closed",
-      paymentStatus: "Paid",
-      paymentAmount: 500,
-      paymentPaid: 500,
-      createdTime: "2024-01-15T10:30:00Z"
-    }
-  ];
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      console.log('📄 Getting next page param:', {
+        currentPage: lastPage.number,
+        hasNext: lastPage.hasNext,
+        totalPages: lastPage.totalPages
+      });
+      if (!lastPage.hasNext) return undefined;
+      return lastPage.number + 1;
+    },
+  });
 
-  useEffect(() => {
-    loadVisits();
-  }, []);
+  // Visit filters hook
+  const {
+    filterState,
+    updateSearchTerm,
+    updateFilter,
+    updateDateRange,
+    clearFilters
+  } = useVisitFilters((filters: VisitFilter) => {
+    setCurrentFilters(filters);
+    setPage(0); // Reset to first page when filters change
+  });
 
-  useEffect(() => {
-    filterVisits();
-  }, [visits, searchTerm, statusFilter, paymentFilter]);
+  // Enable auto-scroll with explicit rootRef
+  const { loadMoreRef } = useAutoScroll({
+    hasNextPage: hasNextPage || false,
+    isFetchingNextPage,
+    fetchNextPage,
+    rootRef: scrollContainerRef
+  });
 
-  const loadVisits = async () => {
-    setLoading(true);
-    try {
-      // Replace with actual API call
-      setTimeout(() => {
-        setVisits(mockVisits);
-        setLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error loading visits:", error);
-      setLoading(false);
-    }
-  };
+  // Flatten all pages into a single array
+  const allVisits: Visit[] = data?.pages.flatMap(page => page.content) || [];
+  const totalElements = data?.pages[0]?.totalElements || 0;
 
-  const filterVisits = () => {
-    let filtered = visits;
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(visit =>
-        visit.patient?.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        visit.patient?.lastname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        visit.patient?.uid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        visit.complaints?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        visit.consultingDoctor?.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        visit.consultingDoctor?.lastname?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(visit => 
-        visit.status?.toLowerCase() === statusFilter.toLowerCase()
-      );
-    }
-
-    // Payment filter
-    if (paymentFilter !== "all") {
-      filtered = filtered.filter(visit => 
-        visit.paymentStatus?.toLowerCase() === paymentFilter.toLowerCase()
-      );
-    }
-
-    setFilteredVisits(filtered);
-  };
-
-  const handleRefresh = () => {
-    loadVisits();
-  };
-
-  const handleExport = () => {
-    console.log("Export visits");
-  };
-
-  const handleAddVisit = () => {
-    console.log("Add new visit");
-  };
-
+  // Page-level handlers
   const handleEditVisit = (visit: Visit) => {
-    console.log("Edit visit:", visit.id);
+    console.log('Editing visit at page level:', visit);
+    setSelectedVisit(visit);
+    setEditDialogOpen(true);
   };
 
   const handleViewDetails = (visit: Visit) => {
-    console.log("View visit details:", visit.id);
-  };
-
-  const handleMarkPayment = (visit: Visit) => {
+    console.log('Viewing visit details at page level:', visit);
     setSelectedVisit(visit);
-    setPaymentDialogOpen(true);
+    setDetailsModalOpen(true);
   };
 
-  const getStatusCounts = () => {
-    return {
-      total: visits.length,
-      open: visits.filter(v => v.status?.toLowerCase() === "open").length,
-      closed: visits.filter(v => v.status?.toLowerCase() === "closed").length,
-      followUp: visits.filter(v => v.status?.toLowerCase() === "follow-up").length
-    };
+  const handleViewModeToggle = () => {
+    const modes: Array<'list' | 'table' | 'calendar' | 'grid'> = ['table', 'list', 'calendar', 'grid'];
+    const currentIndex = modes.indexOf(viewMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setViewMode(modes[nextIndex]);
   };
 
-  const getPaymentCounts = () => {
-    return {
-      paid: visits.filter(v => v.paymentStatus?.toLowerCase() === "paid").length,
-      pending: visits.filter(v => v.paymentStatus?.toLowerCase() === "pending").length,
-      partial: visits.filter(v => v.paymentStatus?.toLowerCase() === "partial").length,
-      unpaid: visits.filter(v => v.paymentStatus?.toLowerCase() === "unpaid").length
-    };
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
   };
 
-  const statusCounts = getStatusCounts();
-  const paymentCounts = getPaymentCounts();
+  const handleRefresh = () => {
+    refetch();
+  };
+
+  const handleAddVisit = () => {
+    setAddDialogOpen(true);
+  };
+
+  const handleVisitSave = (visit?: Visit) => {
+    // Refresh the visit list after save
+    refetch();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading visits...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-red-600">Error loading visits: {error?.message}</p>
+        <Button onClick={() => refetch()}>Try Again</Button>
+      </div>
+    );
+  }
+
+  const renderContent = () => {
+    switch (viewMode) {
+      case 'list':
+        return <VisitList visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
+      case 'table':
+        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
+      case 'calendar':
+        return <VisitCalendar visits={allVisits} />;
+      case 'grid':
+        return <VisitGrid visits={allVisits} />;
+      default:
+        return <VisitTable visits={allVisits} onEditVisit={handleEditVisit} onViewDetails={handleViewDetails} />;
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Patient Visits</h1>
-          <p className="text-muted-foreground">
-            Manage and track all patient visits
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button onClick={handleAddVisit}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Visit
-          </Button>
-        </div>
-      </div>
+        <PageHeader
+          title="Patient Visits"
+          description="Manage patient visits and appointments"
+          viewMode={viewMode}
+          onViewModeToggle={handleViewModeToggle}
+          onRefreshClick={handleRefresh}
+          loadedElements={allVisits.length}
+          totalElements={totalElements}
+          onSearchChange={handleSearchChange}
+          searchValue={searchTerm}
+          showAddButton={true}
+          addButtonLabel="New Visit"
+          onAddButtonClick={handleAddVisit}
+          showFilter={true}
+          onFilterToggle={() => setShowFilter(!showFilter)}
+        />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statusCounts.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Visits</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{statusCounts.open}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Closed Visits</CardTitle>
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-600">{statusCounts.closed}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Follow-ups</CardTitle>
-            <RefreshCw className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{statusCounts.followUp}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search by patient name, ID, or complaint..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm"
-              >
-                <option value="all">All Status</option>
-                <option value="open">Open</option>
-                <option value="closed">Closed</option>
-                <option value="follow-up">Follow-up</option>
-              </select>
-              <select
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm"
-              >
-                <option value="all">All Payments</option>
-                <option value="paid">Paid</option>
-                <option value="partial">Partial</option>
-                <option value="pending">Pending</option>
-                <option value="unpaid">Unpaid</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Main content with toggle buttons and visit list */}
-      <div className="space-y-4">
-        {/* View Toggle */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              Showing {filteredVisits.length} of {visits.length} visits
-            </span>
-          </div>
-          <div className="flex items-center gap-1 border rounded-md p-1">
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "table" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("table")}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Visit list/table rendering */}
-        {viewMode === "list" ? (
-          <VisitList 
-            visits={filteredVisits} 
-            loading={loading}
-            onEditVisit={handleEditVisit}
-            onViewDetails={handleViewDetails}
-            onMarkPayment={handleMarkPayment}
+        {showFilter && (
+          <VisitFilterCard
+            searchTerm={filterState.searchTerm}
+            onSearchChange={updateSearchTerm}
+            selectedFilters={filterState.selectedFilters}
+            onFilterChange={updateFilter}
+            onClearFilters={clearFilters}
+            dateRange={filterState.dateRange}
+            onDateRangeChange={updateDateRange}
           />
-        ) : (
-          <VisitTable 
-            visits={filteredVisits} 
-            loading={loading}
-            onEditVisit={handleEditVisit}
-            onViewDetails={handleViewDetails}
-            onMarkPayment={handleMarkPayment}
-          />
+        )}
+
+      {/* Main content container with explicit height and overflow */}
+      <div
+        ref={scrollContainerRef}
+        className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto"
+      >
+        {renderContent()}
+
+        {/* Loading indicator */}
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2">Loading more visits...</span>
+          </div>
+        )}
+
+        {/* End of results indicator */}
+        {!hasNextPage && allVisits.length > 0 && (
+          <div className="text-center py-4 text-muted-foreground">
+            <p>No more visits to load</p>
+            <p className="text-sm">Showing {allVisits.length} of {totalElements} visits</p>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {allVisits.length === 0 && !isLoading && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No visits found</p>
+          </div>
+        )}
+
+        {/* Sentinel: placed at the bottom to trigger auto-load when visible */}
+        {hasNextPage && (
+          <div
+            ref={loadMoreRef}
+            className="h-10 flex items-center justify-center bg-muted/20 rounded border-2 border-dashed border-muted-foreground/20"
+          >
+            <span className="text-xs text-muted-foreground">Load More Trigger Zone</span>
+          </div>
         )}
       </div>
 
-      {/* Payment Dialog */}
-      <PaymentDialog
-        open={paymentDialogOpen}
-        onOpenChange={setPaymentDialogOpen}
+      {/* Add Visit Dialog */}
+      <VisitFormDialog
+        isOpen={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        onSave={handleVisitSave}
+      />
+
+      {/* Edit Visit Dialog - Using page-level state */}
+      <VisitFormDialog
+        isOpen={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        onSave={handleVisitSave}
         visit={selectedVisit}
+      />
+
+      {/* Visit Details Modal - Using page-level state */}
+      <VisitDetailsModal
+        isOpen={detailsModalOpen}
+        onClose={() => setDetailsModalOpen(false)}
+        visit={selectedVisit}
+        onEdit={(visit) => {
+          setDetailsModalOpen(false);
+          handleEditVisit(visit);
+        }}
+        onGenerateInvoice={(visit) => {
+          console.log('Generate invoice for:', visit.id);
+        }}
+        onViewPrescription={(visit) => {
+          console.log('View prescription for:', visit.id);
+        }}
       />
     </div>
   );
 };
+
+export default VisitListPage;
