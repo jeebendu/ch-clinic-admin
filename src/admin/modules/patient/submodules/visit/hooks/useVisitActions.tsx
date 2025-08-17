@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Edit, 
@@ -23,13 +22,10 @@ import { Visit } from "../types/Visit";
 export const useVisitActions = () => {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
   const handleViewDetails = (visit: Visit) => {
     console.log('Viewing visit details:', visit);
-    setSelectedVisit(visit);
-    setDetailsModalOpen(true);
   };
 
   const handleMarkPayment = (visit: Visit) => {
@@ -109,7 +105,7 @@ export const useVisitActions = () => {
         variant: "default"
       },
       {
-        label: "Mark/Add Payment",
+        label: "Mark Payment",
         icon: <DollarSign className="h-4 w-4" />,
         onClick: () => handleMarkPayment(visit),
         variant: "default"
@@ -244,8 +240,6 @@ export const useVisitActions = () => {
     setSelectedVisit,
     editDialogOpen,
     setEditDialogOpen,
-    detailsModalOpen,
-    setDetailsModalOpen,
     paymentDialogOpen,
     setPaymentDialogOpen,
     getPrimaryVisitActions,

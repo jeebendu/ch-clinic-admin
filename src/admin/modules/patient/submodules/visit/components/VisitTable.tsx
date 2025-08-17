@@ -1,20 +1,9 @@
-
-import React from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
-import { Visit } from "../types/Visit";
-import RowActions from "@/components/ui/RowActions";
 import { useVisitActions } from "../hooks/useVisitActions";
-import PaymentDialog from "./PaymentDialog";
+import RowActions from "@/components/ui/RowActions";
+import { Visit } from "../types/Visit";
 
 interface VisitTableProps {
   visits: Visit[];
@@ -26,7 +15,7 @@ interface VisitTableProps {
   onMarkPayment?: (visit: Visit) => void; // Page-level payment handler
 }
 
-export const VisitTable: React.FC<VisitTableProps> = ({ 
+export const VisitTable = ({ 
   visits, 
   loading = false, 
   onView, 
@@ -34,203 +23,214 @@ export const VisitTable: React.FC<VisitTableProps> = ({
   onEditVisit,
   onViewDetails,
   onMarkPayment
-}) => {
+}: VisitTableProps) => {
 
-  const { 
-    getPrimaryVisitActions, 
-    getSecondaryVisitActions,
-    selectedVisit,
-    paymentDialogOpen,
-    setPaymentDialogOpen
-  } = useVisitActions();
+  const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case "open":
-        return "bg-green-100 text-green-800";
-      case "closed":
-        return "bg-gray-100 text-gray-800";
-      case "follow-up":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case 'open': return 'bg-green-100 text-green-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
+      case 'follow-up': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPaymentStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
-      case "paid":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "partial":
-        return "bg-orange-100 text-orange-800";
-      case "unpaid":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'partial': return 'bg-orange-100 text-orange-800';
+      case 'unpaid': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-2">
-        {Array(5)
-          .fill(0)
-          .map((_, idx) => (
-            <div key={`skeleton-${idx}`} className="bg-white rounded-lg border p-4">
-              <div className="animate-pulse h-4 w-full bg-gray-200 rounded" />
-            </div>
-          ))}
-      </div>
-    );
-  }
-
-  if (!visits.length) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        No visits found
-      </div>
-    );
-  }
+  const getVisitTypeColor = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'routine': return 'bg-blue-100 text-blue-800';
+      case 'urgent': return 'bg-red-100 text-red-800';
+      case 'follow-up': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   // Override actions based on page-level handlers
-  const getCustomizedActions = (visit: Visit) => {
-    const primaryActions = getPrimaryVisitActions(visit);
-    const secondaryActions = getSecondaryVisitActions(visit);
-
+  const getCustomizedPrimaryActions = (visit: Visit) => {
+    const actions = getPrimaryVisitActions(visit);
+    
     // Override view details action if page-level handler provided
     if (onViewDetails) {
-      const viewDetailsIndex = primaryActions.findIndex(action => action.label === "View Details");
+      const viewDetailsIndex = actions.findIndex(action => action.label === "View Details");
       if (viewDetailsIndex !== -1) {
-        primaryActions[viewDetailsIndex] = {
-          ...primaryActions[viewDetailsIndex],
+        actions[viewDetailsIndex] = {
+          ...actions[viewDetailsIndex],
           onClick: () => onViewDetails(visit)
-        };
-      }
-    }
-
-    // Override edit action if page-level handler provided
-    if (onEditVisit) {
-      const editActionIndex = secondaryActions.findIndex(action => action.label === "Edit Visit");
-      if (editActionIndex !== -1) {
-        secondaryActions[editActionIndex] = {
-          ...secondaryActions[editActionIndex],
-          onClick: () => onEditVisit(visit)
         };
       }
     }
 
     // Override payment action if page-level handler provided
     if (onMarkPayment) {
-      const paymentActionIndex = primaryActions.findIndex(action => action.label === "Mark/Add Payment");
+      const paymentActionIndex = actions.findIndex(action => action.label === "Mark Payment");
       if (paymentActionIndex !== -1) {
-        primaryActions[paymentActionIndex] = {
-          ...primaryActions[paymentActionIndex],
+        actions[paymentActionIndex] = {
+          ...actions[paymentActionIndex],
           onClick: () => onMarkPayment(visit)
         };
       }
     }
+    
+    return actions;
+  };
 
-    return [...primaryActions, ...secondaryActions];
+  const getCustomizedSecondaryActions = (visit: Visit) => {
+    const actions = getSecondaryVisitActions(visit);
+    
+    // Override edit action if page-level handler provided
+    if (onEditVisit) {
+      const editActionIndex = actions.findIndex(action => action.label === "Edit Visit");
+      if (editActionIndex !== -1) {
+        actions[editActionIndex] = {
+          ...actions[editActionIndex],
+          onClick: () => onEditVisit(visit)
+        };
+      }
+    }
+    
+    return actions;
   };
 
   return (
-    <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Patient</TableHead>
-              <TableHead>Doctor</TableHead>
-              <TableHead>Date & Time</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Payment</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visits.map((visit) => (
-              <TableRow key={visit.id}>
+    <div className="bg-white rounded-lg border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Visit ID</TableHead>
+            <TableHead>Patient</TableHead>
+            <TableHead>Doctor</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Reason</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Payment</TableHead>
+            <TableHead className="text-center">Quick Actions</TableHead>
+            <TableHead className="text-center">More</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            Array(5).fill(0).map((_, index) => (
+              <TableRow key={`skeleton-${index}`}>
+                <TableCell className="py-4">
+                  <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-blue-600" />
-                    <div>
-                      <div className="font-medium">
-                        {visit.patient.firstname} {visit.patient.lastname}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {visit.patient.age}y • {visit.patient.gender}
-                      </div>
-                    </div>
+                  <div className="animate-pulse bg-gray-200 h-4 w-32 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-28 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-36 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="animate-pulse bg-gray-200 h-4 w-32 mx-auto rounded"></div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="animate-pulse bg-gray-200 h-4 w-8 mx-auto rounded"></div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : visits.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={10} className="text-center py-6 text-muted-foreground">
+                No visits found
+              </TableCell>
+            </TableRow>
+          ) : (
+            visits.map((visit) => (
+              <TableRow key={visit.id} className="hover:bg-gray-50">
+                <TableCell className="font-medium">{visit.id}</TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">{visit.patient.firstname} {visit.patient.lastname}</p>
+                    <p className="text-sm text-gray-500">
+                      {visit.patient.age}y, {visit.patient.gender} • {visit.patient.uid}
+                    </p>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div>
-                    <div className="font-medium">
-                      Dr. {visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {visit.consultingDoctor.specializationList?.join(", ")}
-                    </div>
+                    <p className="font-medium">{visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</p>
+                    <p className="text-sm text-gray-500">{visit.consultingDoctor.specializationList?.join(", ")}</p>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <div>
-                      <div>{format(new Date(visit.createdTime), 'MMM dd, yyyy')}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {format(new Date(visit.createdTime), 'HH:mm')}
-                      </div>
-                    </div>
-                  </div>
+                  {format(new Date(visit.createdTime), 'MMM dd, yyyy')}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge className={getVisitTypeColor(visit.type)}>
                     {visit.type}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={`text-xs ${getStatusColor(visit.status)}`}>
+                  <div className="max-w-xs">
+                    <p className="" title={visit.complaints}>
+                      {visit.complaints}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(visit.status)}>
                     {visit.status}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
-                    {visit.paymentStatus}
-                  </Badge>
+                  {visit.paymentStatus ? (
+                    <div className="flex items-center gap-2">
+                      <Badge className={getPaymentStatusColor(visit.paymentStatus)}>
+                        {visit.paymentStatus}
+                      </Badge>
+                      {visit.paymentAmount && (
+                        <span className="text-xs text-gray-500">
+                          ₹{visit.paymentPaid || 0}/{visit.paymentAmount}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">N/A</span>
+                  )}
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">₹{visit.paymentPaid || 0}</span>
-                    {visit.paymentAmount > 0 && (
-                      <span className="text-muted-foreground">/ ₹{visit.paymentAmount}</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-center">
                   <RowActions 
-                    actions={getCustomizedActions(visit)} 
-                    maxVisibleActions={3}
+                    actions={getCustomizedPrimaryActions(visit)} 
+                    maxVisibleActions={5}
+                  />
+                </TableCell>
+                <TableCell className="text-center">
+                  <RowActions 
+                    actions={getCustomizedSecondaryActions(visit)} 
+                    maxVisibleActions={0}
                   />
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Payment Dialog */}
-      <PaymentDialog
-        isOpen={paymentDialogOpen}
-        onClose={() => setPaymentDialogOpen(false)}
-        visit={selectedVisit}
-      />
-    </>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
