@@ -5,7 +5,8 @@ import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import RowActions from "@/components/ui/RowActions";
 import { Visit } from "../../types/Visit";
-import PaymentDialog from "../dialog/PaymentDialog";
+import { useVisitActions } from "../../hooks/useVisitActions";
+import PaymentDialog from "../payment/PaymentDialog";
 
 interface VisitListProps {
   visits: Visit[];

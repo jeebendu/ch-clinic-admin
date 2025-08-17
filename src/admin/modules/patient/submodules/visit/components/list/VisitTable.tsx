@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import RowActions from "@/components/ui/RowActions";
 import { Visit } from "../../types/Visit";
 import { useVisitActions } from "../../hooks/useVisitActions";
-import PaymentDialog from "../dialog/PaymentDialog";
+import PaymentDialog from "../payment/PaymentDialog";
 
 interface VisitTableProps {
   visits: Visit[];
