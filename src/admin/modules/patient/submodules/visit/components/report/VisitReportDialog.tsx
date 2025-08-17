@@ -36,7 +36,7 @@ const VisitReportDialog: React.FC<VisitReportDialogProps> = ({
         </div>
       }
       footer={footerButtons}
-      maxWidth="max-w-[90vh]"
+      maxWidth="w-[80%]"
       maxHeight="max-h-[90vh]"
     >
       <ReportContent visit={visit} />
