@@ -11,13 +11,12 @@ import { VisitGrid } from "../components/VisitGrid";
 import { VisitDetailsModal } from "../components/VisitDetailsModal";
 import VisitFormDialog from "../components/VisitFormDialog";
 import { useAutoScroll } from "../hooks/useAutoScroll";
+import { useVisitActions } from "../hooks/useVisitActions";
 import visitService from "../services/visitService";
 import { Visit } from "../types/Visit";
 import VisitFilterCard from "../components/VisitFilterCard";
 import { useVisitFilters } from "../hooks/useVisitFilters";
 import { VisitFilter } from "../types/VisitFilter";
-import PaymentDialog from "../components/PaymentDialog";
-import { RowAction } from "@/components/ui/data-table-row-actions";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
@@ -29,11 +28,13 @@ const VisitListPage = () => {
   const [size, setSize] = useState(10);
   const [currentFilters, setCurrentFilters] = useState<VisitFilter>({});
 
-  // Modal states lifted from useVisitActions
-  const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const {
+    selectedVisit,
+    editDialogOpen,
+    setEditDialogOpen,
+    detailsModalOpen,
+    setDetailsModalOpen,
+  } = useVisitActions();
 
   const {
     data,
@@ -62,7 +63,7 @@ const VisitListPage = () => {
     },
   });
 
-  // Visit filters hook
+    // Visit filters hook
   const {
     filterState,
     updateSearchTerm,
@@ -85,64 +86,6 @@ const VisitListPage = () => {
   // Flatten all pages into a single array
   const allVisits: Visit[] = data?.pages.flatMap(page => page.content) || [];
   const totalElements = data?.pages[0]?.totalElements || 0;
-
-  // Modal action handlers
-  const handleOpenDetails = (visit: Visit) => {
-    console.log('Opening details modal for visit:', visit.id);
-    setSelectedVisit(visit);
-    setDetailsModalOpen(true);
-  };
-
-  const handleOpenEdit = (visit: Visit) => {
-    console.log('Opening edit dialog for visit:', visit.id);
-    setSelectedVisit(visit);
-    setEditDialogOpen(true);
-  };
-
-  const handleOpenPayment = (visit: Visit) => {
-    console.log('Opening payment dialog for visit:', visit.id);
-    setSelectedVisit(visit);
-    setPaymentDialogOpen(true);
-  };
-
-  const handleAddPayment = async (visitId: string, amount: number, method: string, notes?: string) => {
-    try {
-      console.log('Adding payment:', { visitId, amount, method, notes });
-      // TODO: Implement payment addition logic
-      refetch();
-      setPaymentDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to add payment:', error);
-    }
-  };
-
-  const handleCreateInvoice = async (visitId: string) => {
-    try {
-      console.log('Creating invoice for visit:', visitId);
-      // TODO: Implement invoice creation logic
-    } catch (error) {
-      console.error('Failed to create invoice:', error);
-    }
-  };
-
-  // Action builders for components
-  const getPrimaryVisitActions = (visit: Visit): RowAction[] => [
-    {
-      label: "View Details",
-      onClick: () => handleOpenDetails(visit),
-    },
-  ];
-
-  const getSecondaryVisitActions = (visit: Visit): RowAction[] => [
-    {
-      label: "Edit",
-      onClick: () => handleOpenEdit(visit),
-    },
-    {
-      label: "Add Payment",
-      onClick: () => handleOpenPayment(visit),
-    },
-  ];
 
   const handleViewModeToggle = () => {
     const modes: Array<'list' | 'table' | 'calendar' | 'grid'> = ['table', 'list', 'calendar', 'grid'];
@@ -189,66 +132,48 @@ const VisitListPage = () => {
   const renderContent = () => {
     switch (viewMode) {
       case 'list':
-        return (
-          <VisitList 
-            visits={allVisits} 
-            getPrimaryActions={getPrimaryVisitActions}
-            getSecondaryActions={getSecondaryVisitActions}
-          />
-        );
+        return <VisitList visits={allVisits} />;
       case 'table':
-        return (
-          <VisitTable 
-            visits={allVisits} 
-            getPrimaryActions={getPrimaryVisitActions}
-            getSecondaryActions={getSecondaryVisitActions}
-          />
-        );
+        return <VisitTable visits={allVisits} />;
       case 'calendar':
         return <VisitCalendar visits={allVisits} />;
       case 'grid':
         return <VisitGrid visits={allVisits} />;
       default:
-        return (
-          <VisitTable 
-            visits={allVisits} 
-            getPrimaryActions={getPrimaryVisitActions}
-            getSecondaryActions={getSecondaryVisitActions}
-          />
-        );
+        return <VisitTable visits={allVisits} />;
     }
   };
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Patient Visits"
-        description="Manage patient visits and appointments"
-        viewMode={viewMode}
-        onViewModeToggle={handleViewModeToggle}
-        onRefreshClick={handleRefresh}
-        loadedElements={allVisits.length}
-        totalElements={totalElements}
-        onSearchChange={handleSearchChange}
-        searchValue={searchTerm}
-        showAddButton={true}
-        addButtonLabel="New Visit"
-        onAddButtonClick={handleAddVisit}
-        showFilter={true}
-        onFilterToggle={() => setShowFilter(!showFilter)}
-      />
-
-      {showFilter && (
-        <VisitFilterCard
-          searchTerm={filterState.searchTerm}
-          onSearchChange={updateSearchTerm}
-          selectedFilters={filterState.selectedFilters}
-          onFilterChange={updateFilter}
-          onClearFilters={clearFilters}
-          dateRange={filterState.dateRange}
-          onDateRangeChange={updateDateRange}
+        <PageHeader
+          title="Patient Visits"
+          description="Manage patient visits and appointments"
+          viewMode={viewMode}
+          onViewModeToggle={handleViewModeToggle}
+          onRefreshClick={handleRefresh}
+          loadedElements={allVisits.length}
+          totalElements={totalElements}
+          onSearchChange={handleSearchChange}
+          searchValue={searchTerm}
+          showAddButton={true}
+          addButtonLabel="New Visit"
+          onAddButtonClick={handleAddVisit}
+          showFilter={true}
+          onFilterToggle={() => setShowFilter(!showFilter)}
         />
-      )}
+
+        {showFilter && (
+          <VisitFilterCard
+            searchTerm={filterState.searchTerm}
+            onSearchChange={updateSearchTerm}
+            selectedFilters={filterState.selectedFilters}
+            onFilterChange={updateFilter}
+            onClearFilters={clearFilters}
+            dateRange={filterState.dateRange}
+            onDateRangeChange={updateDateRange}
+          />
+        )}
 
       {/* Main content container with explicit height and overflow */}
       <div
@@ -313,7 +238,6 @@ const VisitListPage = () => {
         visit={selectedVisit}
         onEdit={(visit) => {
           setDetailsModalOpen(false);
-          setSelectedVisit(visit);
           setEditDialogOpen(true);
         }}
         onGenerateInvoice={(visit) => {
@@ -322,15 +246,6 @@ const VisitListPage = () => {
         onViewPrescription={(visit) => {
           console.log('View prescription for:', visit.id);
         }}
-      />
-
-      {/* Payment Dialog */}
-      <PaymentDialog
-        visit={selectedVisit}
-        isOpen={paymentDialogOpen}
-        onClose={() => setPaymentDialogOpen(false)}
-        onAddPayment={handleAddPayment}
-        onCreateInvoice={handleCreateInvoice}
       />
     </div>
   );

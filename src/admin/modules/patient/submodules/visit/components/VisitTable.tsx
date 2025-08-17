@@ -1,175 +1,180 @@
 
-import { Visit } from "../types/Visit";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { DataTable } from "@/components/ui/data-table";
-import { ColumnDef } from "@tanstack/react-table";
-import { DataTableRowActions, RowAction } from "@/components/ui/data-table-row-actions";
+import { useVisitActions } from "../hooks/useVisitActions";
+import RowActions from "@/components/ui/RowActions";
+import { Visit } from "../types/Visit";
 
 interface VisitTableProps {
   visits: Visit[];
-  getPrimaryActions: (visit: Visit) => RowAction[];
-  getSecondaryActions: (visit: Visit) => RowAction[];
+  loading?: boolean;
+  onView?: (visit: Visit) => void;
+  onEdit?: (visit: Visit) => void;
 }
 
-export const VisitTable = ({ visits, getPrimaryActions, getSecondaryActions }: VisitTableProps) => {
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'closed':
-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-      case 'follow-up':
-        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-    }
-  };
+export const VisitTable = ({ visits, loading = false, onView, onEdit }: VisitTableProps) => {
 
-  const getTypeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'routine':
-        return 'bg-blue-50 text-blue-700 hover:bg-blue-100';
-      case 'follow-up':
-        return 'bg-orange-50 text-orange-700 hover:bg-orange-100';
-      case 'emergency':
-        return 'bg-red-50 text-red-700 hover:bg-red-100';
-      default:
-        return 'bg-gray-50 text-gray-700 hover:bg-gray-100';
+  const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'open': return 'bg-green-100 text-green-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
+      case 'follow-up': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPaymentStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
-      case 'paid':
-        return 'bg-green-50 text-green-700 hover:bg-green-100';
-      case 'partial':
-        return 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100';
-      case 'pending':
-        return 'bg-orange-50 text-orange-700 hover:bg-orange-100';
-      case 'unpaid':
-        return 'bg-red-50 text-red-700 hover:bg-red-100';
-      default:
-        return 'bg-gray-50 text-gray-700 hover:bg-gray-100';
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'partial': return 'bg-orange-100 text-orange-800';
+      case 'unpaid': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const columns: ColumnDef<Visit>[] = [
-    {
-      accessorKey: "id",
-      header: "Visit ID",
-      cell: ({ row }) => (
-        <div className="font-medium">#{row.getValue("id")}</div>
-      ),
-    },
-    {
-      accessorKey: "patientId",
-      header: "Patient ID",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("patientId")}</div>
-      ),
-    },
-    {
-      accessorKey: "visitDate",
-      header: "Visit Date",
-      cell: ({ row }) => (
-        <div>{format(new Date(row.getValue("visitDate")), 'MMM dd, yyyy')}</div>
-      ),
-    },
-    {
-      accessorKey: "visitType",
-      header: "Type",
-      cell: ({ row }) => (
-        <Badge 
-          variant="outline" 
-          className={getTypeColor(row.getValue("visitType"))}
-        >
-          {row.getValue("visitType")}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => (
-        <Badge 
-          variant="outline" 
-          className={getStatusColor(row.getValue("status"))}
-        >
-          {row.getValue("status")}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "paymentStatus",
-      header: "Payment",
-      cell: ({ row }) => {
-        const status = row.getValue("paymentStatus") as string;
-        if (!status) return <span className="text-muted-foreground">-</span>;
-        
-        return (
-          <Badge 
-            variant="outline" 
-            className={getPaymentStatusColor(status)}
-          >
-            {status}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "paymentAmount",
-      header: "Amount",
-      cell: ({ row }) => {
-        const amount = row.getValue("paymentAmount") as number;
-        const paid = row.original.paymentPaid;
-        
-        if (!amount) return <span className="text-muted-foreground">-</span>;
-        
-        return (
-          <div className="text-right">
-            <div className="font-medium">${amount.toFixed(2)}</div>
-            {paid && paid < amount && (
-              <div className="text-xs text-green-600">
-                Paid: ${paid.toFixed(2)}
-              </div>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "reasonForVisit",
-      header: "Reason",
-      cell: ({ row }) => (
-        <div className="max-w-[200px] truncate" title={row.getValue("reasonForVisit")}>
-          {row.getValue("reasonForVisit")}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "doctorId",
-      header: "Doctor",
-      cell: ({ row }) => {
-        const doctorId = row.getValue("doctorId") as string;
-        return doctorId ? (
-          <div>Dr. {doctorId}</div>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => (
-        <DataTableRowActions
-          primaryActions={getPrimaryActions(row.original)}
-          secondaryActions={getSecondaryActions(row.original)}
-        />
-      ),
-    },
-  ];
+  const getVisitTypeColor = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'routine': return 'bg-blue-100 text-blue-800';
+      case 'urgent': return 'bg-red-100 text-red-800';
+      case 'follow-up': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-  return <DataTable columns={columns} data={visits} />;
+  return (
+    <div className="bg-white rounded-lg border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Visit ID</TableHead>
+            <TableHead>Patient</TableHead>
+            <TableHead>Doctor</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Reason</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Payment</TableHead>
+            <TableHead className="text-center">Quick Actions</TableHead>
+            <TableHead className="text-center">More</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            Array(5).fill(0).map((_, index) => (
+              <TableRow key={`skeleton-${index}`}>
+                <TableCell className="py-4">
+                  <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-32 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-28 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-36 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="animate-pulse bg-gray-200 h-4 w-32 mx-auto rounded"></div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="animate-pulse bg-gray-200 h-4 w-8 mx-auto rounded"></div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : visits.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={10} className="text-center py-6 text-muted-foreground">
+                No visits found
+              </TableCell>
+            </TableRow>
+          ) : (
+            visits.map((visit) => (
+              <TableRow key={visit.id} className="hover:bg-gray-50">
+                <TableCell className="font-medium">{visit.id}</TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">{visit.patient.firstname} {visit.patient.lastname}</p>
+                    <p className="text-sm text-gray-500">
+                      {visit.patient.age}y, {visit.patient.gender} • {visit.patient.uid}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">{visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</p>
+                    <p className="text-sm text-gray-500">{visit.consultingDoctor.specializationList?.join(", ")}</p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(visit.createdTime), 'MMM dd, yyyy')}
+                </TableCell>
+                <TableCell>
+                  <Badge className={getVisitTypeColor(visit.type)}>
+                    {visit.type}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="max-w-xs">
+                    <p className="" title={visit.complaints}>
+                      {visit.complaints}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(visit.status)}>
+                    {visit.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {visit.paymentStatus ? (
+                    <div className="flex items-center gap-2">
+                      <Badge className={getPaymentStatusColor(visit.paymentStatus)}>
+                        {visit.paymentStatus}
+                      </Badge>
+                      {visit.paymentAmount && (
+                        <span className="text-xs text-gray-500">
+                          ₹{visit.paymentPaid || 0}/{visit.paymentAmount}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">N/A</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-center">
+                  <RowActions 
+                    actions={getPrimaryVisitActions(visit)} 
+                    maxVisibleActions={5}
+                  />
+                </TableCell>
+                <TableCell className="text-center">
+                  <RowActions 
+                    actions={getSecondaryVisitActions(visit)} 
+                    maxVisibleActions={0}
+                  />
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
 };
