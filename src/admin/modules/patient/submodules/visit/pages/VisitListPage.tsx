@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
@@ -36,6 +37,7 @@ import VisitDialog from "../components/VisitDialog";
 import { useVisitDialog } from "../hooks/useVisitDialog";
 import { PaymentDialog } from "../components/PaymentDialog";
 import { useVisitActions } from "../hooks/useVisitActions";
+import ReportsDialog from "../components/ReportsDialog";
 
 const VisitListPage = () => {
   const navigate = useNavigate();
@@ -45,6 +47,7 @@ const VisitListPage = () => {
   const { isDialogOpen, openDialog, closeDialog } = useVisitDialog();
   const { paymentDialogOpen, setPaymentDialogOpen } = useVisitActions();
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
+  const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -123,9 +126,8 @@ const VisitListPage = () => {
   };
 
   const handleViewReports = (visit: Visit) => {
-    console.log('View reports for visit:', visit.id);
-    // You can implement custom reports handling here
-    // For now, it will use the default ReportsDialog
+    setSelectedVisit(visit);
+    setReportsDialogOpen(true);
   };
 
   return (
@@ -181,6 +183,13 @@ const VisitListPage = () => {
           visit={selectedVisit}
         />
       )}
+
+      {/* Reports Dialog */}
+      <ReportsDialog
+        isOpen={reportsDialogOpen}
+        onClose={() => setReportsDialogOpen(false)}
+        visit={selectedVisit}
+      />
     </div>
   );
 };
