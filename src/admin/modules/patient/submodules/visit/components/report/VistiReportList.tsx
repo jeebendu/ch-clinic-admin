@@ -3,67 +3,67 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, Receipt, CreditCard, Plus, FileText } from 'lucide-react';
+import { FileText, Download, Eye, Plus } from 'lucide-react';
 import { Visit } from '../../types/Visit';
-import PaymentDialog from './VisitReportDialog';
+import VisitReportDialog from './VisitReportDialog';
 
-interface VisitPaymentProps {
+interface VisitReportProps {
   visit: Visit;
-  onPaymentUpdate?: (visitId: string | number) => void;
+  onReportUpdate?: (visitId: string | number) => void;
 }
 
-interface PaymentSummary {
-  totalDue: number;
-  totalPaid: number;
-  balance: number;
-  status: 'paid' | 'partial' | 'pending';
+interface ReportSummary {
+  totalReports: number;
+  completedReports: number;
+  pendingReports: number;
+  status: 'completed' | 'partial' | 'pending';
 }
 
-interface PaymentOrderItem {
+interface ReportItem {
   id: string;
   type: string;
-  description: string;
-  amount: number;
-  status: 'pending' | 'paid';
-}
-
-interface PaymentTransaction {
-  id: string;
-  amount: number;
-  mode: string;
+  title: string;
   date: string;
-  referenceNumber?: string;
+  status: 'completed' | 'pending' | 'in_progress';
+  size?: string;
 }
 
-const VisitReport: React.FC<VisitPaymentProps> = ({ 
+const VisitReport: React.FC<VisitReportProps> = ({ 
   visit, 
-  onPaymentUpdate 
+  onReportUpdate 
 }) => {
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   // Mock data - in real implementation, this would come from API
-  const [paymentSummary] = useState<PaymentSummary>({
-    totalDue: visit.paymentAmount || 500,
-    totalPaid: visit.paymentPaid || 0,
-    balance: (visit.paymentAmount || 500) - (visit.paymentPaid || 0),
-    status: visit.paymentStatus as 'paid' | 'partial' | 'pending' || 'pending'
+  const [reportSummary] = useState<ReportSummary>({
+    totalReports: 3,
+    completedReports: 2,
+    pendingReports: 1,
+    status: 'partial'
   });
 
-  const [orderItems] = useState<PaymentOrderItem[]>([
+  const [recentReports] = useState<ReportItem[]>([
     {
       id: '1',
       type: 'consultation',
-      description: 'Doctor Consultation',
-      amount: 500,
-      status: 'pending'
+      title: 'Consultation Report',
+      date: visit.scheduleDate || new Date().toISOString(),
+      status: 'completed',
+      size: '2.4 MB'
+    },
+    {
+      id: '2',
+      type: 'prescription',
+      title: 'Prescription',
+      date: visit.scheduleDate || new Date().toISOString(),
+      status: 'completed',
+      size: '1.2 MB'
     }
   ]);
 
-  const [transactions] = useState<PaymentTransaction[]>([]);
-
   const getStatusBadge = (status: string) => {
     const variants = {
-      paid: 'bg-green-100 text-green-800',
+      completed: 'bg-green-100 text-green-800',
       partial: 'bg-yellow-100 text-yellow-800',
       pending: 'bg-red-100 text-red-800'
     };
@@ -75,15 +75,15 @@ const VisitReport: React.FC<VisitPaymentProps> = ({
     );
   };
 
-  const handleOpenPaymentDialog = () => {
-    setIsPaymentDialogOpen(true);
+  const handleOpenReportDialog = () => {
+    setIsReportDialogOpen(true);
   };
 
-  const handleClosePaymentDialog = () => {
-    setIsPaymentDialogOpen(false);
-    // Optionally refresh payment data here
-    if (onPaymentUpdate) {
-      onPaymentUpdate(visit.id!);
+  const handleCloseReportDialog = () => {
+    setIsReportDialogOpen(false);
+    // Optionally refresh report data here
+    if (onReportUpdate) {
+      onReportUpdate(visit.id!);
     }
   };
 
@@ -93,88 +93,64 @@ const VisitReport: React.FC<VisitPaymentProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              Payment & Billing
+              <FileText className="h-5 w-5 text-blue-600" />
+              Reports & Documents
             </div>
             <div className="flex items-center gap-2">
-              {getStatusBadge(paymentSummary.status)}
+              {getStatusBadge(reportSummary.status)}
               <Button 
-                onClick={handleOpenPaymentDialog}
+                onClick={handleOpenReportDialog}
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                <Plus className="h-4 w-4 mr-1" />
-                Manage Payment
+                <Eye className="h-4 w-4 mr-1" />
+                View Reports
               </Button>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Payment Summary */}
+          {/* Report Summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-sm text-muted-foreground">Total Due</div>
-              <div className="text-2xl font-bold">₹{paymentSummary.totalDue}</div>
+              <div className="text-sm text-muted-foreground">Total Reports</div>
+              <div className="text-2xl font-bold">{reportSummary.totalReports}</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-sm text-muted-foreground">Total Paid</div>
-              <div className="text-2xl font-bold text-green-600">₹{paymentSummary.totalPaid}</div>
+              <div className="text-sm text-muted-foreground">Completed</div>
+              <div className="text-2xl font-bold text-green-600">{reportSummary.completedReports}</div>
             </div>
-            <div className={`p-4 rounded-lg ${paymentSummary.balance > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
-              <div className="text-sm text-muted-foreground">Balance</div>
-              <div className={`text-2xl font-bold ${paymentSummary.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                ₹{paymentSummary.balance}
-              </div>
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Pending</div>
+              <div className="text-2xl font-bold text-yellow-600">{reportSummary.pendingReports}</div>
             </div>
           </div>
 
-          {/* Order Items */}
-          <div>
-            <h4 className="font-medium mb-3 flex items-center gap-2">
-              <Receipt className="h-4 w-4" />
-              Billing Items
-            </h4>
-            <div className="space-y-2">
-              {orderItems.map((item) => (
-                <div key={item.id} className="flex justify-between items-center p-3 border rounded">
-                  <div>
-                    <div className="font-medium">{item.description}</div>
-                    <div className="text-sm text-muted-foreground capitalize">{item.type}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium">₹{item.amount}</div>
-                    <Badge 
-                      variant={item.status === 'paid' ? 'default' : 'secondary'}
-                      className={item.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}
-                    >
-                      {item.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Transactions */}
-          {transactions.length > 0 && (
+          {/* Recent Reports */}
+          {recentReports.length > 0 && (
             <div>
               <h4 className="font-medium mb-3 flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Recent Payments
+                <FileText className="h-4 w-4" />
+                Recent Reports
               </h4>
               <div className="space-y-2">
-                {transactions.map((transaction) => (
-                  <div key={transaction.id} className="flex justify-between items-center p-3 border rounded">
+                {recentReports.map((report) => (
+                  <div key={report.id} className="flex justify-between items-center p-3 border rounded">
                     <div>
-                      <div className="font-medium">₹{transaction.amount}</div>
+                      <div className="font-medium">{report.title}</div>
                       <div className="text-sm text-muted-foreground">
-                        {transaction.mode} • {transaction.date}
-                        {transaction.referenceNumber && ` • ${transaction.referenceNumber}`}
+                        {new Date(report.date).toLocaleDateString()}
+                        {report.size && ` • ${report.size}`}
                       </div>
                     </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700">
-                      Completed
-                    </Badge>
+                    <div className="text-right">
+                      <Badge 
+                        variant={report.status === 'completed' ? 'default' : 'secondary'}
+                        className={report.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}
+                      >
+                        {report.status}
+                      </Badge>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -186,27 +162,27 @@ const VisitReport: React.FC<VisitPaymentProps> = ({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={handleOpenPaymentDialog}
+              onClick={handleOpenReportDialog}
             >
-              <CreditCard className="h-4 w-4 mr-1" />
-              Collect Payment
+              <Eye className="h-4 w-4 mr-1" />
+              View All Reports
             </Button>
             <Button 
               variant="outline" 
               size="sm"
-              disabled={paymentSummary.totalPaid === 0}
+              disabled={reportSummary.completedReports === 0}
             >
-              <FileText className="h-4 w-4 mr-1" />
-              Generate Invoice
+              <Download className="h-4 w-4 mr-1" />
+              Download All
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      <PaymentDialog
+      <VisitReportDialog
         visit={visit}
-        isOpen={isPaymentDialogOpen}
-        onClose={handleClosePaymentDialog}
+        isOpen={isReportDialogOpen}
+        onClose={handleCloseReportDialog}
       />
     </>
   );
