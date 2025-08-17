@@ -1,272 +1,247 @@
 
-import React, { forwardRef, useImperativeHandle } from "react";
+import React, { forwardRef, useImperativeHandle, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   InputField, 
-  EmailField, 
   PhoneField, 
   FormRow,
   FormSection 
 } from "@/components/form";
+import PatientPicker from "@/admin/modules/patient/components/PatientPicker";
+import QuickPatientFormDialog from "@/admin/components/dialogs/QuickPatientFormDialog";
+import visitService from "../services/visitService";
+import { Visit } from "../types/Visit";
+import { Patient } from "@/admin/modules/patient/types/Patient";
+import { useToast } from "@/hooks/use-toast";
 
-// Visit form schema
-const visitFormSchema = z.object({
-  patientFirstname: z.string().min(1, "First name is required"),
-  patientLastname: z.string().min(1, "Last name is required"),
-  patientPhone: z.string().min(1, "Phone is required"),
-  patientEmail: z.string().email("Valid email is required").optional().or(z.literal("")),
-  visitDate: z.string().min(1, "Visit date is required"),
-  visitTime: z.string().min(1, "Visit time is required"),
-  doctorId: z.string().min(1, "Doctor is required"),
-  branchId: z.string().min(1, "Branch is required"),
-  visitType: z.enum(["CONSULTATION", "FOLLOW_UP", "EMERGENCY", "ROUTINE_CHECKUP"]).default("CONSULTATION"),
-  status: z.enum(["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"]).default("SCHEDULED"),
-  chiefComplaint: z.string().optional(),
+const visitSchema = z.object({
+  patient: z.object({
+    id: z.number(),
+  }).nullable(),
+  complaints: z.string().min(1, "Complaints are required"),
+  scheduleDate: z.string().min(1, "Schedule date is required"),
+  type: z.string().min(1, "Visit type is required"),
+  status: z.string().default("Scheduled"),
   notes: z.string().optional(),
+  referralDoctorName: z.string().optional(),
 });
 
-type VisitFormValues = z.infer<typeof visitFormSchema>;
-
-interface VisitFormProps {
-  visit?: any;
-  onSuccess: () => void;
-}
+type VisitFormData = z.infer<typeof visitSchema>;
 
 export interface VisitFormRef {
   submitForm: () => void;
   resetForm: () => void;
 }
 
-const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(({ visit, onSuccess }, ref) => {
-  const { toast } = useToast();
-  const isEditing = !!visit;
+interface VisitFormProps {
+  visit?: Visit | null;
+  onSuccess: (response: any) => void;
+  onError?: (error: string) => void;
+  showSubmitButton?: boolean;
+}
 
-  const defaultValues: Partial<VisitFormValues> = {
-    patientFirstname: visit?.patient?.firstname || "",
-    patientLastname: visit?.patient?.lastname || "",
-    patientPhone: visit?.patient?.mobile || visit?.patient?.phone || "",
-    patientEmail: visit?.patient?.email || "",
-    visitDate: visit?.visitDate ? new Date(visit.visitDate).toISOString().split('T')[0] : "",
-    visitTime: visit?.visitTime || "",
-    doctorId: visit?.doctor?.id?.toString() || "",
-    branchId: visit?.branch?.id?.toString() || "",
-    visitType: visit?.visitType || "CONSULTATION",
-    status: visit?.status || "SCHEDULED",
-    chiefComplaint: visit?.chiefComplaint || "",
-    notes: visit?.notes || "",
-  };
+const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
+  ({ visit, onSuccess, onError, showSubmitButton = true }, ref) => {
+    const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+    const [showQuickPatientDialog, setShowQuickPatientDialog] = useState(false);
+    const { toast } = useToast();
+    
+    const form = useForm<VisitFormData>({
+      resolver: zodResolver(visitSchema),
+      defaultValues: {
+        patient: null,
+        complaints: "",
+        scheduleDate: "",
+        type: "Consultation",
+        status: "Scheduled",
+        notes: "",
+        referralDoctorName: "",
+      },
+    });
 
-  const form = useForm<VisitFormValues>({
-    resolver: zodResolver(visitFormSchema),
-    defaultValues,
-  });
+    // Load visit data when editing
+    useEffect(() => {
+      if (visit) {
+        setSelectedPatient(visit.patient || null);
+        form.reset({
+          patient: visit.patient ? { id: visit.patient.id } : null,
+          complaints: visit.complaints || "",
+          scheduleDate: visit.scheduleDate || "",
+          type: visit.type || "Consultation",
+          status: visit.status || "Scheduled",
+          notes: visit.notes || "",
+          referralDoctorName: visit.referralDoctorName || "",
+        });
+      }
+    }, [visit, form]);
 
-  const onSubmit = async (data: VisitFormValues) => {
-    try {
-      console.log("Visit data:", data);
-      
-      toast({
-        title: `Visit ${isEditing ? "updated" : "created"} successfully`,
-        className: "bg-clinic-primary text-white"
-      });
-      
-      onSuccess();
-    } catch (error) {
-      console.error("Error saving visit:", error);
-      toast({
-        title: "Error",
-        description: `Failed to ${isEditing ? "update" : "create"} visit. Please try again.`,
-        variant: "destructive",
-      });
-    }
-  };
+    // Update form when patient is selected
+    useEffect(() => {
+      if (selectedPatient) {
+        form.setValue("patient", { id: selectedPatient.id });
+      } else {
+        form.setValue("patient", null);
+      }
+    }, [selectedPatient, form]);
 
-  useImperativeHandle(ref, () => ({
-    submitForm: () => {
-      form.handleSubmit(onSubmit)();
-    },
-    resetForm: () => {
-      form.reset(defaultValues);
-    },
-  }));
+    const onSubmit = async (data: VisitFormData) => {
+      if (!selectedPatient) {
+        toast({
+          title: "Error",
+          description: "Please select a patient",
+          variant: "destructive",
+        });
+        return;
+      }
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormSection title="Patient Information" description="Basic patient details for the visit">
-          <FormRow columns={2}>
-            <InputField
-              control={form.control}
-              name="patientFirstname"
-              label="Patient First Name"
-              required
-            />
-            
-            <InputField
-              control={form.control}
-              name="patientLastname"
-              label="Patient Last Name"
-              required
-            />
-            
-            <PhoneField
-              control={form.control}
-              name="patientPhone"
-              label="Patient Phone"
-              required
-            />
-            
-            <EmailField
-              control={form.control}
-              name="patientEmail"
-              label="Patient Email"
-            />
-          </FormRow>
-        </FormSection>
+      try {
+        const visitData = {
+          ...data,
+          id: visit?.id,
+          patient: selectedPatient,
+        };
 
-        <FormSection title="Visit Details" description="Schedule and visit information">
-          <FormRow columns={2}>
-            <InputField
-              control={form.control}
-              name="visitDate"
-              label="Visit Date"
-              type="date"
-              required
-            />
-            
-            <InputField
-              control={form.control}
-              name="visitTime"
-              label="Visit Time"
-              type="time"
-              required
-            />
-            
-            <InputField
-              control={form.control}
-              name="doctorId"
-              label="Doctor ID"
-              required
-            />
-            
-            <InputField
-              control={form.control}
-              name="branchId"
-              label="Branch ID"
-              required
-            />
-          </FormRow>
-
-          <FormRow columns={2}>
-            <FormField
-              control={form.control}
-              name="visitType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Visit Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select visit type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="CONSULTATION">Consultation</SelectItem>
-                      <SelectItem value="FOLLOW_UP">Follow Up</SelectItem>
-                      <SelectItem value="EMERGENCY">Emergency</SelectItem>
-                      <SelectItem value="ROUTINE_CHECKUP">Routine Checkup</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {isEditing && (
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                        <SelectItem value="COMPLETED">Completed</SelectItem>
-                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </FormRow>
-        </FormSection>
-
-        <FormSection title="Medical Information" description="Chief complaint and additional notes">
-          <FormField
-            control={form.control}
-            name="chiefComplaint"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Chief Complaint</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter chief complaint"
-                    {...field}
-                    rows={3}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Notes</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter additional notes"
-                    {...field}
-                    rows={3}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </FormSection>
+        const response = await visitService.saveOrUpdate(visitData);
         
-        <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button variant="outline" type="button" onClick={onSuccess} className="border-clinic-primary/20 text-clinic-primary hover:bg-clinic-primary/10">
-            Cancel
-          </Button>
-          <Button type="submit" className="bg-clinic-primary hover:bg-clinic-secondary">
-            {isEditing ? "Update" : "Create"} Visit
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
-});
+        if (response?.data?.status === true || response?.status === true) {
+          toast({
+            title: "Success",
+            description: visit ? "Visit updated successfully" : "Visit created successfully",
+          });
+          onSuccess(response.data || response);
+        } else {
+          const errorMessage = response?.data?.message || response?.message || "Failed to save visit";
+          toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
+          onError?.(errorMessage);
+        }
+      } catch (error: any) {
+        const errorMessage = error?.response?.data?.message || error.message || "Failed to save visit";
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        onError?.(errorMessage);
+      }
+    };
+
+    const handlePatientCreated = (patient: Patient) => {
+      setSelectedPatient(patient);
+      toast({
+        title: "Success",
+        description: "Patient created and selected for visit",
+      });
+    };
+
+    useImperativeHandle(ref, () => ({
+      submitForm: () => {
+        form.handleSubmit(onSubmit)();
+      },
+      resetForm: () => {
+        form.reset();
+        setSelectedPatient(null);
+      },
+    }));
+
+    return (
+      <>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormSection title="Patient Selection">
+              <PatientPicker
+                selectedPatient={selectedPatient}
+                onPatientSelect={setSelectedPatient}
+                onAddNewPatient={() => setShowQuickPatientDialog(true)}
+              />
+            </FormSection>
+
+            <FormSection title="Visit Details">
+              <FormRow columns={2}>
+                <InputField
+                  control={form.control}
+                  name="scheduleDate"
+                  label="Schedule Date"
+                  type="datetime-local"
+                  required
+                />
+                <InputField
+                  control={form.control}
+                  name="type"
+                  label="Visit Type"
+                  required
+                />
+              </FormRow>
+
+              <InputField
+                control={form.control}
+                name="complaints"
+                label="Complaints"
+                required
+                placeholder="Describe the patient's complaints..."
+              />
+
+              <FormRow columns={2}>
+                <InputField
+                  control={form.control}
+                  name="status"
+                  label="Status"
+                />
+                <InputField
+                  control={form.control}
+                  name="referralDoctorName"
+                  label="Referral Doctor"
+                  placeholder="Optional referral doctor name"
+                />
+              </FormRow>
+
+              <InputField
+                control={form.control}
+                name="notes"
+                label="Additional Notes"
+                placeholder="Any additional notes about the visit..."
+              />
+            </FormSection>
+
+            {showSubmitButton && (
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => form.reset()}
+                >
+                  Reset
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting 
+                    ? "Saving..." 
+                    : visit ? "Update Visit" : "Create Visit"
+                  }
+                </Button>
+              </div>
+            )}
+          </form>
+        </Form>
+
+        <QuickPatientFormDialog
+          isOpen={showQuickPatientDialog}
+          onClose={() => setShowQuickPatientDialog(false)}
+          onSave={handlePatientCreated}
+        />
+      </>
+    );
+  }
+);
 
 VisitForm.displayName = "VisitForm";
 
