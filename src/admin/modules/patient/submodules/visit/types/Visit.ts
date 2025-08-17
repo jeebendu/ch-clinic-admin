@@ -1,22 +1,20 @@
-import { Doctor } from "@/admin/modules/appointments/types/Doctor";
-import { Patient } from "../../../types/Patient";
-import { Branch } from "@/admin/modules/branch/types/Branch";
+
+import { Patient } from "@/admin/modules/patient/types/Patient";
+import { Doctor } from "@/admin/modules/doctor/types/Doctor";
 
 export interface Visit {
-  id?: number | string;
-  branch?: Branch;
-  patient?: Patient;
-  referByDoctor?: Doctor;
-  consultingDoctor?: Doctor;
-  complaints?: string;
-  scheduleDate?: string;
-  type?: string;
-  status?: string;
+  id?: number;
+  uid?: string;
+  visitDate?: Date | string;
+  visitType?: string;
+  status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+  chiefComplaint?: string;
   notes?: string;
-  paymentStatus?: string;
-  paymentAmount?: number;
-  paymentPaid?: number;
-  referralDoctorName?: string | null;
-  createdTime?: string;
-  //[key: string]: any;
+  diagnosis?: string;
+  prescription?: string;
+  followUpDate?: Date | string;
+  patient?: Patient;
+  doctor?: Doctor;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
