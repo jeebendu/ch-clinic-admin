@@ -26,14 +26,15 @@ import { VISIT_TYPE_OPTIONS } from "../types/VisitFilter";
 const visitSchema = z.object({
   patient: z.object({
     id: z.number(),
-  }).nullable(),
+  }).nullable().refine((val) => val !== null, {
+    message: "Patient selection is required"
+  }),
   complaints: z.string().min(1, "Complaints are required"),
-  scheduleDate: z.string().min(1, "Schedule date is required"),
   type: z.string().min(1, "Visit type is required"),
   status: z.string().default("Scheduled"),
   notes: z.string().optional(),
   referralDoctorName: z.string().optional(),
-  historyOf:z.string().optional(),
+  historyOf: z.string().optional(),
 });
 
 type VisitFormData = z.infer<typeof visitSchema>;
@@ -50,13 +51,17 @@ interface VisitFormProps {
   showSubmitButton?: boolean;
 }
 
-
 const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
   ({ visit, onSuccess, onError, showSubmitButton = true }, ref) => {
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
     const [selectedReferralDoctor, setSelectedReferralDoctor] = useState<Doctor | null>(null);
     const [selectedConsultingDoctor, setSelectedConsultingDoctor] = useState<Doctor | null>(null);
     const [showQuickPatientDialog, setShowQuickPatientDialog] = useState(false);
+    const [validationErrors, setValidationErrors] = useState<{
+      patient?: string;
+      referByDoctor?: string;
+      consultingDoctor?: string;
+    }>({});
     const { toast } = useToast();
     
     const form = useForm<VisitFormData>({
@@ -64,7 +69,6 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
       defaultValues: {
         patient: null,
         complaints: "",
-        scheduleDate: "",
         type: "Consultation",
         status: "Scheduled",
         notes: "",
@@ -82,11 +86,11 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
         form.reset({
           patient: visit.patient ? { id: visit.patient.id } : null,
           complaints: visit.complaints || "",
-          scheduleDate: visit.scheduleDate || "",
           type: visit.type || "Consultation",
           status: visit.status || "Scheduled",
           notes: visit.notes || "",
           referralDoctorName: visit.referralDoctorName || "",
+          historyOf: visit.historyOf || "",
         });
       }
     }, [visit, form]);
@@ -95,16 +99,53 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
     useEffect(() => {
       if (selectedPatient) {
         form.setValue("patient", { id: selectedPatient.id });
+        setValidationErrors(prev => ({ ...prev, patient: undefined }));
       } else {
         form.setValue("patient", null);
       }
     }, [selectedPatient, form]);
 
-    const onSubmit = async (data: VisitFormData) => {
+    // Clear validation errors when doctors are selected
+    useEffect(() => {
+      if (selectedReferralDoctor) {
+        setValidationErrors(prev => ({ ...prev, referByDoctor: undefined }));
+      }
+    }, [selectedReferralDoctor]);
+
+    useEffect(() => {
+      if (selectedConsultingDoctor) {
+        setValidationErrors(prev => ({ ...prev, consultingDoctor: undefined }));
+      }
+    }, [selectedConsultingDoctor]);
+
+    const validateExternalComponents = () => {
+      const errors: typeof validationErrors = {};
+      let isValid = true;
+
+      // Validate patient selection
       if (!selectedPatient) {
+        errors.patient = "Patient selection is required";
+        isValid = false;
+      }
+
+      // Validate consulting doctor selection (required)
+      if (!selectedConsultingDoctor) {
+        errors.consultingDoctor = "Consulting doctor selection is required";
+        isValid = false;
+      }
+
+      // Referral doctor is optional, so no validation needed
+
+      setValidationErrors(errors);
+      return isValid;
+    };
+
+    const onSubmit = async (data: VisitFormData) => {
+      // Validate external components first
+      if (!validateExternalComponents()) {
         toast({
-          title: "Error",
-          description: "Please select a patient",
+          title: "Validation Error",
+          description: "Please fix the validation errors and try again",
           variant: "destructive",
         });
         return;
@@ -164,6 +205,7 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
         setSelectedPatient(null);
         setSelectedReferralDoctor(null);
         setSelectedConsultingDoctor(null);
+        setValidationErrors({});
       },
     }));
 
@@ -172,29 +214,50 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormSection title="Patient Selection">
-              <PatientPicker
-                selectedPatient={selectedPatient}
-                onPatientSelect={setSelectedPatient}
-                onAddNewPatient={() => setShowQuickPatientDialog(true)}
-              />
+              <div className="space-y-2">
+                <PatientPicker
+                  selectedPatient={selectedPatient}
+                  onPatientSelect={setSelectedPatient}
+                  onAddNewPatient={() => setShowQuickPatientDialog(true)}
+                />
+                {validationErrors.patient && (
+                  <p className="text-sm font-medium text-destructive">
+                    {validationErrors.patient}
+                  </p>
+                )}
+              </div>
             </FormSection>
 
             <FormSection title="Visit Details">
               <FormRow columns={2}>
-                <DoctorAutocomplete
-                  selectedDoctor={selectedReferralDoctor}
-                  onDoctorSelect={setSelectedReferralDoctor}
-                  placeholder="Search referral doctor..."
-                  allowExternal={true}
-                  label="Referral Doctor"
-                />
-                <DoctorAutocomplete
-                  selectedDoctor={selectedConsultingDoctor}
-                  onDoctorSelect={setSelectedConsultingDoctor}
-                  placeholder="Search consulting doctor..."
-                  allowExternal={false}
-                  label="Consulting Doctor"
-                />
+                <div className="space-y-2">
+                  <DoctorAutocomplete
+                    selectedDoctor={selectedReferralDoctor}
+                    onDoctorSelect={setSelectedReferralDoctor}
+                    placeholder="Search referral doctor..."
+                    allowExternal={true}
+                    label="Referral Doctor"
+                  />
+                  {validationErrors.referByDoctor && (
+                    <p className="text-sm font-medium text-destructive">
+                      {validationErrors.referByDoctor}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <DoctorAutocomplete
+                    selectedDoctor={selectedConsultingDoctor}
+                    onDoctorSelect={setSelectedConsultingDoctor}
+                    placeholder="Search consulting doctor..."
+                    allowExternal={false}
+                    label="Consulting Doctor *"
+                  />
+                  {validationErrors.consultingDoctor && (
+                    <p className="text-sm font-medium text-destructive">
+                      {validationErrors.consultingDoctor}
+                    </p>
+                  )}
+                </div>
               </FormRow>
 
               <FormRow columns={2}>
@@ -205,7 +268,6 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
                   options={VISIT_TYPE_OPTIONS}
                   required
                 />
-          
               </FormRow>
 
               <TextAreaField
@@ -223,7 +285,6 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
                 rows={4}
                 placeholder="Enter patient History..."
               />
-
             </FormSection>
 
             {showSubmitButton && (
@@ -231,7 +292,13 @@ const VisitForm = forwardRef<VisitFormRef, VisitFormProps>(
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => form.reset()}
+                  onClick={() => {
+                    form.reset();
+                    setSelectedPatient(null);
+                    setSelectedReferralDoctor(null);
+                    setSelectedConsultingDoctor(null);
+                    setValidationErrors({});
+                  }}
                 >
                   Reset
                 </Button>
