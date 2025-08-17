@@ -52,15 +52,10 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     setShowResults(true);
 
     try {
-      const response = await doctorService.searchDoctors({
-        searchTerm: term,
-        external: allowExternal,
-        pageNo: 0,
-        pageSize: 10
-      });
+      const response = await doctorService.findAllDoctors();
 
-      if (response?.data?.content) {
-        setSearchResults(response.data.content);
+      if (response) {
+        setSearchResults(response);
       } else {
         setSearchResults([]);
       }
