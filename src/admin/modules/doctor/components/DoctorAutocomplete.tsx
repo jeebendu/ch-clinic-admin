@@ -28,58 +28,72 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
   className = "",
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<Doctor[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const skipNextSearchRef = useRef(false);
   const { toast } = useToast();
 
-  // Search doctors by name
-  const searchDoctors = async (term: string) => {
-    // Skip search if flag is set (after doctor selection)
+  // Load all doctors once on component mount
+  useEffect(() => {
+    const loadDoctors = async () => {
+      setIsLoading(true);
+      try {
+        const response = await doctorService.findAllDoctors();
+        if (response) {
+          setAllDoctors(response);
+        }
+      } catch (error) {
+        console.error("Error loading doctors:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load doctors",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDoctors();
+  }, []);
+
+  // Filter doctors based on search term
+  useEffect(() => {
     if (skipNextSearchRef.current) {
       skipNextSearchRef.current = false;
       return;
     }
 
-    if (!term.trim() || term.length < 2) {
-      setSearchResults([]);
+    if (!searchTerm.trim() || searchTerm.length < 2) {
+      setFilteredDoctors([]);
       setShowResults(false);
       return;
     }
 
-    setIsSearching(true);
-    setShowResults(true);
+    const filtered = allDoctors.filter((doctor) => {
+      const fullName = `${doctor.firstname} ${doctor.lastname}`.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
+      
+      // Filter by name, qualification, or specialization
+      const matchesName = fullName.includes(searchLower);
+      const matchesQualification = doctor.qualification?.toLowerCase().includes(searchLower);
+      const matchesSpecialization = doctor.specializationList?.some(
+        spec => spec.name.toLowerCase().includes(searchLower)
+      );
 
-    try {
-      const response = await doctorService.findAllDoctors();
-
-      if (response) {
-        setSearchResults(response);
-      } else {
-        setSearchResults([]);
+      // If allowExternal is false, only show internal doctors
+      if (!allowExternal && doctor.external) {
+        return false;
       }
-    } catch (error) {
-      console.error("Error searching doctors:", error);
-      toast({
-        title: "Error",
-        description: "Failed to search doctors",
-        variant: "destructive",
-      });
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  };
 
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      searchDoctors(searchTerm);
-    }, 300);
+      return matchesName || matchesQualification || matchesSpecialization;
+    });
 
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+    setFilteredDoctors(filtered);
+    setShowResults(true);
+  }, [searchTerm, allDoctors, allowExternal]);
 
   const handleDoctorSelect = (doctor: Doctor) => {
     onDoctorSelect(doctor);
@@ -163,10 +177,10 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
       </div>
 
       {/* Search Results */}
-      {showResults && searchResults.length > 0 && !selectedDoctor && (
+      {showResults && filteredDoctors.length > 0 && !selectedDoctor && (
         <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
           <CardContent className="p-0">
-            {searchResults.map((doctor) => {
+            {filteredDoctors.map((doctor) => {
               const displayInfo = formatDoctorInfo(doctor);
               return (
                 <div
@@ -198,19 +212,22 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
       )}
 
       {/* Loading */}
-      {isSearching && (
+      {isLoading && (
         <Card className="absolute z-10 w-full mt-1">
           <CardContent className="p-4 text-center text-gray-500">
-            <div className="text-sm">Searching doctors...</div>
+            <div className="text-sm">Loading doctors...</div>
           </CardContent>
         </Card>
       )}
 
       {/* No Results */}
-      {showResults && searchResults.length === 0 && !isSearching && searchTerm.length >= 2 && !selectedDoctor && (
+      {showResults && filteredDoctors.length === 0 && !isLoading && searchTerm.length >= 2 && !selectedDoctor && (
         <Card className="absolute z-10 w-full mt-1">
           <CardContent className="p-4 text-center text-gray-500">
             <div className="text-sm">No doctors found for "{searchTerm}"</div>
+            {!allowExternal && (
+              <div className="text-xs mt-1">Only internal doctors are shown</div>
+            )}
           </CardContent>
         </Card>
       )}
