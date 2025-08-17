@@ -1,7 +1,6 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AdminLayout } from "@/admin/components/AdminLayout";
 import PageHeader from "@/admin/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -21,17 +20,36 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useBranchFilter } from "@/hooks/use-branch-filter";
 
-const PatientList = () => {
+interface PatientListProps {
+  showHeader?: boolean;
+  onPatientSelect?: (patient: Patient) => void;
+  onPatientEdit?: (patient: Patient) => void;
+  onPatientDelete?: (patient: Patient) => void;
+  onPatientAdd?: () => void;
+  initialViewMode?: 'list' | 'grid';
+  maxHeight?: string;
+}
+
+const PatientList: React.FC<PatientListProps> = ({
+  showHeader = true,
+  onPatientSelect,
+  onPatientEdit,
+  onPatientDelete,
+  onPatientAdd,
+  initialViewMode,
+  maxHeight = "calc(100vh-180px)"
+}) => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>(isMobile ? 'list' : 'grid');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(
+    initialViewMode || (isMobile ? 'list' : 'grid')
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [patientToDelete, setPatientToDelete] = useState<number | null>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
   const { selectedBranch } = useBranchFilter();
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -41,11 +59,6 @@ const PatientList = () => {
       return response;
     },
   });
-
-  // Effect to refetch data when branch changes
-  useEffect(() => {
-    refetch();
-  }, [selectedBranch, refetch]);
 
   // Extract patients from the response - handle different response formats
   const patients = data?.content || (Array.isArray(data) ? data : []);
@@ -68,16 +81,20 @@ const PatientList = () => {
     setViewMode(viewMode === 'list' ? 'grid' : 'list');
   };
 
-  const handleDeletePatient = (id: number) => {
-    setPatientToDelete(id);
-    setDeleteDialogOpen(true);
+  const handleDeletePatient = (patient: Patient) => {
+    if (onPatientDelete) {
+      onPatientDelete(patient);
+    } else {
+      setPatientToDelete(patient);
+      setDeleteDialogOpen(true);
+    }
   };
 
   const confirmDelete = async () => {
     if (patientToDelete === null) return;
     
     try {
-      await PatientService.deleteById(patientToDelete);
+      await PatientService.deleteById(patientToDelete.id);
       toast({
         title: "Patient deleted",
         description: "Patient has been successfully deleted.",
@@ -101,19 +118,21 @@ const PatientList = () => {
   return (
     <>
       <div className="space-y-4">
-        <PageHeader 
-          title="Patients" 
-          viewMode={viewMode}
-          onViewModeToggle={toggleViewMode}
-          showAddButton={true}
-          addButtonLabel="Add Patient"
-          onAddButtonClick={() => {/* Add patient form would go here */}}
-          onRefreshClick={() => refetch()}
-          loadedElements={loadedElements}
-          totalElements={totalElements}
-          onSearchChange={handleSearchChange}
-          searchValue={searchTerm}
-        />
+        {showHeader && (
+          <PageHeader 
+            title="Patients" 
+            viewMode={viewMode}
+            onViewModeToggle={toggleViewMode}
+            showAddButton={!!onPatientAdd}
+            addButtonLabel="Add Patient"
+            onAddButtonClick={onPatientAdd}
+            onRefreshClick={() => refetch()}
+            loadedElements={loadedElements}
+            totalElements={totalElements}
+            onSearchChange={handleSearchChange}
+            searchValue={searchTerm}
+          />
+        )}
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
@@ -124,17 +143,27 @@ const PatientList = () => {
             <p className="text-destructive">Error loading patients. Please try again.</p>
           </div>
         ) : (
-          <div ref={contentRef} className="overflow-auto max-h-[calc(100vh-180px)]">
+          <div className="overflow-auto" style={{ maxHeight }}>
             {viewMode === 'grid' ? (
               <PatientTable 
                 patients={patients} 
-                onDelete={handleDeletePatient}
+                onDelete={(id) => {
+                  const patient = patients.find(p => p.id === id);
+                  if (patient) handleDeletePatient(patient);
+                }}
+                onEdit={onPatientEdit}
+                onView={onPatientSelect}
                 loading={isLoading}
               />
             ) : (
               <PatientCardList 
                 patients={patients} 
-                onDelete={handleDeletePatient}
+                onDelete={(id) => {
+                  const patient = patients.find(p => p.id === id);
+                  if (patient) handleDeletePatient(patient);
+                }}
+                onEdit={onPatientEdit}
+                onView={onPatientSelect}
                 loading={isLoading}
               />
             )}
