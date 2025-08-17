@@ -1,12 +1,5 @@
 
-package com.jee.clinichub.modules.queue.service;
-
-import com.jee.clinichub.modules.queue.dto.QueueItemDto;
-import com.jee.clinichub.modules.queue.dto.QueueResponseDto;
-import com.jee.clinichub.modules.queue.entity.LiveVisitQueue;
-import com.jee.clinichub.modules.queue.repository.LiveVisitQueueRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+package com.jee.clinichub.app.patient.queue.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -15,11 +8,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
+import com.jee.clinichub.app.patient.queue.dto.QueueItemDto;
+import com.jee.clinichub.app.patient.queue.dto.QueueResponseDto;
+import com.jee.clinichub.app.patient.queue.entity.LiveVisitQueue;
+import com.jee.clinichub.app.patient.queue.repository.LiveVisitQueueRepository;
+
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class QueueService {
 
-    @Autowired
-    private LiveVisitQueueRepository queueRepository;
+  
+    private final LiveVisitQueueRepository queueRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 

@@ -1,14 +1,15 @@
 
-package com.jee.clinichub.modules.queue.repository;
+package com.jee.clinichub.app.patient.queue.repository;
 
-import com.jee.clinichub.modules.queue.entity.LiveVisitQueue;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.util.List;
+import com.jee.clinichub.app.patient.queue.entity.LiveVisitQueue;
 
 @Repository
 public interface LiveVisitQueueRepository extends JpaRepository<LiveVisitQueue, Long> {

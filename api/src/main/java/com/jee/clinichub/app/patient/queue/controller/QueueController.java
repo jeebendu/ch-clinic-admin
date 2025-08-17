@@ -1,22 +1,30 @@
 
-package com.jee.clinichub.modules.queue.controller;
-
-import com.jee.clinichub.modules.queue.dto.QueueResponseDto;
-import com.jee.clinichub.modules.queue.service.QueueService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+package com.jee.clinichub.app.patient.queue.controller;
 
 import java.time.LocalDate;
 
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.jee.clinichub.app.patient.queue.dto.QueueResponseDto;
+import com.jee.clinichub.app.patient.queue.service.QueueService;
+
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/queue")
 @CrossOrigin(origins = "*")
 public class QueueController {
 
-    @Autowired
-    private QueueService queueService;
+    
+    private final QueueService queueService;
 
     @GetMapping("/live")
     public ResponseEntity<QueueResponseDto> getLiveQueue(
