@@ -1,9 +1,11 @@
 
 import React from "react";
-import FormDialog from "@/admin/components/dialogs/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Visit } from "../../types/Visit";
 import PaymentForm from "./PaymentForm";
+import FormDialog from "@/components/ui/form-dialog";
+import PaymentInvoicePanel from "./PaymentInvoicePanel";
+import VisitPayment from "./VisitPayment";
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -39,11 +41,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
       maxWidth="w-[80%]"
       maxHeight="max-h-[90vh]"
     >
-      <PaymentForm 
-        visit={visit} 
-        outstandingAmount={outstandingAmount}
-        onSuccess={handlePaymentSuccess}
-      />
+      <VisitPayment  visit={visit}  />
     </FormDialog>
   );
 };

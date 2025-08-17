@@ -60,8 +60,7 @@ export const VisitDetailsModal: React.FC<VisitDetailsModalProps> = ({
       onClose={onClose}
       title={`Visit Details - ${visit.patient?.firstname} ${visit.patient?.lastname}`}
       footer={footer}
-      maxWidth="max-w-4xl"
-      maxHeight="max-h-[90vh]"
+      maxWidth="w-[80%]"
     >
       <VisitDetailsContent visit={visit} />
     </FormDialog>

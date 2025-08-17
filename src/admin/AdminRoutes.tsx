@@ -26,7 +26,6 @@ import ReportsRoutes from "./modules/reports/routes/ReportsRoutes";
 import AudiometryRoutes from "./modules/audiometry/routes/AudiometryRoutes";
 import EnquiryServiceTypeRoutes from "./modules/clinics/enquiry-service/routes/EnquiryServiceTypeRoutes";
 import LabRoutes from "./modules/lab/routes/LabRoutes";
-import QueueRoutes from "./modules/queue/routes/QueueRoutes";
 import AdminLayout from "./components/AdminLayout";
 
 const AdminRoutes = () => {
@@ -54,7 +53,6 @@ const AdminRoutes = () => {
         <Route path="expense/*" element={<ExpenseRoutes />} />
         <Route path="core/*" element={<CoreRoutes />} />
         <Route path="reports/*" element={<ReportsRoutes />} />
-        <Route path="queue/*" element={<QueueRoutes />} />
         <Route path=":section" element={<DashboardRoutes />} />
         <Route path="enquiry/*" element={<EnquiryRoutes />} />
         <Route path="salesOrder/*" element={<SalesOrderList />} />

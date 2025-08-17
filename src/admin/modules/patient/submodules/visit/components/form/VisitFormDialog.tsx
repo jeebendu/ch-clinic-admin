@@ -52,7 +52,7 @@ const VisitFormDialog = ({ isOpen, onClose, onSave, visit }: VisitFormDialogProp
       onClose={onClose}
       title={visit ? "Edit Visit" : "Add New Visit"}
       footer={footerButtons}
-      maxWidth="max-w-4xl"
+      maxWidth="w-[80%]"
     >
       <VisitForm 
         ref={formRef}

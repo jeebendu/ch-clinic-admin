@@ -37,16 +37,7 @@
       "Staff"
     ]
   },
-  {
-    "icon": "Users",
-    "label": "Queue",
-    "href": "/admin/queue",
-    "roles": [
-      "Admin",
-      "Doctor",
-      "Staff"
-    ]
-  },
+  
   {
     "icon": "UserCircle",
     "label": "Doctors",

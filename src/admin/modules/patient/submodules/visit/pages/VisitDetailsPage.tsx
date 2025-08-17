@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit, Receipt, FileText, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import visitService from "../services/visitService";
+import { VisitDetailsContent } from "../components/details/VisitDetailsContent";
 
 const VisitDetailsPage: React.FC = () => {
   const { visitId } = useParams<{ visitId: string }>();
