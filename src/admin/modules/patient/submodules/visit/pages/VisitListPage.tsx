@@ -14,8 +14,8 @@ import { VisitTable } from "../components/list/VisitTable";
 import { VisitCalendar } from "../components/list/VisitCalendar";
 import { VisitGrid } from "../components/list/VisitGrid";
 import VisitFilterCard from "../components/list/VisitFilterCard";
-import VisitFormDialog from "../components/dialog/VisitFormDialog";
-import { VisitDetailsModal } from "../components/dialog/VisitDetailsModal";
+import VisitFormDialog from "../components/form/VisitFormDialog";
+import { VisitDetailsModal } from "../components/details/VisitDetailsModal";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
