@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Edit, 
@@ -24,6 +23,7 @@ export const useVisitActions = () => {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
   const handleViewDetails = (visit: Visit) => {
     console.log('Viewing visit details:', visit);
@@ -32,8 +32,23 @@ export const useVisitActions = () => {
   };
 
   const handleMarkPayment = (visit: Visit) => {
-    console.log('Mark/Add payment for visit:', visit);
-    // Add your payment logic here
+    console.log('Opening payment dialog for visit:', visit);
+    setSelectedVisit(visit);
+    setPaymentDialogOpen(true);
+  };
+
+  const handleAddPayment = (visit: Visit) => {
+    console.log('Adding payment for visit:', visit);
+    // Close payment dialog and open add payment form
+    setPaymentDialogOpen(false);
+    // Add your add payment logic here
+  };
+
+  const handleCreateInvoice = (visit: Visit) => {
+    console.log('Creating invoice for visit:', visit);
+    // Close payment dialog and open create invoice form
+    setPaymentDialogOpen(false);
+    // Add your create invoice logic here
   };
 
   const handleGenerateInvoice = (visit: Visit) => {
@@ -244,13 +259,15 @@ export const useVisitActions = () => {
     setEditDialogOpen,
     detailsModalOpen,
     setDetailsModalOpen,
+    paymentDialogOpen,
+    setPaymentDialogOpen,
     getPrimaryVisitActions,
     getSecondaryVisitActions,
     getVisitActions,
     handleViewDetails,
     handleMarkPayment,
-    handleGenerateInvoice,
-    handleAddLabOrder,
+    handleAddPayment,
+    handleCreateInvoice,
     handleViewReports,
     handleEditVisit,
     handlePrescription,

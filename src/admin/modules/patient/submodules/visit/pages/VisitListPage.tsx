@@ -1,4 +1,3 @@
-
 import { useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import { Visit } from "../types/Visit";
 import VisitFilterCard from "../components/VisitFilterCard";
 import { useVisitFilters } from "../hooks/useVisitFilters";
 import { VisitFilter } from "../types/VisitFilter";
+import PaymentDialog from "../components/PaymentDialog";
 
 const VisitListPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
@@ -34,6 +34,10 @@ const VisitListPage = () => {
     setEditDialogOpen,
     detailsModalOpen,
     setDetailsModalOpen,
+    paymentDialogOpen,
+    setPaymentDialogOpen,
+    handleAddPayment,
+    handleCreateInvoice,
   } = useVisitActions();
 
   const {
@@ -63,7 +67,7 @@ const VisitListPage = () => {
     },
   });
 
-    // Visit filters hook
+  // Visit filters hook
   const {
     filterState,
     updateSearchTerm,
@@ -146,34 +150,34 @@ const VisitListPage = () => {
 
   return (
     <div className="space-y-6">
-        <PageHeader
-          title="Patient Visits"
-          description="Manage patient visits and appointments"
-          viewMode={viewMode}
-          onViewModeToggle={handleViewModeToggle}
-          onRefreshClick={handleRefresh}
-          loadedElements={allVisits.length}
-          totalElements={totalElements}
-          onSearchChange={handleSearchChange}
-          searchValue={searchTerm}
-          showAddButton={true}
-          addButtonLabel="New Visit"
-          onAddButtonClick={handleAddVisit}
-          showFilter={true}
-          onFilterToggle={() => setShowFilter(!showFilter)}
-        />
+      <PageHeader
+        title="Patient Visits"
+        description="Manage patient visits and appointments"
+        viewMode={viewMode}
+        onViewModeToggle={handleViewModeToggle}
+        onRefreshClick={handleRefresh}
+        loadedElements={allVisits.length}
+        totalElements={totalElements}
+        onSearchChange={handleSearchChange}
+        searchValue={searchTerm}
+        showAddButton={true}
+        addButtonLabel="New Visit"
+        onAddButtonClick={handleAddVisit}
+        showFilter={true}
+        onFilterToggle={() => setShowFilter(!showFilter)}
+      />
 
-        {showFilter && (
-          <VisitFilterCard
-            searchTerm={filterState.searchTerm}
-            onSearchChange={updateSearchTerm}
-            selectedFilters={filterState.selectedFilters}
-            onFilterChange={updateFilter}
-            onClearFilters={clearFilters}
-            dateRange={filterState.dateRange}
-            onDateRangeChange={updateDateRange}
-          />
-        )}
+      {showFilter && (
+        <VisitFilterCard
+          searchTerm={filterState.searchTerm}
+          onSearchChange={updateSearchTerm}
+          selectedFilters={filterState.selectedFilters}
+          onFilterChange={updateFilter}
+          onClearFilters={clearFilters}
+          dateRange={filterState.dateRange}
+          onDateRangeChange={updateDateRange}
+        />
+      )}
 
       {/* Main content container with explicit height and overflow */}
       <div
@@ -246,6 +250,15 @@ const VisitListPage = () => {
         onViewPrescription={(visit) => {
           console.log('View prescription for:', visit.id);
         }}
+      />
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        visit={selectedVisit}
+        isOpen={paymentDialogOpen}
+        onClose={() => setPaymentDialogOpen(false)}
+        onAddPayment={handleAddPayment}
+        onCreateInvoice={handleCreateInvoice}
       />
     </div>
   );
