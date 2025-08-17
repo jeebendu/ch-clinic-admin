@@ -6,15 +6,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Visit } from "../types/Visit";
 import RowActions from "@/components/ui/RowActions";
 import { useVisitActions } from "../hooks/useVisitActions";
+import PaymentDialog from "./PaymentDialog";
 
 interface VisitListProps {
   visits: Visit[];
   loading?: boolean;
   onView?: (visit: Visit) => void;
   onEdit?: (visit: Visit) => void;
-  onEditVisit?: (visit: Visit) => void; // Page-level edit handler
-  onViewDetails?: (visit: Visit) => void; // Page-level view details handler
-  onMarkPayment?: (visit: Visit) => void; // Page-level payment handler
+  onEditVisit?: (visit: Visit) => void;
+  onViewDetails?: (visit: Visit) => void;
+  onMarkPayment?: (visit: Visit) => void;
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ 
@@ -27,7 +28,13 @@ export const VisitList: React.FC<VisitListProps> = ({
   onMarkPayment
 }) => {
 
-  const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
+  const { 
+    getPrimaryVisitActions, 
+    getSecondaryVisitActions,
+    selectedVisit,
+    paymentDialogOpen,
+    setPaymentDialogOpen
+  } = useVisitActions();
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -126,9 +133,10 @@ export const VisitList: React.FC<VisitListProps> = ({
   };
 
   return (
-    <div className="space-y-3">
-      {visits.map((visit) => (
-        <Card 
+    <>
+      <div className="space-y-3">
+        {visits.map((visit) => (
+          <Card 
               key={visit.id} 
               className="hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => handleVisitClick(visit)}
@@ -215,7 +223,15 @@ export const VisitList: React.FC<VisitListProps> = ({
                 </div>
               </CardContent>
             </Card>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        isOpen={paymentDialogOpen}
+        onClose={() => setPaymentDialogOpen(false)}
+        visit={selectedVisit}
+      />
+    </>
   );
 };
