@@ -1,8 +1,9 @@
 
 import axios from 'axios';
 import { QueueResponseDto, QueueApiParams } from '../types/QueueApi';
+import { getEnvVariable } from '@/utils/envUtils';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = getEnvVariable('API_URL');
 
 class QueueApiService {
   private getHeaders(branchId?: number) {
