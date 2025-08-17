@@ -1,4 +1,3 @@
-
 import { Doctor } from "./Doctor";
 import { DoctorBranch } from "./DoctorClinic";
 import { FamilyMember } from "./FamilyMember";
@@ -50,5 +49,3 @@ export interface TimeSlot {
   endTime: string;
   duration?: number;
 }
-
-export type CheckInStatus = 'not_checked_in' | 'checked_in' | 'in_consultation' | 'completed';

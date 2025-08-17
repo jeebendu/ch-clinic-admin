@@ -1,5 +1,4 @@
-
-export type CheckInStatus = 'not_checked_in' | 'checked_in' | 'in_consultation' | 'completed';
+export type CheckInStatus = 'not_checked_in' | 'CHECKEDIN' | 'in_consultation' | 'completed';
 
 export interface PaymentInfo {
   paymentType: 'cash' | 'card' | 'upi' | 'bank_transfer' | 'insurance';
