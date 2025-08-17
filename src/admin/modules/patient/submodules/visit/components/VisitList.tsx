@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { User, Calendar, Clock, DollarSign } from "lucide-react";
@@ -13,9 +12,8 @@ interface VisitListProps {
   loading?: boolean;
   onView?: (visit: Visit) => void;
   onEdit?: (visit: Visit) => void;
-  onEditVisit?: (visit: Visit) => void;
-  onViewDetails?: (visit: Visit) => void;
-  onMarkPayment?: (visit: Visit) => void;
+  onEditVisit?: (visit: Visit) => void; // Page-level edit handler
+  onViewDetails?: (visit: Visit) => void; // Page-level view details handler
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ 
@@ -24,8 +22,7 @@ export const VisitList: React.FC<VisitListProps> = ({
   onView, 
   onEdit,
   onEditVisit,
-  onViewDetails,
-  onMarkPayment
+  onViewDetails 
 }) => {
 
   const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
@@ -101,17 +98,6 @@ export const VisitList: React.FC<VisitListProps> = ({
       }
     }
 
-    // Override payment action if page-level handler provided
-    if (onMarkPayment) {
-      const paymentIndex = primaryActions.findIndex(action => action.label === "Mark/Add Payment");
-      if (paymentIndex !== -1) {
-        primaryActions[paymentIndex] = {
-          ...primaryActions[paymentIndex],
-          onClick: () => onMarkPayment(visit)
-        };
-      }
-    }
-
     // Override edit action if page-level handler provided
     if (onEditVisit) {
       const editActionIndex = secondaryActions.findIndex(action => action.label === "Edit Visit");
@@ -142,12 +128,12 @@ export const VisitList: React.FC<VisitListProps> = ({
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-blue-600" />
-                          <span className="font-semibold text-md">{visit.patient?.firstname } {visit.patient?.lastname }</span>
+                          <span className="font-semibold text-md">{visit.patient.firstname } {visit.patient.lastname }</span>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>{visit.patient?.age}y</span>
+                          <span>{visit.patient.age}y</span>
                           <span>•</span>
-                          <span>{visit.patient?.gender}</span>
+                          <span>{visit.patient.gender}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -173,9 +159,9 @@ export const VisitList: React.FC<VisitListProps> = ({
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <span>Dr. {visit.consultingDoctor?.firstname} {visit.consultingDoctor?.lastname}</span>
+                        <span>Dr. {visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</span>
                         <span>•</span>
-                        <span>{visit.consultingDoctor?.specializationList?.join(", ")}</span>
+                        <span>{visit.consultingDoctor.specializationList?.join(", ")}</span>
                       </div>
                     </div>
 
