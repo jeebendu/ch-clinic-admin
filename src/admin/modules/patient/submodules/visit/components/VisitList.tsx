@@ -16,6 +16,7 @@ interface VisitListProps {
   onEditVisit?: (visit: Visit) => void;
   onViewDetails?: (visit: Visit) => void;
   onMarkPayment?: (visit: Visit) => void;
+  onViewReports?: (visit: Visit) => void;
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ 
@@ -25,7 +26,8 @@ export const VisitList: React.FC<VisitListProps> = ({
   onEdit,
   onEditVisit,
   onViewDetails,
-  onMarkPayment
+  onMarkPayment,
+  onViewReports
 }) => {
 
   const { 
@@ -125,6 +127,17 @@ export const VisitList: React.FC<VisitListProps> = ({
         primaryActions[paymentActionIndex] = {
           ...primaryActions[paymentActionIndex],
           onClick: () => onMarkPayment(visit)
+        };
+      }
+    }
+
+    // Override view reports action if page-level handler provided
+    if (onViewReports) {
+      const viewReportsIndex = primaryActions.findIndex(action => action.label === "View Reports");
+      if (viewReportsIndex !== -1) {
+        primaryActions[viewReportsIndex] = {
+          ...primaryActions[viewReportsIndex],
+          onClick: () => onViewReports(visit)
         };
       }
     }
