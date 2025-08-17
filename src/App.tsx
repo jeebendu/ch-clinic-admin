@@ -1,62 +1,36 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import NotFound from "./pages/NotFound";
-import AdminRoutes from "./admin/AdminRoutes";
-import { useTenant } from "./hooks/use-tenant";
-import ResetPassword from "./pages/ResetPassword";
-import PublicPatientRegistration from "./pages/PublicPatientRegistration";
-import ClinicProfile from "./pages/ClinicProfile";
-import ClinicProfileEdit from "./pages/ClinicProfileEdit";
-import UserProfile from "./pages/UserProfile";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { FloatingQueueButton } from '@/components/queue';
+import Index from '@/pages/Index';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-// Component to initialize tenant info
-const TenantInitializer = ({ children }: { children: React.ReactNode }) => {
-  useTenant(); // This will fetch tenant info on app startup
-  return <>{children}</>;
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <TenantInitializer>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div className="min-h-screen bg-background">
           <Routes>
-
-            {/* Login route */}
-            <Route path="/" element={<Login />} />
-
-            {/* Reset password route */}
-            <Route path="/reset-password" element={<ResetPassword />} />
-
-            {/* Public patient registration route */}
-            <Route path="/register-patient" element={<PublicPatientRegistration />} />
-
-            {/* Clinic profile routes */}
-            <Route path="/clinic-profile" element={<ClinicProfile />} />
-            <Route path="/clinic-profile/edit" element={<ClinicProfileEdit />} />
-
-            {/* User profile route */}
-            <Route path="/me" element={<UserProfile />} />
-
-            {/* Admin routes */}
-            <Route path="/admin/*" element={<AdminRoutes />} />
-
-            {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<Index />} />
           </Routes>
-        </TenantInitializer>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+          
+          {/* Floating Queue Button - appears on all pages */}
+          <FloatingQueueButton />
+          
+          <Toaster />
+        </div>
+      </Router>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
