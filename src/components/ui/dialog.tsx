@@ -40,8 +40,8 @@ const DialogContent = React.forwardRef<
       className={cn(
         "fixed z-50 w-full border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 flex flex-col",
         mobileDrawer
-          ? "bottom-0 left-0 right-0 max-h-[90vh] rounded-t-3xl data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom md:left-[50%] md:top-[50%] md:h-[90vh] md:max-w-4xl md:translate-x-[-50%] md:translate-y-[-50%] md:rounded-3xl md:data-[state=closed]:slide-out-to-left-1/2 md:data-[state=closed]:slide-out-to-top-[48%] md:data-[state=open]:slide-in-from-left-1/2 md:data-[state=open]:slide-in-from-top-[48%]"
-          : "left-[50%] top-[50%] max-w-4xl h-[90vh] translate-x-[-50%] translate-y-[-50%] rounded-3xl data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+          ? "bottom-0 left-0 right-0 max-h-[90vh] rounded-t-3xl data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom md:left-[50%] md:top-[50%] md:h-[90vh] md:translate-x-[-50%] md:translate-y-[-50%] md:rounded-3xl md:data-[state=closed]:slide-out-to-left-1/2 md:data-[state=closed]:slide-out-to-top-[48%] md:data-[state=open]:slide-in-from-left-1/2 md:data-[state=open]:slide-in-from-top-[48%]"
+          : "left-[50%] top-[50%] h-[90vh] translate-x-[-50%] translate-y-[-50%] rounded-3xl data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
         className
       )}
       {...props}
