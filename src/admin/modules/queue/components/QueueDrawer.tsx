@@ -132,7 +132,8 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
   const [showAll, setShowAll] = useState(false);
 
   // Get today's date
-  const today = new Date().toISOString().split('T')[0];
+  //const today = new Date().toISOString().split('T')[0];
+  const today = new Date("2025-08-14").toISOString().split("T")[0];
 
   // Fetch preview data (first 4 items)
   const { data: previewResponse, isLoading: previewLoading } = useQueueData({
