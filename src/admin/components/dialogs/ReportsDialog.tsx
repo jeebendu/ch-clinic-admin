@@ -124,17 +124,17 @@ const ReportsDialog: React.FC<ReportsDialogProps> = ({
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-gray-500" />
                   <span className="font-medium">Patient:</span>
-                  <span>{visit.patientName}</span>
+                  <span>{visit.patient?.firstName} {visit.patient?.lastName}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
                   <span className="font-medium">Visit Date:</span>
-                  <span>{visit.appointmentDate}</span>
+                  <span>{visit.scheduleDate}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium">Time:</span>
-                  <span>{visit.appointmentTime}</span>
+                  <span className="font-medium">Status:</span>
+                  <span>{visit.status}</span>
                 </div>
               </div>
             </CardContent>
