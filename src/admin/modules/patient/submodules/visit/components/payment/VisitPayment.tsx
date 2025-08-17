@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { AlertCircle, TrendingUp, Minus } from 'lucide-react';
 import { Visit } from '../../types/Visit';
 import PaymentDialog from './PaymentDialog';
 import ClinicalOrdersTable from './ClinicalOrdersTable';
 import PaymentInvoicePanel from './PaymentInvoicePanel';
-import { VisitPaymentData, ClinicalOrderItem, PaymentRecord, PaymentSummary } from '../../types/PaymentTypes';
+import { VisitPaymentData } from '../../types/PaymentTypes';
 
 interface VisitPaymentProps {
   visit: Visit;
