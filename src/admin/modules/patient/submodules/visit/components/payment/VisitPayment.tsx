@@ -3,203 +3,207 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DollarSign, 
-  CreditCard, 
-  Calendar,
-  User,
-  FileText,
-  Plus
-} from 'lucide-react';
+import { DollarSign, Receipt, CreditCard, Plus, FileText } from 'lucide-react';
 import { Visit } from '../../types/Visit';
-import PaymentProcessDialog from '@/admin/components/dialogs/PaymentProcessDialog';
-import { PaymentInfo } from '@/admin/modules/appointments/types/PaymentFlow';
+import PaymentDialog from './PaymentDialog';
 
 interface VisitPaymentProps {
-  visit: Visit | null;
+  visit: Visit;
+  onPaymentUpdate?: (visitId: string | number) => void;
 }
 
-const VisitPayment: React.FC<VisitPaymentProps> = ({ visit }) => {
+interface PaymentSummary {
+  totalDue: number;
+  totalPaid: number;
+  balance: number;
+  status: 'paid' | 'partial' | 'pending';
+}
+
+interface PaymentOrderItem {
+  id: string;
+  type: string;
+  description: string;
+  amount: number;
+  status: 'pending' | 'paid';
+}
+
+interface PaymentTransaction {
+  id: string;
+  amount: number;
+  mode: string;
+  date: string;
+  referenceNumber?: string;
+}
+
+const VisitPayment: React.FC<VisitPaymentProps> = ({ 
+  visit, 
+  onPaymentUpdate 
+}) => {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
-  if (!visit) {
-    return (
-      <div className="p-6 text-center text-gray-500">
-        No visit data available
-      </div>
-    );
-  }
+  // Mock data - in real implementation, this would come from API
+  const [paymentSummary] = useState<PaymentSummary>({
+    totalDue: visit.paymentAmount || 500,
+    totalPaid: visit.paymentPaid || 0,
+    balance: (visit.paymentAmount || 500) - (visit.paymentPaid || 0),
+    status: visit.paymentStatus as 'paid' | 'partial' | 'pending' || 'pending'
+  });
 
-  const handleProcessPayment = () => {
+  const [orderItems] = useState<PaymentOrderItem[]>([
+    {
+      id: '1',
+      type: 'consultation',
+      description: 'Doctor Consultation',
+      amount: 500,
+      status: 'pending'
+    }
+  ]);
+
+  const [transactions] = useState<PaymentTransaction[]>([]);
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      paid: 'bg-green-100 text-green-800',
+      partial: 'bg-yellow-100 text-yellow-800',
+      pending: 'bg-red-100 text-red-800'
+    };
+    
+    return (
+      <Badge className={variants[status as keyof typeof variants] || variants.pending}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
+  const handleOpenPaymentDialog = () => {
     setIsPaymentDialogOpen(true);
   };
 
   const handleClosePaymentDialog = () => {
     setIsPaymentDialogOpen(false);
-  };
-
-  const handlePaymentComplete = (paymentInfo: PaymentInfo) => {
-    console.log('Payment completed:', paymentInfo);
-    // Handle payment completion logic here
-    setIsPaymentDialogOpen(false);
-  };
-
-  const getPaymentStatusBadge = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'paid':
-        return <Badge className="bg-green-100 text-green-800">Paid</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-      case 'overdue':
-        return <Badge className="bg-red-100 text-red-800">Overdue</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+    // Optionally refresh payment data here
+    if (onPaymentUpdate) {
+      onPaymentUpdate(visit.id!);
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    }).format(amount);
-  };
-
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Mock payment data - replace with actual data from your API
-  const paymentData = {
-    totalAmount: 1500,
-    paidAmount: 0,
-    pendingAmount: 1500,
-    status: 'pending',
-    dueDate: new Date(),
-    transactions: []
-  };
-
   return (
-    <>
+   
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-600" />
-              Payment Details
-            </div>
-            {getPaymentStatusBadge(paymentData.status)}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Visit Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-gray-600" />
-              <span className="text-sm text-gray-600">Patient:</span>
-              <span className="font-medium">{visit.patient?.name || 'N/A'}</span>
+              Payment & Billing
             </div>
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-600" />
-              <span className="text-sm text-gray-600">Visit Date:</span>
-              <span className="font-medium">{formatDate(visit.visitDate)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-gray-600" />
-              <span className="text-sm text-gray-600">Visit ID:</span>
-              <span className="font-medium">#{visit.id}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-gray-600" />
-              <span className="text-sm text-gray-600">Doctor:</span>
-              <span className="font-medium">{visit.doctor?.name || 'N/A'}</span>
-            </div>
-          </div>
-
-          {/* Payment Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border border-gray-200 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(paymentData.totalAmount)}
-              </div>
-              <div className="text-sm text-gray-600 mt-1">Total Amount</div>
-            </div>
-            <div className="p-4 border border-gray-200 rounded-lg text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(paymentData.paidAmount)}
-              </div>
-              <div className="text-sm text-gray-600 mt-1">Paid Amount</div>
-            </div>
-            <div className="p-4 border border-gray-200 rounded-lg text-center">
-              <div className="text-2xl font-bold text-red-600">
-                {formatCurrency(paymentData.pendingAmount)}
-              </div>
-              <div className="text-sm text-gray-600 mt-1">Pending Amount</div>
-            </div>
-          </div>
-
-          {/* Payment Actions */}
-          {paymentData.pendingAmount > 0 && (
-            <div className="flex justify-center">
+              {getStatusBadge(paymentSummary.status)}
               <Button 
-                onClick={handleProcessPayment}
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                onClick={handleOpenPaymentDialog}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700"
               >
-                <Plus className="h-4 w-4" />
-                Process Payment
+                <Plus className="h-4 w-4 mr-1" />
+                Manage Payment
               </Button>
             </div>
-          )}
-
-          {/* Payment History */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Payment History
-            </h3>
-            {paymentData.transactions.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <CreditCard className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                <p>No payment transactions found</p>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Payment Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Total Due</div>
+              <div className="text-2xl font-bold">₹{paymentSummary.totalDue}</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Total Paid</div>
+              <div className="text-2xl font-bold text-green-600">₹{paymentSummary.totalPaid}</div>
+            </div>
+            <div className={`p-4 rounded-lg ${paymentSummary.balance > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
+              <div className="text-sm text-muted-foreground">Balance</div>
+              <div className={`text-2xl font-bold ${paymentSummary.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                ₹{paymentSummary.balance}
               </div>
-            ) : (
+            </div>
+          </div>
+
+          {/* Order Items */}
+          <div>
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              Billing Items
+            </h4>
+            <div className="space-y-2">
+              {orderItems.map((item) => (
+                <div key={item.id} className="flex justify-between items-center p-3 border rounded">
+                  <div>
+                    <div className="font-medium">{item.description}</div>
+                    <div className="text-sm text-muted-foreground capitalize">{item.type}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium">₹{item.amount}</div>
+                    <Badge 
+                      variant={item.status === 'paid' ? 'default' : 'secondary'}
+                      className={item.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}
+                    >
+                      {item.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Transactions */}
+          {transactions.length > 0 && (
+            <div>
+              <h4 className="font-medium mb-3 flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Recent Payments
+              </h4>
               <div className="space-y-2">
-                {paymentData.transactions.map((transaction: any, index: number) => (
-                  <div key={index} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                {transactions.map((transaction) => (
+                  <div key={transaction.id} className="flex justify-between items-center p-3 border rounded">
                     <div>
-                      <div className="font-medium">{formatCurrency(transaction.amount)}</div>
-                      <div className="text-sm text-gray-600">{transaction.method}</div>
+                      <div className="font-medium">₹{transaction.amount}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {transaction.mode} • {transaction.date}
+                        {transaction.referenceNumber && ` • ${transaction.referenceNumber}`}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">{formatDate(transaction.date)}</div>
-                      <Badge className={
-                        transaction.status === 'completed' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }>
-                        {transaction.status}
-                      </Badge>
-                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      Completed
+                    </Badge>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          <div className="flex gap-2 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleOpenPaymentDialog}
+            >
+              <CreditCard className="h-4 w-4 mr-1" />
+              Collect Payment
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              disabled={paymentSummary.totalPaid === 0}
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              Generate Invoice
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <PaymentProcessDialog
-        appointment={visit}
-        isOpen={isPaymentDialogOpen}
-        onClose={handleClosePaymentDialog}
-        onPaymentComplete={handlePaymentComplete}
-      />
-    </>
+      
   );
 };
 

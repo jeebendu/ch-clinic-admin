@@ -1,44 +1,26 @@
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { DollarSign } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { Visit } from '../../types/Visit';
 import FormDialog from '@/components/ui/form-dialog';
-import PaymentForm, { PaymentFormRef } from './PaymentForm';
+import VisitPayment from './VisitPayment';
 
 interface PaymentDialogProps {
-  visit: Visit;
+  visit: Visit | null;
   isOpen: boolean;
   onClose: () => void;
-  onPaymentComplete?: (paymentInfo: any) => void;
 }
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   visit,
   isOpen,
-  onClose,
-  onPaymentComplete
+  onClose
 }) => {
-  const formRef = useRef<PaymentFormRef>(null);
-
-  const handleSuccess = (paymentInfo: any) => {
-    if (onPaymentComplete) {
-      onPaymentComplete(paymentInfo);
-    }
-    onClose();
-  };
-
-  const handleProcessPayment = () => {
-    formRef.current?.submitForm();
-  };
-
   const footerButtons = (
-    <div className="flex gap-2">
-      <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-        Cancel
-      </Button>
-      <Button type="button" onClick={handleProcessPayment} className="flex-1 bg-green-600 hover:bg-green-700">
-        Process Payment
+    <div className="flex justify-end gap-2">
+      <Button variant="outline" onClick={onClose}>
+        Close
       </Button>
     </div>
   );
@@ -49,19 +31,15 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
       onClose={onClose}
       title={
         <div className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-green-600" />
-          Process Payment
+          <FileText className="h-5 w-5" />
+          Visit Reports
         </div>
       }
       footer={footerButtons}
-      maxWidth="w-[80%]"
+      maxWidth="max-w-[90vh]"
+      maxHeight="max-h-[90vh]"
     >
-      <PaymentForm 
-        ref={formRef}
-        visit={visit}
-        onSuccess={handleSuccess}
-        showSubmitButton={false}
-      />
+      <VisitPayment visit={visit} />
     </FormDialog>
   );
 };
