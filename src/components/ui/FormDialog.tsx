@@ -26,7 +26,7 @@ const FormDialog = ({
   mobileDrawer = true 
 }: FormDialogProps) => {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className={`${maxWidth} max-h-[90vh]`} mobileDrawer={mobileDrawer}>
         <DialogHeader className="border-b pb-4">
           <DialogTitle>{title}</DialogTitle>

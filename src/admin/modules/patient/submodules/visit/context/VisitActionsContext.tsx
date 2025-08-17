@@ -1,102 +1,41 @@
-
-import { useContext, useState } from "react";
-import { 
-  Edit, 
-  Eye, 
-  Trash2, 
-  UserCheck, 
-  Calendar, 
-  FileText,
-  DollarSign,
-  Receipt,
-  FlaskConical,
-  BarChart3,
-  Pill,
-  CalendarPlus,
-  StickyNote,
-  Share,
-} from "lucide-react";
-import { RowAction } from "@/components/ui/RowActions";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { Visit } from "../types/Visit";
-import { useVisitActionsContext } from "../context/VisitActionsContext";
 
-// First, try to use shared context so multiple components share the same state.
-// If no provider is present, fall back to local state (previous behavior).
-export const useVisitActions = () => {
-  const ctx = useVisitActionsContext();
-  if (ctx) {
-    // Enhance context-provided action descriptors with icons when requested here.
-    const getPrimaryVisitActions = (visit: Visit): RowAction[] => {
-      const actions = ctx.getPrimaryVisitActions(visit);
-      return [
-        { ...actions[0], icon: <Eye className="h-4 w-4" /> },
-        { ...actions[1], icon: <DollarSign className="h-4 w-4" /> },
-        { ...actions[2], icon: <Receipt className="h-4 w-4" /> },
-        { ...actions[3], icon: <FlaskConical className="h-4 w-4" /> },
-        { ...actions[4], icon: <BarChart3 className="h-4 w-4" /> },
-      ] as RowAction[];
-    };
+type VisitActionsContextType = {
+  selectedVisit: Visit | null;
+  setSelectedVisit: (v: Visit | null) => void;
+  editDialogOpen: boolean;
+  setEditDialogOpen: (open: boolean) => void;
+  detailsModalOpen: boolean;
+  setDetailsModalOpen: (open: boolean) => void;
+  getPrimaryVisitActions: (visit: Visit) => any[]; // uses RowAction[] shape; kept as any to avoid cross-import
+  getSecondaryVisitActions: (visit: Visit) => any[];
+  getVisitActions: (visit: Visit) => any[];
+  handleViewDetails: (visit: Visit) => void;
+  handleMarkPayment: (visit: Visit) => void;
+  handleGenerateInvoice: (visit: Visit) => void;
+  handleAddLabOrder: (visit: Visit) => void;
+  handleViewReports: (visit: Visit) => void;
+  handleEditVisit: (visit: Visit) => void;
+  handlePrescription: (visit: Visit) => void;
+  handleFollowUpVisit: (visit: Visit) => void;
+  handleAddNotes: (visit: Visit) => void;
+  handleShare: (visit: Visit) => void;
+  handleDeleteVisit: (visit: Visit) => void;
+  handleCheckIn: (visit: Visit) => void;
+  handleReschedule: (visit: Visit) => void;
+  handleViewPrescription: (visit: Visit) => void;
+};
 
-    const getSecondaryVisitActions = (visit: Visit): RowAction[] => {
-      const actions = ctx.getSecondaryVisitActions(visit);
-      return [
-        { ...actions[0], icon: <Edit className="h-4 w-4" /> },
-        { ...actions[1], icon: <Pill className="h-4 w-4" /> },
-        { ...actions[2], icon: <CalendarPlus className="h-4 w-4" /> },
-        { ...actions[3], icon: <StickyNote className="h-4 w-4" /> },
-        { ...actions[4], icon: <Share className="h-4 w-4" /> },
-        { ...actions[5], icon: <Trash2 className="h-4 w-4" /> },
-      ] as RowAction[];
-    };
+// We intentionally avoid importing RowAction here to keep the provider lightweight and avoid deep import chains.
+const VisitActionsContext = createContext<VisitActionsContextType | null>(null);
 
-    const getVisitActions = (visit: Visit): RowAction[] => {
-      const actions = ctx.getVisitActions(visit);
-      // Map icons to corresponding entries by label
-      return actions.map((a) => {
-        switch (a.label) {
-          case "View Details": return { ...a, icon: <Eye className="h-4 w-4" /> } as RowAction;
-          case "Edit": return { ...a, icon: <Edit className="h-4 w-4" /> } as RowAction;
-          case "Check In": return { ...a, icon: <UserCheck className="h-4 w-4" /> } as RowAction;
-          case "Reschedule": return { ...a, icon: <Calendar className="h-4 w-4" /> } as RowAction;
-          case "View Prescription": return { ...a, icon: <FileText className="h-4 w-4" /> } as RowAction;
-          case "Delete": return { ...a, icon: <Trash2 className="h-4 w-4" /> } as RowAction;
-          default: return a as RowAction;
-        }
-      });
-    };
-
-    return {
-      selectedVisit: ctx.selectedVisit,
-      setSelectedVisit: ctx.setSelectedVisit,
-      editDialogOpen: ctx.editDialogOpen,
-      setEditDialogOpen: ctx.setEditDialogOpen,
-      detailsModalOpen: ctx.detailsModalOpen,
-      setDetailsModalOpen: ctx.setDetailsModalOpen,
-      getPrimaryVisitActions,
-      getSecondaryVisitActions,
-      getVisitActions,
-      handleViewDetails: ctx.handleViewDetails,
-      handleMarkPayment: ctx.handleMarkPayment,
-      handleGenerateInvoice: ctx.handleGenerateInvoice,
-      handleAddLabOrder: ctx.handleAddLabOrder,
-      handleViewReports: ctx.handleViewReports,
-      handleEditVisit: ctx.handleEditVisit,
-      handlePrescription: ctx.handlePrescription,
-      handleFollowUpVisit: ctx.handleFollowUpVisit,
-      handleAddNotes: ctx.handleAddNotes,
-      handleShare: ctx.handleShare,
-      handleDeleteVisit: ctx.handleDeleteVisit,
-      handleCheckIn: ctx.handleCheckIn,
-      handleReschedule: ctx.handleReschedule,
-      handleViewPrescription: ctx.handleViewPrescription
-    };
-  }
-
-  // Fallback: original local-state implementation (used when no provider is rendered above)
+export const VisitActionsProvider = ({ children }: { children: React.ReactNode }) => {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
+  // Handler implementations mirror the existing useVisitActions to keep behavior consistent
   const handleViewDetails = (visit: Visit) => {
     console.log('Viewing visit details:', visit);
     setSelectedVisit(visit);
@@ -157,77 +96,77 @@ export const useVisitActions = () => {
     console.log('Viewing prescription:', visit);
   };
 
-  // Builders (with icons)
-  const getPrimaryVisitActions = (visit: Visit): RowAction[] => {
+  // Primary actions builder (icons and RowAction type are provided by consumers)
+  const getPrimaryVisitActions = (visit: Visit) => {
     return [
       {
         label: "View Details",
-        icon: <Eye className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleViewDetails(visit),
         variant: "default"
       },
       {
         label: "Mark/Add Payment",
-        icon: <DollarSign className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleMarkPayment(visit),
         variant: "default"
       },
       {
         label: "Generate Invoice",
-        icon: <Receipt className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleGenerateInvoice(visit),
         variant: "default"
       },
       {
         label: "Add Lab Order",
-        icon: <FlaskConical className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleAddLabOrder(visit),
         variant: "default"
       },
       {
         label: "View Reports",
-        icon: <BarChart3 className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleViewReports(visit),
         variant: "default"
       }
     ];
   };
 
-  const getSecondaryVisitActions = (visit: Visit): RowAction[] => {
-    const secondaryActions: RowAction[] = [
+  const getSecondaryVisitActions = (visit: Visit) => {
+    return [
       {
         label: "Edit Visit",
-        icon: <Edit className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleEditVisit(visit),
         variant: "default"
       },
       {
         label: "Prescription",
-        icon: <Pill className="h-4 w-4" />,
+        icon: null,
         onClick: () => handlePrescription(visit),
         variant: "default"
       },
       {
         label: "Follow-up Visit",
-        icon: <CalendarPlus className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleFollowUpVisit(visit),
         variant: "default"
       },
       {
         label: "Add Notes",
-        icon: <StickyNote className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleAddNotes(visit),
         variant: "default"
       },
       {
         label: "Share",
-        icon: <Share className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleShare(visit),
         variant: "default"
       },
       {
         label: "Delete",
-        icon: <Trash2 className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleDeleteVisit(visit),
         variant: "destructive",
         confirm: true,
@@ -235,21 +174,19 @@ export const useVisitActions = () => {
         confirmDescription: `Are you sure you want to delete the visit for ${visit.patient?.firstname} ${visit.patient?.lastname}? This action cannot be undone.`
       }
     ];
-
-    return secondaryActions;
   };
 
-  const getVisitActions = (visit: Visit): RowAction[] => {
-    const baseActions: RowAction[] = [
+  const getVisitActions = (visit: Visit) => {
+    const baseActions: any[] = [
       {
         label: "View Details",
-        icon: <Eye className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleViewDetails(visit),
         variant: "default"
       },
       {
         label: "Edit",
-        icon: <Edit className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleEditVisit(visit),
         variant: "default"
       }
@@ -258,14 +195,14 @@ export const useVisitActions = () => {
     if (visit.status === 'scheduled') {
       baseActions.push({
         label: "Check In",
-        icon: <UserCheck className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleCheckIn(visit),
         variant: "default"
       });
       
       baseActions.push({
         label: "Reschedule",
-        icon: <Calendar className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleReschedule(visit),
         variant: "default"
       });
@@ -274,7 +211,7 @@ export const useVisitActions = () => {
     if (visit.status === 'completed') {
       baseActions.push({
         label: "View Prescription",
-        icon: <FileText className="h-4 w-4" />,
+        icon: null,
         onClick: () => handleViewPrescription(visit),
         variant: "default"
       });
@@ -282,7 +219,7 @@ export const useVisitActions = () => {
 
     baseActions.push({
       label: "Delete",
-      icon: <Trash2 className="h-4 w-4" />,
+      icon: null,
       onClick: () => handleDeleteVisit(visit),
       variant: "destructive",
       confirm: true,
@@ -293,7 +230,7 @@ export const useVisitActions = () => {
     return baseActions;
   };
 
-  return {
+  const value = useMemo<VisitActionsContextType>(() => ({
     selectedVisit,
     setSelectedVisit,
     editDialogOpen,
@@ -317,5 +254,17 @@ export const useVisitActions = () => {
     handleCheckIn,
     handleReschedule,
     handleViewPrescription
-  };
+  }), [
+    selectedVisit,
+    editDialogOpen,
+    detailsModalOpen
+  ]);
+
+  return (
+    <VisitActionsContext.Provider value={value}>
+      {children}
+    </VisitActionsContext.Provider>
+  );
 };
+
+export const useVisitActionsContext = () => useContext(VisitActionsContext);
