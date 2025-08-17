@@ -100,57 +100,9 @@ export const ClinicBranchFilter: React.FC<ClinicBranchFilterProps> = ({ classNam
     
     // In a real app, you would fetch branches for the selected clinic from an API
     const mockBranches: Branch[] = [
-      {
-        id: 1,
-        name: "Main Branch",
-        code: "MB001",
-        location: "Downtown",
-        active: true,
-        primary: true,
-        state: { id: 1, name: "California", code: "CA" },
-        district: { id: 1, name: "Los Angeles County", code: "LAC" },
-        country: { id: 1, name: "United States", code: "US" },
-        city: "Los Angeles",
-        mapurl: "https://maps.google.com",
-        pincode: 90210,
-        image: "/branch1.jpg",
-        latitude: 34.0522,
-        longitude: -118.2437
-      },
-      {
-        id: 2,
-        name: "North Branch",
-        code: "NB002", 
-        location: "Uptown",
-        active: true,
-        primary: false,
-        state: { id: 1, name: "California", code: "CA" },
-        district: { id: 1, name: "Los Angeles County", code: "LAC" },
-        country: { id: 1, name: "United States", code: "US" },
-        city: "Beverly Hills",
-        mapurl: "https://maps.google.com",
-        pincode: 90211,
-        image: "/branch2.jpg", 
-        latitude: 34.0736,
-        longitude: -118.4004
-      },
-      {
-        id: 3,
-        name: "South Branch",
-        code: "SB003",
-        location: "Southside", 
-        active: true,
-        primary: false,
-        state: { id: 1, name: "California", code: "CA" },
-        district: { id: 1, name: "Los Angeles County", code: "LAC" },
-        country: { id: 1, name: "United States", code: "US" },
-        city: "Long Beach",
-        mapurl: "https://maps.google.com",
-        pincode: 90802,
-        image: "/branch3.jpg",
-        latitude: 33.7701,
-        longitude: -118.1937
-      }
+      { id: 1, name: "Main Branch", code: "MB", location: "Central", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
+      { id: 2, name: "Secondary Branch", code: "SB", location: "East", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 1", mapurl: "", pincode: 123456, image: "", latitude: 0, longitude: 0 },
+      { id: 3, name: "Downtown Branch", code: "DB", location: "West", active: true, state: mockState, district: mockDistrict, country: mockCountry, city: "City 2", mapurl: "", pincode: 123457, image: "", latitude: 0, longitude: 0 },
     ];
     
     setBranches(mockBranches);

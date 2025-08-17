@@ -5,6 +5,7 @@ import RowActions from "@/components/ui/RowActions";
 import { Visit } from "../../types/Visit";
 import { useVisitActions } from "../../hooks/useVisitActions";
 import PaymentDialog from "../payment/PaymentDialog";
+import VisitReportDialog from "../report/VisitReportDialog";
 
 interface VisitTableProps {
   visits: Visit[];
@@ -26,12 +27,14 @@ export const VisitTable = ({
   onMarkPayment
 }: VisitTableProps) => {
 
-  const { 
+    const { 
       getPrimaryVisitActions, 
       getSecondaryVisitActions,
       selectedVisit,
       paymentDialogOpen,
-      setPaymentDialogOpen
+      setPaymentDialogOpen,
+      reportDialogOpen,
+      setReportDialogOpen
     } = useVisitActions();
 
   const getStatusColor = (status: string) => {
@@ -243,6 +246,13 @@ export const VisitTable = ({
       <PaymentDialog
         isOpen={paymentDialogOpen}
         onClose={() => setPaymentDialogOpen(false)}
+        visit={selectedVisit}
+      />
+
+      {/* Reports Dialog */}
+      <VisitReportDialog
+        isOpen={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
         visit={selectedVisit}
       />
 
