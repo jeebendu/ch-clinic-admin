@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, Clock, DollarSign, Stethoscope } from "lucide-react";
+import { User, Calendar, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Visit } from "../types/Visit";
@@ -17,7 +16,6 @@ interface VisitListProps {
   onEditVisit?: (visit: Visit) => void;
   onViewDetails?: (visit: Visit) => void;
   onMarkPayment?: (visit: Visit) => void;
-  showPaymentStatus?: boolean; // New prop to control payment visibility for staff
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ 
@@ -27,8 +25,7 @@ export const VisitList: React.FC<VisitListProps> = ({
   onEdit,
   onEditVisit,
   onViewDetails,
-  onMarkPayment,
-  showPaymentStatus = true // Default to true for staff
+  onMarkPayment
 }) => {
 
   const { 
@@ -147,94 +144,70 @@ export const VisitList: React.FC<VisitListProps> = ({
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 space-y-3">
-                    {/* Header Row - Patient Info */}
+                    {/* Header Row */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-blue-600" />
-                          <span className="font-semibold text-md">{visit.patient?.firstname} {visit.patient?.lastname}</span>
+                          <span className="font-semibold text-md">{visit.patient.firstname } {visit.patient.lastname }</span>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>{visit.patient?.age}y</span>
+                          <span>{visit.patient.age}y</span>
                           <span>•</span>
-                          <span>{visit.patient?.gender}</span>
+                          <span>{visit.patient.gender}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className={`text-xs ${getStatusColor(visit.status || '')}`}>
-                          {visit.status || 'Unknown'}
+                        <Badge className={`text-xs ${getStatusColor(visit.status)}`}>
+                          {visit.status}
                         </Badge>
-                        {showPaymentStatus && (
-                          <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
-                            {visit.paymentStatus || 'Not Set'}
-                          </Badge>
-                        )}
+                        <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
+                          {visit.paymentStatus}
+                        </Badge>
                       </div>
                     </div>
 
-                    {/* Second Row - Date & Time */}
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>{visit.createdTime ? format(new Date(visit.createdTime), 'MMM dd, yyyy') : 'N/A'}</span>
+                    {/* Second Row - Doctor & Date */}
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span>{format(new Date(visit.createdTime), 'MMM dd, yyyy')}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span>{format(new Date(visit.createdTime), 'HH:mm')}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{visit.createdTime ? format(new Date(visit.createdTime), 'HH:mm') : 'N/A'}</span>
+                        <span>Dr. {visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</span>
+                        <span>•</span>
+                        <span>{visit.consultingDoctor.specializationList?.join(", ")}</span>
                       </div>
                     </div>
 
-                    {/* Third Row - Doctor Information */}
+                    {/* Third Row - Visit Details */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Stethoscope className="h-4 w-4 text-green-600" />
-                        <span className="font-medium">
-                          Dr. {visit.consultingDoctor?.firstname} {visit.consultingDoctor?.lastname}
+                      <div className="flex items-center gap-4 text-sm">
+                        <Badge variant="outline" className="text-xs">
+                          {visit.type}
+                        </Badge>
+                        <span className="text-muted-foreground max-w-xs">
+                          {visit.complaints}
                         </span>
-                        {visit.consultingDoctor?.specializationList && (
-                          <>
-                            <span className="text-muted-foreground">•</span>
-                            <span className="text-muted-foreground">
-                              {visit.consultingDoctor.specializationList.join(", ")}
-                            </span>
-                          </>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <span className="font-medium">₹{visit.paymentPaid || 0}</span>
+                        {visit.paymentAmount > 0 && (
+                          <span className="text-muted-foreground">/ ₹{visit.paymentAmount}</span>
                         )}
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        {visit.type || 'General'}
-                      </Badge>
-                    </div>
-
-                    {/* Fourth Row - Payment Information (if staff can see it) */}
-                    {showPaymentStatus && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-sm">
-                          <DollarSign className="h-4 w-4 text-green-600" />
-                          <span className="font-medium">₹{visit.paymentPaid || 0}</span>
-                          {visit.paymentAmount && visit.paymentAmount > 0 && (
-                            <span className="text-muted-foreground">/ ₹{visit.paymentAmount}</span>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {visit.paymentStatus === 'paid' ? 'Fully Paid' : 
-                           visit.paymentStatus === 'partial' ? 'Partially Paid' :
-                           visit.paymentStatus === 'pending' ? 'Payment Pending' : 'Payment Not Set'}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Fifth Row - Visit Details */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <span className="text-sm text-muted-foreground">
-                          {visit.complaints || 'No complaints recorded'}
-                        </span>
                       </div>
                     </div>
 
                     {/* Reference Doctor if exists */}
                     {visit.referralDoctorName && (
-                      <div className="text-xs text-muted-foreground border-t pt-2">
+                      <div className="text-xs text-muted-foreground">
                         Referred by: {visit.referralDoctorName}
                       </div>
                     )}
