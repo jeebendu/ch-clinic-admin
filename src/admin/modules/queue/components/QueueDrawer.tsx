@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
-import { X, Users, Clock, Eye } from 'lucide-react';
+import { X, Users, Clock, Eye, Phone, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { QueueItemDto } from '@/admin/modules/queue/types/QueueApi';
 import { useQueueData } from '@/hooks/useQueueData';
@@ -19,7 +21,8 @@ const QueuePatientItem: React.FC<{
   sequenceNumber: number;
 }> = ({ item, sequenceNumber }) => {
   const getStatusBadge = () => {
-    switch (item.status) {
+    const status = item.status?.toLowerCase() || 'waiting';
+    switch (status) {
       case 'waiting':
         return (
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -41,7 +44,7 @@ const QueuePatientItem: React.FC<{
       default:
         return (
           <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-            {item.status}
+            {status}
           </Badge>
         );
     }
@@ -65,37 +68,68 @@ const QueuePatientItem: React.FC<{
     });
   };
 
+  const handlePhoneCall = (phoneNumber: string) => {
+    if (phoneNumber) {
+      window.open(`tel:${phoneNumber}`, '_self');
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-      <div className="flex items-center space-x-3 flex-1">
-        {/* Sequence Number */}
-        <div className="flex-shrink-0 w-8 h-8 bg-clinic-primary/10 text-clinic-primary rounded-full flex items-center justify-center text-sm font-medium">
-          {sequenceNumber}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          {/* Patient Info */}
-          <p className="text-sm font-medium text-gray-900 truncate">
-            Patient #{item.patient_id}
-          </p>
+    <div className="flex flex-col p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors space-y-3">
+      <div className="flex items-start justify-between">
+        {/* Sequence Number and Patient Name */}
+        <div className="flex items-start space-x-3 flex-1">
+          <div className="flex-shrink-0 w-8 h-8 bg-clinic-primary/10 text-clinic-primary rounded-full flex items-center justify-center text-sm font-medium">
+            {sequenceNumber}
+          </div>
           
-          {/* Waiting Time and Estimated Time */}
-          <div className="flex items-center space-x-2 mt-1">
-            <Clock className="h-3 w-3 text-gray-400" />
-            <span className="text-xs text-gray-500">
-              waiting {formatWaitingTime(item.waiting_minutes)}
-            </span>
-            <span className="text-xs text-gray-300">•</span>
-            <span className="text-xs text-gray-500">
-              ~{formatEstimatedTime(item.estimated_consultation_time)}
-            </span>
+          <div className="flex-1 min-w-0">
+            {/* Patient Name */}
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-semibold text-gray-900">
+                {item.patient_name || `Patient #${item.patient_id}`}
+              </p>
+              {getStatusBadge()}
+            </div>
+            
+            {/* Patient Details */}
+            <div className="mt-1 space-y-1">
+              <div className="flex items-center space-x-4 text-xs text-gray-600">
+                {item.patient_age && (
+                  <span>Age: {item.patient_age}</span>
+                )}
+                {item.patient_gender && (
+                  <span>Gender: {item.patient_gender}</span>
+                )}
+              </div>
+              
+              {/* Mobile Number with Call Button */}
+              {item.patient_mobile && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-600">Mobile:</span>
+                  <button
+                    onClick={() => handlePhoneCall(item.patient_mobile)}
+                    className="flex items-center space-x-1 text-xs text-clinic-primary hover:text-clinic-primary/80 transition-colors"
+                  >
+                    <Phone className="h-3 w-3" />
+                    <span>{item.patient_mobile}</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
       
-      {/* Status Badge */}
-      <div className="flex-shrink-0">
-        {getStatusBadge()}
+      {/* Timing Information */}
+      <div className="flex items-center justify-between text-xs text-gray-500 bg-gray-50 px-3 py-2 rounded">
+        <div className="flex items-center space-x-2">
+          <Clock className="h-3 w-3" />
+          <span>Waiting: {formatWaitingTime(item.waiting_minutes)}</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span>Est. Time: {formatEstimatedTime(item.estimated_consultation_time)}</span>
+        </div>
       </div>
     </div>
   );
@@ -107,16 +141,15 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
   branchId
 }) => {
   const [showAll, setShowAll] = useState(false);
-
-  // Get today's date in YYYY-MM-DD format
-  //const today = new Date().toISOString().split('T')[0];
-  const today = new Date("2025-08-14").toISOString().split("T")[0];
-
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Default to today's date in YYYY-MM-DD format
+    return new Date().toISOString().split('T')[0];
+  });
 
   // Fetch queue data
   const { data: queueResponse, isLoading } = useQueueData({
     branch_id: parseInt(branchId),
-    date: today,
+    date: selectedDate,
     sort_by: 'actual_sequence',
     limit: showAll ? undefined : 10,
     enabled: isOpen,
@@ -125,7 +158,9 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
   const queueItems = queueResponse?.queue_items || [];
   
   // Filter active items only
-  const activeItems = queueItems
+  const activeItems = queueItems.filter(item => 
+    item.status !== 'completed' && item.status !== 'cancelled'
+  );
   
   const sortedItems = activeItems.sort((a, b) => {
     // Sort by status first (in_consultation, then waiting), then by actual_sequence
@@ -142,6 +177,10 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
 
   const displayItems = showAll ? sortedItems : sortedItems.slice(0, 4);
 
+  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(event.target.value);
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -156,7 +195,7 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
       {/* Drawer */}
       <div 
         className={cn(
-          "fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-xl z-50",
+          "fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-50",
           "transform transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
@@ -177,6 +216,23 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
           </Button>
         </div>
 
+        {/* Date Filter */}
+        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-4 w-4 text-gray-500" />
+            <Label htmlFor="queue-date" className="text-sm font-medium text-gray-700">
+              Date:
+            </Label>
+            <Input
+              id="queue-date"
+              type="date"
+              value={selectedDate}
+              onChange={handleDateChange}
+              className="flex-1 h-8 text-sm"
+            />
+          </div>
+        </div>
+
         {/* Stats */}
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center justify-between text-sm">
@@ -195,7 +251,7 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
         </div>
 
         {/* Queue List */}
-        <ScrollArea className="flex-1 max-h-[calc(100vh-180px)]">
+        <ScrollArea className="flex-1 max-h-[calc(100vh-240px)]">
           <div className="divide-y divide-gray-100">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -205,7 +261,7 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
             ) : displayItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <Users className="h-12 w-12 text-gray-300 mb-3" />
-                <p className="text-sm">No patients in queue</p>
+                <p className="text-sm">No patients in queue for {selectedDate}</p>
               </div>
             ) : (
               displayItems.map((item, index) => (
