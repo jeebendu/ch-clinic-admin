@@ -1,3 +1,4 @@
+import { Value } from "@radix-ui/react-select";
 
 export interface VisitFilter {
   patientName?: string;
@@ -30,8 +31,8 @@ export const VISIT_STATUS_OPTIONS = [
 ];
 
 export const VISIT_TYPE_OPTIONS = [
-  { id: 'consultation', label: 'Consultation' },
-  { id: 'follow_up', label: 'Follow Up' },
-  { id: 'emergency', label: 'Emergency' },
-  { id: 'routine_checkup', label: 'Routine Checkup' }
+  { value: 'consultation', label: 'Consultation' },
+  { value: 'follow_up', label: 'Follow Up' },
+  { value: 'emergency', label: 'Emergency' },
+  { value: 'routine_checkup', label: 'Routine Checkup' }
 ];

@@ -19,4 +19,13 @@ export interface Visit {
   referralDoctorName?: string | null;
   createdTime?: string;
   //[key: string]: any;
+
+  // newly added from backend
+  historyOf?: string;
+  remark?: string;
+  nextFollowUpDate?: string;
+  postConsultationRemark?: string;
+  
 }
+
+
