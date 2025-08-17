@@ -21,6 +21,7 @@ interface PatientTableProps {
   onView?: (patient: Patient) => void;
   loading?: boolean;
   onPatientClick?: (patient: Patient) => void;
+  showPaymentInfo?: boolean; // New prop to control payment visibility
 }
 
 const PatientTable = ({ 
@@ -29,11 +30,10 @@ const PatientTable = ({
   onEdit, 
   onView, 
   loading,
-  onPatientClick 
+  onPatientClick,
+  showPaymentInfo = false // Default to false for patient table
 }: PatientTableProps) => {
   const navigate = useNavigate();
-
-
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
@@ -46,6 +46,7 @@ const PatientTable = ({
             <TableHead>Last Visit</TableHead>
             <TableHead>Total Visit</TableHead>
             <TableHead>Doctor</TableHead>
+            {showPaymentInfo && <TableHead>Payment Status</TableHead>}
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -72,6 +73,11 @@ const PatientTable = ({
                 <TableCell>
                   <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
                 </TableCell>
+                {showPaymentInfo && (
+                  <TableCell>
+                    <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                  </TableCell>
+                )}
                 <TableCell className="text-right">
                   <div className="animate-pulse bg-gray-200 h-4 w-20 ml-auto rounded"></div>
                 </TableCell>
@@ -79,7 +85,7 @@ const PatientTable = ({
             ))
           ) : patients.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+              <TableCell colSpan={showPaymentInfo ? 9 : 8} className="text-center py-6 text-muted-foreground">
                 No patients found
               </TableCell>
             </TableRow>
@@ -91,19 +97,25 @@ const PatientTable = ({
               >
                 <TableCell className="font-medium">
                   <p>{patient.fullName || `${patient.firstname} ${patient.lastname}`}</p>
-                  
-                  <p>{patient.uid}</p>
+                  <p className="text-sm text-muted-foreground">{patient.uid}</p>
                 </TableCell>
-                <TableCell>{patient.gender}/ {patient.age?patient.age:"NA"}</TableCell>
+                <TableCell>{patient.gender}/ {patient.age ? patient.age : "NA"}</TableCell>
                 <TableCell>
                   <p>{patient.user?.phone}</p>
-                  <p>{patient.user?.email}</p>
+                  <p className="text-sm text-muted-foreground">{patient.user?.email}</p>
                 </TableCell>
                 <TableCell>
                   {patient.lastVisit ? format(new Date(patient.lastVisit), 'dd MMM yyyy') : 'No visits'}
                 </TableCell>
                 <TableCell>N/A</TableCell>
                 <TableCell>N/A</TableCell>
+                {showPaymentInfo && (
+                  <TableCell>
+                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                      No pending
+                    </span>
+                  </TableCell>
+                )}
                 <TableCell>
                   <span className={`px-2 py-1 text-xs rounded-full ${patient.createdTime ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {patient.createdTime ? 'Active' : 'Inactive'}
@@ -124,7 +136,6 @@ const PatientTable = ({
                     </Button>
                   )}
 
-                  
                   {onEdit && (
                     <Button 
                       variant="ghost" 
