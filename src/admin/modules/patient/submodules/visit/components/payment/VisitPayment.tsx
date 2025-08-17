@@ -88,7 +88,7 @@ const VisitPayment: React.FC<VisitPaymentProps> = ({
   };
 
   return (
-    <>
+   
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -203,12 +203,7 @@ const VisitPayment: React.FC<VisitPaymentProps> = ({
         </CardContent>
       </Card>
 
-      <PaymentDialog
-        visit={visit}
-        isOpen={isPaymentDialogOpen}
-        onClose={handleClosePaymentDialog}
-      />
-    </>
+      
   );
 };
 
