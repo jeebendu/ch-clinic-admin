@@ -1,221 +1,202 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { AdminLayout } from "@/admin/components/AdminLayout";
+import { useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Loader2, Plus } from "lucide-react";
 import PageHeader from "@/admin/components/PageHeader";
-import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import visitService from "../services/visitService";
-import VisitTable from "../components/VisitTable";
-import VisitCardList from "../components/VisitCardList";
+import { VisitList } from "../components/VisitList";
+import { VisitTable } from "../components/VisitTable";
+import { VisitCalendar } from "../components/VisitCalendar";
+import { VisitGrid } from "../components/VisitGrid";
 import VisitFormDialog from "../components/VisitFormDialog";
-import VisitFilterCard from "../components/VisitFilterCard";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog";
-import { useVisitFilters } from "../hooks/useVisitFilters";
-import { VisitFilter } from "../types/VisitFilter";
-import { useBranchFilter } from "@/hooks/use-branch-filter";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { useVisitActions } from "../hooks/useVisitActions";
+import visitService from "../services/visitService";
+import { Visit } from "../types/Visit";
 
 const VisitListPage = () => {
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>(isMobile ? 'list' : 'grid');
-  const [showFilter, setShowFilter] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(10);
-  const [currentFilters, setCurrentFilters] = useState<VisitFilter>({});
-  
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [visitToDelete, setVisitToDelete] = useState<number | null>(null);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingVisit, setEditingVisit] = useState<any>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const { selectedBranch } = useBranchFilter();
+  const [viewMode, setViewMode] = useState<'list' | 'table' | 'calendar' | 'grid'>('table');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['visits', page, size, currentFilters, selectedBranch],
-    queryFn: async () => {
-      const response = await visitService.list(page, size, currentFilters);
-      return response;
+  const {
+    selectedVisit,
+    editDialogOpen,
+    setEditDialogOpen,
+  } = useVisitActions();
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['visits', searchTerm],
+    queryFn: ({ pageParam = 0 }) => {
+      console.log('🔄 Fetching visits - page:', pageParam, 'search:', searchTerm);
+      return visitService.getAllVisits(pageParam, 10, searchTerm);
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      console.log('📄 Getting next page param:', {
+        currentPage: lastPage.number,
+        hasNext: lastPage.hasNext,
+        totalPages: lastPage.totalPages
+      });
+      if (!lastPage.hasNext) return undefined;
+      return lastPage.number + 1;
     },
   });
 
-  // Effect to refetch data when branch changes
-  useEffect(() => {
-    refetch();
-  }, [selectedBranch, refetch]);
-
-  // Visit filters hook
-  const {
-    filterState,
-    updateSearchTerm,
-    updateFilter,
-    updateDateRange,
-    clearFilters
-  } = useVisitFilters((filters: VisitFilter) => {
-    setCurrentFilters(filters);
-    setPage(0); // Reset to first page when filters change
+  // Enable auto-scroll with explicit rootRef
+  const { loadMoreRef } = useAutoScroll({
+    hasNextPage: hasNextPage || false,
+    isFetchingNextPage,
+    fetchNextPage,
+    rootRef: scrollContainerRef
   });
 
-  // Extract visits from the response
-  const visits = data?.content || (Array.isArray(data) ? data : []);
+  // Flatten all pages into a single array
+  const allVisits: Visit[] = data?.pages.flatMap(page => page.content) || [];
+  const totalElements = data?.pages[0]?.totalElements || 0;
+
+  const handleViewModeToggle = () => {
+    const modes: Array<'list' | 'table' | 'calendar' | 'grid'> = ['table', 'list', 'calendar', 'grid'];
+    const currentIndex = modes.indexOf(viewMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setViewMode(modes[nextIndex]);
+  };
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    updateSearchTerm(value);
   };
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleSizeChange = (newSize: number) => {
-    setSize(newSize);
-    setPage(0);
-  };
-
-  const toggleViewMode = () => {
-    setViewMode(viewMode === 'list' ? 'grid' : 'list');
-  };
-
-  const handleDeleteVisit = (id: number) => {
-    setVisitToDelete(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (visitToDelete === null) return;
-    
-    try {
-      await visitService.deleteById(visitToDelete);
-      toast({
-        title: "Visit deleted",
-        description: "Visit has been successfully deleted.",
-        className: "bg-clinic-primary text-white"
-      });
-      refetch();
-      setDeleteDialogOpen(false);
-      setVisitToDelete(null);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete visit.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEditVisit = (visit: any) => {
-    setEditingVisit(visit);
-    setShowAddDialog(true);
+  const handleRefresh = () => {
+    refetch();
   };
 
   const handleAddVisit = () => {
-    setEditingVisit(null);
-    setShowAddDialog(true);
+    setAddDialogOpen(true);
   };
 
-  const totalElements = data?.totalElements || visits.length || 0;
-  const loadedElements = visits.length || 0;
+  const handleVisitSave = (visit?: Visit) => {
+    // Refresh the visit list after save
+    refetch();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading visits...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-red-600">Error loading visits: {error?.message}</p>
+        <Button onClick={() => refetch()}>Try Again</Button>
+      </div>
+    );
+  }
+
+  const renderContent = () => {
+    switch (viewMode) {
+      case 'list':
+        return <VisitList visits={allVisits} />;
+      case 'table':
+        return <VisitTable visits={allVisits} />;
+      case 'calendar':
+        return <VisitCalendar visits={allVisits} />;
+      case 'grid':
+        return <VisitGrid visits={allVisits} />;
+      default:
+        return <VisitTable visits={allVisits} />;
+    }
+  };
 
   return (
-    <>
-      <div className="space-y-4">
-        <PageHeader 
-          title="Visits" 
+    <div className="space-y-6">
+        <PageHeader
+          title="Patient Visits"
+          description="Manage patient visits and appointments"
           viewMode={viewMode}
-          onViewModeToggle={toggleViewMode}
-          showAddButton={true}
-          addButtonLabel="Add Visit"
-          onAddButtonClick={handleAddVisit}
-          onRefreshClick={() => refetch()}
-          loadedElements={loadedElements}
+          onViewModeToggle={handleViewModeToggle}
+          onRefreshClick={handleRefresh}
+          loadedElements={allVisits.length}
           totalElements={totalElements}
           onSearchChange={handleSearchChange}
           searchValue={searchTerm}
-          showFilter={true}
-          onFilterToggle={() => setShowFilter(!showFilter)}
+          showAddButton={true}
+          addButtonLabel="New Visit"
+          onAddButtonClick={handleAddVisit}
         />
+        
+     
 
-        {showFilter && (
-          <VisitFilterCard
-            searchTerm={filterState.searchTerm}
-            onSearchChange={updateSearchTerm}
-            selectedFilters={filterState.selectedFilters}
-            onFilterChange={updateFilter}
-            onClearFilters={clearFilters}
-            dateRange={filterState.dateRange}
-            onDateRangeChange={updateDateRange}
-          />
+      {/* Main content container with explicit height and overflow */}
+      <div
+        ref={scrollContainerRef}
+        className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto"
+      >
+        {renderContent()}
+
+        {/* Loading indicator */}
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2">Loading more visits...</span>
+          </div>
         )}
 
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Loading visits...</p>
+        {/* End of results indicator */}
+        {!hasNextPage && allVisits.length > 0 && (
+          <div className="text-center py-4 text-muted-foreground">
+            <p>No more visits to load</p>
+            <p className="text-sm">Showing {allVisits.length} of {totalElements} visits</p>
           </div>
-        ) : error ? (
-          <div className="flex items-center justify-center h-64">
-            <p className="text-destructive">Error loading visits. Please try again.</p>
+        )}
+
+        {/* Empty state */}
+        {allVisits.length === 0 && !isLoading && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No visits found</p>
           </div>
-        ) : (
-          <div ref={contentRef} className="overflow-auto max-h-[calc(100vh-180px)]">
-            {viewMode === 'grid' ? (
-              <VisitTable 
-                visits={visits} 
-                onDelete={handleDeleteVisit}
-                onEdit={handleEditVisit}
-                loading={isLoading}
-              />
-            ) : (
-              <VisitCardList 
-                visits={visits} 
-                onDelete={handleDeleteVisit}
-                onEdit={handleEditVisit}
-                loading={isLoading}
-              />
-            )}
+        )}
+
+        {/* Sentinel: placed at the bottom to trigger auto-load when visible */}
+        {hasNextPage && (
+          <div
+            ref={loadMoreRef}
+            className="h-10 flex items-center justify-center bg-muted/20 rounded border-2 border-dashed border-muted-foreground/20"
+          >
+            <span className="text-xs text-muted-foreground">Load More Trigger Zone</span>
           </div>
         )}
       </div>
-      
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the visit
-              and remove all associated data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setVisitToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
+      {/* Add Visit Dialog */}
       <VisitFormDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        visit={editingVisit}
-        onSuccess={() => {
-          refetch();
-          setShowAddDialog(false);
-          setEditingVisit(null);
-        }}
+        isOpen={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        onSave={handleVisitSave}
       />
-    </>
+
+      {/* Edit Visit Dialog */}
+      <VisitFormDialog
+        isOpen={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        onSave={handleVisitSave}
+        visit={selectedVisit}
+      />
+    </div>
   );
 };
 
