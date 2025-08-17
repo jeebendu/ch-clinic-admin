@@ -4,16 +4,27 @@ import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { QueueDrawer } from '@/admin/modules/queue/components/QueueDrawer';
-import { useQueueCount } from '@/hooks/useQueueData';
+import { QueueDrawer } from './QueueDrawer';
+import { useQueuePreview } from '@/hooks/useQueueData';
+import { useBranchFilter } from '@/hooks/use-branch-filter';
 
 const FloatingQueueButton: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { selectedBranch } = useBranchFilter();
 
-  // Only fetch count for the floating button
-  const { data: queueCount = 0, isLoading } = useQueueCount({
-    // Add any default params if needed
+  const { data: queueResponse, isLoading } = useQueuePreview({
+    branch_id: selectedBranch ? parseInt(selectedBranch) : undefined,
+    date: new Date().toISOString().split('T')[0],
+    enabled: !!selectedBranch,
   });
+
+  const queueItems = queueResponse?.queue_items || [];
+  const waitingCount = queueItems.filter(item => item.status === 'waiting').length;
+  const inConsultationCount = queueItems.filter(item => item.status === 'in_consultation').length;
+
+  if (!selectedBranch) {
+    return null; // Don't show button if no branch is selected
+  }
 
   return (
     <>
@@ -26,25 +37,29 @@ const FloatingQueueButton: React.FC = () => {
           "transition-all duration-300 hover:scale-110",
           "md:h-16 md:w-16"
         )}
-        disabled={isLoading}
       >
         <div className="flex flex-col items-center">
           <Users className="h-5 w-5 md:h-6 md:w-6" />
-          {queueCount > 0 && (
+          {waitingCount > 0 && (
             <Badge 
               variant="destructive" 
               className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs"
             >
-              {queueCount}
+              {waitingCount}
             </Badge>
           )}
         </div>
       </Button>
 
-      {/* Queue Drawer - will fetch its own data when opened */}
+      {/* Queue Drawer */}
       <QueueDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+        queueItems={queueItems}
+        isLoading={isLoading}
+        waitingCount={waitingCount}
+        inConsultationCount={inConsultationCount}
+        branchId={selectedBranch}
       />
     </>
   );
