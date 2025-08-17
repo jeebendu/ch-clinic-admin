@@ -1,15 +1,12 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, Clock, DollarSign, FileText } from "lucide-react";
+import { User, Calendar, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Visit } from "../types/Visit";
 import RowActions from "@/components/ui/RowActions";
 import { useVisitActions } from "../hooks/useVisitActions";
-import { useReportsActions } from "../hooks/useReportsActions";
 import PaymentDialog from "./PaymentDialog";
-import ReportsDialog from "./ReportsDialog";
 
 interface VisitListProps {
   visits: Visit[];
@@ -19,7 +16,6 @@ interface VisitListProps {
   onEditVisit?: (visit: Visit) => void;
   onViewDetails?: (visit: Visit) => void;
   onMarkPayment?: (visit: Visit) => void;
-  onViewReports?: (visit: Visit) => void;
 }
 
 export const VisitList: React.FC<VisitListProps> = ({ 
@@ -29,8 +25,7 @@ export const VisitList: React.FC<VisitListProps> = ({
   onEdit,
   onEditVisit,
   onViewDetails,
-  onMarkPayment,
-  onViewReports
+  onMarkPayment
 }) => {
 
   const { 
@@ -40,13 +35,6 @@ export const VisitList: React.FC<VisitListProps> = ({
     paymentDialogOpen,
     setPaymentDialogOpen
   } = useVisitActions();
-
-  const {
-    selectedVisit: selectedReportsVisit,
-    reportsDialogOpen,
-    openReportsDialog,
-    closeReportsDialog
-  } = useReportsActions();
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -77,7 +65,6 @@ export const VisitList: React.FC<VisitListProps> = ({
   };
 
   const handleVisitClick = (visit: Visit) => {
-    // Handle visit click
   };
 
   if (loading) {
@@ -108,19 +95,6 @@ export const VisitList: React.FC<VisitListProps> = ({
   const getCustomizedActions = (visit: Visit) => {
     const primaryActions = getPrimaryVisitActions(visit);
     const secondaryActions = getSecondaryVisitActions(visit);
-
-    // Add Reports action to primary actions
-    const reportsAction = {
-      label: "View Reports",
-      icon: FileText,
-      onClick: () => {
-        if (onViewReports) {
-          onViewReports(visit);
-        } else {
-          openReportsDialog(visit);
-        }
-      }
-    };
 
     // Override view details action if page-level handler provided
     if (onViewDetails) {
@@ -155,7 +129,7 @@ export const VisitList: React.FC<VisitListProps> = ({
       }
     }
 
-    return [reportsAction, ...primaryActions, ...secondaryActions];
+    return [...primaryActions, ...secondaryActions];
   };
 
   return (
@@ -175,16 +149,16 @@ export const VisitList: React.FC<VisitListProps> = ({
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-blue-600" />
-                          <span className="font-semibold text-md">{visit.patient?.firstname } {visit.patient?.lastname }</span>
+                          <span className="font-semibold text-md">{visit.patient.firstname } {visit.patient.lastname }</span>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>{visit.patient?.age}y</span>
+                          <span>{visit.patient.age}y</span>
                           <span>•</span>
-                          <span>{visit.patient?.gender}</span>
+                          <span>{visit.patient.gender}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className={`text-xs ${getStatusColor(visit.status || '')}`}>
+                        <Badge className={`text-xs ${getStatusColor(visit.status)}`}>
                           {visit.status}
                         </Badge>
                         <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
@@ -198,17 +172,17 @@ export const VisitList: React.FC<VisitListProps> = ({
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Calendar className="h-4 w-4" />
-                          <span>{format(new Date(visit.createdTime || new Date()), 'MMM dd, yyyy')}</span>
+                          <span>{format(new Date(visit.createdTime), 'MMM dd, yyyy')}</span>
                         </div>
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Clock className="h-4 w-4" />
-                          <span>{format(new Date(visit.createdTime || new Date()), 'HH:mm')}</span>
+                          <span>{format(new Date(visit.createdTime), 'HH:mm')}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <span>Dr. {visit.consultingDoctor?.firstname} {visit.consultingDoctor?.lastname}</span>
+                        <span>Dr. {visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</span>
                         <span>•</span>
-                        <span>{visit.consultingDoctor?.specializationList?.join(", ")}</span>
+                        <span>{visit.consultingDoctor.specializationList?.join(", ")}</span>
                       </div>
                     </div>
 
@@ -225,7 +199,7 @@ export const VisitList: React.FC<VisitListProps> = ({
                       <div className="flex items-center gap-1 text-sm">
                         <DollarSign className="h-4 w-4 text-green-600" />
                         <span className="font-medium">₹{visit.paymentPaid || 0}</span>
-                        {(visit.paymentAmount || 0) > 0 && (
+                        {visit.paymentAmount > 0 && (
                           <span className="text-muted-foreground">/ ₹{visit.paymentAmount}</span>
                         )}
                       </div>
@@ -257,13 +231,6 @@ export const VisitList: React.FC<VisitListProps> = ({
         isOpen={paymentDialogOpen}
         onClose={() => setPaymentDialogOpen(false)}
         visit={selectedVisit}
-      />
-
-      {/* Reports Dialog */}
-      <ReportsDialog
-        isOpen={reportsDialogOpen}
-        onClose={closeReportsDialog}
-        visit={selectedReportsVisit}
       />
     </>
   );
