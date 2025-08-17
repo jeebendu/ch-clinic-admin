@@ -39,11 +39,7 @@ const QueuePatientItem: React.FC<{
           </Badge>
         );
       default:
-        return (
-          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-            {item.status}
-          </Badge>
-        );
+        return null;
     }
   };
 
@@ -65,19 +61,8 @@ const QueuePatientItem: React.FC<{
     });
   };
 
-  const formatPatientName = () => {
-    return item.patient_name || `Patient #${item.patient_id}`;
-  };
-
-  const formatPatientDetails = () => {
-    const details = [];
-    if (item.patient_age) details.push(`${item.patient_age}y`);
-    if (item.patient_gender) details.push(item.patient_gender);
-    return details.join(' • ');
-  };
-
   return (
-    <div className="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+    <div className="flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <div className="flex items-center space-x-3 flex-1">
         {/* Sequence Number */}
         <div className="flex-shrink-0 w-8 h-8 bg-clinic-primary/10 text-clinic-primary rounded-full flex items-center justify-center text-sm font-medium">
@@ -86,24 +71,34 @@ const QueuePatientItem: React.FC<{
         
         <div className="flex-1 min-w-0">
           {/* Patient Info */}
-          <p className="text-sm font-medium text-gray-900 truncate">
-            {formatPatientName()}
-          </p>
-          
-          {/* Patient Details - Age and Gender */}
-          {formatPatientDetails() && (
-            <p className="text-xs text-gray-600 mb-1">
-              {formatPatientDetails()}
+          <div className="flex items-center space-x-2 mb-1">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {item.patient_name || `Patient #${item.patient_id}`}
             </p>
-          )}
+            {item.patient_age && (
+              <>
+                <span className="text-xs text-gray-300">•</span>
+                <span className="text-xs text-gray-600">{item.patient_age}y</span>
+              </>
+            )}
+            {item.patient_gender && (
+              <>
+                <span className="text-xs text-gray-300">•</span>
+                <span className="text-xs text-gray-600 capitalize">{item.patient_gender}</span>
+              </>
+            )}
+          </div>
           
           {/* Mobile Number */}
           {item.patient_mobile && (
             <div className="flex items-center space-x-1 mb-1">
               <Phone className="h-3 w-3 text-gray-400" />
-              <span className="text-xs text-gray-600">
+              <a 
+                href={`tel:${item.patient_mobile}`}
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+              >
                 {item.patient_mobile}
-              </span>
+              </a>
             </div>
           )}
           
@@ -136,22 +131,35 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
 }) => {
   const [showAll, setShowAll] = useState(false);
 
-  // Get today's date in YYYY-MM-DD format
-  //const today = new Date().toISOString().split('T')[0];
-  const today = new Date("2025-08-14").toISOString().split("T")[0];
+  // Get today's date
+  const today = new Date().toISOString().split('T')[0];
 
-  // Fetch queue data
-  const { data: queueResponse, isLoading } = useQueueData({
+  // Fetch preview data (first 4 items)
+  const { data: previewResponse, isLoading: previewLoading } = useQueueData({
     branch_id: parseInt(branchId),
     date: today,
     sort_by: 'actual_sequence',
-    limit: showAll ? undefined : 10,
-    enabled: isOpen,
+    limit: 4,
+    enabled: isOpen && !showAll,
   });
 
+  // Fetch full queue data when showing all items
+  const { data: fullQueueResponse, isLoading: fullLoading } = useQueueData({
+    branch_id: parseInt(branchId),
+    date: today,
+    sort_by: 'actual_sequence',
+    enabled: isOpen && showAll,
+  });
+
+  // Determine which data to use
+  const queueResponse = showAll ? fullQueueResponse : previewResponse;
+  const isLoading = showAll ? fullLoading : previewLoading;
   const queueItems = queueResponse?.queue_items || [];
-  
-  // Filter active items only
+
+  console.log("QueueDrawer - API Response:", queueResponse);
+  console.log("QueueDrawer - Queue Items:", queueItems);
+
+  // Filter and sort queue items - active items only
   const activeItems = queueItems.filter(item => 
     item.status === 'waiting' || item.status === 'in_consultation'
   );
@@ -166,10 +174,8 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
   });
 
   // Calculate counts
-  const waitingCount = queueItems.filter(item => item.status === 'waiting').length;
-  const inConsultationCount = queueItems.filter(item => item.status === 'in_consultation').length;
-
-  const displayItems = showAll ? sortedItems : sortedItems.slice(0, 4);
+  const waitingCount = activeItems.filter(item => item.status === 'waiting').length;
+  const inConsultationCount = activeItems.filter(item => item.status === 'in_consultation').length;
 
   return (
     <>
@@ -223,44 +229,61 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
           </div>
         </div>
 
-        {/* Queue List */}
-        <ScrollArea className="flex-1 max-h-[calc(100vh-180px)]">
-          <div className="divide-y divide-gray-100">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-4 w-4 bg-clinic-primary rounded-full animate-pulse mr-2" />
-                <span className="text-sm text-gray-500">Loading queue...</span>
-              </div>
-            ) : displayItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                <Users className="h-12 w-12 text-gray-300 mb-3" />
-                <p className="text-sm">No patients in queue</p>
-              </div>
-            ) : (
-              displayItems.map((item, index) => (
-                <QueuePatientItem
-                  key={item.patient_schedule_id}
-                  item={item}
-                  sequenceNumber={index + 1}
-                />
-              ))
-            )}
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-clinic-primary"></div>
           </div>
-        </ScrollArea>
+        ) : (
+          <>
+            {/* Queue List */}
+            <ScrollArea className="flex-1 max-h-[calc(100vh-180px)]">
+              <div className="divide-y divide-gray-100">
+                {sortedItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                    <Users className="h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-sm">No patients in queue</p>
+                  </div>
+                ) : (
+                  sortedItems.map((item, index) => (
+                    <QueuePatientItem
+                      key={item.patient_schedule_id}
+                      item={item}
+                      sequenceNumber={index + 1}
+                    />
+                  ))
+                )}
+              </div>
+            </ScrollArea>
 
-        {/* Footer */}
-        {sortedItems.length > 4 && (
-          <div className="p-4 border-t border-gray-200 bg-white">
-            <Button
-              variant="outline"
-              onClick={() => setShowAll(!showAll)}
-              className="w-full"
-              disabled={isLoading}
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              {showAll ? 'Show Less' : `View All (${sortedItems.length})`}
-            </Button>
-          </div>
+            {/* Footer */}
+            {!showAll && queueItems.length >= 4 && (
+              <div className="p-4 border-t border-gray-200 bg-white">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAll(true)}
+                  className="w-full"
+                  disabled={fullLoading}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  {fullLoading ? 'Loading...' : 'View All'}
+                </Button>
+              </div>
+            )}
+            
+            {showAll && (
+              <div className="p-4 border-t border-gray-200 bg-white">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAll(false)}
+                  className="w-full"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Show Less
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>
