@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { User, Calendar, Clock, DollarSign } from "lucide-react";
@@ -6,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Visit } from "../types/Visit";
 import RowActions from "@/components/ui/RowActions";
 import { useVisitActions } from "../hooks/useVisitActions";
+import PaymentDialog from "./PaymentDialog";
 
 interface VisitListProps {
   visits: Visit[];
@@ -27,7 +29,13 @@ export const VisitList: React.FC<VisitListProps> = ({
   onMarkPayment
 }) => {
 
-  const { getPrimaryVisitActions, getSecondaryVisitActions } = useVisitActions();
+  const { 
+    getPrimaryVisitActions, 
+    getSecondaryVisitActions,
+    selectedVisit,
+    paymentDialogOpen,
+    setPaymentDialogOpen
+  } = useVisitActions();
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -113,7 +121,7 @@ export const VisitList: React.FC<VisitListProps> = ({
 
     // Override payment action if page-level handler provided
     if (onMarkPayment) {
-      const paymentActionIndex = primaryActions.findIndex(action => action.label === "Mark Payment");
+      const paymentActionIndex = primaryActions.findIndex(action => action.label === "Mark/Add Payment");
       if (paymentActionIndex !== -1) {
         primaryActions[paymentActionIndex] = {
           ...primaryActions[paymentActionIndex],
@@ -126,96 +134,105 @@ export const VisitList: React.FC<VisitListProps> = ({
   };
 
   return (
-    <div className="space-y-3">
-      {visits.map((visit) => (
-        <Card 
-              key={visit.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => handleVisitClick(visit)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 space-y-3">
-                    {/* Header Row */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+    <>
+      <div className="space-y-3">
+        {visits.map((visit) => (
+          <Card 
+                key={visit.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => handleVisitClick(visit)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 space-y-3">
+                      {/* Header Row */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-blue-600" />
+                            <span className="font-semibold text-md">{visit.patient.firstname } {visit.patient.lastname }</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <span>{visit.patient.age}y</span>
+                            <span>•</span>
+                            <span>{visit.patient.gender}</span>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-blue-600" />
-                          <span className="font-semibold text-md">{visit.patient.firstname } {visit.patient.lastname }</span>
+                          <Badge className={`text-xs ${getStatusColor(visit.status)}`}>
+                            {visit.status}
+                          </Badge>
+                          <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
+                            {visit.paymentStatus}
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>{visit.patient.age}y</span>
+                      </div>
+
+                      {/* Second Row - Doctor & Date */}
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            <span>{format(new Date(visit.createdTime), 'MMM dd, yyyy')}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            <span>{format(new Date(visit.createdTime), 'HH:mm')}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <span>Dr. {visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</span>
                           <span>•</span>
-                          <span>{visit.patient.gender}</span>
+                          <span>{visit.consultingDoctor.specializationList?.join(", ")}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={`text-xs ${getStatusColor(visit.status)}`}>
-                          {visit.status}
-                        </Badge>
-                        <Badge className={`text-xs ${getPaymentStatusColor(visit.paymentStatus)}`}>
-                          {visit.paymentStatus}
-                        </Badge>
-                      </div>
-                    </div>
 
-                    {/* Second Row - Doctor & Date */}
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>{format(new Date(visit.createdTime), 'MMM dd, yyyy')}</span>
+                      {/* Third Row - Visit Details */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-sm">
+                          <Badge variant="outline" className="text-xs">
+                            {visit.type}
+                          </Badge>
+                          <span className="text-muted-foreground max-w-xs">
+                            {visit.complaints}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span>{format(new Date(visit.createdTime), 'HH:mm')}</span>
+                        <div className="flex items-center gap-1 text-sm">
+                          <DollarSign className="h-4 w-4 text-green-600" />
+                          <span className="font-medium">₹{visit.paymentPaid || 0}</span>
+                          {visit.paymentAmount > 0 && (
+                            <span className="text-muted-foreground">/ ₹{visit.paymentAmount}</span>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <span>Dr. {visit.consultingDoctor.firstname} {visit.consultingDoctor.lastname}</span>
-                        <span>•</span>
-                        <span>{visit.consultingDoctor.specializationList?.join(", ")}</span>
-                      </div>
+
+                      {/* Reference Doctor if exists */}
+                      {visit.referralDoctorName && (
+                        <div className="text-xs text-muted-foreground">
+                          Referred by: {visit.referralDoctorName}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Third Row - Visit Details */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm">
-                        <Badge variant="outline" className="text-xs">
-                          {visit.type}
-                        </Badge>
-                        <span className="text-muted-foreground max-w-xs">
-                          {visit.complaints}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <DollarSign className="h-4 w-4 text-green-600" />
-                        <span className="font-medium">₹{visit.paymentPaid || 0}</span>
-                        {visit.paymentAmount > 0 && (
-                          <span className="text-muted-foreground">/ ₹{visit.paymentAmount}</span>
-                        )}
-                      </div>
+                    {/* Actions */}
+                    <div className="ml-4">
+                      <RowActions 
+                        actions={getCustomizedActions(visit)} 
+                        maxVisibleActions={5}
+                      />
                     </div>
-
-                    {/* Reference Doctor if exists */}
-                    {visit.referralDoctorName && (
-                      <div className="text-xs text-muted-foreground">
-                        Referred by: {visit.referralDoctorName}
-                      </div>
-                    )}
                   </div>
+                </CardContent>
+              </Card>
+        ))}
+      </div>
 
-                  {/* Actions */}
-                  <div className="ml-4">
-                    <RowActions 
-                      actions={getCustomizedActions(visit)} 
-                      maxVisibleActions={5}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-      ))}
-    </div>
+      {/* Payment Dialog */}
+      <PaymentDialog
+        isOpen={paymentDialogOpen}
+        onClose={() => setPaymentDialogOpen(false)}
+        visit={selectedVisit}
+      />
+    </>
   );
 };

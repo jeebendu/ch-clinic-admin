@@ -24,6 +24,7 @@ export const useVisitActions = () => {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
   const handleViewDetails = (visit: Visit) => {
     console.log('Viewing visit details:', visit);
@@ -33,7 +34,8 @@ export const useVisitActions = () => {
 
   const handleMarkPayment = (visit: Visit) => {
     console.log('Mark/Add payment for visit:', visit);
-    // Add your payment logic here
+    setSelectedVisit(visit);
+    setPaymentDialogOpen(true);
   };
 
   const handleGenerateInvoice = (visit: Visit) => {
@@ -244,6 +246,8 @@ export const useVisitActions = () => {
     setEditDialogOpen,
     detailsModalOpen,
     setDetailsModalOpen,
+    paymentDialogOpen,
+    setPaymentDialogOpen,
     getPrimaryVisitActions,
     getSecondaryVisitActions,
     getVisitActions,
