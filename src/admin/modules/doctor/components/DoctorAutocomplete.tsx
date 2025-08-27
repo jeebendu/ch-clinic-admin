@@ -1,9 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Doctor } from '../types/Doctor';
 import DoctorService from '../services/doctorService';
@@ -21,33 +20,13 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
   placeholder = "Search doctors...",
   className
 }) => {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [popoverWidth, setPopoverWidth] = useState<number | undefined>(undefined);
-
-  // Keep popover width equal to the input width
-  useEffect(() => {
-    const updateWidth = () => {
-      if (inputRef.current) {
-        setPopoverWidth(inputRef.current.offsetWidth);
-      }
-    };
-    updateWidth();
-
-    // Track input size changes
-    const ro = new ResizeObserver(updateWidth);
-    if (inputRef.current) ro.observe(inputRef.current);
-    window.addEventListener('resize', updateWidth);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', updateWidth);
-    };
-  }, []);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Load all doctors on component mount
   useEffect(() => {
@@ -93,20 +72,34 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     }
   }, [value]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target as Node) &&
+        !inputRef.current?.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleSelect = (doctor: Doctor) => {
     console.log('Selecting doctor:', doctor);
     onSelect(doctor);
     setSearchValue(`${doctor.firstname} ${doctor.lastname}`);
-    setOpen(false);
-    // keep focus on input after selection for better UX
-    setTimeout(() => inputRef.current?.focus(), 100);
+    setIsOpen(false);
   };
 
   const handleClear = () => {
     onSelect(null);
     setSearchValue("");
-    setOpen(false);
-    setTimeout(() => inputRef.current?.focus(), 100);
+    setIsOpen(false);
+    inputRef.current?.focus();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,107 +112,107 @@ const DoctorAutocomplete: React.FC<DoctorAutocompleteProps> = ({
     }
     
     // Open dropdown when user starts typing
-    if (!open) {
-      setOpen(true);
+    if (!isOpen) {
+      setIsOpen(true);
     }
   };
 
   const handleInputClick = () => {
-    setOpen(true);
+    setIsOpen(true);
   };
 
-  const handleInputFocus = () => {
-    setOpen(true);
-  };
-
-  // Pressing Enter selects the first visible doctor
-  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (filteredDoctors.length > 0) {
         handleSelect(filteredDoctors[0]);
       }
     }
-    // Escape to close
     if (e.key === 'Escape') {
-      setOpen(false);
+      setIsOpen(false);
     }
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div className="relative">
-          <Input
-            ref={inputRef}
-            type="text"
-            placeholder={placeholder}
-            value={searchValue}
-            onChange={handleInputChange}
-            onClick={handleInputClick}
-            onFocus={handleInputFocus}
-            onKeyDown={handleKeyDown}
-            autoComplete="off"
-            className={cn("pr-10", className)}
+    <div className={cn("relative", className)}>
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          type="text"
+          placeholder={placeholder}
+          value={searchValue}
+          onChange={handleInputChange}
+          onClick={handleInputClick}
+          onKeyDown={handleKeyDown}
+          autoComplete="off"
+          className="pr-20"
+        />
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+          {value && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="h-6 w-6 p-0 hover:bg-gray-100"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+          <ChevronDown 
+            className={cn(
+              "h-4 w-4 text-gray-400 transition-transform",
+              isOpen && "rotate-180"
+            )} 
           />
-          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         </div>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 z-50" style={{ width: popoverWidth }}>
-        <Command shouldFilter={false}>
-          <CommandList>
-            {loading ? (
-              <CommandEmpty>Loading doctors...</CommandEmpty>
-            ) : filteredDoctors.length === 0 ? (
-              <CommandEmpty>No doctors found.</CommandEmpty>
-            ) : (
-              <CommandGroup>
-                {filteredDoctors.map((doctor) => (
-                  <CommandItem
-                    key={doctor.id}
-                    onSelect={(currentValue) => {
-                      console.log('Command item selected:', currentValue);
-                      handleSelect(doctor);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value?.id === doctor.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-medium">
-                        {doctor.firstname} {doctor.lastname}
+      </div>
+
+      {isOpen && (
+        <div
+          ref={dropdownRef}
+          className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto bg-white border border-gray-200 rounded-md shadow-lg"
+        >
+          {loading ? (
+            <div className="p-3 text-sm text-gray-500">Loading doctors...</div>
+          ) : filteredDoctors.length === 0 ? (
+            <div className="p-3 text-sm text-gray-500">No doctors found.</div>
+          ) : (
+            <div className="py-1">
+              {filteredDoctors.map((doctor) => (
+                <div
+                  key={doctor.id}
+                  onClick={() => handleSelect(doctor)}
+                  className="flex items-center px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm"
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value?.id === doctor.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex flex-col flex-1">
+                    <span className="font-medium">
+                      {doctor.firstname} {doctor.lastname}
+                    </span>
+                    {doctor.qualification && (
+                      <span className="text-xs text-gray-500">
+                        {doctor.qualification}
                       </span>
-                      {doctor.qualification && (
-                        <span className="text-sm text-gray-500">
-                          {doctor.qualification}
-                        </span>
-                      )}
-                      {doctor.email && (
-                        <span className="text-xs text-gray-400">
-                          {doctor.email}
-                        </span>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
-                {value && (
-                  <CommandItem 
-                    onSelect={() => handleClear()} 
-                    className="cursor-pointer text-red-600"
-                  >
-                    Clear selection
-                  </CommandItem>
-                )}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                    )}
+                    {doctor.email && (
+                      <span className="text-xs text-gray-400">
+                        {doctor.email}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 
